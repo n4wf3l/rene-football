@@ -4,9 +4,20 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Player extends Model
 {
+    public function appearances(): HasMany
+    {
+        return $this->hasMany(Appearance::class)->orderBy('match_date', 'desc');
+    }
+
+    public function clips(): HasMany
+    {
+        return $this->hasMany(PlayerClip::class)->orderBy('created_at', 'desc');
+    }
+
     /** @use HasFactory<\Database\Factories\PlayerFactory> */
     use HasFactory;
 
@@ -42,6 +53,16 @@ class Player extends Model
         'clean_sheets',
         'saves',
         'heatmap_grid',
+        'comparisons',
+        'strengths',
+        'potential_rating',
+        'potential_label',
+        'scout_quote',
+        'tags',
+        'distance_avg_km',
+        'sprints_avg',
+        'top_speed_kmh',
+        'high_intensity_runs_avg',
         'is_published',
     ];
 
@@ -69,6 +90,14 @@ class Player extends Model
             'clean_sheets' => 'integer',
             'saves' => 'integer',
             'heatmap_grid' => 'array',
+            'comparisons' => 'array',
+            'strengths' => 'array',
+            'tags' => 'array',
+            'potential_rating' => 'float',
+            'distance_avg_km' => 'float',
+            'sprints_avg' => 'integer',
+            'top_speed_kmh' => 'float',
+            'high_intensity_runs_avg' => 'integer',
             'is_published' => 'boolean',
         ];
     }

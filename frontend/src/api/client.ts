@@ -36,7 +36,10 @@ async function request<T = unknown>(
   const headers: Record<string, string> = {
     Accept: 'application/json',
   }
-  if (body !== undefined) headers['Content-Type'] = 'application/json'
+  const isFormData = typeof FormData !== 'undefined' && body instanceof FormData
+  // Don't set Content-Type for FormData — the browser injects the multipart
+  // boundary automatically. JSON bodies stay explicit.
+  if (body !== undefined && !isFormData) headers['Content-Type'] = 'application/json'
   if (auth) {
     const token = getToken()
     if (token) headers.Authorization = `Bearer ${token}`
@@ -45,7 +48,10 @@ async function request<T = unknown>(
   const response = await fetch(`/api${path}`, {
     method,
     headers,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
+    body:
+      body === undefined ? undefined
+      : isFormData ? (body as FormData)
+      : JSON.stringify(body),
     signal,
   })
 

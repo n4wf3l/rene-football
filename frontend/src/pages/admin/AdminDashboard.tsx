@@ -2,10 +2,11 @@ import { useEffect, useMemo, useState } from 'react'
 import type { Icon as PhosphorIcon } from '@phosphor-icons/react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ArrowUpRight, ChartLineUp, SoccerBall, Trophy, Users } from '@phosphor-icons/react'
+import { ArrowUpRight, ChartLineUp, HandWaving, SoccerBall, Trophy, Users } from '@phosphor-icons/react'
 import { api } from '../../api/client'
 import { useAuth } from '../../auth/AuthContext'
 import type { Player } from '../../types/player'
+import Skeleton from '../../components/Skeleton'
 
 interface StatTileProps {
   icon: PhosphorIcon
@@ -69,8 +70,9 @@ function AdminDashboard() {
         transition={{ duration: 0.35 }}
       >
         <span className="eyebrow">Tableau de bord</span>
-        <h1 className="mt-2 font-display font-semibold text-3xl lg:text-4xl tracking-tight text-zinc-950 dark:text-stone-50">
-          Bonjour {user?.name?.split(' ')[0] || 'René'} 👋
+        <h1 className="mt-2 flex items-center gap-3 font-display font-semibold text-3xl lg:text-4xl tracking-tight text-zinc-950 dark:text-stone-50">
+          <span>Bonjour {user?.name?.split(' ')[0] || 'René'}</span>
+          <HandWaving size={28} weight="duotone" className="text-turf-700 dark:text-turf-300 shrink-0" />
         </h1>
         <p className="mt-2 text-zinc-600 dark:text-stone-400 max-w-prose">
           Vue d'ensemble de votre roster. Cliquez sur « Joueurs » pour mettre à jour
@@ -79,7 +81,40 @@ function AdminDashboard() {
       </motion.div>
 
       {loading ? (
-        <div className="mt-10 text-zinc-500 dark:text-stone-400 text-sm">Chargement…</div>
+        <div className="mt-8 space-y-10">
+          {/* Stat tiles skeleton */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div
+                key={i}
+                className="rounded-2xl border border-stone-200 bg-white dark:bg-zinc-900 dark:border-stone-50/8 p-5 space-y-3"
+              >
+                <Skeleton className="w-9 h-9" rounded="lg" />
+                <Skeleton className="h-3 w-24" />
+                <Skeleton className="h-7 w-20" />
+                <Skeleton className="h-2.5 w-32" />
+              </div>
+            ))}
+          </div>
+          {/* Highlight cards skeleton */}
+          <div className="grid lg:grid-cols-2 gap-4">
+            {Array.from({ length: 2 }).map((_, i) => (
+              <div
+                key={i}
+                className="rounded-2xl bg-zinc-950 dark:bg-zinc-900 p-6 space-y-4"
+              >
+                <Skeleton className="h-3 w-32 bg-stone-50/10" />
+                <Skeleton className="h-7 w-44 bg-stone-50/10" />
+                <Skeleton className="h-3 w-56 bg-stone-50/10" />
+                <div className="flex gap-6 pt-2">
+                  <Skeleton className="h-10 w-12 bg-stone-50/10" />
+                  <Skeleton className="h-10 w-12 bg-stone-50/10" />
+                  <Skeleton className="h-10 w-12 bg-stone-50/10" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       ) : !stats ? (
         <div className="mt-10 text-zinc-500 dark:text-stone-400 text-sm">Aucun joueur dans la base.</div>
       ) : (

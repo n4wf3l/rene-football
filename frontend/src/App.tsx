@@ -15,14 +15,18 @@ const PlayersPage        = lazy(() => import('./pages/PlayersPage'))
 const PlayerProfilePage  = lazy(() => import('./pages/PlayerProfilePage'))
 const ContactPage        = lazy(() => import('./pages/ContactPage'))
 const ActualitesPage     = lazy(() => import('./pages/ActualitesPage'))
+const ArticleDetailPage  = lazy(() => import('./pages/ArticleDetailPage'))
 const AProposPage        = lazy(() => import('./pages/AProposPage'))
 
 /* Admin shell + pages: never loaded for public visitors. */
 const AdminLayout    = lazy(() => import('./layouts/AdminLayout'))
 const AdminLogin     = lazy(() => import('./pages/admin/AdminLogin'))
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'))
-const AdminPlayers   = lazy(() => import('./pages/admin/AdminPlayers'))
-const AdminAnalysis  = lazy(() => import('./pages/admin/AdminAnalysis'))
+const AdminPlayers     = lazy(() => import('./pages/admin/AdminPlayers'))
+const AdminPlayerEdit  = lazy(() => import('./pages/admin/AdminPlayerEdit'))
+const AdminAnalysis    = lazy(() => import('./pages/admin/AdminAnalysis'))
+const AdminArticles    = lazy(() => import('./pages/admin/AdminArticles'))
+const AdminArticleEdit = lazy(() => import('./pages/admin/AdminArticleEdit'))
 
 function App() {
   return (
@@ -37,6 +41,7 @@ function App() {
                 <Route path="joueurs" element={<PlayersPage />} />
                 <Route path="joueurs/:slug" element={<PlayerProfilePage />} />
                 <Route path="actualites" element={<ActualitesPage />} />
+                <Route path="actualites/:slug" element={<ArticleDetailPage />} />
                 <Route path="a-propos" element={<AProposPage />} />
                 <Route path="contact" element={<ContactPage />} />
                 <Route
@@ -74,7 +79,12 @@ function App() {
               >
                 <Route index element={<AdminDashboard />} />
                 <Route path="joueurs" element={<AdminPlayers />} />
+                <Route path="joueurs/nouveau" element={<AdminPlayerEdit creating />} />
+                <Route path="joueurs/:slug/edit" element={<AdminPlayerEdit />} />
                 <Route path="analyse" element={<AdminAnalysis />} />
+                <Route path="articles" element={<AdminArticles />} />
+                <Route path="articles/nouveau" element={<AdminArticleEdit creating />} />
+                <Route path="articles/:slug/edit" element={<AdminArticleEdit />} />
                 <Route path="*" element={<Navigate to="/admin" replace />} />
               </Route>
             </Routes>

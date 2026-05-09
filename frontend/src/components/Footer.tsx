@@ -1,6 +1,7 @@
 import type { Icon as PhosphorIcon } from '@phosphor-icons/react'
 import { Link } from 'react-router-dom'
 import { EnvelopeSimple, MapPin, Phone } from '@phosphor-icons/react'
+import BrandLogo from './BrandLogo'
 
 const NAV_LINKS: { to: string; label: string }[] = [
   { to: '/',           label: 'Accueil' },
@@ -37,9 +38,7 @@ function Footer() {
       <div className="container-page py-16 lg:py-20 grid grid-cols-1 lg:grid-cols-12 gap-12">
         <div className="lg:col-span-5">
           <Link to="/" className="inline-flex items-center gap-3 text-zinc-950 dark:text-stone-50">
-            <span className="grid place-items-center w-9 h-9 rounded-xl bg-turf-800 text-stone-50 font-display font-bold text-base shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]">
-              R
-            </span>
+            <BrandLogo size={36} />
             <span className="font-display font-semibold tracking-tight text-[1.05rem]">
               Rene <span className="text-turf-700 dark:text-turf-300">Football</span>
             </span>

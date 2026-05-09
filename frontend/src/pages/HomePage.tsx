@@ -15,7 +15,8 @@ import MeshGradient from '../components/MeshGradient'
 import FloatingAccents from '../components/FloatingAccents'
 import AnimatedNumber from '../components/AnimatedNumber'
 import AnimatedUnderline from '../components/AnimatedUnderline'
-import heroPortrait from '../assets/player1.png'
+import heroPortrait from '../assets/player2.png'
+import karimPortrait from '../assets/player1.png'
 
 const HERO_PORTRAIT = heroPortrait
 
@@ -54,8 +55,18 @@ const SERVICES = [
   },
 ]
 
-const ROSTER_PREVIEW = [
-  { name: 'Karim Touré',     pos: 'Attaquant',          club: 'Borussia Dortmund', age: 24, seed: 'karim-toure' },
+interface RosterEntry {
+  name: string
+  pos: string
+  club: string
+  age: number
+  seed: string
+  /** Optional local asset; falls back to picsum if absent. */
+  image?: string
+}
+
+const ROSTER_PREVIEW: RosterEntry[] = [
+  { name: 'Karim Touré',     pos: 'Attaquant',          club: 'Borussia Dortmund', age: 24, seed: 'karim-toure', image: karimPortrait },
   { name: 'Adil Berkane',    pos: 'Milieu défensif',    club: 'Standard Liège',    age: 24, seed: 'adil-berkane' },
   { name: 'Yanis Lefèvre',   pos: 'Milieu défensif',    club: 'KRC Genk',          age: 19, seed: 'yanis-lefevre' },
   { name: 'Mehdi Boukar',    pos: 'Milieu offensif',    club: 'FC Metz',           age: 22, seed: 'mehdi-boukar' },
@@ -85,7 +96,11 @@ function HomePage() {
 
         <HeroTrail targetRef={heroRef} />
 
-        <div className="container-page grid lg:grid-cols-12 gap-12 lg:gap-8 items-center pt-16 pb-20 lg:pt-24 lg:pb-28 min-h-[100dvh]">
+        {/* Strict full-viewport hero on lg+: content stays inside one screen at any
+           resolution. On mobile we let it grow naturally (a tall stacked layout
+           would never fit a 100dvh box anyway). Title + portrait sizes are
+           viewport-aware (clamp + max-h dvh) so they never push content out. */}
+        <div className="container-page grid lg:grid-cols-12 gap-8 lg:gap-10 items-center pt-12 pb-12 lg:pt-16 lg:pb-12 min-h-[calc(100dvh-3rem)] lg:h-[calc(100dvh-3rem)]">
           <motion.div
             className="lg:col-span-7"
             initial="hidden"
@@ -104,7 +119,8 @@ function HomePage() {
             <motion.h1
               variants={FADE_UP}
               transition={{ type: 'spring', stiffness: 110, damping: 18 }}
-              className="mt-6 font-display font-semibold text-4xl sm:text-5xl lg:text-[4.25rem] leading-[1.05] tracking-tightest text-stone-50"
+              className="mt-5 font-display font-semibold leading-[1.05] tracking-tightest text-stone-50"
+              style={{ fontSize: 'clamp(2.4rem, 5.5vw, 4.25rem)' }}
             >
               Nous façonnons les{' '}
               <span className="text-turf-300">carrières</span> qui marquent
@@ -114,7 +130,7 @@ function HomePage() {
             <motion.p
               variants={FADE_UP}
               transition={{ type: 'spring', stiffness: 110, damping: 18 }}
-              className="mt-6 max-w-[58ch] text-base lg:text-lg text-stone-400 leading-relaxed"
+              className="mt-5 max-w-[58ch] text-base lg:text-lg text-stone-400 leading-relaxed"
             >
               Basée au Luxembourg, Rene Football accompagne jeunes talents,
               joueurs confirmés et clubs partout en Europe — de la signature
@@ -124,7 +140,7 @@ function HomePage() {
             <motion.div
               variants={FADE_UP}
               transition={{ type: 'spring', stiffness: 110, damping: 18 }}
-              className="mt-10 flex flex-wrap gap-3"
+              className="mt-8 flex flex-wrap gap-3"
             >
               <Link
                 to="/joueurs"
@@ -139,14 +155,18 @@ function HomePage() {
             </motion.div>
           </motion.div>
 
-          {/* Hero portrait — right column */}
+          {/* Hero portrait — right column. max-h capped against viewport so it
+             never pushes the whole hero past 100dvh on short laptop screens. */}
           <motion.div
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ type: 'spring', stiffness: 80, damping: 20, delay: 0.15 }}
-            className="lg:col-span-5 relative"
+            className="lg:col-span-5 relative flex lg:justify-end"
           >
-            <div className="relative aspect-[3/4] w-full max-w-[440px] ml-auto rounded-[2rem] overflow-hidden border border-stone-50/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+            <div
+              className="relative aspect-[3/4] w-full lg:max-w-[440px] ml-auto rounded-[2rem] overflow-hidden border border-stone-50/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
+              style={{ maxHeight: 'min(75dvh, 600px)' }}
+            >
               <img
                 src={HERO_PORTRAIT}
                 alt=""
@@ -166,20 +186,22 @@ function HomePage() {
                     Joueur représenté
                   </div>
                   <div className="mt-1 font-display font-semibold text-stone-50 text-xl">
-                    Adil Berkane
+                    Hamzath Mohamadou
                   </div>
-                  <div className="text-stone-400 text-sm">Milieu — 24 ans</div>
+                  <div className="text-stone-400 text-sm">Ailier droit — 21 ans</div>
                 </div>
                 <div className="flex items-center gap-2 rounded-full bg-stone-50/10 backdrop-blur px-3 py-1.5 border border-stone-50/15">
                   <span className="w-2 h-2 rounded-full bg-turf-300 animate-pulse" />
-                  <span className="text-xs text-stone-100">Signé en 2024</span>
+                  <span className="text-xs text-stone-100">Signé en 2025</span>
                 </div>
               </div>
             </div>
           </motion.div>
         </div>
 
-        {/* Stats line — filiform, mono numbers, divided by 1px lines */}
+        {/* Stats line — filiform, mono numbers, divided by 1px lines.
+           Sits BELOW the 100dvh hero box so it never competes for vertical space
+           with the headline + portrait. Visible on scroll-down. */}
         <div className="container-page pb-16 lg:pb-20">
           <div className="grid grid-cols-2 lg:grid-cols-4 lg:divide-x divide-stone-50/10 border-t border-stone-50/10 pt-10">
             {STATS.map((s, i) => (
@@ -239,10 +261,10 @@ function HomePage() {
                 transition={{ type: 'spring', stiffness: 110, damping: 20 }}
                 className="group"
               >
-                <Link to="/joueurs" className="block">
+                <Link to={`/joueurs/${p.seed}`} className="block">
                   <div className="relative aspect-[3/4] overflow-hidden rounded-2xl bg-stone-200">
                     <img
-                      src={`https://picsum.photos/seed/${p.seed}/600/800`}
+                      src={p.image ?? `https://picsum.photos/seed/${p.seed}/600/800`}
                       alt=""
                       loading="lazy"
                       className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-premium group-hover:scale-[1.04]"

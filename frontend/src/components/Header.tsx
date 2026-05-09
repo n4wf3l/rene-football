@@ -11,8 +11,10 @@ import {
   useSpring,
   useTransform,
 } from 'framer-motion'
-import { ArrowUpRight, Lock, List, X } from '@phosphor-icons/react'
+import { ArrowUpRight, CaretDown, Gauge, Lock, List, X } from '@phosphor-icons/react'
 import ThemeToggle from '../theme/ThemeToggle'
+import BrandLogo from './BrandLogo'
+import { useAuth } from '../auth/AuthContext'
 
 interface NavItem {
   to: string
@@ -64,28 +66,9 @@ const ScrollProgress = memo(function ScrollProgress() {
   )
 })
 
-/* ---- Brand mark — compact for capsule. Sweep + pulse perpetual. ---- */
+/* ---- Brand mark — capsule navbar is always dark, so we force the white logo. ---- */
 const BrandMark = memo(function BrandMark() {
-  return (
-    <span className="relative inline-flex">
-      <span className="grid place-items-center w-8 h-8 rounded-lg bg-turf-800 text-stone-50 font-display font-bold text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.14)] overflow-hidden relative">
-        R
-        <motion.span
-          aria-hidden="true"
-          className="absolute inset-0 bg-gradient-to-br from-stone-50/0 via-stone-50/15 to-stone-50/0"
-          animate={{ x: ['-150%', '150%'] }}
-          transition={{ duration: 4.5, ease: 'easeInOut', repeat: Infinity, repeatDelay: 3 }}
-        />
-      </span>
-      <motion.span
-        aria-hidden="true"
-        className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-turf-300"
-        animate={{ opacity: [0.4, 1, 0.4], scale: [0.85, 1, 0.85] }}
-        transition={{ duration: 2.4, ease: 'easeInOut', repeat: Infinity }}
-        style={{ boxShadow: '0 0 6px rgba(132,184,150,0.7)' }}
-      />
-    </span>
-  )
+  return <BrandLogo size={32} variant="light" withPulse />
 })
 
 /* ---- Magnetic NavLink — each link tugs the cursor subtly. ---- */
@@ -261,6 +244,8 @@ function Header() {
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const lastY = useRef<number>(0)
   const location = useLocation()
+  const { isAuthenticated, user } = useAuth()
+  const isAdmin = isAuthenticated && Boolean(user?.is_admin)
 
   const { scrollY } = useScroll()
 
@@ -383,10 +368,10 @@ function Header() {
                       <motion.span
                         animate={{ rotate: megaOpen ? 180 : 0 }}
                         transition={{ type: 'spring', stiffness: 280, damping: 24 }}
-                        className="text-stone-500 text-[0.6rem] leading-none"
+                        className="grid place-items-center text-stone-500"
                         aria-hidden="true"
                       >
-                        ▾
+                        <CaretDown size={10} weight="bold" />
                       </motion.span>
                     )}
                   </span>
@@ -428,21 +413,35 @@ function Header() {
             })}
           </div>
 
-          {/* Right cluster: divider · theme · admin shortcut */}
+          {/* Right cluster: divider · theme · admin shortcut.
+             When the visitor is signed-in as admin, the lock becomes a dashboard
+             dial that goes straight to /admin instead of /admin/login. */}
           <div className="hidden md:flex items-center gap-0.5 pl-2 ml-1 border-l border-stone-50/10">
             <ThemeToggle variant="rail" />
             <Link
-              to="/admin/login"
-              aria-label="Espace agence"
-              title="Espace agence"
-              className="group relative grid place-items-center w-10 h-10 rounded-xl text-stone-400 hover:text-stone-50 hover:bg-stone-50/5 transition-colors"
+              to={isAdmin ? '/admin' : '/admin/login'}
+              aria-label={isAdmin ? 'Tableau de bord admin' : 'Espace agence'}
+              title={isAdmin ? 'Tableau de bord admin' : 'Espace agence'}
+              className={`group relative grid place-items-center w-10 h-10 rounded-xl transition-colors ${
+                isAdmin
+                  ? 'text-turf-300 hover:text-turf-200 hover:bg-turf-800/20'
+                  : 'text-stone-400 hover:text-stone-50 hover:bg-stone-50/5'
+              }`}
             >
-              <Lock size={15} weight="regular" />
+              {isAdmin ? <Gauge size={16} weight="regular" /> : <Lock size={15} weight="regular" />}
+              {/* Tiny pulsing dot signals an active admin session. */}
+              {isAdmin && (
+                <span
+                  aria-hidden="true"
+                  className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-turf-300 animate-pulse"
+                  style={{ boxShadow: '0 0 6px rgba(132,184,150,0.8)' }}
+                />
+              )}
               <span
                 role="tooltip"
                 className="absolute right-0 top-full mt-2 px-2.5 py-1 rounded-md bg-zinc-900 text-stone-100 text-xs whitespace-nowrap opacity-0 -translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200 ease-premium pointer-events-none border border-stone-50/10 shadow-diffusion"
               >
-                Espace agence
+                {isAdmin ? 'Tableau de bord admin' : 'Espace agence'}
               </span>
             </Link>
           </div>
@@ -507,12 +506,16 @@ function Header() {
               </ul>
               <div className="border-t border-stone-50/8 px-3 py-3 flex items-center justify-between">
                 <Link
-                  to="/admin/login"
+                  to={isAdmin ? '/admin' : '/admin/login'}
                   onClick={close}
-                  className="inline-flex items-center gap-2 text-xs text-stone-400 hover:text-stone-100 transition"
+                  className={`inline-flex items-center gap-2 text-xs transition ${
+                    isAdmin
+                      ? 'text-turf-300 hover:text-turf-200'
+                      : 'text-stone-400 hover:text-stone-100'
+                  }`}
                 >
-                  <Lock size={13} weight="regular" />
-                  Espace agence
+                  {isAdmin ? <Gauge size={13} weight="regular" /> : <Lock size={13} weight="regular" />}
+                  {isAdmin ? 'Tableau de bord admin' : 'Espace agence'}
                 </Link>
                 <span className="text-[0.65rem] text-stone-500 font-mono uppercase tracking-wider">
                   Rene Football

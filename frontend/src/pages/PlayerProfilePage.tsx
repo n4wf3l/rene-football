@@ -8,12 +8,16 @@ import {
   Cards,
   FilePdf,
   Flag,
+  Lightning,
   ListMagnifyingGlass,
+  Path,
   Person,
+  PersonSimpleRun,
   Ruler,
   Shield,
   SoccerBall,
   Sparkle,
+  Wind,
   Calendar,
 } from '@phosphor-icons/react'
 import { ApiError, api, pdfUrl } from '../api/client'
@@ -21,6 +25,13 @@ import type { Player } from '../types/player'
 import MeshGradient from '../components/MeshGradient'
 import AnimatedNumber from '../components/AnimatedNumber'
 import Pitch from '../components/Pitch'
+import ScoutReport from '../components/ScoutReport'
+import PlayerRadar from '../components/PlayerRadar'
+import PercentileBars from '../components/PercentileBars'
+import AppearancesTable from '../components/AppearancesTable'
+import ClipsGalleryPublic from '../components/ClipsGalleryPublic'
+import type { Appearance } from '../types/appearance'
+import type { PlayerClip } from '../types/clip'
 import { heatmapFromPosition, isValidGrid } from '../lib/heatmap'
 
 interface SectionEntry {
@@ -32,23 +43,59 @@ type ProfileStatus = 'loading' | 'ready' | 'not-found' | 'error'
 
 const SECTIONS_FIELD: SectionEntry[] = [
   { id: 'identite',   label: 'Identité' },
+  { id: 'scout',      label: 'Scout' },
   { id: 'saison',     label: 'Saison' },
   { id: 'terrain',    label: 'Terrain' },
   { id: 'creation',   label: 'Création' },
   { id: 'defense',    label: 'Défense' },
+  { id: 'physique',   label: 'Physique' },
   { id: 'discipline', label: 'Discipline' },
+  { id: 'matchs',     label: 'Match log' },
+  { id: 'moments',    label: 'Moments' },
 ]
 const SECTIONS_KEEPER: SectionEntry[] = [
   { id: 'identite',   label: 'Identité' },
+  { id: 'scout',      label: 'Scout' },
   { id: 'saison',     label: 'Saison' },
   { id: 'terrain',    label: 'Terrain' },
   { id: 'gardien',    label: 'Activité' },
+  { id: 'physique',   label: 'Physique' },
   { id: 'discipline', label: 'Discipline' },
+  { id: 'matchs',     label: 'Match log' },
+  { id: 'moments',    label: 'Moments' },
 ]
 
 function safeRatio(num: number, den: number): number {
   if (!den) return 0
   return Math.max(0, Math.min(100, (num / den) * 100))
+}
+
+/* Pick the rows shown in the public-facing PercentileBars by category.
+   Field players: ~10 rows centered on creation/defense/discipline.
+   Keepers: 5 rows focused on the GK essentials. */
+function percentileMetricsFor(_category: string, isKeeper: boolean): { key: string; label: string }[] {
+  if (isKeeper) {
+    return [
+      { key: 'matches_played', label: 'Matchs joués' },
+      { key: 'minutes_played', label: 'Minutes' },
+      { key: 'clean_sheets',   label: 'Clean sheets' },
+      { key: 'saves',          label: 'Arrêts' },
+      { key: 'pass_accuracy',  label: '% passes' },
+    ]
+  }
+  return [
+    { key: 'matches_played',     label: 'Matchs joués' },
+    { key: 'goals',              label: 'Buts' },
+    { key: 'assists',            label: 'Passes décisives' },
+    { key: 'xg',                 label: 'xG' },
+    { key: 'xa',                 label: 'xA' },
+    { key: 'key_passes',         label: 'Passes clés' },
+    { key: 'pass_accuracy',      label: '% passes' },
+    { key: 'dribbles_completed', label: 'Dribbles réussis' },
+    { key: 'tackles',            label: 'Tacles' },
+    { key: 'duels_won',          label: 'Duels gagnés' },
+    { key: 'yellow_cards',       label: 'Cartons jaunes' },
+  ]
 }
 
 interface StatNumberProps {
@@ -211,10 +258,14 @@ function NotFoundView() {
 
 /* --- Main detail content --- */
 interface PlayerDetailProps {
+  percentiles?: Record<string, number> | null
+  peersCount?: number
+  appearances?: Appearance[]
+  clips?: PlayerClip[]
   player: Player
 }
 
-function PlayerDetail({ player }: PlayerDetailProps) {
+function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips = [] }: PlayerDetailProps) {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const isKeeper = player.category === 'Gardien'
   const sections = isKeeper ? SECTIONS_KEEPER : SECTIONS_FIELD
@@ -241,7 +292,7 @@ function PlayerDetail({ player }: PlayerDetailProps) {
         <MeshGradient intensity="subtle" />
 
         <div className="container-page pt-8 pb-16 lg:pt-10 lg:pb-24">
-          <div className="flex items-center justify-between mb-10">
+          <div className="mb-10">
             <Link
               to="/joueurs"
               className="inline-flex items-center gap-2 text-sm text-stone-300 hover:text-stone-50 transition group"
@@ -249,15 +300,6 @@ function PlayerDetail({ player }: PlayerDetailProps) {
               <ArrowLeft size={16} weight="bold" className="transition-transform group-hover:-translate-x-0.5" />
               <span>Retour au roster</span>
             </Link>
-            <a
-              href={pdfUrl(player.slug)}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm border border-stone-50/15 text-stone-100 hover:bg-stone-50/5 transition"
-            >
-              <FilePdf size={15} weight="regular" />
-              Fiche PDF
-            </a>
           </div>
 
           <div className="grid lg:grid-cols-12 gap-10 lg:gap-12 items-end">
@@ -374,10 +416,19 @@ function PlayerDetail({ player }: PlayerDetailProps) {
               {s.label}
             </a>
           ))}
-          <div className="ml-auto hidden md:block">
-            <span className="font-mono uppercase tracking-[0.18em] text-[0.6rem] text-zinc-500 dark:text-stone-400">
+          <div className="ml-auto flex items-center gap-3">
+            <span className="hidden lg:inline font-mono uppercase tracking-[0.18em] text-[0.6rem] text-zinc-500 dark:text-stone-400 whitespace-nowrap">
               {player.matches_played} matchs · {player.minutes_played.toLocaleString('fr-FR')} min
             </span>
+            <a
+              href={pdfUrl(player.slug)}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium border border-zinc-300 dark:border-stone-50/15 text-zinc-900 dark:text-stone-100 hover:bg-zinc-900 hover:text-stone-50 hover:border-zinc-900 dark:hover:bg-stone-50/10 dark:hover:border-stone-50/30 transition whitespace-nowrap"
+            >
+              <FilePdf size={13} weight="regular" />
+              Fiche PDF
+            </a>
           </div>
         </div>
       </nav>
@@ -420,10 +471,61 @@ function PlayerDetail({ player }: PlayerDetailProps) {
         )}
       </section>
 
-      {/* Saison */}
+      {/* Profil scout */}
       <section className="bg-white border-y border-stone-200/80 py-16 lg:py-24 dark:bg-zinc-950 dark:border-stone-50/8">
         <div className="container-page">
-          <SectionHeading id="saison" eyebrow="02 — Volume" title="Saison en cours." />
+          <SectionHeading id="scout" eyebrow="02 — Évaluation" title="Profil scout." />
+          <ScoutReport
+            comparisons={player.comparisons}
+            strengths={player.strengths}
+            potentialRating={player.potential_rating}
+            potentialLabel={player.potential_label}
+            scoutQuote={player.scout_quote}
+          />
+
+          {/* Radar empreinte + percentiles vs catégorie */}
+          <div className="mt-12 lg:mt-16 grid lg:grid-cols-12 gap-6 lg:gap-8 items-stretch">
+            <div className="lg:col-span-5 rounded-3xl border border-stone-200/80 dark:border-stone-50/8 bg-stone-50/60 dark:bg-zinc-900/40 p-6 lg:p-8 flex flex-col">
+              <div className="font-mono uppercase tracking-[0.18em] text-[0.65rem] text-zinc-500 dark:text-stone-400 mb-2">
+                Empreinte statistique
+              </div>
+              <h3 className="font-display font-semibold text-xl lg:text-2xl tracking-tight text-zinc-950 dark:text-stone-50 leading-tight mb-2">
+                Six axes-clés du poste.
+              </h3>
+              <p className="text-xs text-zinc-600 dark:text-stone-400 leading-relaxed mb-4">
+                Normalisé sur des références saison standards.
+              </p>
+              <div className="flex-1 flex justify-center items-center">
+                <PlayerRadar players={[player]} size={300} showLegend={false} />
+              </div>
+            </div>
+
+            <div className="lg:col-span-7 rounded-3xl border border-stone-200/80 dark:border-stone-50/8 bg-white dark:bg-zinc-900/40 p-6 lg:p-8">
+              <div className="font-mono uppercase tracking-[0.18em] text-[0.65rem] text-zinc-500 dark:text-stone-400 mb-2">
+                Position dans la catégorie
+              </div>
+              <h3 className="font-display font-semibold text-xl lg:text-2xl tracking-tight text-zinc-950 dark:text-stone-50 leading-tight mb-2">
+                {player.name.split(' ')[0]} vs autres {player.category.toLowerCase()}s.
+              </h3>
+              <p className="text-xs text-zinc-600 dark:text-stone-400 leading-relaxed mb-5">
+                Pour chaque métrique, son pourcentile dans la population des
+                joueurs de la même catégorie. <span className="text-turf-700 dark:text-turf-300 font-medium">100 = meilleur</span>,
+                <span className="text-rose-700 dark:text-rose-300 font-medium ml-1">0 = dernier</span>.
+              </p>
+              <PercentileBars
+                percentiles={percentiles}
+                populationSize={peersCount}
+                metrics={percentileMetricsFor(player.category, player.category === 'Gardien')}
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Saison */}
+      <section className="bg-stone-50 border-b border-stone-200/80 py-16 lg:py-24 dark:bg-zinc-950 dark:border-stone-50/8">
+        <div className="container-page">
+          <SectionHeading id="saison" eyebrow="03 — Volume" title="Saison en cours." />
 
           <div className="grid lg:grid-cols-12 gap-6 lg:gap-8">
             <div className="lg:col-span-7 grid grid-cols-2 gap-y-10 gap-x-8 lg:border-r lg:border-stone-200 lg:pr-12">
@@ -491,7 +593,7 @@ function PlayerDetail({ player }: PlayerDetailProps) {
       {/* Terrain — heatmap des zones d'activité (commun field + gardien) */}
       <section className="bg-stone-50 dark:bg-zinc-950 border-y border-stone-200/80 dark:border-stone-50/8 py-16 lg:py-24">
         <div className="container-page">
-          <SectionHeading id="terrain" eyebrow="03 — Terrain" title="Zones d'activité." />
+          <SectionHeading id="terrain" eyebrow="04 — Terrain" title="Zones d'activité." />
           <div className="grid lg:grid-cols-12 gap-8 lg:gap-12">
             <div className="lg:col-span-4 space-y-4">
               <p className="text-zinc-700 dark:text-stone-300 leading-relaxed">
@@ -526,7 +628,7 @@ function PlayerDetail({ player }: PlayerDetailProps) {
       {/* Création (champ) ou Activité (gardien) */}
       {!isKeeper ? (
         <section className="container-page py-16 lg:py-24">
-          <SectionHeading id="creation" eyebrow="04 — Création" title="Création offensive." />
+          <SectionHeading id="creation" eyebrow="05 — Création" title="Création offensive." />
 
           <div className="grid lg:grid-cols-2 gap-10 lg:gap-16">
             <div className="space-y-6">
@@ -565,7 +667,7 @@ function PlayerDetail({ player }: PlayerDetailProps) {
         </section>
       ) : (
         <section className="container-page py-16 lg:py-24">
-          <SectionHeading id="gardien" eyebrow="04 — Activité" title="Activité dans la surface." />
+          <SectionHeading id="gardien" eyebrow="05 — Activité" title="Activité dans la surface." />
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="rounded-2xl border border-stone-200/80 bg-white p-6">
@@ -599,7 +701,7 @@ function PlayerDetail({ player }: PlayerDetailProps) {
       {!isKeeper && (
         <section className="bg-white border-y border-stone-200/80 py-16 lg:py-24 dark:bg-zinc-950 dark:border-stone-50/8">
           <div className="container-page">
-            <SectionHeading id="defense" eyebrow="05 — Défense" title="Travail défensif." />
+            <SectionHeading id="defense" eyebrow="06 — Défense" title="Travail défensif." />
 
             <div className="grid lg:grid-cols-3 gap-5 lg:gap-6">
               <div className="rounded-3xl border border-stone-200/80 p-6 lg:p-8">
@@ -627,11 +729,78 @@ function PlayerDetail({ player }: PlayerDetailProps) {
         </section>
       )}
 
+      {/* Profil physique — affiché seulement si au moins une donnée tracking est présente */}
+      {(player.distance_avg_km != null
+        || player.sprints_avg != null
+        || player.top_speed_kmh != null
+        || player.high_intensity_runs_avg != null) && (
+        <section className="bg-white border-y border-stone-200/80 py-16 lg:py-24 dark:bg-zinc-950 dark:border-stone-50/8">
+          <div className="container-page">
+            <SectionHeading
+              id="physique"
+              eyebrow={isKeeper ? '06 — Physique' : '07 — Physique'}
+              title="Profil physique."
+            />
+            <p className="text-sm text-zinc-600 dark:text-stone-400 mb-6 max-w-[60ch]">
+              Moyennes par match issues du tracking GPS.
+            </p>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {player.distance_avg_km != null && (
+                <div className="rounded-2xl border border-stone-200/80 dark:border-stone-50/8 bg-stone-50/60 dark:bg-zinc-900/40 p-5">
+                  <Path size={20} weight="regular" className="text-turf-700 dark:text-turf-300" />
+                  <div className="mt-4 font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">
+                    {player.distance_avg_km.toFixed(1).replace('.', ',')}
+                    <span className="text-stone-400 dark:text-stone-500 text-base ml-1">km</span>
+                  </div>
+                  <div className="mt-1 text-xs font-mono uppercase tracking-wider text-zinc-500 dark:text-stone-400">
+                    Distance / match
+                  </div>
+                </div>
+              )}
+              {player.sprints_avg != null && (
+                <div className="rounded-2xl border border-stone-200/80 dark:border-stone-50/8 bg-stone-50/60 dark:bg-zinc-900/40 p-5">
+                  <Lightning size={20} weight="regular" className="text-turf-700 dark:text-turf-300" />
+                  <div className="mt-4 font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">
+                    {player.sprints_avg}
+                  </div>
+                  <div className="mt-1 text-xs font-mono uppercase tracking-wider text-zinc-500 dark:text-stone-400">
+                    Sprints / match
+                  </div>
+                </div>
+              )}
+              {player.top_speed_kmh != null && (
+                <div className="rounded-2xl border border-stone-200/80 dark:border-stone-50/8 bg-stone-50/60 dark:bg-zinc-900/40 p-5">
+                  <Wind size={20} weight="regular" className="text-turf-700 dark:text-turf-300" />
+                  <div className="mt-4 font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">
+                    {player.top_speed_kmh.toFixed(1).replace('.', ',')}
+                    <span className="text-stone-400 dark:text-stone-500 text-base ml-1">km/h</span>
+                  </div>
+                  <div className="mt-1 text-xs font-mono uppercase tracking-wider text-zinc-500 dark:text-stone-400">
+                    Vitesse max
+                  </div>
+                </div>
+              )}
+              {player.high_intensity_runs_avg != null && (
+                <div className="rounded-2xl border border-stone-200/80 dark:border-stone-50/8 bg-stone-50/60 dark:bg-zinc-900/40 p-5">
+                  <PersonSimpleRun size={20} weight="regular" className="text-turf-700 dark:text-turf-300" />
+                  <div className="mt-4 font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">
+                    {player.high_intensity_runs_avg}
+                  </div>
+                  <div className="mt-1 text-xs font-mono uppercase tracking-wider text-zinc-500 dark:text-stone-400">
+                    Courses haute intensité
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Discipline */}
       <section className="container-page py-16 lg:py-24">
         <SectionHeading
           id="discipline"
-          eyebrow={isKeeper ? '05 — Discipline' : '06 — Discipline'}
+          eyebrow={isKeeper ? '07 — Discipline' : '08 — Discipline'}
           title="Discipline."
         />
 
@@ -648,6 +817,40 @@ function PlayerDetail({ player }: PlayerDetailProps) {
           </div>
         </div>
       </section>
+
+      {/* Match log — last 8 appearances */}
+      {appearances.length > 0 && (
+        <section className="bg-white border-y border-stone-200/80 py-16 lg:py-24 dark:bg-zinc-950 dark:border-stone-50/8">
+          <div className="container-page">
+            <SectionHeading
+              id="matchs"
+              eyebrow={isKeeper ? '08 — Match log' : '09 — Match log'}
+              title="Derniers matchs."
+            />
+            <p className="text-sm text-zinc-600 dark:text-stone-400 mb-6 max-w-[60ch]">
+              Les huit dernières apparitions du joueur, du plus récent au plus
+              ancien. La courbe à droite trace l'évolution de la note (gauche = ancien, droite = récent).
+            </p>
+            <AppearancesTable appearances={appearances} />
+          </div>
+        </section>
+      )}
+
+      {/* Annotated key moments — frame snapshots, no source video. */}
+      {clips.length > 0 && (
+        <section className="container-page py-16 lg:py-24">
+          <SectionHeading
+            id="moments"
+            eyebrow={isKeeper ? '09 — Moments' : '10 — Moments'}
+            title="Moments clés annotés."
+          />
+          <p className="text-sm text-zinc-600 dark:text-stone-400 mb-6 max-w-[60ch]">
+            Captures de moments précis sélectionnés par notre cellule scout —
+            cliquez sur une vignette pour zoomer.
+          </p>
+          <ClipsGalleryPublic clips={clips} />
+        </section>
+      )}
 
       {/* CTA bottom */}
       <section className="text-stone-100 py-16 lg:py-24 relative overflow-hidden">
@@ -683,19 +886,39 @@ function PlayerDetail({ player }: PlayerDetailProps) {
 
 interface PlayerResponse {
   data: Player
+  percentiles?: Record<string, number> | null
+  peers_count?: number
+  appearances?: Appearance[]
+  clips?: PlayerClip[]
 }
 
 function PlayerProfilePage() {
   const { slug } = useParams<{ slug: string }>()
   const [player, setPlayer] = useState<Player | null>(null)
+  const [percentiles, setPercentiles] = useState<Record<string, number> | null>(null)
+  const [peersCount, setPeersCount] = useState<number>(0)
+  const [appearances, setAppearances] = useState<Appearance[]>([])
+  const [clips, setClips] = useState<PlayerClip[]>([])
   const [status, setStatus] = useState<ProfileStatus>('loading')
 
   useEffect(() => {
     let cancelled = false
     setStatus('loading')
     setPlayer(null)
+    setPercentiles(null)
+    setAppearances([])
+    setClips([])
     api.get<PlayerResponse>(`/players/${slug}`)
-      .then((res) => { if (!cancelled) { setPlayer(res.data); setStatus('ready') } })
+      .then((res) => {
+        if (!cancelled) {
+          setPlayer(res.data)
+          setPercentiles(res.percentiles ?? null)
+          setPeersCount(res.peers_count ?? 0)
+          setAppearances(res.appearances ?? [])
+          setClips(res.clips ?? [])
+          setStatus('ready')
+        }
+      })
       .catch((err: unknown) => {
         if (cancelled) return
         if (err instanceof ApiError && err.status === 404) setStatus('not-found')
@@ -707,7 +930,15 @@ function PlayerProfilePage() {
   if (status === 'loading') return <PlayerSkeleton />
   if (status === 'not-found' || status === 'error' || !player) return <NotFoundView />
 
-  return <PlayerDetail player={player} />
+  return (
+    <PlayerDetail
+      player={player}
+      percentiles={percentiles}
+      peersCount={peersCount}
+      appearances={appearances}
+      clips={clips}
+    />
+  )
 }
 
 export default PlayerProfilePage

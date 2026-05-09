@@ -23,14 +23,22 @@ import {
   CheckCircle,
   DownloadSimple,
   Eye,
+  FilmSlate,
   PencilSimpleLine,
   SoccerBall as PitchIcon,
+  UsersThree,
   X as XIcon,
 } from '@phosphor-icons/react'
 import { api, ApiError } from '../../api/client'
 import type { Player } from '../../types/player'
 import type { AnalysisMetrics } from '../../types/analysis'
 import Pitch from '../../components/Pitch'
+import Skeleton from '../../components/Skeleton'
+import PlayerRadar from '../../components/PlayerRadar'
+import PlayerComparisonTable from '../../components/PlayerComparisonTable'
+import PlayerMultiSelect from '../../components/PlayerMultiSelect'
+import PlayerSingleSelect from '../../components/PlayerSingleSelect'
+import ClipsGalleryAdmin from '../../components/ClipsGalleryAdmin'
 import { type HeatmapGrid, heatmapFromPosition, isValidGrid } from '../../lib/heatmap'
 
 type ChartTypeKey = 'scatter' | 'bar' | 'line'
@@ -127,7 +135,7 @@ interface ChartRow {
   color: string
 }
 
-type ViewKind = 'chart' | 'pitch'
+type ViewKind = 'chart' | 'pitch' | 'compare' | 'clips'
 
 function AdminAnalysis() {
   const [players, setPlayers] = useState<Player[]>([])
@@ -135,6 +143,8 @@ function AdminAnalysis() {
   const [loading, setLoading] = useState(true)
   const [view, setView] = useState<ViewKind>('chart')
 
+  const [comparisonSlugs, setComparisonSlugs] = useState<string[]>([])
+  const [clipsTargetSlug, setClipsTargetSlug] = useState<string | null>(null)
   const [chartType, setChartType] = useState<ChartTypeKey>('scatter')
   const [xKey, setXKey] = useState<string>('age')
   const [yKey, setYKey] = useState<string>('goals')
@@ -294,12 +304,19 @@ function AdminAnalysis() {
         <div>
           <span className="eyebrow">Data analyse</span>
           <h1 className="mt-2 font-display font-semibold text-3xl lg:text-4xl tracking-tight text-zinc-950 dark:text-stone-50">
-            {view === 'chart' ? 'Builder de graphiques' : 'Heatmap terrain'}
+            {view === 'chart' ? 'Builder de graphiques'
+              : view === 'pitch' ? 'Heatmap terrain'
+              : view === 'compare' ? 'Comparaison de joueurs'
+              : 'Moments clés annotés'}
           </h1>
           <p className="mt-1.5 text-sm text-zinc-600 dark:text-stone-400 max-w-prose">
             {view === 'chart'
               ? "Croisez n'importe quelles métriques de votre roster. Choisissez le type de graphique, les axes et exportez les données."
-              : 'Visualisez et comparez les zones d’activité des joueurs sur un terrain. Activez l’édition pour peindre la carte cellule par cellule, ou régénérez-la depuis le poste.'}
+              : view === 'pitch'
+              ? 'Visualisez et comparez les zones d’activité des joueurs sur un terrain. Activez l’édition pour peindre la carte cellule par cellule, ou régénérez-la depuis le poste.'
+              : view === 'compare'
+              ? 'Sélectionnez 2 à 4 joueurs pour superposer leurs profils sur un radar et comparer toutes leurs métriques côte à côte.'
+              : 'Importez une vidéo locale, mettez-la en pause sur un instant clé, dessinez vos annotations et stockez uniquement la frame finale. Les vidéos sources ne sont jamais envoyées au serveur.'}
           </p>
         </div>
         {view === 'chart' && (
@@ -317,8 +334,10 @@ function AdminAnalysis() {
       {/* View switch — graphiques vs terrain. */}
       <div className="inline-flex items-center gap-1 mb-8 rounded-full border border-stone-300 dark:border-stone-50/15 bg-white dark:bg-zinc-900 p-1 shadow-diffusion">
         {([
-          { key: 'chart' as const, label: 'Graphiques', Icon: ChartBar },
-          { key: 'pitch' as const, label: 'Terrain',    Icon: PitchIcon },
+          { key: 'chart' as const,   label: 'Graphiques',   Icon: ChartBar },
+          { key: 'pitch' as const,   label: 'Terrain',      Icon: PitchIcon },
+          { key: 'compare' as const, label: 'Comparaison',  Icon: UsersThree },
+          { key: 'clips' as const,   label: 'Moments clés', Icon: FilmSlate },
         ]).map(({ key, label, Icon }) => {
           const active = view === key
           return (
@@ -349,9 +368,49 @@ function AdminAnalysis() {
       </div>
 
       {loading ? (
-        <div className="text-zinc-500 dark:text-stone-400 text-sm">Chargement des données…</div>
+        <div className="grid grid-cols-1 xl:grid-cols-[280px_1fr] gap-6">
+          {/* Left filters skeleton */}
+          <aside className="rounded-2xl bg-white border border-stone-200 dark:bg-zinc-900 dark:border-stone-50/8 p-5 space-y-5">
+            <div>
+              <Skeleton className="h-3 w-12 mb-3" />
+              <div className="grid grid-cols-3 gap-1.5">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <Skeleton key={i} className="h-14 w-full" rounded="lg" />
+                ))}
+              </div>
+            </div>
+            <div className="space-y-3">
+              <Skeleton className="h-3 w-16" />
+              <Skeleton className="h-9 w-full" rounded="lg" />
+              <Skeleton className="h-3 w-16" />
+              <Skeleton className="h-9 w-full" rounded="lg" />
+              <Skeleton className="h-3 w-20" />
+              <Skeleton className="h-9 w-full" rounded="lg" />
+            </div>
+          </aside>
+          {/* Chart skeleton */}
+          <div className="rounded-2xl bg-white border border-stone-200 dark:bg-zinc-900 dark:border-stone-50/8 p-5 space-y-4">
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-4 w-44" />
+              <Skeleton className="h-3 w-24" />
+            </div>
+            <Skeleton className="h-[420px] w-full" rounded="xl" />
+          </div>
+        </div>
       ) : view === 'pitch' ? (
         <HeatmapView players={players} onPlayerSaved={updatePlayerLocal} />
+      ) : view === 'compare' ? (
+        <ComparisonView
+          players={players}
+          selectedSlugs={comparisonSlugs}
+          onChangeSlugs={setComparisonSlugs}
+        />
+      ) : view === 'clips' ? (
+        <ClipsView
+          players={players}
+          selectedSlug={clipsTargetSlug}
+          onChangeSlug={setClipsTargetSlug}
+        />
       ) : (
         <div className="grid grid-cols-1 xl:grid-cols-[280px_1fr] gap-6">
           <aside className="rounded-2xl bg-white border border-stone-200 dark:bg-zinc-900 dark:border-stone-50/8 p-5 space-y-5 self-start sticky top-6">
@@ -852,6 +911,205 @@ function HeatmapView({ players, onPlayerSaved }: HeatmapViewProps) {
         <div className="mt-5 rounded-xl bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-800 dark:bg-red-500/10 dark:border-red-500/30 dark:text-red-200">
           {error}
         </div>
+      )}
+    </div>
+  )
+}
+
+/* ─────────────────────────── ComparisonView ─────────────────────────── */
+
+interface ComparisonViewProps {
+  players: Player[]
+  selectedSlugs: string[]
+  onChangeSlugs: (slugs: string[]) => void
+}
+
+function ComparisonView({ players, selectedSlugs, onChangeSlugs }: ComparisonViewProps) {
+  // Maintain selection order (= color order in radar/table). We resolve slugs → players
+  // in the same order the user picked them.
+  const selectedPlayers = useMemo(
+    () =>
+      selectedSlugs
+        .map((s) => players.find((p) => p.slug === s))
+        .filter((p): p is Player => Boolean(p)),
+    [selectedSlugs, players],
+  )
+
+  /* Exports the selected players' headline metrics as CSV.
+     Mirrors the columns shown in the comparison table so the file is a 1:1
+     printable version of the on-screen view. */
+  const exportComparisonCsv = () => {
+    if (!selectedPlayers.length) return
+    const cols = [
+      'name', 'position', 'category', 'club', 'nationality', 'age', 'height',
+      'matches_played', 'minutes_played',
+      'goals', 'assists', 'xg', 'xa',
+      'shots', 'shots_on_target', 'key_passes', 'pass_accuracy',
+      'dribbles_completed', 'tackles', 'interceptions', 'duels_won',
+      'clean_sheets', 'saves', 'yellow_cards', 'red_cards',
+      'potential_rating', 'potential_label',
+    ] as const
+    const rows = selectedPlayers.map((p) => {
+      const row: Record<string, unknown> = {}
+      cols.forEach((c) => { row[c] = p[c as keyof Player] ?? '' })
+      return row
+    })
+    downloadCsv(`rene-football-comparaison-${selectedPlayers.map((p) => p.slug).join('-')}.csv`, rows)
+  }
+
+  return (
+    <div className="space-y-8">
+      {/* Picker */}
+      <section className="rounded-2xl bg-white border border-stone-200 dark:bg-zinc-900 dark:border-stone-50/8 p-5 lg:p-6">
+        <div className="flex items-center justify-between mb-3 gap-3">
+          <div className="font-mono uppercase tracking-[0.18em] text-[0.65rem] text-zinc-500 dark:text-stone-400">
+            Sélection
+          </div>
+          {selectedPlayers.length >= 2 && (
+            <button
+              type="button"
+              onClick={exportComparisonCsv}
+              className="btn btn-outline text-xs py-1.5"
+            >
+              <DownloadSimple size={13} weight="bold" />
+              Exporter CSV
+            </button>
+          )}
+        </div>
+        <PlayerMultiSelect
+          players={players}
+          selectedSlugs={selectedSlugs}
+          onChange={onChangeSlugs}
+          max={4}
+        />
+      </section>
+
+      {/* Empty state when not enough players selected */}
+      {selectedPlayers.length === 0 && (
+        <div className="rounded-2xl border border-dashed border-stone-300 dark:border-stone-50/10 bg-white/40 dark:bg-zinc-900/30 px-6 py-16 text-center">
+          <UsersThree size={28} weight="duotone" className="mx-auto text-zinc-400 dark:text-stone-500" />
+          <p className="mt-4 text-sm text-zinc-600 dark:text-stone-400">
+            Choisissez au moins deux joueurs ci-dessus pour démarrer la comparaison.
+          </p>
+        </div>
+      )}
+
+      {selectedPlayers.length === 1 && (
+        <div className="rounded-2xl border border-dashed border-stone-300 dark:border-stone-50/10 bg-white/40 dark:bg-zinc-900/30 px-6 py-16 text-center">
+          <p className="text-sm text-zinc-600 dark:text-stone-400">
+            Encore <span className="font-medium text-zinc-900 dark:text-stone-100">un joueur</span> à sélectionner pour comparer.
+          </p>
+        </div>
+      )}
+
+      {selectedPlayers.length >= 2 && (
+        <>
+          {/* Radar + headline metrics side-by-side */}
+          <section className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_360px] gap-6">
+            <div className="rounded-2xl bg-white border border-stone-200 dark:bg-zinc-900 dark:border-stone-50/8 p-6">
+              <div className="font-mono uppercase tracking-[0.18em] text-[0.65rem] text-zinc-500 dark:text-stone-400 mb-2">
+                Radar
+              </div>
+              <h3 className="font-display font-medium text-lg text-zinc-950 dark:text-stone-50 mb-4">
+                Empreinte statistique
+              </h3>
+              <div className="flex justify-center">
+                <PlayerRadar players={selectedPlayers} size={420} />
+              </div>
+              <p className="mt-4 text-[0.7rem] text-zinc-500 dark:text-stone-500 text-center">
+                Axes choisis selon le poste de <span className="font-medium">{selectedPlayers[0].name}</span> ({selectedPlayers[0].category}).
+              </p>
+            </div>
+
+            {/* Quick KPIs */}
+            <div className="space-y-3 self-start">
+              {selectedPlayers.map((p, i) => {
+                const isKeeper = p.category === 'Gardien'
+                return (
+                  <article
+                    key={p.slug}
+                    className="rounded-2xl bg-white border border-stone-200 dark:bg-zinc-900 dark:border-stone-50/8 p-5"
+                  >
+                    <div className="flex items-center gap-3 mb-3">
+                      <span className={`w-2.5 h-2.5 rounded-full ${['bg-turf-500','bg-rose-600','bg-amber-600','bg-sky-600'][i]}`} />
+                      <div className="min-w-0 flex-1">
+                        <div className="font-display font-medium text-zinc-950 dark:text-stone-50 truncate">{p.name}</div>
+                        <div className="text-[0.65rem] font-mono uppercase tracking-wider text-zinc-500 dark:text-stone-500 truncate">
+                          {p.position} · {p.club ?? '—'}
+                        </div>
+                      </div>
+                    </div>
+                    <dl className="grid grid-cols-3 gap-3 border-t border-stone-200 dark:border-stone-50/8 pt-3">
+                      <div>
+                        <dt className="text-[0.6rem] uppercase tracking-wider font-mono text-zinc-500 dark:text-stone-500">Matchs</dt>
+                        <dd className="font-mono text-base tabular-nums text-zinc-950 dark:text-stone-50">{p.matches_played}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-[0.6rem] uppercase tracking-wider font-mono text-zinc-500 dark:text-stone-500">{isKeeper ? 'Cl. sh.' : 'Buts'}</dt>
+                        <dd className="font-mono text-base tabular-nums text-zinc-950 dark:text-stone-50">{isKeeper ? p.clean_sheets : p.goals}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-[0.6rem] uppercase tracking-wider font-mono text-zinc-500 dark:text-stone-500">{isKeeper ? 'Arrêts' : 'P. déc.'}</dt>
+                        <dd className="font-mono text-base tabular-nums text-zinc-950 dark:text-stone-50">{isKeeper ? p.saves : p.assists}</dd>
+                      </div>
+                    </dl>
+                  </article>
+                )
+              })}
+            </div>
+          </section>
+
+          {/* Full comparison table */}
+          <section>
+            <div className="font-mono uppercase tracking-[0.18em] text-[0.65rem] text-zinc-500 dark:text-stone-400 mb-3">
+              Toutes les métriques
+            </div>
+            <PlayerComparisonTable players={selectedPlayers} />
+            <p className="mt-3 text-[0.7rem] text-zinc-500 dark:text-stone-500">
+              La meilleure valeur sur chaque ligne est mise en évidence en <span className="text-turf-700 dark:text-turf-300 font-medium">turf</span>.
+            </p>
+          </section>
+        </>
+      )}
+    </div>
+  )
+}
+
+/* ─────────────────────────── ClipsView ─────────────────────────── */
+
+interface ClipsViewProps {
+  players: Player[]
+  selectedSlug: string | null
+  onChangeSlug: (slug: string | null) => void
+}
+
+function ClipsView({ players, selectedSlug, onChangeSlug }: ClipsViewProps) {
+  return (
+    <div className="space-y-6">
+      <section className="rounded-2xl bg-white border border-stone-200 dark:bg-zinc-900 dark:border-stone-50/8 p-5 lg:p-6">
+        <div className="font-mono uppercase tracking-[0.18em] text-[0.65rem] text-zinc-500 dark:text-stone-400 mb-3">
+          Joueur cible
+        </div>
+        <PlayerSingleSelect
+          players={players}
+          selectedSlug={selectedSlug}
+          onChange={onChangeSlug}
+          placeholder="Choisir le joueur dont on annote les moments…"
+        />
+      </section>
+
+      {!selectedSlug ? (
+        <div className="rounded-2xl border border-dashed border-stone-300 dark:border-stone-50/10 bg-white/40 dark:bg-zinc-900/30 px-6 py-16 text-center">
+          <FilmSlate size={28} weight="duotone" className="mx-auto text-zinc-400 dark:text-stone-500" />
+          <p className="mt-4 text-sm text-zinc-600 dark:text-stone-400">
+            Sélectionnez un joueur ci-dessus pour ouvrir sa galerie de moments
+            et en ajouter de nouveaux.
+          </p>
+        </div>
+      ) : (
+        <section className="rounded-2xl bg-white border border-stone-200 dark:bg-zinc-900 dark:border-stone-50/8 p-5 lg:p-6">
+          <ClipsGalleryAdmin playerSlug={selectedSlug} />
+        </section>
       )}
     </div>
   )

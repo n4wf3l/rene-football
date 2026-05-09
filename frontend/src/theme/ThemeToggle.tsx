@@ -51,7 +51,7 @@ function ThemeToggle({ variant = 'header', className = '' }: ThemeToggleProps) {
       {(variant === 'rail' || variant === 'admin') && (
         <span
           role="tooltip"
-          className="absolute left-full ml-3 px-2.5 py-1 rounded-md bg-zinc-900 text-stone-100 text-xs whitespace-nowrap opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200 ease-premium pointer-events-none border border-stone-50/10 shadow-diffusion"
+          className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2.5 py-1 rounded-md bg-zinc-900 text-stone-100 text-xs whitespace-nowrap opacity-0 -translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200 ease-premium pointer-events-none border border-stone-50/10 shadow-diffusion z-50"
         >
           {isDark ? 'Mode clair' : 'Mode sombre'}
         </span>

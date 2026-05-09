@@ -1,100 +1,19 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowUpRight, CalendarBlank, Tag } from '@phosphor-icons/react'
 import MeshGradient from '../components/MeshGradient'
 import AnimatedUnderline from '../components/AnimatedUnderline'
+import Skeleton from '../components/Skeleton'
+import { api } from '../api/client'
+import type { Article, ArticleCategory } from '../types/article'
+import { ARTICLE_CATEGORIES } from '../types/article'
 
-type ArticleCategory = 'Mercato' | 'Talents' | 'Profils' | 'Coulisses' | 'Agence'
 type CategoryFilter = 'Tous' | ArticleCategory
+const CATEGORIES: CategoryFilter[] = ['Tous', ...ARTICLE_CATEGORIES]
 
-interface Article {
-  id: string
-  category: ArticleCategory
-  title: string
-  excerpt: string
-  date: string
-  seed: string
-  playerSlug?: string
-  featured?: boolean
-}
-
-const CATEGORIES: CategoryFilter[] = ['Tous', 'Mercato', 'Talents', 'Profils', 'Coulisses', 'Agence']
-
-const ARTICLES: Article[] = [
-  {
-    id: 'toure-dortmund',
-    category: 'Mercato',
-    title: 'Karim Touré signe au Borussia Dortmund pour quatre saisons',
-    excerpt:
-      "Notre attaquant rejoint la Bundesliga pour franchir un nouveau palier européen. Une signature actée après six mois de discussions discrètes.",
-    date: '2026-04-28',
-    seed: 'karim-toure',
-    playerSlug: 'karim-toure',
-    featured: true,
-  },
-  {
-    id: 'lefevre-genk',
-    category: 'Talents',
-    title: "Yanis Lefèvre rejoint le KRC Genk et signe son premier contrat pro",
-    excerpt: "Le milieu défensif luxembourgeois de 19 ans s'engage avec le club belge pour trois saisons, projet de développement à la clé.",
-    date: '2026-04-22',
-    seed: 'yanis-lefevre',
-    playerSlug: 'yanis-lefevre',
-  },
-  {
-    id: 'boukar-metz',
-    category: 'Mercato',
-    title: 'Mehdi Boukar prêté au FC Metz pour la saison',
-    excerpt: "Notre milieu offensif rejoint la Ligue 2 française avec une option d'achat — un pas idéal à 22 ans pour gagner du temps de jeu de haut niveau.",
-    date: '2026-04-15',
-    seed: 'mehdi-boukar',
-    playerSlug: 'mehdi-boukar',
-  },
-  {
-    id: 'ndiaye-profil',
-    category: 'Profils',
-    title: "Idriss N'Diaye, l'avant-centre qui ne lâche jamais une surface",
-    excerpt: "Portrait du Sénégalais qui termine la saison avec 17 buts en 33 matchs — et un appétit intact.",
-    date: '2026-04-09',
-    seed: 'idriss-ndiaye',
-    playerSlug: 'idriss-ndiaye',
-  },
-  {
-    id: 'preparation-mentale',
-    category: 'Coulisses',
-    title: 'Comment nous travaillons la préparation mentale avec nos joueurs',
-    excerpt: "Chaque profil sous mandat bénéficie d'un suivi spécifique — de la salle d'entraînement au plateau télé.",
-    date: '2026-04-02',
-    seed: 'rene-coulisses-mental',
-  },
-  {
-    id: 'mercato-hivernal',
-    category: 'Agence',
-    title: 'Mercato hivernal : ce que nous retenons de cette fenêtre',
-    excerpt: "Cinq mouvements, deux prolongations, un transfert avorté à la dernière heure. Bilan d'une fenêtre dense.",
-    date: '2026-03-21',
-    seed: 'rene-mercato-bilan',
-  },
-  {
-    id: 'vasseur-capitaine',
-    category: 'Profils',
-    title: 'Théo Vasseur, brassard de capitaine au Gym à 26 ans',
-    excerpt: "Le défenseur central niçois prend une dimension nouvelle dans le vestiaire rouge et noir.",
-    date: '2026-03-12',
-    seed: 'theo-vasseur',
-    playerSlug: 'theo-vasseur',
-  },
-  {
-    id: 'centres-formation',
-    category: 'Agence',
-    title: 'Centres de formation : notre méthode pour identifier les profils',
-    excerpt: "Un réseau de scouts à travers l'Europe — Benelux, Bundesliga, Ligue 1, Eredivisie — avec des grilles d'évaluation calibrées.",
-    date: '2026-02-28',
-    seed: 'rene-centres-formation',
-  },
-]
+interface ArticlesResponse { data: Article[] }
 
 const FADE_UP = {
   hidden: { opacity: 0, y: 14 },
@@ -102,8 +21,14 @@ const FADE_UP = {
 }
 
 const FR_DATE = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
-function formatDate(iso: string): string {
-  return FR_DATE.format(new Date(iso))
+function formatDate(iso: string | null): string {
+  if (!iso) return ''
+  const d = new Date(iso)
+  return isNaN(d.getTime()) ? '' : FR_DATE.format(d)
+}
+
+function coverFor(article: Article): string {
+  return article.cover_url || `https://picsum.photos/seed/${article.slug}/1200/750`
 }
 
 interface CategoryBadgeProps {
@@ -132,14 +57,11 @@ interface ArticleCardWrapperProps {
 }
 
 function ArticleCardWrapper({ article, children }: ArticleCardWrapperProps) {
-  if (article.playerSlug) {
-    return (
-      <Link to={`/joueurs/${article.playerSlug}`} className="group block">
-        {children}
-      </Link>
-    )
-  }
-  return <article className="group block">{children}</article>
+  return (
+    <Link to={`/actualites/${article.slug}`} className="group block">
+      {children}
+    </Link>
+  )
 }
 
 interface HeroArticleProps {
@@ -158,7 +80,7 @@ function HeroArticle({ article }: HeroArticleProps) {
         <div className="lg:col-span-7">
           <div className="relative aspect-[16/10] rounded-3xl overflow-hidden border border-stone-200/80 dark:border-stone-50/10 bg-stone-200">
             <img
-              src={`https://picsum.photos/seed/${article.seed}/1200/750`}
+              src={coverFor(article)}
               alt=""
               loading="eager"
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-premium group-hover:scale-[1.03]"
@@ -171,16 +93,18 @@ function HeroArticle({ article }: HeroArticleProps) {
         <div className="lg:col-span-5">
           <div className="flex items-center gap-2 text-xs text-zinc-500 dark:text-stone-400">
             <CalendarBlank size={13} weight="regular" />
-            <span className="font-mono">{formatDate(article.date)}</span>
+            <span className="font-mono">{formatDate(article.published_at)}</span>
           </div>
           <h2 className="mt-4 font-display font-semibold text-3xl lg:text-5xl tracking-tight leading-[1.08] text-zinc-950 dark:text-stone-50 max-w-[18ch]">
             {article.title}
           </h2>
-          <p className="mt-5 text-base lg:text-lg text-zinc-600 dark:text-stone-400 leading-relaxed max-w-[55ch]">
-            {article.excerpt}
-          </p>
+          {article.excerpt && (
+            <p className="mt-5 text-base lg:text-lg text-zinc-600 dark:text-stone-400 leading-relaxed max-w-[55ch]">
+              {article.excerpt}
+            </p>
+          )}
           <div className="mt-7 inline-flex items-center gap-2 text-sm text-zinc-950 dark:text-stone-100 font-medium border-b border-zinc-950/30 dark:border-stone-50/30 pb-1 group-hover:border-turf-700 dark:group-hover:border-turf-300 transition">
-            {article.playerSlug ? 'Voir le profil joueur' : 'Lire la suite'}
+            Lire l'article
             <ArrowUpRight size={14} weight="bold" className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
           </div>
         </div>
@@ -200,7 +124,7 @@ function ArticleCard({ article, span = '' }: ArticleCardProps) {
       <ArticleCardWrapper article={article}>
         <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-stone-200">
           <img
-            src={`https://picsum.photos/seed/${article.seed}/800/600`}
+            src={article.cover_url || `https://picsum.photos/seed/${article.slug}/800/600`}
             alt=""
             loading="lazy"
             className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-premium group-hover:scale-[1.04]"
@@ -212,14 +136,24 @@ function ArticleCard({ article, span = '' }: ArticleCardProps) {
         <div className="mt-4">
           <div className="flex items-center gap-2 text-xs text-zinc-500 dark:text-stone-400">
             <CalendarBlank size={12} weight="regular" />
-            <span className="font-mono">{formatDate(article.date)}</span>
+            <span className="font-mono">{formatDate(article.published_at)}</span>
+            {article.player && (
+              <>
+                <span className="text-zinc-300 dark:text-stone-600">·</span>
+                <span className="font-mono uppercase tracking-wider text-[0.6rem] truncate">
+                  Loop · {article.player.name}
+                </span>
+              </>
+            )}
           </div>
           <h3 className="mt-2 font-display font-medium text-lg lg:text-xl tracking-tight leading-snug text-zinc-950 dark:text-stone-50 group-hover:text-turf-800 dark:group-hover:text-turf-300 transition-colors">
             {article.title}
           </h3>
-          <p className="mt-2 text-sm text-zinc-600 dark:text-stone-400 leading-relaxed line-clamp-2">
-            {article.excerpt}
-          </p>
+          {article.excerpt && (
+            <p className="mt-2 text-sm text-zinc-600 dark:text-stone-400 leading-relaxed line-clamp-2">
+              {article.excerpt}
+            </p>
+          )}
         </div>
       </ArticleCardWrapper>
     </motion.li>
@@ -227,15 +161,31 @@ function ArticleCard({ article, span = '' }: ArticleCardProps) {
 }
 
 function ActualitesPage() {
+  const [articles, setArticles] = useState<Article[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [category, setCategory] = useState<CategoryFilter>('Tous')
 
-  const featured = ARTICLES.find((a) => a.featured)
-  const rest = ARTICLES.filter((a) => !a.featured)
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    api.get<ArticlesResponse>('/articles')
+      .then((res) => { if (!cancelled) setArticles(res.data) })
+      .catch(() => { if (!cancelled) setError('Impossible de charger les actualités.') })
+      .finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
+  }, [])
+
+  // Backend already orders featured-first then by published_at desc.
+  const featured = articles.find((a) => a.featured) ?? null
+  const rest = featured ? articles.filter((a) => a.id !== featured.id) : articles
 
   const filtered = useMemo(() => {
     if (category === 'Tous') return rest
     return rest.filter((a) => a.category === category)
   }, [category, rest])
+
+  const showFeatured = featured && (category === 'Tous' || category === featured.category)
 
   return (
     <>
@@ -285,14 +235,16 @@ function ActualitesPage() {
             )
           })}
           <span className="ml-auto hidden md:inline-flex font-mono text-[0.65rem] uppercase tracking-[0.18em] text-zinc-500 dark:text-stone-500">
-            <span className="text-zinc-900 dark:text-stone-100 tabular-nums mr-2">{filtered.length + (category === 'Tous' && featured ? 1 : 0)}</span>
+            <span className="text-zinc-900 dark:text-stone-100 tabular-nums mr-2">
+              {filtered.length + (showFeatured ? 1 : 0)}
+            </span>
             articles
           </span>
         </div>
       </section>
 
       {/* Featured */}
-      {featured && (category === 'Tous' || category === featured.category) && (
+      {showFeatured && featured && (
         <section className="bg-stone-50 dark:bg-zinc-950 pt-12 lg:pt-16 pb-8 lg:pb-10 transition-colors">
           <div className="container-page">
             <span className="eyebrow mb-6 inline-block">À la une</span>
@@ -301,44 +253,72 @@ function ActualitesPage() {
         </section>
       )}
 
-      {/* Grid */}
-      <section className="bg-stone-50 dark:bg-zinc-950 pb-24 lg:pb-32 transition-colors">
-        <div className="container-page">
-          <div className="flex items-center justify-between mb-8">
-            <span className="font-mono uppercase tracking-[0.18em] text-[0.65rem] text-zinc-500 dark:text-stone-500">
-              {category === 'Tous' ? 'Tous les sujets' : `Catégorie : ${category}`}
-            </span>
+      {/* Loading skeleton */}
+      {loading && (
+        <section className="bg-stone-50 dark:bg-zinc-950 pb-24 lg:pb-32 transition-colors">
+          <div className="container-page">
+            <div className="mb-8"><Skeleton className="h-4 w-32" /></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+              {[0,1,2,3,4,5].map((i) => (
+                <div key={i} className="space-y-3">
+                  <Skeleton className="aspect-[4/3] w-full rounded-2xl" />
+                  <Skeleton className="h-4 w-2/3" />
+                  <Skeleton className="h-4 w-full" />
+                </div>
+              ))}
+            </div>
           </div>
+        </section>
+      )}
 
-          <motion.ul
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, margin: '-80px' }}
-            variants={{ show: { transition: { staggerChildren: 0.06 } } }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8"
-          >
-            <AnimatePresence mode="popLayout">
-              {filtered.length === 0 ? (
-                <motion.li
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="col-span-full text-center py-20 text-zinc-500 dark:text-stone-400"
-                >
-                  Aucun article dans cette catégorie pour le moment.
-                </motion.li>
-              ) : (
-                filtered.map((a, i) => (
-                  <ArticleCard
-                    key={a.id}
-                    article={a}
-                    span={i === 0 && filtered.length > 4 ? 'md:col-span-2 lg:col-span-2' : ''}
-                  />
-                ))
-              )}
-            </AnimatePresence>
-          </motion.ul>
-        </div>
-      </section>
+      {/* Grid */}
+      {!loading && (
+        <section className="bg-stone-50 dark:bg-zinc-950 pb-24 lg:pb-32 transition-colors">
+          <div className="container-page">
+            <div className="flex items-center justify-between mb-8">
+              <span className="font-mono uppercase tracking-[0.18em] text-[0.65rem] text-zinc-500 dark:text-stone-500">
+                {category === 'Tous' ? 'Tous les sujets' : `Catégorie : ${category}`}
+              </span>
+            </div>
+
+            {error && (
+              <div className="px-4 py-8 text-center text-sm text-rose-700 dark:text-rose-400">
+                {error}
+              </div>
+            )}
+
+            {!error && (
+              <motion.ul
+                initial="hidden"
+                whileInView="show"
+                viewport={{ once: true, margin: '-80px' }}
+                variants={{ show: { transition: { staggerChildren: 0.06 } } }}
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8"
+              >
+                <AnimatePresence mode="popLayout">
+                  {filtered.length === 0 ? (
+                    <motion.li
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="col-span-full text-center py-20 text-zinc-500 dark:text-stone-400"
+                    >
+                      Aucun article dans cette catégorie pour le moment.
+                    </motion.li>
+                  ) : (
+                    filtered.map((a, i) => (
+                      <ArticleCard
+                        key={a.id}
+                        article={a}
+                        span={i === 0 && filtered.length > 4 ? 'md:col-span-2 lg:col-span-2' : ''}
+                      />
+                    ))
+                  )}
+                </AnimatePresence>
+              </motion.ul>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* Newsletter / contact CTA */}
       <section className="text-stone-100 py-16 lg:py-24 relative overflow-hidden">
@@ -346,6 +326,7 @@ function ActualitesPage() {
         <div className="container-page grid lg:grid-cols-12 gap-8 items-end">
           <div className="lg:col-span-8">
             <span className="eyebrow text-turf-300">Restons en contact</span>
+            <AnimatedUnderline className="mt-2" />
             <h2 className="mt-3 font-display font-semibold text-3xl lg:text-5xl leading-tight tracking-tight">
               Vous suivez l'agence ? Échangeons.
             </h2>

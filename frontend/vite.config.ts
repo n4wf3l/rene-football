@@ -12,6 +12,11 @@ export default defineConfig({
         target: apiTarget,
         changeOrigin: true,
       },
+      // Locally-uploaded player photos live under Laravel's /storage symlink.
+      '/storage': {
+        target: apiTarget,
+        changeOrigin: true,
+      },
     },
   },
 })

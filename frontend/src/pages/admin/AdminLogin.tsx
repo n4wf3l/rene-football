@@ -16,6 +16,7 @@ import { ApiError } from '../../api/client'
 import ThemeToggle from '../../theme/ThemeToggle'
 import MeshGradient from '../../components/MeshGradient'
 import FloatingAccents from '../../components/FloatingAccents'
+import BrandLogo from '../../components/BrandLogo'
 import heroPortrait from '../../assets/player1.png'
 
 interface LocationState {
@@ -119,15 +120,7 @@ function AdminLogin() {
           className="relative z-10 flex items-center justify-between"
         >
           <Link to="/" className="inline-flex items-center gap-3 text-stone-50 group">
-            <span className="grid place-items-center w-9 h-9 rounded-xl bg-turf-800 text-stone-50 font-display font-bold text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.14)] overflow-hidden relative">
-              R
-              <motion.span
-                aria-hidden="true"
-                className="absolute inset-0 bg-gradient-to-br from-stone-50/0 via-stone-50/15 to-stone-50/0"
-                animate={{ x: ['-150%', '150%'] }}
-                transition={{ duration: 4.5, ease: 'easeInOut', repeat: Infinity, repeatDelay: 3 }}
-              />
-            </span>
+            <BrandLogo size={36} variant="light" withPulse />
             <span className="font-display font-semibold tracking-tight text-[1.05rem]">
               Rene <span className="text-turf-300">Football</span>
             </span>

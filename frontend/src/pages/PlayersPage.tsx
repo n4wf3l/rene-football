@@ -9,6 +9,7 @@ import {
 import { api } from '../api/client'
 import MeshGradient from '../components/MeshGradient'
 import AnimatedNumber from '../components/AnimatedNumber'
+import Skeleton from '../components/Skeleton'
 import type { Player, PositionFilter, AgeFilter } from '../types/player'
 
 const POSITION_FILTERS: PositionFilter[] = ['Tous', 'Gardien', 'Defenseur', 'Milieu', 'Attaquant']
@@ -292,7 +293,27 @@ function PlayersPage() {
           </div>
 
           {loading ? (
-            <div className="text-center text-zinc-500 text-sm py-20">Chargement du roster…</div>
+            <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 lg:gap-6">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <li
+                  key={i}
+                  className="rounded-3xl bg-white border border-stone-200/80 dark:bg-zinc-900 dark:border-stone-50/8 overflow-hidden"
+                >
+                  <Skeleton className="aspect-[3/4] w-full" rounded="sm" />
+                  <div className="p-5 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Skeleton className="h-3 w-32" />
+                      <Skeleton className="h-3 w-16" />
+                    </div>
+                    <div className="grid grid-cols-3 gap-3 border-t border-stone-200 dark:border-stone-50/8 pt-4">
+                      <Skeleton className="h-6 w-full" />
+                      <Skeleton className="h-6 w-full" />
+                      <Skeleton className="h-6 w-full" />
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
           ) : (
             <motion.ul
               layout
