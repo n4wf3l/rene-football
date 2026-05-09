@@ -1,0 +1,3 @@
+# Adminer is fetched on demand by `composer db:install` (see install.php).
+# Don't vendor a 200 KB third-party PHP file in the repo.
+adminer.php

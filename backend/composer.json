@@ -50,6 +50,15 @@
             "@php artisan config:clear --ansi",
             "@php artisan test"
         ],
+        "db:install": [
+            "@php dbtool/install.php"
+        ],
+        "db": [
+            "Composer\\Config::disableProcessTimeout",
+            "@php -r \"if(!file_exists('dbtool/adminer.php')){fwrite(STDERR,\\\"✗ Adminer manquant — lance d'abord: composer db:install\\n\\\");exit(1);}\"",
+            "@php -r \"echo \\\"→ DB browser sur http://127.0.0.1:8080 (Ctrl+C pour arrêter)\\n\\\";\"",
+            "@php -S 127.0.0.1:8080 -t dbtool"
+        ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
             "@php artisan package:discover --ansi"
