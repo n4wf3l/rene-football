@@ -4,20 +4,19 @@
  * Local DB browser entry-point.
  *
  * Goal: typing http://127.0.0.1:8080/ in the browser lands you straight on the
- * project's SQLite database in Adminer — no login form, no XAMPP, no MySQL.
+ * project's SQLite database in Adminer — no XAMPP, no MySQL.
  *
- * Strategy:
- *   1. The PHP built-in server (`php -S 127.0.0.1:8080 -t dbtool`) serves
- *      this file as `/`, and `adminer.php` as `/adminer.php`.
- *   2. On the bare URL we redirect to Adminer with the SQLite driver, the
- *      empty username, and the absolute path to database/database.sqlite
- *      pre-filled — Adminer connects immediately.
+ * Adminer 5 refuses empty passwords by default, so we wrap it with the
+ * `login-password-less` plugin and a fixed local password (`rene`). Tick
+ * "Permanent login" the first time and you never see the form again.
  *
  * Never expose this folder over a public network. It's a dev tool.
  */
 
-$adminer = __DIR__ . DIRECTORY_SEPARATOR . 'adminer.php';
-if (!file_exists($adminer)) {
+$adminer = __DIR__ . '/adminer.php';
+$plugin  = __DIR__ . '/login-password-less.php';
+
+if (!file_exists($adminer) || !file_exists($plugin)) {
     http_response_code(503);
     header('Content-Type: text/html; charset=utf-8');
     echo <<<HTML
@@ -34,31 +33,46 @@ HTML;
     exit;
 }
 
-$sqlite     = realpath(__DIR__ . '/../database/database.sqlite');
-$requestUri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+// Pre-fill the connection on the very first visit so the user lands on the
+// SQLite driver with the database path already typed in. PHP's built-in
+// server rejects %5C (encoded backslash) as path-traversal, so we feed
+// Adminer a forward-slash path — SQLite accepts both on Windows.
+$sqlitePath = realpath(__DIR__ . '/../database/database.sqlite');
+$sqliteUrl  = $sqlitePath !== false ? str_replace('\\', '/', $sqlitePath) : '';
 
-if (in_array($requestUri, ['/', '/index.php'], true)) {
-    if ($sqlite === false) {
-        http_response_code(500);
-        header('Content-Type: text/plain; charset=utf-8');
-        echo "Le fichier SQLite n'existe pas (database/database.sqlite). Lance `php artisan migrate` d'abord.";
-        exit;
-    }
-
-    // PHP's built-in server rejects URIs containing %5C (encoded backslash) as
-    // a path-traversal guard, so we feed Adminer a forward-slash path. SQLite
-    // accepts either separator on Windows.
-    $sqliteUrl = str_replace('\\', '/', $sqlite);
-
+// Always redirect bare `/` to a URL with the SQLite + db= query string so:
+//   - first-time visitors land on a pre-filled login form;
+//   - returning visitors with the `adminer_permanent` cookie hit a URL whose
+//     (driver, db) tuple matches their saved login → Adminer auto-logs them in.
+if ($sqliteUrl !== '' && empty($_GET) && empty($_POST)) {
     $params = http_build_query([
         'sqlite'   => '',
         'username' => '',
         'db'       => $sqliteUrl,
     ]);
-    header('Location: /adminer.php?' . $params, true, 302);
+    header('Location: /?' . $params, true, 302);
     exit;
 }
 
-// Any other URL (assets, etc.) — fall through to PHP's built-in router so
-// adminer.php and its served sub-resources work normally.
-return false;
+/**
+ * Adminer hook — invoked from inside adminer.php after its core (including
+ * the namespaced Adminer\Plugin base class) has been bootstrapped.
+ */
+function adminer_object() {
+    require_once __DIR__ . '/login-password-less.php';
+
+    // Adminer 5 expects a `Plugins` manager that wraps user plugins and
+    // proxies un-handled methods (bruteForceKey, …) to a base Adminer
+    // instance. Returning the bare plugin breaks at first failed login.
+    //
+    // Local-only credential: typing this once unlocks Adminer until the
+    // permanent-login cookie is cleared. This file is gitignored, and
+    // `php -S 127.0.0.1:8080` only listens on loopback.
+    return new \Adminer\Plugins([
+        new \AdminerLoginPasswordLess(
+            password_hash('rene', PASSWORD_DEFAULT)
+        ),
+    ]);
+}
+
+include __DIR__ . '/adminer.php';

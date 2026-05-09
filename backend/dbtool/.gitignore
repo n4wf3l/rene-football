@@ -1,3 +1,4 @@
-# Adminer is fetched on demand by `composer db:install` (see install.php).
-# Don't vendor a 200 KB third-party PHP file in the repo.
+# Adminer + plugin are fetched on demand by `composer db:install`
+# (see install.php). We don't vendor third-party PHP files in the repo.
 adminer.php
+login-password-less.php
