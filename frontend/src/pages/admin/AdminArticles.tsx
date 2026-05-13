@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
   CheckCircle,
@@ -80,6 +80,18 @@ export default function AdminArticles() {
     setToast({ kind, message })
     setTimeout(() => setToast(null), 3500)
   }
+
+  // Pick up a toast handed off by the editor via navigation state, then clear
+  // it from history so a refresh doesn't re-show the same message.
+  const location = useLocation()
+  useEffect(() => {
+    const toastMsg = (location.state as { toast?: string } | null)?.toast
+    if (toastMsg) {
+      showToast('success', toastMsg)
+      navigate(location.pathname, { replace: true, state: null })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state])
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()

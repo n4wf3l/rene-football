@@ -50,10 +50,14 @@ export default function AdminPlayerEdit({ creating = false }: { creating?: boole
 
   const onClose = () => navigate('/admin/joueurs')
 
-  const onSaved = (saved: AdminPlayer, _kind: SaveKind) => {
-    // After creation we land on the freshly-created edit page so the user
-    // can keep working (add stats, upload photo, attach clips, …).
-    navigate(`/admin/joueurs/${saved.slug}/edit`, { replace: true })
+  const onSaved = (saved: AdminPlayer, kind: SaveKind) => {
+    navigate('/admin/joueurs', {
+      state: {
+        toast: kind === 'created'
+          ? `« ${saved.name} » créé.`
+          : `« ${saved.name} » mis à jour.`,
+      },
+    })
   }
 
   const onDelete = async (p: PlayerFormState) => {

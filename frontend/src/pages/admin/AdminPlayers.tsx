@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent, InputHTMLAttributes, MouseEvent as ReactMouseEvent, ReactNode, SelectHTMLAttributes } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   CheckCircle,
@@ -786,6 +786,18 @@ function AdminPlayers() {
   }
 
   useEffect(() => { reload() }, [])
+
+  // Pick up a toast handed off by the page editor via navigation state, then
+  // clear it from history so a refresh doesn't re-show the same message.
+  const location = useLocation()
+  useEffect(() => {
+    const toastMsg = (location.state as { toast?: string } | null)?.toast
+    if (toastMsg) {
+      showToast('success', toastMsg)
+      navigate(location.pathname, { replace: true, state: null })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state])
 
   const allTags = useMemo(() => {
     const set = new Set<string>()

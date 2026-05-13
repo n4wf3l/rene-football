@@ -292,21 +292,14 @@ export default function AdminArticleEdit({ creating = false }: { creating?: bool
         ? await api.post<ArticleResponse>('/admin/articles', fd, { auth: true })
         : await api.post<ArticleResponse>(`/admin/articles/${form.slug}`, fd, { auth: true })
 
-      // After save, sync local state from the server response, clear staged data.
-      setForm(res.data)
-      setAttachedClipIds((res.data.clips ?? []).map((c) => c.id))
       stagedImages.forEach((s) => URL.revokeObjectURL(s.previewUrl))
-      setStagedImages([])
-      setImagesToRemove([])
-      setCoverFile(null)
-      setCoverRemove(false)
-
-      if (creating) {
-        navigate(`/admin/articles/${res.data.slug}/edit`, { replace: true })
-        showToast('success', 'Article créé.')
-      } else {
-        showToast('success', 'Article mis à jour.')
-      }
+      navigate('/admin/articles', {
+        state: {
+          toast: creating
+            ? `« ${res.data.title} » créé.`
+            : `« ${res.data.title} » mis à jour.`,
+        },
+      })
     } catch (err: unknown) {
       if (err instanceof ApiError && err.status === 422) {
         const flat: Record<string, string> = {}
