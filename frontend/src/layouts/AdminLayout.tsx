@@ -4,6 +4,7 @@ import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-do
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   ArrowSquareOut,
+  Binoculars,
   CaretDoubleLeft,
   CaretDoubleRight,
   ChartLineUp,
@@ -32,6 +33,7 @@ const NAV_ITEMS: AdminNavItem[] = [
   { to: '/admin/joueurs',   label: 'Joueurs',         icon: SoccerBall },
   { to: '/admin/analyse',   label: 'Data analyse',    icon: ChartLineUp },
   { to: '/admin/articles',  label: 'Actualités',      icon: Newspaper },
+  { to: '/admin/scouting',  label: 'Scouting',        icon: Binoculars },
 ]
 
 interface SidebarLinkProps {
@@ -47,10 +49,10 @@ function SidebarLink({ to, label, icon: Icon, end }: SidebarLinkProps) {
       to={to}
       end={end}
       className={({ isActive }) =>
-        `group relative flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-colors duration-200 ease-premium ${
+        `group relative flex items-center gap-3 pl-5 pr-4 py-2.5 rounded-xl text-sm transition-colors duration-200 ease-premium ${
           isActive
-            ? 'bg-stone-200/70 text-zinc-950 dark:bg-stone-50/8 dark:text-stone-50'
-            : 'text-zinc-600 hover:bg-stone-200/50 hover:text-zinc-950 dark:text-stone-400 dark:hover:bg-stone-50/5 dark:hover:text-stone-100'
+            ? 'bg-turf-50 text-turf-900 border border-turf-200/70 dark:bg-turf-900/25 dark:text-stone-50 dark:border-turf-400/15'
+            : 'text-zinc-600 border border-transparent hover:bg-stone-200/50 hover:text-zinc-950 dark:text-stone-400 dark:hover:bg-stone-50/5 dark:hover:text-stone-100'
         }`
       }
     >
@@ -59,12 +61,18 @@ function SidebarLink({ to, label, icon: Icon, end }: SidebarLinkProps) {
           {isActive && (
             <motion.span
               layoutId="admin-nav-active"
-              className="absolute inset-y-2 left-0 w-0.5 rounded-full bg-turf-700 dark:bg-turf-300"
+              className="absolute inset-y-1.5 left-0 w-[3px] rounded-r-full bg-turf-600 dark:bg-turf-300 shadow-[0_0_12px_-2px_rgba(15,81,50,0.45)] dark:shadow-[0_0_12px_-2px_rgba(134,239,172,0.4)]"
               transition={{ type: 'spring', stiffness: 380, damping: 32 }}
             />
           )}
-          <Icon size={18} weight={isActive ? 'duotone' : 'regular'} className={isActive ? 'text-turf-700 dark:text-turf-300' : ''} />
-          <span>{label}</span>
+          <Icon
+            size={18}
+            weight={isActive ? 'duotone' : 'regular'}
+            className={isActive
+              ? 'text-turf-700 dark:text-turf-300'
+              : 'text-zinc-500 group-hover:text-zinc-800 dark:text-stone-500 dark:group-hover:text-stone-200'}
+          />
+          <span className={isActive ? 'font-medium' : ''}>{label}</span>
         </>
       )}
     </NavLink>
@@ -213,6 +221,8 @@ const FOCUS_ROUTES: RegExp[] = [
   /^\/admin\/joueurs\/[^/]+\/edit$/,
   /^\/admin\/articles\/nouveau$/,
   /^\/admin\/articles\/[^/]+\/edit$/,
+  // Scouting cockpit has its own internal sidebar — collapse the outer one.
+  /^\/admin\/scouting$/,
 ]
 
 function isFocusRoute(pathname: string): boolean {

@@ -2,6 +2,7 @@ import type { Icon as PhosphorIcon } from '@phosphor-icons/react'
 import { Link } from 'react-router-dom'
 import { EnvelopeSimple, MapPin, Phone } from '@phosphor-icons/react'
 import BrandLogo from './BrandLogo'
+import { useAuth } from '../auth/AuthContext'
 
 const NAV_LINKS: { to: string; label: string }[] = [
   { to: '/',           label: 'Accueil' },
@@ -32,6 +33,8 @@ const CONTACT: ContactEntry[] = [
 
 function Footer() {
   const year = new Date().getFullYear()
+  const { user, isAuthenticated } = useAuth()
+  const isAdmin = isAuthenticated && Boolean(user?.is_admin)
 
   return (
     <footer className="bg-stone-100 text-zinc-700 border-t border-stone-200 dark:bg-zinc-950 dark:text-stone-300 dark:border-stone-50/5">
@@ -116,10 +119,10 @@ function Footer() {
               Confidentialité
             </Link>
             <Link
-              to="/admin/login"
+              to={isAdmin ? '/admin' : '/admin/login'}
               className="hover:text-turf-700 dark:hover:text-turf-300 transition"
             >
-              Espace agence
+              {isAdmin ? 'Tableau de bord' : 'Espace agence'}
             </Link>
           </div>
         </div>

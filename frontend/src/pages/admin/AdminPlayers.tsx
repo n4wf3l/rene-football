@@ -3,11 +3,18 @@ import type { FormEvent, InputHTMLAttributes, MouseEvent as ReactMouseEvent, Rea
 import { useLocation, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
+  ArrowsClockwise,
+  Binoculars,
   CheckCircle,
+  Eye,
+  EyeSlash,
+  FunnelSimple,
   MagnifyingGlass,
   PencilSimpleLine,
   Plus,
   Trash,
+  Users,
+  WarningCircle,
   X as XIcon,
 } from '@phosphor-icons/react'
 import { api, ApiError } from '../../api/client'
@@ -641,22 +648,154 @@ interface PlayersListResponse {
   data: AdminPlayer[]
 }
 
-type StatusFilter = 'Tous' | 'online' | 'offline'
+/* ───── Business statuses (replaces "EN LIGNE / HORS LIGNE") ───── */
+
+type BusinessStatus =
+  | 'stats_a_jour'   // dossier complet + matchs renseignés
+  | 'a_completer'    // dossier sous le seuil (< 60 %)
+  | 'a_verifier'     // dossier intermédiaire (60–85 %)
+  | 'a_surveiller'   // tag « À surveiller » présent
+  | 'scouting'       // potentiel renseigné (≥ 7) — préfigure le module scouting
+  | 'blesse'         // tag « Blessé long »
+  | 'archive'        // marqué hors-ligne par l'admin
+
+interface StatusMeta {
+  label: string
+  dot: string
+  pill: string
+}
+
+const STATUS_META: Record<BusinessStatus, StatusMeta> = {
+  stats_a_jour: {
+    label: 'Stats à jour',
+    dot:   'bg-turf-500',
+    pill:  'bg-turf-50 text-turf-800 border border-turf-200 dark:bg-turf-900/30 dark:text-turf-200 dark:border-turf-400/20',
+  },
+  a_completer: {
+    label: 'À compléter',
+    dot:   'bg-amber-500',
+    pill:  'bg-amber-50 text-amber-800 border border-amber-200 dark:bg-amber-500/10 dark:text-amber-200 dark:border-amber-400/20',
+  },
+  a_verifier: {
+    label: 'À vérifier',
+    dot:   'bg-amber-400',
+    pill:  'bg-amber-50/70 text-amber-700 border border-amber-200/70 dark:bg-amber-500/[0.06] dark:text-amber-200 dark:border-amber-400/15',
+  },
+  a_surveiller: {
+    label: 'À surveiller',
+    dot:   'bg-violet-500',
+    pill:  'bg-violet-50 text-violet-800 border border-violet-200 dark:bg-violet-500/10 dark:text-violet-200 dark:border-violet-400/20',
+  },
+  scouting: {
+    label: 'Scouting',
+    dot:   'bg-sky-500',
+    pill:  'bg-sky-50 text-sky-800 border border-sky-200 dark:bg-sky-500/10 dark:text-sky-200 dark:border-sky-400/20',
+  },
+  blesse: {
+    label: 'Blessé',
+    dot:   'bg-rose-500',
+    pill:  'bg-rose-50 text-rose-800 border border-rose-200 dark:bg-rose-500/10 dark:text-rose-200 dark:border-rose-400/20',
+  },
+  archive: {
+    label: 'Archivé',
+    dot:   'bg-stone-400 dark:bg-stone-500',
+    pill:  'bg-stone-100 text-zinc-600 border border-stone-200 dark:bg-stone-50/[0.06] dark:text-stone-300 dark:border-stone-50/10',
+  },
+}
+
+/* ───── Completeness scoring (0–100) ───── */
+
+interface CompletenessSlot { key: string; weight: number; filled: boolean }
+
+function completenessSlots(p: AdminPlayer): CompletenessSlot[] {
+  return [
+    { key: 'photo',    weight: 10, filled: !!p.photo_url },
+    { key: 'bio',      weight: 10, filled: !!p.bio && p.bio.trim().length > 20 },
+    { key: 'club',     weight: 10, filled: !!p.club },
+    { key: 'height',   weight:  5, filled: !!p.height },
+    { key: 'foot',     weight:  5, filled: !!p.preferred_foot },
+    { key: 'nation',   weight:  5, filled: !!p.nationality },
+    { key: 'matches',  weight: 15, filled: (p.matches_played ?? 0) > 0 },
+    { key: 'mins',     weight: 10, filled: (p.minutes_played ?? 0) > 0 },
+    { key: 'accuracy', weight:  5, filled: (p.pass_accuracy ?? 0) > 0 },
+    { key: 'tags',     weight:  5, filled: (p.tags?.length ?? 0) > 0 },
+    { key: 'heatmap',  weight: 10, filled: Array.isArray(p.heatmap_grid) && p.heatmap_grid.length > 0 },
+    { key: 'tracking', weight: 10, filled: (p.distance_avg_km ?? 0) > 0 || (p.sprints_avg ?? 0) > 0 },
+  ]
+}
+
+function completenessPct(p: AdminPlayer): number {
+  const slots = completenessSlots(p)
+  return slots.reduce((acc, s) => acc + (s.filled ? s.weight : 0), 0)
+}
+
+function deriveStatus(p: AdminPlayer, pct: number): BusinessStatus {
+  if (p.is_published === false) return 'archive'
+  const tags = (p.tags ?? []).map((t) => t.toLowerCase())
+  if (tags.some((t) => t.includes('bless'))) return 'blesse'
+  if (tags.some((t) => t.includes('surveiller'))) return 'a_surveiller'
+  if ((p.potential_rating ?? 0) >= 7.5) return 'scouting'
+  if (pct < 60) return 'a_completer'
+  if (pct < 85 || (p.matches_played ?? 0) === 0) return 'a_verifier'
+  return 'stats_a_jour'
+}
+
+/* ───── Avatar with initials fallback (no more picsum) ───── */
+
+function initialsOf(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean)
+  if (parts.length === 0) return '?'
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+}
+
+function Avatar({ player }: { player: AdminPlayer }) {
+  if (player.photo_url) {
+    return (
+      <img
+        src={player.photo_url}
+        alt=""
+        className="w-9 h-9 rounded-full object-cover bg-stone-200 dark:bg-stone-800 border border-stone-200/70 dark:border-stone-50/[0.06]"
+      />
+    )
+  }
+  return (
+    <div className="grid place-items-center w-9 h-9 rounded-full bg-zinc-900 dark:bg-zinc-800 text-stone-100 border border-stone-300/70 dark:border-stone-50/10 text-[0.72rem] font-medium tracking-wide ring-1 ring-turf-700/20 dark:ring-turf-300/15">
+      {initialsOf(player.name)}
+    </div>
+  )
+}
+
+/* ───── Relative date helper ───── */
+
+function freshness(iso?: string | null): { label: string; tone: 'turf' | 'amber' | 'neutral' } {
+  if (!iso) return { label: 'à vérifier', tone: 'amber' }
+  const ts = new Date(iso).getTime()
+  const days = Math.floor((Date.now() - ts) / 86_400_000)
+  if (days <= 0) return { label: 'aujourd\'hui',     tone: 'turf' }
+  if (days === 1) return { label: 'hier',             tone: 'turf' }
+  if (days < 7)   return { label: `il y a ${days} j.`, tone: 'turf' }
+  if (days < 14)  return { label: 'il y a 1 sem.',    tone: 'neutral' }
+  if (days < 30)  return { label: `il y a ${Math.floor(days / 7)} sem.`, tone: 'neutral' }
+  return { label: 'à vérifier', tone: 'amber' }
+}
+
 type AgeFilter = 'Tous' | 'U21' | '21-26' | '27+'
 
-type SortColumn = 'name' | 'category' | 'club' | 'age' | 'matches' | 'goals' | 'assists' | 'xg' | 'pass_accuracy'
+type SortColumn = 'name' | 'category' | 'club' | 'age' | 'matches' | 'goals' | 'assists' | 'xg' | 'pass_accuracy' | 'completeness'
 type SortDir = 'asc' | 'desc'
 
 const DEFAULT_DIR: Record<SortColumn, SortDir> = {
-  name: 'asc',
-  category: 'asc',
-  club: 'asc',
-  age: 'asc',
-  matches: 'desc',
-  goals: 'desc',
-  assists: 'desc',
-  xg: 'desc',
-  pass_accuracy: 'desc',
+  name:           'asc',
+  category:       'asc',
+  club:           'asc',
+  age:            'asc',
+  matches:        'desc',
+  goals:          'desc',
+  assists:        'desc',
+  xg:             'desc',
+  pass_accuracy:  'desc',
+  completeness:   'desc',
 }
 
 const AGE_OPTIONS: { key: AgeFilter; label: string }[] = [
@@ -666,82 +805,74 @@ const AGE_OPTIONS: { key: AgeFilter; label: string }[] = [
   { key: '27+',   label: '27 et plus' },
 ]
 
-const STATUS_OPTIONS: { key: StatusFilter; label: string }[] = [
-  { key: 'Tous',    label: 'Tous statuts' },
-  { key: 'online',  label: 'En ligne' },
-  { key: 'offline', label: 'Hors ligne' },
+type StatusFilter = 'Tous' | BusinessStatus
+const STATUS_FILTER_OPTIONS: { key: StatusFilter; label: string }[] = [
+  { key: 'Tous',         label: 'Tous statuts' },
+  { key: 'stats_a_jour', label: STATUS_META.stats_a_jour.label },
+  { key: 'a_completer',  label: STATUS_META.a_completer.label },
+  { key: 'a_verifier',   label: STATUS_META.a_verifier.label },
+  { key: 'a_surveiller', label: STATUS_META.a_surveiller.label },
+  { key: 'scouting',     label: STATUS_META.scouting.label },
+  { key: 'blesse',       label: STATUS_META.blesse.label },
+  { key: 'archive',      label: STATUS_META.archive.label },
 ]
 
-/* Mini select used inside table headers — neutral chrome, mono font, no chrome on focus. */
-const HEAD_SELECT =
-  'mt-1.5 w-full max-w-[140px] bg-transparent border border-stone-300 dark:border-stone-50/15 rounded-md px-1.5 py-0.5 text-[0.65rem] font-mono normal-case tracking-normal text-zinc-700 dark:text-stone-300 hover:border-zinc-500 focus:border-zinc-900 dark:hover:border-stone-50/40 dark:focus:border-turf-300 focus:outline-none transition'
-
 interface HeadCellProps {
-  /** Sort column key — omit if the column isn't sortable. */
   column?: SortColumn
   label: string
+  hint?: string
   align?: 'left' | 'right'
   currentColumn?: SortColumn
   currentDir?: SortDir
   onSort?: (col: SortColumn) => void
-  /** Filter dropdown rendered below the label. */
-  filter?: ReactNode
 }
 
-function HeadCell({ column, label, align = 'left', currentColumn, currentDir, onSort, filter }: HeadCellProps) {
+function HeadCell({ column, label, hint, align = 'left', currentColumn, currentDir, onSort }: HeadCellProps) {
   const sortable = !!column && !!onSort
   const active = sortable && currentColumn === column
-  const sortIndicator = active
-    ? (currentDir === 'asc' ? '↑' : '↓')
-    : (sortable ? '↕' : '')
-
+  const indicator = active ? (currentDir === 'asc' ? '↑' : '↓') : (sortable ? '↕' : '')
   return (
-    <th className={`px-4 py-2.5 align-top ${align === 'right' ? 'text-right' : 'text-left'}`}>
+    <th className={`px-4 py-3 align-middle ${align === 'right' ? 'text-right' : 'text-left'}`}>
       {sortable ? (
         <button
           type="button"
           onClick={() => onSort!(column!)}
-          className={`inline-flex items-center gap-1 text-[0.65rem] font-mono uppercase tracking-[0.16em] transition-colors ${
+          title={hint}
+          className={`inline-flex items-center gap-1 text-[0.62rem] font-mono uppercase tracking-[0.12em] transition-colors ${
             active
               ? 'text-zinc-950 dark:text-stone-50'
               : 'text-zinc-600 dark:text-stone-400 hover:text-zinc-900 dark:hover:text-stone-100'
           }`}
         >
           {label}
-          <span className={`inline-block ${active ? 'opacity-100' : 'opacity-40'}`}>{sortIndicator}</span>
+          <span className={`inline-block ${active ? 'opacity-100' : 'opacity-40'}`}>{indicator}</span>
         </button>
       ) : (
-        <span className="text-[0.65rem] font-mono uppercase tracking-[0.16em] text-zinc-600 dark:text-stone-400">{label}</span>
+        <span title={hint} className="text-[0.62rem] font-mono uppercase tracking-[0.12em] text-zinc-600 dark:text-stone-400">{label}</span>
       )}
-      {filter}
     </th>
   )
 }
 
-type SortKey = 'name' | 'matches' | 'goals' | 'assists' | 'xg' | 'age-asc' | 'age-desc'
+/* ───── Reusable filter <select> chrome ───── */
+const FILTER_SELECT =
+  'h-9 rounded-lg border border-stone-200 dark:border-stone-50/10 bg-white dark:bg-zinc-900/60 px-3 pr-7 text-[0.78rem] text-zinc-700 dark:text-stone-200 hover:border-stone-300 dark:hover:border-stone-50/20 focus:outline-none focus:border-zinc-500 dark:focus:border-turf-300 transition appearance-none'
 
-const SORT_OPTIONS: { key: SortKey; label: string }[] = [
-  { key: 'name',     label: 'Nom (A → Z)' },
-  { key: 'matches',  label: 'Matchs joués ↓' },
-  { key: 'goals',    label: 'Buts ↓' },
-  { key: 'assists',  label: 'Passes décisives ↓' },
-  { key: 'xg',       label: 'xG ↓' },
-  { key: 'age-asc',  label: 'Âge (jeune → vieux)' },
-  { key: 'age-desc', label: 'Âge (vieux → jeune)' },
-]
-
-const AGE_FILTERS: { key: AgeFilter; label: string }[] = [
-  { key: 'Tous',  label: 'Tous âges' },
-  { key: 'U21',   label: 'Moins de 21' },
-  { key: '21-26', label: '21–26' },
-  { key: '27+',   label: '27 et plus' },
-]
-
-const STATUS_FILTERS: { key: StatusFilter; label: string }[] = [
-  { key: 'Tous',    label: 'Tous' },
-  { key: 'online',  label: 'En ligne' },
-  { key: 'offline', label: 'Hors ligne' },
-]
+/* ───── Mini-KPI strip ───── */
+interface MiniKpiProps { icon: typeof Users; label: string; value: number | string; tone?: 'turf' | 'amber' | 'neutral' }
+function MiniKpi({ icon: Icon, label, value, tone = 'neutral' }: MiniKpiProps) {
+  const iconColor =
+    tone === 'turf'  ? 'text-turf-700 dark:text-turf-300' :
+    tone === 'amber' ? 'text-amber-600 dark:text-amber-300' :
+                       'text-zinc-500 dark:text-stone-400'
+  return (
+    <div className="inline-flex items-center gap-2 rounded-full border border-stone-200/70 dark:border-stone-50/[0.06] bg-white dark:bg-zinc-900/60 px-3 py-1.5">
+      <Icon size={13} weight="duotone" className={iconColor} />
+      <span className="text-[0.7rem] text-zinc-600 dark:text-stone-300">{label}</span>
+      <span className="text-[0.72rem] font-medium text-zinc-950 dark:text-stone-50 tabular-nums">{value}</span>
+    </div>
+  )
+}
 
 function AdminPlayers() {
   const [players, setPlayers] = useState<AdminPlayer[]>([])
@@ -750,6 +881,7 @@ function AdminPlayers() {
   const [filter, setFilter] = useState<string>('Tous')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('Tous')
   const [ageFilter, setAgeFilter] = useState<AgeFilter>('Tous')
+  const [clubFilter, setClubFilter] = useState<string>('Tous')
   const [tagFilter, setTagFilter] = useState<string | null>(null)
   const [sortColumn, setSortColumn] = useState<SortColumn>('name')
   const [sortDir, setSortDir] = useState<SortDir>('asc')
@@ -799,6 +931,20 @@ function AdminPlayers() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.state])
 
+  /* Enrich each player once : completeness % + derived business status. */
+  const enriched = useMemo(() => {
+    return players.map((p) => {
+      const pct = completenessPct(p)
+      return { player: p, pct, status: deriveStatus(p, pct) }
+    })
+  }, [players])
+
+  const allClubs = useMemo(() => {
+    const set = new Set<string>()
+    players.forEach((p) => p.club && set.add(p.club))
+    return Array.from(set).sort()
+  }, [players])
+
   const allTags = useMemo(() => {
     const set = new Set<string>()
     players.forEach((p) => (p.tags ?? []).forEach((t) => set.add(t)))
@@ -807,15 +953,15 @@ function AdminPlayers() {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
-    const rows = players.filter((p) => {
+    const rows = enriched.filter(({ player: p, status }) => {
       if (filter !== 'Tous' && p.category !== filter) return false
-      if (statusFilter === 'online' && !p.is_published) return false
-      if (statusFilter === 'offline' && p.is_published) return false
+      if (clubFilter !== 'Tous' && (p.club ?? '') !== clubFilter) return false
+      if (statusFilter !== 'Tous' && status !== statusFilter) return false
       if (ageFilter === 'U21' && p.age >= 21) return false
       if (ageFilter === '21-26' && (p.age < 21 || p.age > 26)) return false
       if (ageFilter === '27+' && p.age < 27) return false
       if (tagFilter && !(p.tags ?? []).includes(tagFilter)) return false
-      if (q && !`${p.name} ${p.club || ''}`.toLowerCase().includes(q)) return false
+      if (q && !`${p.name} ${p.club || ''} ${p.position}`.toLowerCase().includes(q)) return false
       return true
     })
 
@@ -823,7 +969,8 @@ function AdminPlayers() {
     const num = (v: unknown) => Number(v ?? 0)
     const txt = (v: unknown) => String(v ?? '')
 
-    const compare = (a: AdminPlayer, b: AdminPlayer): number => {
+    const compare = (A: typeof rows[number], B: typeof rows[number]): number => {
+      const a = A.player; const b = B.player
       switch (sortColumn) {
         case 'name':           return sign * txt(a.name).localeCompare(txt(b.name), 'fr')
         case 'category':       return sign * txt(a.category).localeCompare(txt(b.category), 'fr')
@@ -832,16 +979,29 @@ function AdminPlayers() {
         case 'matches':        return sign * (num(a.matches_played) - num(b.matches_played))
         case 'goals':          return sign * (num(a.goals) - num(b.goals))
         case 'assists':        return sign * (num(a.assists) - num(b.assists))
-        case 'xg':             return sign * (num(a.xg) - num(b.xg))
+        case 'xg':              return sign * (num(a.xg) - num(b.xg))
         case 'pass_accuracy':  return sign * (num(a.pass_accuracy) - num(b.pass_accuracy))
+        case 'completeness':   return sign * (A.pct - B.pct)
       }
     }
     return [...rows].sort(compare)
-  }, [players, query, filter, statusFilter, ageFilter, tagFilter, sortColumn, sortDir])
+  }, [enriched, query, filter, clubFilter, statusFilter, ageFilter, tagFilter, sortColumn, sortDir])
+
+  /* Mini-KPI counters — computed from the unfiltered enriched set. */
+  const kpi = useMemo(() => {
+    const acc = { total: enriched.length, clubs: allClubs.length, statsAJour: 0, aCompleter: 0, aVerifier: 0 }
+    for (const { status } of enriched) {
+      if (status === 'stats_a_jour') acc.statsAJour++
+      else if (status === 'a_completer') acc.aCompleter++
+      else if (status === 'a_verifier') acc.aVerifier++
+    }
+    return acc
+  }, [enriched, allClubs])
 
   const anyFilterActive =
     !!query.trim() ||
     filter !== 'Tous' ||
+    clubFilter !== 'Tous' ||
     statusFilter !== 'Tous' ||
     ageFilter !== 'Tous' ||
     tagFilter !== null ||
@@ -851,6 +1011,7 @@ function AdminPlayers() {
   const resetFilters = () => {
     setQuery('')
     setFilter('Tous')
+    setClubFilter('Tous')
     setStatusFilter('Tous')
     setAgeFilter('Tous')
     setTagFilter(null)
@@ -917,21 +1078,36 @@ function AdminPlayers() {
     }
   }
 
+  /* Completeness pill — colored bucket + percentage. */
+  function CompletenessPill({ pct }: { pct: number }) {
+    const tone =
+      pct >= 85 ? 'text-turf-700 bg-turf-50 border-turf-200 dark:text-turf-200 dark:bg-turf-900/30 dark:border-turf-400/20' :
+      pct >= 60 ? 'text-amber-700 bg-amber-50 border-amber-200 dark:text-amber-200 dark:bg-amber-500/10 dark:border-amber-400/20' :
+                  'text-rose-700 bg-rose-50 border-rose-200 dark:text-rose-200 dark:bg-rose-500/10 dark:border-rose-400/20'
+    return (
+      <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md border text-[0.62rem] font-mono tabular-nums ${tone}`}>
+        {pct}%
+      </span>
+    )
+  }
+
   return (
     <div className="px-6 lg:px-10 py-10">
-      <div className="flex flex-wrap items-end justify-between gap-4 mb-8">
+      {/* ───── Header ───── */}
+      <div className="flex flex-wrap items-end justify-between gap-4 mb-6">
         <div>
           <span className="eyebrow">Roster</span>
-          <h1 className="mt-2 font-display font-semibold text-3xl lg:text-4xl tracking-tight text-zinc-950 dark:text-stone-50">
+          <h1 className="mt-2 font-display font-semibold text-3xl lg:text-[2rem] tracking-tight text-zinc-950 dark:text-stone-50">
             Joueurs & statistiques
           </h1>
-          <p className="mt-1.5 text-sm text-zinc-600 dark:text-stone-400">
-            Cliquez sur un joueur pour mettre à jour ses statistiques.
+          <p className="mt-1.5 text-sm text-zinc-600 dark:text-stone-300 max-w-[60ch] leading-relaxed">
+            Gérez les profils joueurs, suivez les statistiques clés et identifiez
+            les dossiers à compléter.
           </p>
         </div>
         <div className="flex items-center gap-3">
-          {/* Editor preference toggle — persists per-admin via localStorage. */}
-          <div className="hidden sm:inline-flex items-center gap-0.5 rounded-full border border-stone-300 dark:border-stone-50/15 p-0.5 text-[0.7rem]">
+          {/* Editor preference toggle — relabelled for football back-office. */}
+          <div className="hidden sm:inline-flex items-center gap-0.5 rounded-full border border-stone-200 dark:border-stone-50/10 p-0.5 text-[0.7rem]">
             {(['modal', 'page'] as const).map((m) => (
               <button
                 key={m}
@@ -942,9 +1118,9 @@ function AdminPlayers() {
                     ? 'bg-zinc-950 text-stone-50 dark:bg-stone-50 dark:text-zinc-950'
                     : 'text-zinc-600 hover:text-zinc-900 dark:text-stone-400 dark:hover:text-stone-100'
                 }`}
-                title={m === 'modal' ? 'Édition en panneau latéral' : 'Édition en page complète'}
+                title={m === 'modal' ? 'Édition rapide en panneau latéral' : 'Édition de la fiche complète sur sa page'}
               >
-                {m === 'modal' ? 'Modal' : 'Page'}
+                {m === 'modal' ? 'Vue rapide' : 'Fiche complète'}
               </button>
             ))}
           </div>
@@ -954,100 +1130,101 @@ function AdminPlayers() {
         </div>
       </div>
 
-      {/* Toolbar : search + reset + count. Sort + filters live inside the table head. */}
-      <div className="flex flex-wrap items-center gap-3 mb-4">
-        <div className="relative">
-          <MagnifyingGlass size={14} weight="regular" className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
+      {/* ───── Mini-KPI strip ───── */}
+      <div className="flex flex-wrap items-center gap-2 mb-5">
+        <MiniKpi icon={Users}         label="Joueurs"        value={kpi.total} />
+        <MiniKpi icon={Binoculars}    label="Clubs"          value={kpi.clubs} />
+        <MiniKpi icon={CheckCircle}   label="Stats à jour"   value={kpi.statsAJour} tone="turf" />
+        <MiniKpi icon={WarningCircle} label="À compléter"    value={kpi.aCompleter} tone="amber" />
+        <MiniKpi icon={WarningCircle} label="À vérifier"     value={kpi.aVerifier}  tone="amber" />
+      </div>
+
+      {/* ───── Filter bar (search + filters + reset + count) ───── */}
+      <div className="rounded-2xl border border-stone-200/70 dark:border-stone-50/[0.06] bg-white dark:bg-zinc-900/60 p-3 mb-3 flex flex-wrap items-center gap-2">
+        <div className="relative flex-1 min-w-[200px] max-w-sm">
+          <MagnifyingGlass size={14} weight="regular" className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-stone-500" />
           <input
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Rechercher un joueur"
-            className="pl-9 pr-3 py-2 rounded-full border border-stone-300 bg-white text-sm w-64 focus:outline-none focus:border-zinc-900 dark:bg-zinc-900 dark:border-stone-50/15 dark:text-stone-50 dark:placeholder:text-stone-500 dark:focus:border-turf-300"
+            placeholder="Rechercher un joueur, club, poste…"
+            className="w-full pl-9 pr-3 h-9 rounded-lg border border-stone-200 bg-white text-[0.82rem] focus:outline-none focus:border-zinc-500 dark:bg-zinc-900/60 dark:border-stone-50/10 dark:text-stone-50 dark:placeholder:text-stone-500 dark:focus:border-turf-300"
           />
         </div>
+
+        <FunnelSimple size={14} weight="regular" className="text-zinc-400 dark:text-stone-500 hidden sm:inline" />
+
+        <select className={FILTER_SELECT} value={filter} onChange={(e) => setFilter(e.target.value)} aria-label="Filtrer par catégorie">
+          <option value="Tous">Toutes catégories</option>
+          {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+        </select>
+
+        {allClubs.length > 0 && (
+          <select className={FILTER_SELECT} value={clubFilter} onChange={(e) => setClubFilter(e.target.value)} aria-label="Filtrer par club">
+            <option value="Tous">Tous les clubs</option>
+            {allClubs.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+        )}
+
+        <select className={FILTER_SELECT} value={ageFilter} onChange={(e) => setAgeFilter(e.target.value as AgeFilter)} aria-label="Filtrer par tranche d'âge">
+          {AGE_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
+        </select>
+
+        <select className={FILTER_SELECT} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as StatusFilter)} aria-label="Filtrer par statut">
+          {STATUS_FILTER_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
+        </select>
+
+        {allTags.length > 0 && (
+          <select className={FILTER_SELECT} value={tagFilter ?? ''} onChange={(e) => setTagFilter(e.target.value || null)} aria-label="Filtrer par tag">
+            <option value="">Tous tags</option>
+            {allTags.map((t) => <option key={t} value={t}>{t}</option>)}
+          </select>
+        )}
 
         {anyFilterActive && (
           <button
             type="button"
             onClick={resetFilters}
-            className="inline-flex items-center gap-1.5 text-[0.7rem] font-medium text-zinc-600 hover:text-zinc-950 dark:text-stone-400 dark:hover:text-stone-50 transition"
-            title="Réinitialiser les filtres"
+            className="inline-flex items-center gap-1.5 h-9 px-2.5 rounded-lg text-[0.72rem] text-zinc-600 hover:text-zinc-950 dark:text-stone-400 dark:hover:text-stone-50 hover:bg-stone-100 dark:hover:bg-stone-50/5 transition"
+            title="Réinitialiser tous les filtres"
           >
-            <XIcon size={12} weight="bold" />
+            <ArrowsClockwise size={12} weight="bold" />
             Réinitialiser
           </button>
         )}
 
-        <span className="ml-auto text-xs text-zinc-500 dark:text-stone-400 font-mono tabular-nums">
+        <span className="ml-auto text-[0.72rem] text-zinc-500 dark:text-stone-400 font-mono tabular-nums shrink-0">
           {filtered.length} / {players.length} joueurs
         </span>
       </div>
 
-      <div className="overflow-x-auto rounded-2xl border border-stone-200 bg-white dark:bg-zinc-900 dark:border-stone-50/8">
+      {/* ───── Table ───── */}
+      <div className="overflow-x-auto rounded-2xl border border-stone-200/70 dark:border-stone-50/[0.06] bg-white dark:bg-zinc-900/60">
         <table className="w-full text-sm">
-          <thead className="bg-stone-100 dark:bg-zinc-950 align-top">
-            <tr>
-              <HeadCell column="name" label="Joueur"
-                currentColumn={sortColumn} currentDir={sortDir} onSort={onSort} />
-
-              <HeadCell column="category" label="Catégorie"
-                currentColumn={sortColumn} currentDir={sortDir} onSort={onSort}
-                filter={
-                  <select className={HEAD_SELECT} value={filter} onChange={(e) => setFilter(e.target.value)}>
-                    <option value="Tous">Toutes</option>
-                    {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                } />
-
-              <HeadCell column="club" label="Club"
-                currentColumn={sortColumn} currentDir={sortDir} onSort={onSort} />
-
-              <HeadCell column="age" label="Âge" align="right"
-                currentColumn={sortColumn} currentDir={sortDir} onSort={onSort}
-                filter={
-                  <select className={HEAD_SELECT + ' ml-auto'} value={ageFilter} onChange={(e) => setAgeFilter(e.target.value as AgeFilter)}>
-                    {AGE_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
-                  </select>
-                } />
-
-              <HeadCell column="matches" label="Matchs" align="right"
-                currentColumn={sortColumn} currentDir={sortDir} onSort={onSort} />
-              <HeadCell column="goals" label="Buts" align="right"
-                currentColumn={sortColumn} currentDir={sortDir} onSort={onSort} />
-              <HeadCell column="assists" label="Passes D." align="right"
-                currentColumn={sortColumn} currentDir={sortDir} onSort={onSort} />
-              <HeadCell column="xg" label="xG" align="right"
-                currentColumn={sortColumn} currentDir={sortDir} onSort={onSort} />
-              <HeadCell column="pass_accuracy" label="% passes" align="right"
-                currentColumn={sortColumn} currentDir={sortDir} onSort={onSort} />
-
-              {allTags.length > 0 && (
-                <HeadCell label="Tags"
-                  filter={
-                    <select className={HEAD_SELECT} value={tagFilter ?? ''} onChange={(e) => setTagFilter(e.target.value || null)}>
-                      <option value="">Tous</option>
-                      {allTags.map((t) => <option key={t} value={t}>{t}</option>)}
-                    </select>
-                  } />
-              )}
-
-              <HeadCell label="Statut" align="right"
-                filter={
-                  <select className={HEAD_SELECT + ' ml-auto'} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}>
-                    {STATUS_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
-                  </select>
-                } />
-
-              <th className="px-2 py-3" />
+          <thead className="bg-stone-50/80 dark:bg-stone-50/[0.02]">
+            <tr className="border-b border-stone-200/60 dark:border-stone-50/[0.05]">
+              <HeadCell column="name"          label="Joueur"           currentColumn={sortColumn} currentDir={sortDir} onSort={onSort} />
+              <HeadCell column="category"      label="Catégorie"        currentColumn={sortColumn} currentDir={sortDir} onSort={onSort} />
+              <HeadCell column="club"          label="Club"             currentColumn={sortColumn} currentDir={sortDir} onSort={onSort} />
+              <HeadCell column="age"           label="Âge"     align="right" currentColumn={sortColumn} currentDir={sortDir} onSort={onSort} />
+              <HeadCell column="matches"       label="Matchs"  align="right" currentColumn={sortColumn} currentDir={sortDir} onSort={onSort} />
+              <HeadCell column="goals"         label="Buts"    align="right" currentColumn={sortColumn} currentDir={sortDir} onSort={onSort} />
+              <HeadCell column="assists"       label="Passes D." align="right" currentColumn={sortColumn} currentDir={sortDir} onSort={onSort} />
+              <HeadCell column="xg"            label="xG"      align="right" hint="Buts attendus" currentColumn={sortColumn} currentDir={sortDir} onSort={onSort} />
+              <HeadCell column="pass_accuracy" label="Précision" align="right" hint="Précision des passes (%)" currentColumn={sortColumn} currentDir={sortDir} onSort={onSort} />
+              <HeadCell                        label="Statut" />
+              <HeadCell column="completeness"  label="Complét." hint="Complétude du dossier" align="right" currentColumn={sortColumn} currentDir={sortDir} onSort={onSort} />
+              <th className="px-3 py-3 text-right">
+                <span className="text-[0.62rem] font-mono uppercase tracking-[0.12em] text-zinc-600 dark:text-stone-400">Actions</span>
+              </th>
             </tr>
           </thead>
           <tbody>
             {loading && Array.from({ length: 6 }).map((_, i) => (
-              <tr key={`skel-${i}`} className="border-t border-stone-200 dark:border-stone-50/8">
+              <tr key={`skel-${i}`} className="border-t border-stone-200/60 dark:border-stone-50/[0.05]">
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
-                    <Skeleton className="w-10 h-10" rounded="lg" />
+                    <Skeleton className="w-9 h-9" rounded="full" />
                     <div className="space-y-1.5">
                       <Skeleton className="h-3 w-32" />
                       <Skeleton className="h-2.5 w-20" />
@@ -1062,79 +1239,108 @@ function AdminPlayers() {
                 <td className="px-4 py-3 text-right"><Skeleton className="h-3 w-8 ml-auto" /></td>
                 <td className="px-4 py-3 text-right"><Skeleton className="h-3 w-10 ml-auto" /></td>
                 <td className="px-4 py-3 text-right"><Skeleton className="h-3 w-10 ml-auto" /></td>
-                {allTags.length > 0 && (
-                  <td className="px-4 py-3"><Skeleton className="h-3 w-16" /></td>
-                )}
-                <td className="px-4 py-3"><Skeleton className="h-5 w-16" rounded="full" /></td>
-                <td className="px-2 py-3"><Skeleton className="h-6 w-6" /></td>
+                <td className="px-4 py-3"><Skeleton className="h-5 w-20" rounded="full" /></td>
+                <td className="px-4 py-3 text-right"><Skeleton className="h-4 w-10 ml-auto" /></td>
+                <td className="px-3 py-3"><Skeleton className="h-6 w-12 ml-auto" /></td>
               </tr>
             ))}
             {!loading && filtered.length === 0 && (
-              <tr><td colSpan={allTags.length > 0 ? 12 : 11} className="px-4 py-8 text-center text-zinc-500 dark:text-stone-400">Aucun joueur.</td></tr>
-            )}
-            {filtered.map((p) => (
-              <tr
-                key={p.id ?? p.slug}
-                onClick={() => openEditor(p)}
-                className="border-t border-stone-200 hover:bg-stone-50/60 dark:border-stone-50/8 dark:hover:bg-stone-50/5 cursor-pointer transition-colors"
-              >
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={p.photo_url || `https://picsum.photos/seed/${p.slug}/80`}
-                      alt=""
-                      className="w-9 h-9 rounded-full object-cover bg-stone-200 dark:bg-stone-800"
-                    />
-                    <div>
-                      <div className="font-medium text-zinc-950 dark:text-stone-50">{p.name}</div>
-                      <div className="text-xs text-zinc-500 dark:text-stone-400">{p.position}</div>
+              <tr>
+                <td colSpan={12} className="px-4 py-12 text-center">
+                  <div className="inline-flex flex-col items-center gap-2 text-sm">
+                    <WarningCircle size={20} weight="duotone" className="text-zinc-400 dark:text-stone-500" />
+                    <div className="text-zinc-700 dark:text-stone-200 font-medium">Aucun joueur trouvé</div>
+                    <div className="text-zinc-500 dark:text-stone-400 text-xs">
+                      Essayez de modifier vos filtres ou ajoutez un nouveau joueur.
+                    </div>
+                    <div className="flex gap-2 mt-2">
+                      {anyFilterActive && (
+                        <button type="button" onClick={resetFilters} className="btn btn-outline text-xs px-3 py-1.5">
+                          <ArrowsClockwise size={12} weight="bold" /> Réinitialiser les filtres
+                        </button>
+                      )}
+                      <button type="button" onClick={openCreator} className="btn btn-primary text-xs px-3 py-1.5">
+                        <Plus size={12} weight="bold" /> Ajouter un joueur
+                      </button>
                     </div>
                   </div>
                 </td>
-                <td className="px-4 py-3 text-zinc-700 dark:text-stone-300">{p.category}</td>
-                <td className="px-4 py-3 text-zinc-700 dark:text-stone-300">{p.club || '—'}</td>
-                <td className="px-4 py-3 text-right tabular-nums text-zinc-900 dark:text-stone-50">{p.age}</td>
-                <td className="px-4 py-3 text-right tabular-nums text-zinc-900 dark:text-stone-50">{p.matches_played}</td>
-                <td className="px-4 py-3 text-right tabular-nums text-zinc-900 dark:text-stone-50">{p.goals}</td>
-                <td className="px-4 py-3 text-right tabular-nums text-zinc-900 dark:text-stone-50">{p.assists}</td>
-                <td className="px-4 py-3 text-right tabular-nums text-zinc-700 dark:text-stone-300">{Number(p.xg).toFixed(1)}</td>
-                <td className="px-4 py-3 text-right tabular-nums text-zinc-700 dark:text-stone-300">{Number(p.pass_accuracy).toFixed(1)}%</td>
-                {allTags.length > 0 && (
+              </tr>
+            )}
+            {filtered.map(({ player: p, pct, status }) => {
+              const meta = STATUS_META[status]
+              const fresh = freshness(p.updated_at)
+              const freshTone =
+                fresh.tone === 'turf'  ? 'text-turf-700 dark:text-turf-300' :
+                fresh.tone === 'amber' ? 'text-amber-600 dark:text-amber-300' :
+                                         'text-zinc-500 dark:text-stone-400'
+              return (
+                <tr
+                  key={p.id ?? p.slug}
+                  onClick={() => openEditor(p)}
+                  className="group border-t border-stone-200/60 dark:border-stone-50/[0.05] hover:bg-stone-50 dark:hover:bg-stone-50/[0.025] cursor-pointer transition-colors"
+                >
                   <td className="px-4 py-3">
-                    <div className="flex flex-wrap gap-1 max-w-[160px]">
-                      {(p.tags ?? []).slice(0, 2).map((t) => (
-                        <span key={t} className="inline-block px-1.5 py-0.5 rounded-full text-[0.6rem] font-mono bg-stone-100 text-zinc-600 border border-stone-200 dark:bg-stone-50/5 dark:text-stone-400 dark:border-stone-50/10">
-                          {t}
-                        </span>
-                      ))}
-                      {(p.tags ?? []).length > 2 && (
-                        <span className="text-[0.6rem] font-mono text-zinc-400 dark:text-stone-500">+{(p.tags ?? []).length - 2}</span>
-                      )}
+                    <div className="flex items-center gap-3 min-w-0">
+                      <Avatar player={p} />
+                      <div className="min-w-0">
+                        <div className="font-medium text-zinc-950 dark:text-stone-50 truncate">{p.name}</div>
+                        <div className="text-[0.7rem] text-zinc-500 dark:text-stone-400 truncate">
+                          {p.position}
+                          <span className="mx-1.5 opacity-50">·</span>
+                          <span className={`font-mono ${freshTone}`}>maj {fresh.label}</span>
+                        </div>
+                      </div>
                     </div>
                   </td>
-                )}
-                <td className="px-4 py-3 text-right">
-                  <button
-                    type="button"
-                    onClick={(e) => { e.stopPropagation(); togglePublished(p) }}
-                    disabled={togglingSlug === p.slug}
-                    title={p.is_published ? 'Masquer du site public' : 'Publier sur le site public'}
-                    aria-pressed={p.is_published}
-                    className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[0.65rem] font-mono uppercase tracking-wider transition-colors disabled:opacity-50 disabled:cursor-wait ${
-                      p.is_published
-                        ? 'bg-turf-50 text-turf-800 border border-turf-200 hover:bg-turf-100 dark:bg-turf-800/30 dark:text-turf-200 dark:border-turf-300/30 dark:hover:bg-turf-800/50'
-                        : 'bg-stone-100 text-zinc-500 border border-stone-200 hover:bg-stone-200 dark:bg-stone-50/5 dark:text-stone-400 dark:border-stone-50/10 dark:hover:bg-stone-50/10'
-                    }`}
-                  >
-                    <span className={`w-1.5 h-1.5 rounded-full ${p.is_published ? 'bg-turf-600 dark:bg-turf-300' : 'bg-zinc-400 dark:bg-stone-500'}`} />
-                    {p.is_published ? 'En ligne' : 'Hors ligne'}
-                  </button>
-                </td>
-                <td className="px-2 py-3 text-zinc-400 dark:text-stone-500">
-                  <PencilSimpleLine size={15} weight="regular" />
-                </td>
-              </tr>
-            ))}
+                  <td className="px-4 py-3 text-zinc-700 dark:text-stone-300">{p.category}</td>
+                  <td className="px-4 py-3 text-zinc-700 dark:text-stone-300 truncate max-w-[20ch]">{p.club || '—'}</td>
+                  <td className="px-4 py-3 text-right tabular-nums text-zinc-900 dark:text-stone-100">{p.age}</td>
+                  <td className="px-4 py-3 text-right tabular-nums text-zinc-900 dark:text-stone-100">{p.matches_played}</td>
+                  <td className="px-4 py-3 text-right tabular-nums text-zinc-900 dark:text-stone-100">{p.goals}</td>
+                  <td className="px-4 py-3 text-right tabular-nums text-zinc-900 dark:text-stone-100">{p.assists}</td>
+                  <td className="px-4 py-3 text-right tabular-nums text-zinc-700 dark:text-stone-300">{Number(p.xg).toFixed(1)}</td>
+                  <td className="px-4 py-3 text-right tabular-nums text-zinc-700 dark:text-stone-300">{Number(p.pass_accuracy).toFixed(1)}%</td>
+                  <td className="px-4 py-3">
+                    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[0.65rem] font-mono tracking-[0.04em] ${meta.pill}`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${meta.dot}`} />
+                      {meta.label}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <CompletenessPill pct={pct} />
+                  </td>
+                  <td className="px-3 py-3 text-right">
+                    <div className="inline-flex items-center gap-0.5 opacity-50 group-hover:opacity-100 transition-opacity">
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); togglePublished(p) }}
+                        disabled={togglingSlug === p.slug}
+                        title={p.is_published ? 'Masquer du site public' : 'Publier sur le site public'}
+                        aria-pressed={p.is_published}
+                        className={`grid place-items-center w-7 h-7 rounded-md transition disabled:opacity-50 disabled:cursor-wait ${
+                          p.is_published
+                            ? 'text-turf-700 hover:bg-turf-50 dark:text-turf-300 dark:hover:bg-turf-900/30'
+                            : 'text-zinc-400 hover:bg-stone-100 dark:text-stone-500 dark:hover:bg-stone-50/5'
+                        }`}
+                      >
+                        {p.is_published
+                          ? <Eye size={14} weight="duotone" />
+                          : <EyeSlash size={14} weight="regular" />}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); openEditor(p) }}
+                        title="Modifier la fiche"
+                        className="grid place-items-center w-7 h-7 rounded-md text-zinc-500 hover:text-zinc-950 hover:bg-stone-100 dark:text-stone-400 dark:hover:text-stone-50 dark:hover:bg-stone-50/5 transition"
+                      >
+                        <PencilSimpleLine size={14} weight="regular" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              )
+            })}
           </tbody>
         </table>
       </div>
