@@ -6,7 +6,9 @@ use App\Models\Player;
 use App\Models\Scouting\FootballMatch;
 use App\Models\Scouting\ReportScore;
 use App\Models\Scouting\ScoutingReport;
+use App\Models\Scouting\ScoutingReportTransition;
 use App\Models\User;
+use App\Services\Scouting\ScoutingRoutingService;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 
@@ -14,15 +16,18 @@ class ScoutingReportSeeder extends Seeder
 {
     public function run(): void
     {
-        $admin = User::where('is_admin', true)->first();
-        $scoutId = $admin?->id;
+        $scout = User::where('email', 'scout@rene-football.test')->first();
+        $chef  = User::where('email', 'chef@rene-football.test')->first();
+        $jeunes = User::where('email', 'jeunes@rene-football.test')->first();
+        $scoutId = $scout?->id;
+        $routing = app(ScoutingRoutingService::class);
 
         $matches = FootballMatch::all()->keyBy(fn ($m) => $m->slug);
 
         $reports = [
             [
                 'player' => 'karim-toure',
-                'match'  => $matches->keys()->first(), // Dortmund vs RB Leipzig
+                'match'  => $matches->keys()->first(),
                 'observed_position' => 'Attaquant axial',
                 'minutes_observed' => 87,
                 'context' => 'live',
@@ -37,6 +42,7 @@ class ScoutingReportSeeder extends Seeder
                 'status' => 'validated',
                 'submitted_at' => Carbon::now()->subDays(2),
                 'validated_at' => Carbon::now()->subDays(1),
+                'validated_by' => $chef?->id,
                 'scores' => [
                     ['category' => 'offensif', 'criterion' => 'Finition', 'score' => 9],
                     ['category' => 'offensif', 'criterion' => 'Jeu dos au but', 'score' => 9],
@@ -59,7 +65,7 @@ class ScoutingReportSeeder extends Seeder
                 'recommendation' => 'shortlist_a',
                 'next_action' => 'Observation live à Twente + rendez-vous club',
                 'status' => 'submitted',
-                'submitted_at' => Carbon::now()->subDays(8), // > 5j sans validation → alert
+                'submitted_at' => Carbon::now()->subDays(8),
                 'scores' => [
                     ['category' => 'offensif', 'criterion' => 'Finition', 'score' => 8],
                     ['category' => 'tactique', 'criterion' => 'Sens de l\'appel', 'score' => 8],
@@ -126,6 +132,7 @@ class ScoutingReportSeeder extends Seeder
                 'status' => 'validated',
                 'submitted_at' => Carbon::now()->subDays(7),
                 'validated_at' => Carbon::now()->subDays(5),
+                'validated_by' => $chef?->id,
             ],
             [
                 'player' => 'adil-berkane',
@@ -146,8 +153,6 @@ class ScoutingReportSeeder extends Seeder
             ],
         ];
 
-        $matchByHome = FootballMatch::all()->keyBy('home_team');
-
         foreach ($reports as $r) {
             $player = Player::where('slug', $r['player'])->first();
             if (! $player) continue;
@@ -160,14 +165,76 @@ class ScoutingReportSeeder extends Seeder
             $scoresPayload = $r['scores'] ?? [];
             unset($r['scores'], $r['player'], $r['match']);
 
+            $status = $r['status'] ?? 'draft';
+
+            // Determine submitted_to (target inbox) based on current state.
+            $submittedTo = null;
+            if (in_array($status, ['submitted', 'needs_changes'], true)) {
+                // For submitted/needs_changes, the report is "waiting on someone".
+                // Use the routing service so each demo report lands in the correct inbox.
+                $submittedTo = $r['validated_by'] ?? $routing->pickValidatorIdFor($player);
+                // For needs_changes, the recipient is actually the scout (who must fix).
+                if ($status === 'needs_changes') {
+                    $submittedTo = $scoutId;
+                }
+            }
+
             $report = ScoutingReport::create(array_merge($r, [
-                'player_id' => $player->id,
+                'player_id'    => $player->id,
                 'football_match_id' => $matchId,
-                'scout_id' => $scoutId,
+                'scout_id'     => $scoutId,
+                'submitted_to' => $submittedTo,
             ]));
 
             foreach ($scoresPayload as $row) {
                 ReportScore::create(array_merge($row, ['scouting_report_id' => $report->id]));
+            }
+
+            // Seed a coherent transition history matching the final status.
+            $createdAt = $report->created_at ?? now();
+            ScoutingReportTransition::create([
+                'scouting_report_id' => $report->id,
+                'from_status'        => null,
+                'to_status'          => 'draft',
+                'from_user_id'       => $scoutId,
+                'to_user_id'         => null,
+                'comment'            => 'Brouillon initial',
+                'created_at'         => $createdAt,
+            ]);
+
+            if (in_array($status, ['submitted', 'validated', 'needs_changes', 'archived'], true)) {
+                $picked = $r['validated_by'] ?? $routing->pickValidatorIdFor($player);
+                ScoutingReportTransition::create([
+                    'scouting_report_id' => $report->id,
+                    'from_status'        => 'draft',
+                    'to_status'          => 'submitted',
+                    'from_user_id'       => $scoutId,
+                    'to_user_id'         => $picked,
+                    'comment'            => 'Soumis pour validation — auto-routing par catégorie.',
+                    'created_at'         => $r['submitted_at'] ?? $createdAt,
+                ]);
+            }
+            if ($status === 'validated') {
+                ScoutingReportTransition::create([
+                    'scouting_report_id' => $report->id,
+                    'from_status'        => 'submitted',
+                    'to_status'          => 'validated',
+                    'from_user_id'       => $r['validated_by'] ?? $chef?->id,
+                    'to_user_id'         => null,
+                    'comment'            => 'Rapport conforme — passage en shortlist A.',
+                    'created_at'         => $r['validated_at'] ?? now(),
+                ]);
+            }
+            if ($status === 'needs_changes') {
+                ScoutingReportTransition::create([
+                    'scouting_report_id' => $report->id,
+                    'from_status'        => 'submitted',
+                    'to_status'          => 'needs_changes',
+                    'from_user_id'       => $chef?->id ?? $jeunes?->id,
+                    'to_user_id'         => $scoutId,
+                    'comment'            => 'Compléter avec un 2e rapport scout indépendant et la vidéo complète.',
+                    'created_at'         => Carbon::now()->subDays(3),
+                ]);
             }
         }
     }

@@ -18,6 +18,8 @@ class User extends Authenticatable
         'email',
         'password',
         'is_admin',
+        'is_head_of_scouting',
+        'scouting_scope',
     ];
 
     protected $hidden = [
@@ -28,9 +30,11 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            'is_admin' => 'boolean',
+            'email_verified_at'     => 'datetime',
+            'password'              => 'hashed',
+            'is_admin'              => 'boolean',
+            'is_head_of_scouting'   => 'boolean',
+            'scouting_scope'        => 'array',
         ];
     }
 }

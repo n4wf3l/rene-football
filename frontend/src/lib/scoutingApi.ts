@@ -4,6 +4,7 @@ import type {
   RecruitmentNeed,
   ScoutAssignment,
   ScoutingDashboardSnapshot,
+  ScoutingInbox,
   ScoutingPlayer,
   ScoutingPlayerDetail,
   ScoutingReport,
@@ -18,6 +19,7 @@ const auth = { auth: true } as const
 export const scoutingApi = {
   dashboard: () => api.get<ScoutingDashboardSnapshot>('/admin/scouting/dashboard', auth),
   intelligence: () => api.get<{ alerts: ScoutingDashboardSnapshot['alerts'] }>('/admin/scouting/intelligence', auth),
+  inbox: () => api.get<ScoutingInbox>('/admin/scouting/inbox', auth),
 
   /* Players */
   listPlayers: (params?: Record<string, string>) => {
@@ -45,9 +47,12 @@ export const scoutingApi = {
   createReport: (body: Partial<ScoutingReport>) => api.post<{ data: ScoutingReport }>('/admin/scouting/reports', body, auth),
   updateReport: (id: number, body: Partial<ScoutingReport>) =>
     api.patch<{ data: ScoutingReport }>(`/admin/scouting/reports/${id}`, body, auth),
-  submitReport: (id: number) => api.post<{ data: ScoutingReport }>(`/admin/scouting/reports/${id}/submit`, null, auth),
-  validateReport: (id: number) => api.post<{ data: ScoutingReport }>(`/admin/scouting/reports/${id}/validate`, null, auth),
-  requestChanges: (id: number) => api.post<{ data: ScoutingReport }>(`/admin/scouting/reports/${id}/request-changes`, null, auth),
+  submitReport: (id: number, body: { submitted_to?: number; comment?: string } = {}) =>
+    api.post<{ data: ScoutingReport }>(`/admin/scouting/reports/${id}/submit`, body, auth),
+  validateReport: (id: number, body: { comment?: string } = {}) =>
+    api.post<{ data: ScoutingReport }>(`/admin/scouting/reports/${id}/validate`, body, auth),
+  requestChanges: (id: number, body: { comment?: string; to_user?: number } = {}) =>
+    api.post<{ data: ScoutingReport }>(`/admin/scouting/reports/${id}/request-changes`, body, auth),
   archiveReport: (id: number) => api.post<{ data: ScoutingReport }>(`/admin/scouting/reports/${id}/archive`, null, auth),
   deleteReport: (id: number) => api.delete<{ ok: boolean }>(`/admin/scouting/reports/${id}`, auth),
 

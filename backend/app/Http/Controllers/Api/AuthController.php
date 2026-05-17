@@ -36,25 +36,25 @@ class AuthController extends Controller
 
         return response()->json([
             'token' => $token,
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'is_admin' => (bool) $user->is_admin,
-            ],
+            'user'  => $this->payload($user),
         ]);
     }
 
     public function me(Request $request): JsonResponse
     {
-        $user = $request->user();
+        return response()->json($this->payload($request->user()));
+    }
 
-        return response()->json([
-            'id' => $user->id,
-            'name' => $user->name,
-            'email' => $user->email,
-            'is_admin' => (bool) $user->is_admin,
-        ]);
+    private function payload(User $user): array
+    {
+        return [
+            'id'                  => $user->id,
+            'name'                => $user->name,
+            'email'               => $user->email,
+            'is_admin'            => (bool) $user->is_admin,
+            'is_head_of_scouting' => (bool) $user->is_head_of_scouting,
+            'scouting_scope'      => $user->scouting_scope,
+        ];
     }
 
     public function logout(Request $request): JsonResponse

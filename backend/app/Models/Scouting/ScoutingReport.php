@@ -39,6 +39,7 @@ class ScoutingReport extends Model
         'next_action',
         'status',
         'submitted_at',
+        'submitted_to',
         'validated_by',
         'validated_at',
     ];
@@ -76,8 +77,19 @@ class ScoutingReport extends Model
         return $this->belongsTo(User::class, 'validated_by');
     }
 
+    /** Recipient currently expected to action this report (validate / send back). */
+    public function submittedTo(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'submitted_to');
+    }
+
     public function scores(): HasMany
     {
         return $this->hasMany(ReportScore::class);
+    }
+
+    public function transitions(): HasMany
+    {
+        return $this->hasMany(ScoutingReportTransition::class)->orderBy('created_at');
     }
 }

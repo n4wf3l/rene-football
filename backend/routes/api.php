@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\Admin\Scouting\QuickObservationController;
 use App\Http\Controllers\Api\Admin\Scouting\RecruitmentNeedController;
 use App\Http\Controllers\Api\Admin\Scouting\ScoutAssignmentController;
 use App\Http\Controllers\Api\Admin\Scouting\ScoutingDashboardController;
+use App\Http\Controllers\Api\Admin\Scouting\ScoutingInboxController;
 use App\Http\Controllers\Api\Admin\Scouting\ScoutingIntelligenceController;
 use App\Http\Controllers\Api\Admin\Scouting\ScoutingPlayerController;
 use App\Http\Controllers\Api\Admin\Scouting\ScoutingReportController;
@@ -89,6 +90,7 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::prefix('scouting')->group(function () {
         Route::get('/dashboard',    [ScoutingDashboardController::class, 'show']);
         Route::get('/intelligence', [ScoutingIntelligenceController::class, 'index']);
+        Route::get('/inbox',        [ScoutingInboxController::class, 'show']);
 
         // Scouting-flavoured player workflow (status, scores, completeness).
         Route::get('/players',                                  [ScoutingPlayerController::class, 'index']);

@@ -19,12 +19,54 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        // Owner / super-admin — covers everything, default fallback for routing.
         User::updateOrCreate(
             ['email' => 'admin@rene-football.test'],
             [
                 'name' => 'Admin Rene',
                 'password' => Hash::make('admin1234'),
                 'is_admin' => true,
+                'is_head_of_scouting' => false,
+                'scouting_scope' => null,
+            ]
+        );
+
+        // Chef de recrutement — destinataire par défaut des rapports Pro.
+        // Mot de passe : chef1234
+        User::updateOrCreate(
+            ['email' => 'chef@rene-football.test'],
+            [
+                'name' => 'Léa Chef-Recrutement',
+                'password' => Hash::make('chef1234'),
+                'is_admin' => true,
+                'is_head_of_scouting' => true,
+                'scouting_scope' => ['Pro'],
+            ]
+        );
+
+        // Responsable jeunes — destinataire des rapports U19 et U23.
+        // Mot de passe : youth1234
+        User::updateOrCreate(
+            ['email' => 'jeunes@rene-football.test'],
+            [
+                'name' => 'Marc Resp-Jeunes',
+                'password' => Hash::make('youth1234'),
+                'is_admin' => true,
+                'is_head_of_scouting' => true,
+                'scouting_scope' => ['U19', 'U23'],
+            ]
+        );
+
+        // Scout terrain — auteur des rapports, pas validateur.
+        // Mot de passe : scout1234
+        User::updateOrCreate(
+            ['email' => 'scout@rene-football.test'],
+            [
+                'name' => 'Sam Scout',
+                'password' => Hash::make('scout1234'),
+                'is_admin' => true,
+                'is_head_of_scouting' => false,
+                'scouting_scope' => null,
             ]
         );
 

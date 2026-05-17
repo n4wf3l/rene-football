@@ -16,16 +16,21 @@ import {
   X as XIcon,
 } from '@phosphor-icons/react'
 import { useAuth } from '../auth/AuthContext'
+import { api } from '../api/client'
 import ThemeToggle from '../theme/ThemeToggle'
 import BrandLogo from '../components/BrandLogo'
 
 const SIDEBAR_STATE_KEY = 'rene_admin_sidebar_open'
+
+type BadgeKey = 'scouting'
 
 interface AdminNavItem {
   to: string
   label: string
   icon: PhosphorIcon
   end?: boolean
+  /** Optional badge slot — looked up in the SidebarBadges map. */
+  badgeKey?: BadgeKey
 }
 
 const NAV_ITEMS: AdminNavItem[] = [
@@ -33,7 +38,7 @@ const NAV_ITEMS: AdminNavItem[] = [
   { to: '/admin/joueurs',   label: 'Joueurs',         icon: SoccerBall },
   { to: '/admin/analyse',   label: 'Data analyse',    icon: ChartLineUp },
   { to: '/admin/articles',  label: 'Actualités',      icon: Newspaper },
-  { to: '/admin/scouting',  label: 'Scouting',        icon: Binoculars },
+  { to: '/admin/scouting',  label: 'Scouting',        icon: Binoculars,    badgeKey: 'scouting' },
 ]
 
 interface SidebarLinkProps {
@@ -41,9 +46,11 @@ interface SidebarLinkProps {
   label: string
   icon: PhosphorIcon
   end?: boolean
+  /** Numeric count displayed as a pill on the right of the link. 0/null = hidden. */
+  badge?: number | null
 }
 
-function SidebarLink({ to, label, icon: Icon, end }: SidebarLinkProps) {
+function SidebarLink({ to, label, icon: Icon, end, badge }: SidebarLinkProps) {
   return (
     <NavLink
       to={to}
@@ -72,7 +79,19 @@ function SidebarLink({ to, label, icon: Icon, end }: SidebarLinkProps) {
               ? 'text-turf-700 dark:text-turf-300'
               : 'text-zinc-500 group-hover:text-zinc-800 dark:text-stone-500 dark:group-hover:text-stone-200'}
           />
-          <span className={isActive ? 'font-medium' : ''}>{label}</span>
+          <span className={`flex-1 ${isActive ? 'font-medium' : ''}`}>{label}</span>
+          {badge != null && badge > 0 && (
+            <span
+              aria-label={`${badge} en attente`}
+              className={`inline-grid place-items-center min-w-[18px] h-[18px] px-1 rounded-full text-[0.6rem] font-mono tabular-nums shrink-0 ${
+                isActive
+                  ? 'bg-turf-600 text-stone-50 dark:bg-turf-300 dark:text-zinc-950'
+                  : 'bg-turf-50 text-turf-700 border border-turf-200/70 dark:bg-turf-900/40 dark:text-turf-200 dark:border-turf-400/20'
+              }`}
+            >
+              {badge > 99 ? '99+' : badge}
+            </span>
+          )}
         </>
       )}
     </NavLink>
@@ -89,6 +108,26 @@ interface SidebarProps {
 function Sidebar({ onCloseMobile, onCollapseDesktop }: SidebarProps) {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+  const [badges, setBadges] = useState<Record<BadgeKey, number>>({ scouting: 0 })
+
+  /**
+   * Lightweight inbox poll for the sidebar badge.
+   * - Fires once on mount.
+   * - Refires whenever the route changes (cheap, gives the impression of "live").
+   * - 401-tolerant so the layout doesn't blow up if the token expires mid-session.
+   */
+  useEffect(() => {
+    let cancelled = false
+    api.get<{ to_validate: number; my_reports_needing_changes: number }>('/admin/scouting/inbox', { auth: true })
+      .then((d) => {
+        if (cancelled) return
+        const count = (d?.to_validate ?? 0) + (d?.my_reports_needing_changes ?? 0)
+        setBadges((prev) => ({ ...prev, scouting: count }))
+      })
+      .catch(() => { /* silently ignore — badge falls back to 0 */ })
+    return () => { cancelled = true }
+  }, [location.pathname])
 
   const handleLogout = async () => {
     await logout()
@@ -133,7 +172,11 @@ function Sidebar({ onCloseMobile, onCollapseDesktop }: SidebarProps) {
           Navigation
         </div>
         {NAV_ITEMS.map((item) => (
-          <SidebarLink key={item.to} {...item} />
+          <SidebarLink
+            key={item.to}
+            {...item}
+            badge={item.badgeKey ? badges[item.badgeKey] : null}
+          />
         ))}
 
         <div className="px-3 mt-6 mb-2 text-[0.6rem] font-mono uppercase tracking-[0.2em] text-zinc-400 dark:text-stone-500">

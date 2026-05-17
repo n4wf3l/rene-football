@@ -5,13 +5,19 @@ namespace App\Http\Controllers\Api\Admin\Scouting;
 use App\Http\Controllers\Controller;
 use App\Models\Scouting\ReportScore;
 use App\Models\Scouting\ScoutingReport;
+use App\Models\Scouting\ScoutingReportTransition;
+use App\Services\Scouting\ScoutingRoutingService;
 use App\Services\Scouting\ScoutingScoreService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ScoutingReportController extends Controller
 {
-    public function __construct(private ScoutingScoreService $scoreService) {}
+    public function __construct(
+        private ScoutingScoreService $scoreService,
+        private ScoutingRoutingService $routing,
+    ) {}
 
     public function index(Request $request): JsonResponse
     {
@@ -20,6 +26,7 @@ class ScoutingReportController extends Controller
                 'player:id,slug,name,position,photo_url',
                 'match:id,slug,kickoff_at,home_team,away_team',
                 'scout:id,name',
+                'submittedTo:id,name',
             ])
             ->latest();
 
@@ -28,6 +35,14 @@ class ScoutingReportController extends Controller
         }
         if ($request->filled('player')) {
             $q->whereHas('player', fn ($qq) => $qq->where('slug', $request->string('player')));
+        }
+        // "Pour moi" filter — reports currently assigned to the calling user.
+        if ($request->boolean('for_me')) {
+            $userId = $request->user()?->id;
+            $q->where(function ($qq) use ($userId) {
+                $qq->where('submitted_to', $userId)
+                   ->orWhere('scout_id', $userId);
+            });
         }
 
         return response()->json(['data' => $q->get()]);
@@ -40,7 +55,10 @@ class ScoutingReportController extends Controller
             'match:id,slug,kickoff_at,home_team,away_team,competition,score_home,score_away',
             'scout:id,name',
             'validator:id,name',
+            'submittedTo:id,name',
             'scores',
+            'transitions.fromUser:id,name',
+            'transitions.toUser:id,name',
         ]);
         return response()->json(['data' => $report]);
     }
@@ -54,9 +72,10 @@ class ScoutingReportController extends Controller
         $data['scout_id'] = $request->user()?->id;
         $report = ScoutingReport::create($data);
         $this->syncScores($report, $scoresPayload);
+        $this->logTransition($report, null, $report->status ?? 'draft', $request->user()?->id, null, 'Rapport créé');
         $this->scoreService->refresh($report->player);
 
-        return response()->json(['data' => $report->fresh(['player', 'match', 'scores'])], 201);
+        return response()->json(['data' => $this->reloadDeep($report)], 201);
     }
 
     public function update(Request $request, ScoutingReport $report): JsonResponse
@@ -74,33 +93,124 @@ class ScoutingReportController extends Controller
         return response()->json(['data' => $report->fresh(['player', 'match', 'scores'])]);
     }
 
-    public function submit(ScoutingReport $report): JsonResponse
+    /**
+     * Soumettre — assigne le rapport à un validateur explicite (param `submitted_to`)
+     * ou auto-route via ScoutingRoutingService selon la catégorie du joueur.
+     * Optionnel : `comment` pour une note au validateur.
+     */
+    public function submit(Request $request, ScoutingReport $report): JsonResponse
     {
-        $report->update(['status' => 'submitted', 'submitted_at' => now()]);
-        return response()->json(['data' => $report->fresh()]);
+        $data = $request->validate([
+            'submitted_to' => ['nullable', 'integer', 'exists:users,id'],
+            'comment'      => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        $targetUserId = $data['submitted_to']
+            ?? $this->routing->pickValidatorIdFor($report->player);
+
+        $oldStatus = $report->status;
+
+        DB::transaction(function () use ($report, $targetUserId, $data, $request, $oldStatus) {
+            $report->update([
+                'status'        => 'submitted',
+                'submitted_at'  => now(),
+                'submitted_to'  => $targetUserId,
+            ]);
+            $this->logTransition($report, $oldStatus, 'submitted', $request->user()?->id, $targetUserId, $data['comment'] ?? null);
+        });
+
+        return response()->json(['data' => $this->reloadDeep($report)]);
     }
 
     public function validateReport(Request $request, ScoutingReport $report): JsonResponse
     {
-        $report->update([
-            'status'       => 'validated',
-            'validated_by' => $request->user()?->id,
-            'validated_at' => now(),
+        $data = $request->validate([
+            'comment' => ['nullable', 'string', 'max:2000'],
         ]);
+        $oldStatus = $report->status;
+        $actorId = $request->user()?->id;
+
+        DB::transaction(function () use ($report, $oldStatus, $actorId, $data) {
+            $report->update([
+                'status'        => 'validated',
+                'validated_by'  => $actorId,
+                'validated_at'  => now(),
+                'submitted_to'  => null,
+            ]);
+            $this->logTransition($report, $oldStatus, 'validated', $actorId, null, $data['comment'] ?? null);
+        });
         $this->scoreService->refresh($report->player);
-        return response()->json(['data' => $report->fresh()]);
+        return response()->json(['data' => $this->reloadDeep($report)]);
     }
 
+    /**
+     * Renvoie le rapport au scout pour corrections (ou à un destinataire choisi).
+     * Le commentaire est fortement encouragé — c'est l'intérêt du flow.
+     */
     public function requestChanges(Request $request, ScoutingReport $report): JsonResponse
     {
-        $report->update(['status' => 'needs_changes']);
-        return response()->json(['data' => $report->fresh()]);
+        $data = $request->validate([
+            'comment'  => ['nullable', 'string', 'max:2000'],
+            'to_user'  => ['nullable', 'integer', 'exists:users,id'],
+        ]);
+        $oldStatus = $report->status;
+        $actorId = $request->user()?->id;
+        // Par défaut on renvoie au scout original — la personne qui doit corriger.
+        $recipientId = $data['to_user'] ?? $report->scout_id;
+
+        DB::transaction(function () use ($report, $oldStatus, $actorId, $recipientId, $data) {
+            $report->update([
+                'status'       => 'needs_changes',
+                'submitted_to' => $recipientId, // visible dans l'inbox du scout
+            ]);
+            $this->logTransition($report, $oldStatus, 'needs_changes', $actorId, $recipientId, $data['comment'] ?? null);
+        });
+        return response()->json(['data' => $this->reloadDeep($report)]);
     }
 
-    public function archive(ScoutingReport $report): JsonResponse
+    public function archive(Request $request, ScoutingReport $report): JsonResponse
     {
-        $report->update(['status' => 'archived']);
-        return response()->json(['data' => $report->fresh()]);
+        $oldStatus = $report->status;
+        $actorId = $request->user()?->id;
+        DB::transaction(function () use ($report, $oldStatus, $actorId) {
+            $report->update(['status' => 'archived', 'submitted_to' => null]);
+            $this->logTransition($report, $oldStatus, 'archived', $actorId, null, null);
+        });
+        return response()->json(['data' => $this->reloadDeep($report)]);
+    }
+
+    private function logTransition(
+        ScoutingReport $report,
+        ?string $from,
+        string $to,
+        ?int $fromUserId,
+        ?int $toUserId,
+        ?string $comment,
+    ): void {
+        ScoutingReportTransition::create([
+            'scouting_report_id' => $report->id,
+            'from_status'        => $from,
+            'to_status'          => $to,
+            'from_user_id'       => $fromUserId,
+            'to_user_id'         => $toUserId,
+            'comment'            => $comment,
+            'created_at'         => now(),
+        ]);
+    }
+
+    private function reloadDeep(ScoutingReport $report): ScoutingReport
+    {
+        $fresh = ScoutingReport::query()->with([
+            'player:id,slug,name,position,club,photo_url,age,category',
+            'match:id,slug,kickoff_at,home_team,away_team,competition,score_home,score_away',
+            'scout:id,name',
+            'validator:id,name',
+            'submittedTo:id,name',
+            'scores',
+            'transitions.fromUser:id,name',
+            'transitions.toUser:id,name',
+        ])->find($report->id);
+        return $fresh ?? $report;
     }
 
     public function destroy(ScoutingReport $report): JsonResponse
