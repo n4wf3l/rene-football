@@ -11,7 +11,7 @@ export interface MeshGradientProps {
 /* Lava-lamp-style background: three soft turf blobs drifting in independent
    loops. Pure transform/opacity (radial gradients are GPU-cheap, no filter:blur).
 
-   Always dark (zinc-950 → near-black) regardless of theme — the website's
+   Always dark (zinc-950 → near-black) regardless of theme - the website's
    editorial-sport identity keeps every hero/CTA section consistently dark
    (stadium-at-night look). The light/dark toggle affects content sections
    below the fold (services, roster preview, footer, cards).

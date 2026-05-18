@@ -435,15 +435,15 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
 
       {/* Identité */}
       <section className="container-page py-16 lg:py-24">
-        <SectionHeading id="identite" eyebrow="01 — Profil" title="Identité du joueur." />
+        <SectionHeading id="identite" eyebrow="01 - Profil" title="Identité du joueur." />
 
         <div className="grid lg:grid-cols-5 gap-5">
           {[
             { Icon: Person,     label: 'Catégorie',     value: player.category },
             { Icon: SoccerBall, label: 'Poste',          value: player.position },
-            { Icon: Flag,       label: 'Nationalité',    value: player.nationality ?? '—' },
-            { Icon: Ruler,      label: 'Taille',         value: player.height ?? '—' },
-            { Icon: Calendar,   label: 'Suivi depuis',   value: player.since ?? '—' },
+            { Icon: Flag,       label: 'Nationalité',    value: player.nationality ?? '-' },
+            { Icon: Ruler,      label: 'Taille',         value: player.height ?? '-' },
+            { Icon: Calendar,   label: 'Suivi depuis',   value: player.since ?? '-' },
           ].map(({ Icon, label, value }) => (
             <motion.div
               key={label}
@@ -474,7 +474,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
       {/* Profil scout */}
       <section className="bg-white border-y border-stone-200/80 py-16 lg:py-24 dark:bg-zinc-950 dark:border-stone-50/8">
         <div className="container-page">
-          <SectionHeading id="scout" eyebrow="02 — Évaluation" title="Profil scout." />
+          <SectionHeading id="scout" eyebrow="02 - Évaluation" title="Profil scout." />
           <ScoutReport
             comparisons={player.comparisons}
             strengths={player.strengths}
@@ -525,7 +525,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
       {/* Saison */}
       <section className="bg-stone-50 border-b border-stone-200/80 py-16 lg:py-24 dark:bg-zinc-950 dark:border-stone-50/8">
         <div className="container-page">
-          <SectionHeading id="saison" eyebrow="03 — Volume" title="Saison en cours." />
+          <SectionHeading id="saison" eyebrow="03 - Volume" title="Saison en cours." />
 
           <div className="grid lg:grid-cols-12 gap-6 lg:gap-8">
             <div className="lg:col-span-7 grid grid-cols-2 gap-y-10 gap-x-8 lg:border-r lg:border-stone-200 lg:pr-12">
@@ -590,16 +590,16 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
         </div>
       </section>
 
-      {/* Terrain — heatmap des zones d'activité (commun field + gardien) */}
+      {/* Terrain - heatmap des zones d'activité (commun field + gardien) */}
       <section className="bg-stone-50 dark:bg-zinc-950 border-y border-stone-200/80 dark:border-stone-50/8 py-16 lg:py-24">
         <div className="container-page">
-          <SectionHeading id="terrain" eyebrow="04 — Terrain" title="Zones d'activité." />
+          <SectionHeading id="terrain" eyebrow="04 - Terrain" title="Zones d'activité." />
           <div className="grid lg:grid-cols-12 gap-8 lg:gap-12">
             <div className="lg:col-span-4 space-y-4">
               <p className="text-zinc-700 dark:text-stone-300 leading-relaxed">
                 Carte d'occupation moyenne sur la saison. Les zones les plus
                 vertes sont celles où {player.name.split(' ')[0]} est le plus
-                actif — touches, courses, duels confondus. Le joueur attaque
+                actif - touches, courses, duels confondus. Le joueur attaque
                 de gauche à droite.
               </p>
               <dl className="grid grid-cols-2 gap-4 pt-4 border-t border-stone-200 dark:border-stone-50/10">
@@ -609,7 +609,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
                 </div>
                 <div>
                   <dt className="font-mono uppercase tracking-wider text-[0.65rem] text-zinc-500 dark:text-stone-400">Pied fort</dt>
-                  <dd className="mt-1 font-display text-lg text-zinc-950 dark:text-stone-50">{player.preferred_foot ?? '—'}</dd>
+                  <dd className="mt-1 font-display text-lg text-zinc-950 dark:text-stone-50">{player.preferred_foot ?? '-'}</dd>
                 </div>
               </dl>
             </div>
@@ -628,7 +628,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
       {/* Création (champ) ou Activité (gardien) */}
       {!isKeeper ? (
         <section className="container-page py-16 lg:py-24">
-          <SectionHeading id="creation" eyebrow="05 — Création" title="Création offensive." />
+          <SectionHeading id="creation" eyebrow="05 - Création" title="Création offensive." />
 
           <div className="grid lg:grid-cols-2 gap-10 lg:gap-16">
             <div className="space-y-6">
@@ -667,7 +667,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
         </section>
       ) : (
         <section className="container-page py-16 lg:py-24">
-          <SectionHeading id="gardien" eyebrow="05 — Activité" title="Activité dans la surface." />
+          <SectionHeading id="gardien" eyebrow="05 - Activité" title="Activité dans la surface." />
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="rounded-2xl border border-stone-200/80 bg-white p-6">
@@ -701,7 +701,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
       {!isKeeper && (
         <section className="bg-white border-y border-stone-200/80 py-16 lg:py-24 dark:bg-zinc-950 dark:border-stone-50/8">
           <div className="container-page">
-            <SectionHeading id="defense" eyebrow="06 — Défense" title="Travail défensif." />
+            <SectionHeading id="defense" eyebrow="06 - Défense" title="Travail défensif." />
 
             <div className="grid lg:grid-cols-3 gap-5 lg:gap-6">
               <div className="rounded-3xl border border-stone-200/80 p-6 lg:p-8">
@@ -729,7 +729,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
         </section>
       )}
 
-      {/* Profil physique — affiché seulement si au moins une donnée tracking est présente */}
+      {/* Profil physique - affiché seulement si au moins une donnée tracking est présente */}
       {(player.distance_avg_km != null
         || player.sprints_avg != null
         || player.top_speed_kmh != null
@@ -738,7 +738,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
           <div className="container-page">
             <SectionHeading
               id="physique"
-              eyebrow={isKeeper ? '06 — Physique' : '07 — Physique'}
+              eyebrow={isKeeper ? '06 - Physique' : '07 - Physique'}
               title="Profil physique."
             />
             <p className="text-sm text-zinc-600 dark:text-stone-400 mb-6 max-w-[60ch]">
@@ -800,7 +800,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
       <section className="container-page py-16 lg:py-24">
         <SectionHeading
           id="discipline"
-          eyebrow={isKeeper ? '07 — Discipline' : '08 — Discipline'}
+          eyebrow={isKeeper ? '07 - Discipline' : '08 - Discipline'}
           title="Discipline."
         />
 
@@ -818,13 +818,13 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
         </div>
       </section>
 
-      {/* Match log — last 8 appearances */}
+      {/* Match log - last 8 appearances */}
       {appearances.length > 0 && (
         <section className="bg-white border-y border-stone-200/80 py-16 lg:py-24 dark:bg-zinc-950 dark:border-stone-50/8">
           <div className="container-page">
             <SectionHeading
               id="matchs"
-              eyebrow={isKeeper ? '08 — Match log' : '09 — Match log'}
+              eyebrow={isKeeper ? '08 - Match log' : '09 - Match log'}
               title="Derniers matchs."
             />
             <p className="text-sm text-zinc-600 dark:text-stone-400 mb-6 max-w-[60ch]">
@@ -836,16 +836,16 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
         </section>
       )}
 
-      {/* Annotated key moments — frame snapshots, no source video. */}
+      {/* Annotated key moments - frame snapshots, no source video. */}
       {clips.length > 0 && (
         <section className="container-page py-16 lg:py-24">
           <SectionHeading
             id="moments"
-            eyebrow={isKeeper ? '09 — Moments' : '10 — Moments'}
+            eyebrow={isKeeper ? '09 - Moments' : '10 - Moments'}
             title="Moments clés annotés."
           />
           <p className="text-sm text-zinc-600 dark:text-stone-400 mb-6 max-w-[60ch]">
-            Captures de moments précis sélectionnés par notre cellule scout —
+            Captures de moments précis sélectionnés par notre cellule scout -
             cliquez sur une vignette pour zoomer.
           </p>
           <ClipsGalleryPublic clips={clips} />

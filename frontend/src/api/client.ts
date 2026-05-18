@@ -37,7 +37,7 @@ async function request<T = unknown>(
     Accept: 'application/json',
   }
   const isFormData = typeof FormData !== 'undefined' && body instanceof FormData
-  // Don't set Content-Type for FormData — the browser injects the multipart
+  // Don't set Content-Type for FormData - the browser injects the multipart
   // boundary automatically. JSON bodies stay explicit.
   if (body !== undefined && !isFormData) headers['Content-Type'] = 'application/json'
   if (auth) {

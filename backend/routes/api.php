@@ -50,18 +50,18 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::put('/players/{player:slug}', [AdminPlayerController::class, 'update']);
     Route::patch('/players/{player:slug}', [AdminPlayerController::class, 'update']);
     // POST alias for multipart updates (browsers can't natively send files via PUT
-    // without method spoofing — keeping the alias avoids any spoofing dance).
+    // without method spoofing - keeping the alias avoids any spoofing dance).
     Route::post('/players/{player:slug}', [AdminPlayerController::class, 'update']);
     Route::delete('/players/{player:slug}', [AdminPlayerController::class, 'destroy']);
 
-    // Match appearances — nested under a player.
+    // Match appearances - nested under a player.
     Route::get('/players/{player:slug}/appearances',                   [AdminAppearanceController::class, 'index']);
     Route::post('/players/{player:slug}/appearances',                  [AdminAppearanceController::class, 'store']);
     Route::put('/players/{player:slug}/appearances/{appearance}',      [AdminAppearanceController::class, 'update']);
     Route::patch('/players/{player:slug}/appearances/{appearance}',    [AdminAppearanceController::class, 'update']);
     Route::delete('/players/{player:slug}/appearances/{appearance}',   [AdminAppearanceController::class, 'destroy']);
 
-    // Annotated frame clips — only PNGs and metadata, no video files server-side.
+    // Annotated frame clips - only PNGs and metadata, no video files server-side.
     Route::get('/clips',                                      [AdminClipController::class, 'indexAll']);
     Route::get('/players/{player:slug}/clips',                [AdminClipController::class, 'index']);
     Route::post('/players/{player:slug}/clips',               [AdminClipController::class, 'store']);
@@ -72,7 +72,7 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::get('/analysis/metrics',     [AnalysisController::class, 'metrics']);
     Route::get('/analysis/percentiles', [AnalysisController::class, 'percentiles']);
 
-    // Articles (news CMS) — multipart-friendly POST aliases for updates so the
+    // Articles (news CMS) - multipart-friendly POST aliases for updates so the
     // browser can send cover/gallery files without _method spoofing dance.
     Route::get('/articles',                       [AdminArticleController::class, 'index']);
     Route::post('/articles',                      [AdminArticleController::class, 'store']);

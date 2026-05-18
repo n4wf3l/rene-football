@@ -5,7 +5,7 @@ export interface ComparisonRow {
   /** Field on Player to read. */
   key: keyof Player
   label: string
-  /** Display formatter — defaults to integer with FR thousands separator. */
+  /** Display formatter - defaults to integer with FR thousands separator. */
   format?: (value: number) => string
   /** When true, the LOW value is "best" (e.g. cards). */
   lowerIsBetter?: boolean
@@ -85,7 +85,7 @@ export default function PlayerComparisonTable({ players }: PlayerComparisonTable
                   {p.name}
                 </div>
                 <div className="font-mono text-[0.65rem] uppercase tracking-wider text-zinc-500 dark:text-stone-500">
-                  {p.position} · {p.club ?? '—'}
+                  {p.position} · {p.club ?? '-'}
                 </div>
               </th>
             ))}
@@ -102,7 +102,7 @@ export default function PlayerComparisonTable({ players }: PlayerComparisonTable
                 const v = readNumeric(p, row.key)
                 return (
                   <td key={p.slug} className="px-4 py-2.5 text-right font-mono tabular-nums text-zinc-700 dark:text-stone-200">
-                    {v === null ? '—' : (row.format ?? FR)(v)}
+                    {v === null ? '-' : (row.format ?? FR)(v)}
                   </td>
                 )
               })}

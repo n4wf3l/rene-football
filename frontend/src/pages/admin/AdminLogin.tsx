@@ -86,12 +86,12 @@ function AdminLogin() {
 
   return (
     <div className="min-h-[100dvh] grid lg:grid-cols-2 bg-stone-50 dark:bg-zinc-950">
-      {/* ───────────── LEFT — editorial dark panel ───────────── */}
+      {/* ───────────── LEFT - editorial dark panel ───────────── */}
       <aside className="relative overflow-hidden text-stone-100 lg:min-h-[100dvh] lg:flex lg:flex-col lg:justify-between p-8 sm:p-12 lg:p-14">
         <MeshGradient intensity="strong" />
         <FloatingAccents />
 
-        {/* Filigrane portrait — anchored bottom-right, heavily faded so it
+        {/* Filigrane portrait - anchored bottom-right, heavily faded so it
            reads as texture, not as a foreground subject. */}
         <div
           aria-hidden="true"
@@ -184,7 +184,7 @@ function AdminLogin() {
         </motion.ul>
       </aside>
 
-      {/* ───────────── RIGHT — form panel ───────────── */}
+      {/* ───────────── RIGHT - form panel ───────────── */}
       <main className="relative flex flex-col min-h-[100dvh] lg:min-h-0 px-6 sm:px-10 lg:px-16 py-10 lg:py-12 bg-stone-50 dark:bg-zinc-950">
         {/* Top right utilities */}
         <div className="flex items-center justify-between lg:justify-end gap-3">
@@ -295,7 +295,7 @@ function AdminLogin() {
             </button>
           </form>
 
-          {/* Demo creds — discreet hint */}
+          {/* Demo creds - discreet hint */}
           <div className="mt-8 rounded-xl border border-dashed border-stone-300 dark:border-stone-50/10 bg-white/60 dark:bg-zinc-900/30 p-4">
             <div className="font-mono uppercase tracking-[0.18em] text-[0.6rem] text-zinc-500 dark:text-stone-500 mb-2">
               Compte de démo

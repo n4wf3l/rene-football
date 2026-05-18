@@ -19,7 +19,7 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // Owner / super-admin — covers everything, default fallback for routing.
+        // Owner / super-admin - covers everything, default fallback for routing.
         User::updateOrCreate(
             ['email' => 'admin@rene-football.test'],
             [
@@ -31,7 +31,7 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // Chef de recrutement — destinataire par défaut des rapports Pro.
+        // Chef de recrutement - destinataire par défaut des rapports Pro.
         // Mot de passe : chef1234
         User::updateOrCreate(
             ['email' => 'chef@rene-football.test'],
@@ -44,7 +44,7 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // Responsable jeunes — destinataire des rapports U19 et U23.
+        // Responsable jeunes - destinataire des rapports U19 et U23.
         // Mot de passe : youth1234
         User::updateOrCreate(
             ['email' => 'jeunes@rene-football.test'],
@@ -57,7 +57,7 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // Scout terrain — auteur des rapports, pas validateur.
+        // Scout terrain - auteur des rapports, pas validateur.
         // Mot de passe : scout1234
         User::updateOrCreate(
             ['email' => 'scout@rene-football.test'],
@@ -70,13 +70,13 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // Core players + match history first — scouting seeders below depend on them.
+        // Core players + match history first - scouting seeders below depend on them.
         $this->call([
             PlayerSeeder::class,
             AppearanceSeeder::class,
         ]);
 
-        // Scouting cockpit demo data — order matters (DNA + needs first, then
+        // Scouting cockpit demo data - order matters (DNA + needs first, then
         // matches, then reports/missions/shortlists, then risks/sources, and
         // finally the player patch so scores are recomputed against the full
         // demo state).

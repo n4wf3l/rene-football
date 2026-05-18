@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('category', 60)->default('Agence'); // Mercato / Talents / Profils / Coulisses / Agence
             $table->string('cover_url', 500)->nullable();
             $table->boolean('featured')->default(false);
-            // Optional "loop" — anchor the article on one specific player.
+            // Optional "loop" - anchor the article on one specific player.
             $table->foreignId('player_id')->nullable()->constrained()->nullOnDelete();
             $table->boolean('is_published')->default(true);
             $table->timestamp('published_at')->nullable();

@@ -19,7 +19,7 @@ class ScoutingRoutingService
 {
     /**
      * Maps a player's age to one of the three routing buckets used by
-     * head-of-scouting scopes. Three buckets only — keeps validator inboxes
+     * head-of-scouting scopes. Three buckets only - keeps validator inboxes
      * cleanly separated without micro-categorising teenagers.
      *   age < 19  → "U19"  (académie + jeune élite)
      *   age < 23  → "U23"  (post-formation)

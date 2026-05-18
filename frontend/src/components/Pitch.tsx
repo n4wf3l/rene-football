@@ -10,7 +10,7 @@ const FH = VH - 2 * PAD
 const CW = FW / COLS
 const CH = FH / ROWS
 
-/** Continuous green fill — opacity scales with intensity. Stays in the turf family. */
+/** Continuous green fill - opacity scales with intensity. Stays in the turf family. */
 function intensityFill(v: number): string {
   if (v <= 0) return 'transparent'
   const opacity = 0.10 + (v / 100) * 0.78
@@ -188,7 +188,7 @@ function Pitch({ grid, mode = 'view', position, slug, onChange, hideToolbar = fa
       )}
 
       <div className="relative aspect-[3/2] w-full rounded-2xl overflow-hidden bg-turf-700 dark:bg-turf-900 ring-1 ring-stone-200 dark:ring-stone-50/8">
-        {/* Field "grass" pattern via stripes — pure CSS underlay so dompdf doesn't choke. */}
+        {/* Field "grass" pattern via stripes - pure CSS underlay so dompdf doesn't choke. */}
         <div
           aria-hidden="true"
           className="absolute inset-0"
@@ -233,7 +233,7 @@ function Pitch({ grid, mode = 'view', position, slug, onChange, hideToolbar = fa
 
           <PitchLines />
 
-          {/* Painter overlay — invisible cells for hit-testing + hover ring */}
+          {/* Painter overlay - invisible cells for hit-testing + hover ring */}
           {isPaint && (
             <g>
               {data.flatMap((row, i) =>

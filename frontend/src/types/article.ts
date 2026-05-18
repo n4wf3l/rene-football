@@ -1,6 +1,6 @@
 import type { PlayerClip } from './clip'
 
-/* News articles — mirrors App\Models\Article.
+/* News articles - mirrors App\Models\Article.
    Optional Loop on a player + attached PlayerClip annotations + photo gallery. */
 
 export const ARTICLE_CATEGORIES = [

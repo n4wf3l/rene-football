@@ -17,12 +17,12 @@ const PILLARS = [
   {
     Icon: Handshake,
     title: 'Représentation',
-    text: "Une équipe restreinte par joueur — agent, conseiller juridique, préparateur mental — qui suit chaque mandat au quotidien.",
+    text: "Une équipe restreinte par joueur - agent, conseiller juridique, préparateur mental - qui suit chaque mandat au quotidien.",
   },
   {
     Icon: ScanSmiley,
     title: 'Scouting',
-    text: "Un réseau de scouts à travers l'Europe — Benelux, Allemagne, France, Pays-Bas — avec des grilles d'évaluation calibrées pour chaque poste.",
+    text: "Un réseau de scouts à travers l'Europe - Benelux, Allemagne, France, Pays-Bas - avec des grilles d'évaluation calibrées pour chaque poste.",
   },
   {
     Icon: ShieldCheck,
@@ -67,7 +67,7 @@ const STATS: { value: number; label: string; suffix?: string }[] = [
 
 const TIMELINE = [
   { year: '2010', title: "Création de l'agence", text: "Hélène Marchetti fonde Rene Football à Luxembourg avec deux mandats." },
-  { year: '2015', title: "Premier transfert majeur", text: "Signature d'un milieu offensif en première division belge — premier mandat en Bundesliga la même année." },
+  { year: '2015', title: "Premier transfert majeur", text: "Signature d'un milieu offensif en première division belge - premier mandat en Bundesliga la même année." },
   { year: '2020', title: "Ouverture du pôle scouting", text: "Recrutement d'un réseau de 8 scouts à travers l'Europe (Benelux, France, Allemagne, Pays-Bas)." },
   { year: '2024', title: "Le roster atteint 100+ joueurs", text: "L'agence accompagne désormais joueurs pros et talents émergents." },
 ]
@@ -77,7 +77,7 @@ const FADE_UP = {
   show:   { opacity: 1, y: 0 },
 }
 
-/* Vertical scroll path next to the timeline — drawn via spring scaleY.
+/* Vertical scroll path next to the timeline - drawn via spring scaleY.
    Color stops are interpolated by depth via useMotionTemplate (hooks at top-level). */
 interface TimelineRailProps {
   targetRef: RefObject<HTMLOListElement | null>
@@ -123,7 +123,7 @@ function AProposPage() {
               Rene Football accompagne joueurs, familles et clubs depuis
               2010. Notre approche : un nombre limité de mandats, une
               équipe dédiée par profil, et la conviction qu'une carrière
-              se construit sur la durée — pas sur un transfert.
+              se construit sur la durée - pas sur un transfert.
             </p>
           </div>
           <div className="lg:col-span-5 lg:justify-self-end self-end">

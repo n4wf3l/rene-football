@@ -36,7 +36,7 @@ class ScoutingReportController extends Controller
         if ($request->filled('player')) {
             $q->whereHas('player', fn ($qq) => $qq->where('slug', $request->string('player')));
         }
-        // "Pour moi" filter — reports currently assigned to the calling user.
+        // "Pour moi" filter - reports currently assigned to the calling user.
         if ($request->boolean('for_me')) {
             $userId = $request->user()?->id;
             $q->where(function ($qq) use ($userId) {
@@ -94,7 +94,7 @@ class ScoutingReportController extends Controller
     }
 
     /**
-     * Soumettre — assigne le rapport à un validateur explicite (param `submitted_to`)
+     * Soumettre - assigne le rapport à un validateur explicite (param `submitted_to`)
      * ou auto-route via ScoutingRoutingService selon la catégorie du joueur.
      * Optionnel : `comment` pour une note au validateur.
      */
@@ -145,7 +145,7 @@ class ScoutingReportController extends Controller
 
     /**
      * Renvoie le rapport au scout pour corrections (ou à un destinataire choisi).
-     * Le commentaire est fortement encouragé — c'est l'intérêt du flow.
+     * Le commentaire est fortement encouragé - c'est l'intérêt du flow.
      */
     public function requestChanges(Request $request, ScoutingReport $report): JsonResponse
     {
@@ -155,7 +155,7 @@ class ScoutingReportController extends Controller
         ]);
         $oldStatus = $report->status;
         $actorId = $request->user()?->id;
-        // Par défaut on renvoie au scout original — la personne qui doit corriger.
+        // Par défaut on renvoie au scout original - la personne qui doit corriger.
         $recipientId = $data['to_user'] ?? $report->scout_id;
 
         DB::transaction(function () use ($report, $oldStatus, $actorId, $recipientId, $data) {

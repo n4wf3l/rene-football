@@ -1,5 +1,5 @@
 /**
- * Heatmap data utilities — keep the PHP seeder (`PlayerSeeder::PRESETS`) and this
+ * Heatmap data utilities - keep the PHP seeder (`PlayerSeeder::PRESETS`) and this
  * file in sync. Grid orientation: 4 rows × 6 cols, intensity 0-100, the player
  * always attacks left-to-right (col 0 = own goal, col 5 = opp goal). Row 0 is the
  * upper wing of the rendered pitch, row 3 the lower wing.

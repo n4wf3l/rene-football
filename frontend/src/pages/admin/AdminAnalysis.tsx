@@ -57,7 +57,7 @@ const CATEGORY_PALETTE: Record<string, string> = {
   Autre: '#52525b',
 }
 
-/** Optgroup order rendered in the metric <select> — keeps scouting metrics
+/** Optgroup order rendered in the metric <select> - keeps scouting metrics
  *  together and visually distinct from raw stats. */
 const METRIC_GROUPS: { key: string; label: string }[] = [
   { key: 'stats',     label: 'Statistiques' },
@@ -196,14 +196,14 @@ interface ChartRow {
   y: number
   count?: number
   color: string
-  /** Marked true for the 2-3 points furthest from the centroid — used to draw inline labels. */
+  /** Marked true for the 2-3 points furthest from the centroid - used to draw inline labels. */
   outlier?: boolean
 }
 
 type ViewKind = 'chart' | 'pitch' | 'compare' | 'clips' | 'evolution'
 
 /** Format a numeric value applying the per-90 transformation when applicable.
- *  Returns 0 (rather than NaN) for players without minutes — avoids ugly chart points. */
+ *  Returns 0 (rather than NaN) for players without minutes - avoids ugly chart points. */
 function readNumeric(p: Player, key: string, opts: { per90: boolean; per90able: boolean }): number {
   const raw = Number((p as unknown as Record<string, unknown>)[key]) || 0
   if (!opts.per90 || !opts.per90able) return raw
@@ -217,11 +217,11 @@ function readNumeric(p: Player, key: string, opts: { per90: boolean; per90able: 
  *  Rules :
  *  - Per-match football stats (goals, xg, tackles, …) → missing if `matches_played === 0`.
  *    A field player with 0 matches has 0 buts because nothing has been entered, NOT because
- *    they scored 0 — plotting them at the origin would lie about the roster.
+ *    they scored 0 - plotting them at the origin would lie about the roster.
  *  - Scouting scores (`score_*`, completeness_pct, …) → missing if value is null/undefined.
  *  - Identity / categorical fields → missing if null, undefined or empty string.
  *  - "matches_played" and "minutes_played" themselves are never considered missing
- *    (0 is a legitimate value — the player exists but hasn't played).
+ *    (0 is a legitimate value - the player exists but hasn't played).
  */
 function isMetricMissing(p: Player, key: string, perMatchKeys: Set<string>, scoutingKeys: Set<string>): boolean {
   const v = (p as unknown as Record<string, unknown>)[key]
@@ -275,12 +275,12 @@ function AdminAnalysis() {
     return players.filter((p) => p.category === categoryFilter)
   }, [players, categoryFilter])
 
-  /** Lookup helper — returns the per-90 status of a numeric metric (so the readNumeric
+  /** Lookup helper - returns the per-90 status of a numeric metric (so the readNumeric
    *  call can decide to divide, and the axis label can append " / 90'"). */
   const per90able = (key: string) => Boolean(numeric.find((m) => m.key === key)?.per90)
   const decorate = (key: string, base: string) => (per90 && per90able(key)) ? `${base} / 90'` : base
 
-  /** Pre-computed sets used by isMetricMissing — keep allocation outside the player loop. */
+  /** Pre-computed sets used by isMetricMissing - keep allocation outside the player loop. */
   const perMatchKeys = useMemo(() => new Set(numeric.filter((m) => m.per90).map((m) => m.key)), [numeric])
   const scoutingKeys = useMemo(() => new Set(numeric.filter((m) => m.group === 'scouting').map((m) => m.key)), [numeric])
 
@@ -317,7 +317,7 @@ function AdminAnalysis() {
     const numY = (p: Player) => readNumeric(p, yKey, { per90, per90able: per90able(yKey) })
 
     if (chartType === 'scatter' || (chartType === 'line' && isNumeric(xKey))) {
-      // Filter out players where either axis is "non renseigné" — otherwise they'd
+      // Filter out players where either axis is "non renseigné" - otherwise they'd
       // anchor at (0,0) and visually pollute the cloud. The banner above the chart
       // tells the user how many were dropped + a toggle re-includes them.
       const source = excludeMissing
@@ -325,7 +325,7 @@ function AdminAnalysis() {
             !isMetricMissing(p, xKey, perMatchKeys, scoutingKeys) &&
             !isMetricMissing(p, yKey, perMatchKeys, scoutingKeys))
         : filteredPlayers
-      // Per-player points — enriched with photo/position so the tooltip can identify each dot.
+      // Per-player points - enriched with photo/position so the tooltip can identify each dot.
       const rows: ChartRow[] = source.map((p) => ({
         __name: p.name,
         slug: p.slug,
@@ -340,7 +340,7 @@ function AdminAnalysis() {
       if (chartType === 'line') {
         rows.sort((a, b) => Number(a.x) - Number(b.x))
       }
-      // Mark the 3 furthest points from the centroid as outliers — these get inline labels
+      // Mark the 3 furthest points from the centroid as outliers - these get inline labels
       // so the user spots the "stories" of the chart without having to hover every dot.
       if (chartType === 'scatter' && rows.length >= 4) {
         const meanX = rows.reduce((acc, r) => acc + Number(r.x), 0) / rows.length
@@ -360,7 +360,7 @@ function AdminAnalysis() {
     }
 
     if (chartType === 'bar' && xKey === '__player') {
-      // Same missing-metric exclusion for per-player bars — keeps the top-N honest.
+      // Same missing-metric exclusion for per-player bars - keeps the top-N honest.
       const source = excludeMissing
         ? filteredPlayers.filter((p) => !isMetricMissing(p, yKey, perMatchKeys, scoutingKeys))
         : filteredPlayers
@@ -475,7 +475,7 @@ function AdminAnalysis() {
             {view === 'chart'
               ? "Croisez n'importe quelles métriques de votre roster. Bascule par 90 minutes, métriques scouting et étiquetage automatique des outliers."
               : view === 'evolution'
-              ? 'Visualisez la dynamique d’un joueur match par match : note, buts, xG, minutes — avec moyenne glissante 5 matchs.'
+              ? 'Visualisez la dynamique d’un joueur match par match : note, buts, xG, minutes - avec moyenne glissante 5 matchs.'
               : view === 'pitch'
               ? 'Visualisez et comparez les zones d’activité des joueurs sur un terrain. Activez l’édition pour peindre la carte cellule par cellule, ou régénérez-la depuis le poste.'
               : view === 'compare'
@@ -495,7 +495,7 @@ function AdminAnalysis() {
         )}
       </div>
 
-      {/* View switch — graphiques vs terrain. */}
+      {/* View switch - graphiques vs terrain. */}
       <div className="inline-flex items-center gap-1 mb-8 rounded-full border border-stone-300 dark:border-stone-50/15 bg-white dark:bg-zinc-900 p-1 shadow-diffusion">
         {([
           { key: 'chart' as const,     label: 'Graphiques',   Icon: ChartBar },
@@ -649,7 +649,7 @@ function AdminAnalysis() {
               </select>
             </div>
 
-            {/* Per-90 toggle — only meaningful when at least one of X/Y supports it. */}
+            {/* Per-90 toggle - only meaningful when at least one of X/Y supports it. */}
             {(per90able(xKey) || per90able(yKey)) && (
               <div>
                 <div className="font-mono uppercase tracking-[0.18em] text-[0.65rem] text-zinc-500 dark:text-stone-400 mb-1.5">Normalisation</div>
@@ -668,7 +668,7 @@ function AdminAnalysis() {
                           : 'text-zinc-600 hover:text-zinc-900 dark:text-stone-400 dark:hover:text-stone-100'
                       }`}
                       title={k
-                        ? 'Divise par minutes_played / 90 — seul ce qui en bénéficie (buts, xG, tacles…) est transformé.'
+                        ? 'Divise par minutes_played / 90 - seul ce qui en bénéficie (buts, xG, tacles…) est transformé.'
                         : 'Affiche les totaux saison bruts.'}
                     >
                       {l}
@@ -681,7 +681,7 @@ function AdminAnalysis() {
               </div>
             )}
 
-            {/* Missing-data control — only meaningful for per-player charts (scatter or bar-by-player). */}
+            {/* Missing-data control - only meaningful for per-player charts (scatter or bar-by-player). */}
             {(chartType === 'scatter' || (chartType === 'bar' && xKey === '__player')) && (
               <div>
                 <div className="font-mono uppercase tracking-[0.18em] text-[0.65rem] text-zinc-500 dark:text-stone-400 mb-1.5">Données manquantes</div>
@@ -802,7 +802,7 @@ function AdminAnalysis() {
               </h3>
             </div>
 
-            {/* Banner — surfaces players excluded due to missing data so the analyst knows
+            {/* Banner - surfaces players excluded due to missing data so the analyst knows
                 the cloud reflects a subset, not the full roster. */}
             {(chartType === 'scatter' || (chartType === 'bar' && xKey === '__player')) && missingCount > 0 && (
               <div className="mb-4 rounded-xl border border-amber-200/70 bg-amber-50/70 dark:border-amber-400/20 dark:bg-amber-500/[0.08] px-3 py-2 flex items-start gap-2.5">
@@ -812,7 +812,7 @@ function AdminAnalysis() {
                     {missingCount} joueur{missingCount > 1 ? 's' : ''}
                   </span>{' '}
                   <span className="text-amber-800 dark:text-amber-200/80">
-                    {excludeMissing ? 'exclu' : 'inclus'}{missingCount > 1 ? 's' : ''} — métrique non renseignée.
+                    {excludeMissing ? 'exclu' : 'inclus'}{missingCount > 1 ? 's' : ''} - métrique non renseignée.
                   </span>
                 </div>
                 <button
@@ -954,7 +954,7 @@ function AdminAnalysis() {
 }
 
 /* -------------------------------------------------------------------------- */
-/*  Heatmap view — pick 1 or 2 players, view side-by-side, paint when editing */
+/*  Heatmap view - pick 1 or 2 players, view side-by-side, paint when editing */
 /* -------------------------------------------------------------------------- */
 
 interface HeatmapViewProps {
@@ -1018,7 +1018,7 @@ function HeatmapSlot({
             disabled={editing}
             className="mt-1.5 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm font-medium text-zinc-900 focus:outline-none focus:border-zinc-900 dark:border-stone-50/15 dark:bg-zinc-950 dark:text-stone-50 dark:focus:border-turf-300 disabled:opacity-60 disabled:cursor-not-allowed transition"
           >
-            <option value="">— Sélectionner —</option>
+            <option value="">- Sélectionner -</option>
             {players.map((p) => (
               <option key={p.slug} value={p.slug}>
                 {p.name} · {p.position}
@@ -1027,7 +1027,7 @@ function HeatmapSlot({
           </select>
           {player && (
             <div className="mt-1 text-xs text-zinc-500 dark:text-stone-400 truncate">
-              {player.club ?? '—'} · {player.category}
+              {player.club ?? '-'} · {player.category}
             </div>
           )}
         </div>
@@ -1346,7 +1346,7 @@ function ComparisonView({ players, selectedSlugs, onChangeSlugs }: ComparisonVie
                       <div className="min-w-0 flex-1">
                         <div className="font-display font-medium text-zinc-950 dark:text-stone-50 truncate">{p.name}</div>
                         <div className="text-[0.65rem] font-mono uppercase tracking-wider text-zinc-500 dark:text-stone-500 truncate">
-                          {p.position} · {p.club ?? '—'}
+                          {p.position} · {p.club ?? '-'}
                         </div>
                       </div>
                     </div>
@@ -1445,7 +1445,7 @@ interface EvolutionMetricDef {
   /** Suffix to append in the tooltip (kept short). */
   unit?: string
   /** Returns the value from an Appearance row.
-   *  Returns `null` when the analyst has not entered the data — the chart then
+   *  Returns `null` when the analyst has not entered the data - the chart then
    *  draws a gap instead of dropping to 0 (which would lie about performance). */
   read: (a: Appearance) => number | null
   /** Domain hint to keep the Y-axis consistent across matches. */
@@ -1453,7 +1453,7 @@ interface EvolutionMetricDef {
 }
 
 const EVOLUTION_METRICS: EvolutionMetricDef[] = [
-  // `rating` is the only field truly nullable in the DB — keep null as null.
+  // `rating` is the only field truly nullable in the DB - keep null as null.
   { key: 'rating',          label: 'Note du match',  unit: '/10', read: (a) => a.rating, domain: [0, 10] },
   // Counts default to 0 in DB. If the match has 0 minutes played, the analyst likely
   // hasn't filled the row yet → treat all derived counts as missing.
@@ -1462,7 +1462,7 @@ const EVOLUTION_METRICS: EvolutionMetricDef[] = [
   { key: 'shots_on_target', label: 'Tirs cadrés',    read: (a) => (a.minutes_played ?? 0) > 0 ? (a.shots_on_target ?? 0) : null },
   // Minutes is the canonical source of truth; null when literally missing.
   { key: 'minutes_played',  label: 'Minutes jouées', unit: 'min', read: (a) => a.minutes_played ?? null, domain: [0, 100] },
-  // xG isn't stored per-appearance yet; we proxy it via shots × 0.12 — clear "approximation" label in the UI.
+  // xG isn't stored per-appearance yet; we proxy it via shots × 0.12 - clear "approximation" label in the UI.
   // Same minutes-based heuristic: no minutes → no shots data trustworthy.
   { key: 'xg_proxy',        label: 'xG (proxy)',     read: (a) => (a.minutes_played ?? 0) > 0 ? Number(((a.shots ?? 0) * 0.12).toFixed(2)) : null },
 ]
@@ -1474,12 +1474,12 @@ interface EvolutionRow {
   opponent: string
   competition: string
   home: boolean
-  /** `null` when the metric was not entered for this match — Recharts draws a gap. */
+  /** `null` when the metric was not entered for this match - Recharts draws a gap. */
   value: number | null
   /** Rolling average over the previous 5 matches, computed on non-null entries only.
    *  `null` until we have at least 3 valid points in the window. */
   rolling: number | null
-  /** Result formatted for tooltip — depends on home flag. */
+  /** Result formatted for tooltip - depends on home flag. */
   result: string
 }
 
@@ -1529,8 +1529,8 @@ function EvolutionView({ players, selectedSlug, onChangeSlug }: EvolutionViewPro
         value,
         rolling,
         result: a.score_team != null && a.score_opponent != null
-          ? (a.home ? `${a.score_team}–${a.score_opponent}` : `${a.score_opponent}–${a.score_team}`)
-          : '—',
+          ? (a.home ? `${a.score_team}-${a.score_opponent}` : `${a.score_opponent}-${a.score_team}`)
+          : '-',
       }
     })
   }, [appearances, metric])
@@ -1596,7 +1596,7 @@ function EvolutionView({ players, selectedSlug, onChangeSlug }: EvolutionViewPro
       ) : series.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-stone-300 dark:border-stone-50/10 bg-white/40 dark:bg-zinc-900/30 px-6 py-16 text-center">
           <p className="text-sm text-zinc-600 dark:text-stone-400">
-            Aucune apparition enregistrée pour ce joueur — ajoutez-en depuis sa fiche.
+            Aucune apparition enregistrée pour ce joueur - ajoutez-en depuis sa fiche.
           </p>
         </div>
       ) : (
@@ -1610,7 +1610,7 @@ function EvolutionView({ players, selectedSlug, onChangeSlug }: EvolutionViewPro
                   <div className="text-[0.78rem] text-amber-900 dark:text-amber-100">
                     <span className="font-medium">{summary.missing} match{summary.missing > 1 ? 's' : ''}</span>{' '}
                     <span className="text-amber-800 dark:text-amber-200/80">
-                      sans donnée pour cette métrique — ignoré{summary.missing > 1 ? 's' : ''} dans les moyennes.
+                      sans donnée pour cette métrique - ignoré{summary.missing > 1 ? 's' : ''} dans les moyennes.
                     </span>
                   </div>
                 </div>
@@ -1622,9 +1622,9 @@ function EvolutionView({ players, selectedSlug, onChangeSlug }: EvolutionViewPro
                     ? `${summary.valid} / ${summary.matches}`
                     : summary.matches}
                 />
-                <SummaryTile label={`Moyenne ${metric.label.toLowerCase()}`} value={summary.valid > 0 ? summary.avg.toFixed(2) : '—'} />
-                <SummaryTile label="Sur les 5 derniers"  value={summary.valid > 0 ? summary.last5Avg.toFixed(2) : '—'} trend={summary.valid > 0 ? summary.trend : undefined} />
-                <SummaryTile label="Meilleur"            value={summary.valid > 0 ? summary.best.toFixed(2) : '—'} />
+                <SummaryTile label={`Moyenne ${metric.label.toLowerCase()}`} value={summary.valid > 0 ? summary.avg.toFixed(2) : '-'} />
+                <SummaryTile label="Sur les 5 derniers"  value={summary.valid > 0 ? summary.last5Avg.toFixed(2) : '-'} trend={summary.valid > 0 ? summary.trend : undefined} />
+                <SummaryTile label="Meilleur"            value={summary.valid > 0 ? summary.best.toFixed(2) : '-'} />
               </div>
             </>
           )}
@@ -1635,7 +1635,7 @@ function EvolutionView({ players, selectedSlug, onChangeSlug }: EvolutionViewPro
               <div>
                 <div className="font-mono uppercase tracking-[0.12em] text-[0.62rem] text-zinc-500 dark:text-stone-400">Évolution</div>
                 <h3 className="mt-1 font-display font-semibold text-lg text-zinc-950 dark:text-stone-50">
-                  {selectedPlayer?.name} <span className="text-zinc-400 dark:text-stone-500 font-normal">— {metric.label}</span>
+                  {selectedPlayer?.name} <span className="text-zinc-400 dark:text-stone-500 font-normal">- {metric.label}</span>
                 </h3>
               </div>
               <span className="hidden sm:inline-flex items-center gap-2 text-[0.7rem] text-zinc-500 dark:text-stone-400">
@@ -1732,7 +1732,7 @@ function EvolutionView({ players, selectedSlug, onChangeSlug }: EvolutionViewPro
             </div>
             {metricKey === 'xg_proxy' && (
               <p className="mt-3 text-[0.72rem] text-zinc-500 dark:text-stone-400 italic">
-                xG approximé via <code>tirs × 0,12</code> — la table appearances ne stocke pas encore l'xG par match.
+                xG approximé via <code>tirs × 0,12</code> - la table appearances ne stocke pas encore l'xG par match.
               </p>
             )}
           </section>

@@ -9,12 +9,12 @@ export interface BrandLogoProps {
   size?: number
   className?: string
   /**
-   * - `auto` (default): swap between black/white via `dark:` Tailwind classes — use on theme-aware surfaces.
+   * - `auto` (default): swap between black/white via `dark:` Tailwind classes - use on theme-aware surfaces.
    * - `light`: always render the white logo (for always-dark surfaces like the navbar capsule).
    * - `dark`:  always render the black logo (for always-light surfaces).
    */
   variant?: BrandLogoVariant
-  /** Adds the small pulsing turf dot in the top-right corner — keeps the "alive" feel of the original mark. */
+  /** Adds the small pulsing turf dot in the top-right corner - keeps the "alive" feel of the original mark. */
   withPulse?: boolean
 }
 
@@ -29,7 +29,7 @@ export default function BrandLogo({
       className={`relative inline-flex shrink-0 ${className}`}
       style={{ width: size, height: size }}
     >
-      {/* Black logo — light surfaces */}
+      {/* Black logo - light surfaces */}
       {(variant === 'auto' || variant === 'dark') && (
         <img
           src={logoBlack}
@@ -41,7 +41,7 @@ export default function BrandLogo({
           }`}
         />
       )}
-      {/* White logo — dark surfaces */}
+      {/* White logo - dark surfaces */}
       {(variant === 'auto' || variant === 'light') && (
         <img
           src={logoWhite}

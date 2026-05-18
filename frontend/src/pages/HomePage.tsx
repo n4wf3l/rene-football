@@ -44,7 +44,7 @@ const SERVICES = [
   {
     Icon: ScanSmiley,
     title: 'Scouting & recrutement',
-    text: 'Un réseau de scouts à travers l\'Europe — du Benelux à la Bundesliga — pour détecter les profils qui changent une équipe.',
+    text: 'Un réseau de scouts à travers l\'Europe - du Benelux à la Bundesliga - pour détecter les profils qui changent une équipe.',
     span: 'lg:col-span-2',
   },
   {
@@ -81,7 +81,7 @@ function HomePage() {
   const heroRef = useRef<HTMLElement | null>(null)
   return (
     <>
-      {/* HERO — asymmetric 60/40 split, dark stadium feel */}
+      {/* HERO - asymmetric 60/40 split, dark stadium feel */}
       <section ref={heroRef} className="relative overflow-hidden text-stone-100">
         <MeshGradient intensity="medium" />
         <FloatingAccents />
@@ -133,7 +133,7 @@ function HomePage() {
               className="mt-5 max-w-[58ch] text-base lg:text-lg text-stone-400 leading-relaxed"
             >
               Basée au Luxembourg, Rene Football accompagne jeunes talents,
-              joueurs confirmés et clubs partout en Europe — de la signature
+              joueurs confirmés et clubs partout en Europe - de la signature
               du premier contrat professionnel jusqu'au sommet de la carrière.
             </motion.p>
 
@@ -155,7 +155,7 @@ function HomePage() {
             </motion.div>
           </motion.div>
 
-          {/* Hero portrait — right column. max-h capped against viewport so it
+          {/* Hero portrait - right column. max-h capped against viewport so it
              never pushes the whole hero past 100dvh on short laptop screens. */}
           <motion.div
             initial={{ opacity: 0, scale: 0.96 }}
@@ -188,7 +188,7 @@ function HomePage() {
                   <div className="mt-1 font-display font-semibold text-stone-50 text-xl">
                     Hamzath Mohamadou
                   </div>
-                  <div className="text-stone-400 text-sm">Ailier droit — 21 ans</div>
+                  <div className="text-stone-400 text-sm">Ailier droit - 21 ans</div>
                 </div>
                 <div className="flex items-center gap-2 rounded-full bg-stone-50/10 backdrop-blur px-3 py-1.5 border border-stone-50/15">
                   <span className="w-2 h-2 rounded-full bg-turf-300 animate-pulse" />
@@ -199,7 +199,7 @@ function HomePage() {
           </motion.div>
         </div>
 
-        {/* Stats line — filiform, mono numbers, divided by 1px lines.
+        {/* Stats line - filiform, mono numbers, divided by 1px lines.
            Sits BELOW the 100dvh hero box so it never competes for vertical space
            with the headline + portrait. Visible on scroll-down. */}
         <div className="container-page pb-16 lg:pb-20">
@@ -227,7 +227,7 @@ function HomePage() {
       {/* MERCATO TICKER */}
       <MercatoTicker />
 
-      {/* ROSTER PREVIEW — light section, gallery feel */}
+      {/* ROSTER PREVIEW - light section, gallery feel */}
       <section className="bg-stone-50 dark:bg-zinc-950 py-20 lg:py-28">
         <div className="container-page">
           <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 mb-12">
@@ -295,7 +295,7 @@ function HomePage() {
         </div>
       </section>
 
-      {/* BRAND VIDEO — dark editorial break between roster (light) and services (light).
+      {/* BRAND VIDEO - dark editorial break between roster (light) and services (light).
          Facade YouTube : poster only at first paint, iframe loaded on click. */}
       <section className="relative overflow-hidden bg-zinc-950 text-stone-100 py-20 lg:py-28">
         <div
@@ -330,7 +330,7 @@ function HomePage() {
               transition={{ type: 'spring', stiffness: 110, damping: 20, delay: 0.08 }}
               className="lg:col-span-5 text-stone-400 leading-relaxed lg:pb-2"
             >
-              Notre méthode, nos joueurs, notre vision du métier d'agent — en une
+              Notre méthode, nos joueurs, notre vision du métier d'agent - en une
               minute. Une parenthèse pour comprendre qui nous sommes avant de
               parler de votre projet.
             </motion.p>
@@ -344,13 +344,13 @@ function HomePage() {
           >
             <YouTubeEmbed
               videoId="bu84Ph4KCG0"
-              title="Rene Football — présentation de l'agence"
+              title="Rene Football - présentation de l'agence"
             />
           </motion.div>
         </div>
       </section>
 
-      {/* SERVICES — bento asymétrique, pas de 4 cards alignées */}
+      {/* SERVICES - bento asymétrique, pas de 4 cards alignées */}
       <section className="bg-stone-50 dark:bg-zinc-950 pt-4 pb-20 lg:pb-28">
         <div className="container-page">
           <div className="max-w-[44ch] mb-12">

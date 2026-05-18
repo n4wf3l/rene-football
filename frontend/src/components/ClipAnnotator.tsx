@@ -228,7 +228,7 @@ export default function ClipAnnotator({ onSave, onCancel }: ClipAnnotatorProps) 
 
   return (
     <div className="space-y-4">
-      {/* Step 1 — pick a file */}
+      {/* Step 1 - pick a file */}
       {!videoUrl && (
         <label className="flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-stone-300 dark:border-stone-50/15 bg-white dark:bg-zinc-900/30 px-6 py-14 cursor-pointer hover:border-zinc-500 dark:hover:border-stone-50/30 transition">
           <FilmSlate size={28} weight="duotone" className="text-zinc-400 dark:text-stone-500" />
@@ -236,7 +236,7 @@ export default function ClipAnnotator({ onSave, onCancel }: ClipAnnotatorProps) 
             Glisse une vidéo ou clique pour choisir
           </div>
           <div className="text-xs text-zinc-500 dark:text-stone-400 max-w-md text-center">
-            La vidéo reste <span className="font-medium text-turf-700 dark:text-turf-300">dans ton navigateur</span> — seul le moment annoté final sera envoyé au serveur.
+            La vidéo reste <span className="font-medium text-turf-700 dark:text-turf-300">dans ton navigateur</span> - seul le moment annoté final sera envoyé au serveur.
           </div>
           <input type="file" accept="video/*" onChange={onFile} className="hidden" />
         </label>
@@ -257,7 +257,7 @@ export default function ClipAnnotator({ onSave, onCancel }: ClipAnnotatorProps) 
             onLoadedMetadata={() => paintCanvas()}
           />
 
-          {/* Compositor canvas — only displayed when paused */}
+          {/* Compositor canvas - only displayed when paused */}
           {paused && (
             <div className="space-y-3">
               <div className="relative rounded-2xl overflow-hidden bg-black">

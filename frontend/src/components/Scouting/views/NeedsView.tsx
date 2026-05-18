@@ -70,14 +70,14 @@ function NeedsView() {
                     {lowCoverage && <Warning size={14} className="text-amber-600 dark:text-amber-400" />}
                     <div>
                       <div className="font-medium text-zinc-950 dark:text-stone-50">{n.title}</div>
-                      <div className="text-[0.65rem] text-zinc-500 dark:text-stone-400">Saison {n.season ?? '—'}</div>
+                      <div className="text-[0.65rem] text-zinc-500 dark:text-stone-400">Saison {n.season ?? '-'}</div>
                     </div>
                     <span className="ml-2"><PriorityBadge priority={n.priority} /></span>
                   </div>
                 </td>
                 <td className="px-4 py-3 text-zinc-700 dark:text-stone-300">{n.position} · {n.category}</td>
-                <td className="px-4 py-3 text-xs text-zinc-700 dark:text-stone-300">{n.budget_min && n.budget_max ? `${(n.budget_min/1000).toFixed(0)}k – ${(n.budget_max/1000).toFixed(0)}k €` : '—'}</td>
-                <td className="px-4 py-3 text-xs text-zinc-700 dark:text-stone-300">{n.age_min && n.age_max ? `${n.age_min} – ${n.age_max} ans` : '—'}</td>
+                <td className="px-4 py-3 text-xs text-zinc-700 dark:text-stone-300">{n.budget_min && n.budget_max ? `${(n.budget_min/1000).toFixed(0)}k - ${(n.budget_max/1000).toFixed(0)}k €` : '-'}</td>
+                <td className="px-4 py-3 text-xs text-zinc-700 dark:text-stone-300">{n.age_min && n.age_max ? `${n.age_min} - ${n.age_max} ans` : '-'}</td>
                 <td className="px-4 py-3 text-right font-mono tabular-nums">{s.players_count}</td>
                 <td className="px-4 py-3 text-right font-mono tabular-nums">{s.shortlist_a}</td>
                 <td className="px-4 py-3 text-right"><ScoreBadge score={s.best_score} /></td>

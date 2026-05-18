@@ -29,7 +29,7 @@ interface AdminNavItem {
   label: string
   icon: PhosphorIcon
   end?: boolean
-  /** Optional badge slot — looked up in the SidebarBadges map. */
+  /** Optional badge slot - looked up in the SidebarBadges map. */
   badgeKey?: BadgeKey
 }
 
@@ -125,7 +125,7 @@ function Sidebar({ onCloseMobile, onCollapseDesktop }: SidebarProps) {
         const count = (d?.to_validate ?? 0) + (d?.my_reports_needing_changes ?? 0)
         setBadges((prev) => ({ ...prev, scouting: count }))
       })
-      .catch(() => { /* silently ignore — badge falls back to 0 */ })
+      .catch(() => { /* silently ignore - badge falls back to 0 */ })
     return () => { cancelled = true }
   }, [location.pathname])
 
@@ -221,7 +221,7 @@ interface ReopenHandleProps {
 }
 
 /**
- * Floating handle on the left edge — only rendered when the desktop sidebar
+ * Floating handle on the left edge - only rendered when the desktop sidebar
  * is collapsed. Visually echoes the BrandLogo + a chevron, so the user
  * always has a recognizable way back to the menu.
  */
@@ -264,7 +264,7 @@ const FOCUS_ROUTES: RegExp[] = [
   /^\/admin\/joueurs\/[^/]+\/edit$/,
   /^\/admin\/articles\/nouveau$/,
   /^\/admin\/articles\/[^/]+\/edit$/,
-  // Scouting cockpit has its own internal sidebar — collapse the outer one.
+  // Scouting cockpit has its own internal sidebar - collapse the outer one.
   /^\/admin\/scouting$/,
 ]
 
@@ -277,7 +277,7 @@ function AdminLayout() {
   const [desktopOpen, setDesktopOpen] = useState<boolean>(() => readInitialDesktopOpen())
   const location = useLocation()
 
-  // Persist user-driven open/close (but skip when we're on a focus route — the
+  // Persist user-driven open/close (but skip when we're on a focus route - the
   // collapse there is route-driven, not user-driven, and shouldn't overwrite
   // their default preference).
   useEffect(() => {
@@ -299,7 +299,7 @@ function AdminLayout() {
 
   return (
     <div className="flex min-h-[100dvh] bg-stone-100 dark:bg-zinc-950">
-      {/* Desktop sidebar — collapsible, persisted state. */}
+      {/* Desktop sidebar - collapsible, persisted state. */}
       <AnimatePresence initial={false}>
         {desktopOpen && (
           <motion.div

@@ -9,7 +9,7 @@ import PlaceholderPage from './pages/PlaceholderPage'
 import NotFoundPage from './pages/NotFoundPage'
 import RouteFallback from './components/RouteFallback'
 
-/* Lazy public routes — kept off the initial bundle. HomePage stays eager
+/* Lazy public routes - kept off the initial bundle. HomePage stays eager
    so the landing first-paint is fast. */
 const PlayersPage        = lazy(() => import('./pages/PlayersPage'))
 const PlayerProfilePage  = lazy(() => import('./pages/PlayerProfilePage'))

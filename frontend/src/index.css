@@ -31,7 +31,7 @@
     scrollbar-color: rgb(23 81 51) rgb(10 10 10);
   }
 
-  /* Webkit scrollbar — turf gradient on near-black track */
+  /* Webkit scrollbar - turf gradient on near-black track */
   ::-webkit-scrollbar {
     width: 12px;
     height: 12px;
@@ -73,7 +73,7 @@
 
   /* Sticky sub-navs (Players filters, PlayerProfile section nav, Actualites filters)
      sit just under the global compact header. When the smart navbar is hidden
-     on scroll-down, they hug the top of the viewport — no empty gap above them. */
+     on scroll-down, they hug the top of the viewport - no empty gap above them. */
   .nav-sticky {
     top: 3.5rem; /* matches scrolled h-14 */
     transition: top 0.3s cubic-bezier(0.16, 1, 0.3, 1);

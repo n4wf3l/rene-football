@@ -96,7 +96,7 @@ export function ScoreBadge({ score, label }: ScoreBadgeProps) {
   return (
     <Pill tone={tone}>
       {label ? <span className="text-zinc-500 dark:text-stone-400 mr-1">{label}</span> : null}
-      <span className="font-mono tabular-nums">{v == null ? '—' : Math.round(v)}</span>
+      <span className="font-mono tabular-nums">{v == null ? '-' : Math.round(v)}</span>
     </Pill>
   )
 }

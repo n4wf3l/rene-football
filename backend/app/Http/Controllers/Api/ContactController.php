@@ -36,7 +36,7 @@ class ContactController extends Controller
             'user_agent' => substr((string) $request->userAgent(), 0, 500),
         ]);
 
-        // Best-effort notification — never fail the user submission if mail breaks.
+        // Best-effort notification - never fail the user submission if mail breaks.
         try {
             $to = config('mail.contact_recipient', env('CONTACT_RECIPIENT', 'contact@renefootball.com'));
             $body = sprintf(
@@ -45,14 +45,14 @@ class ContactController extends Controller
                 $submission->reason,
                 $submission->name,
                 $submission->email,
-                $submission->phone ?: '—',
-                $submission->subject ?: '—',
+                $submission->phone ?: '-',
+                $submission->subject ?: '-',
                 $submission->message,
-                $submission->ip ?: '—',
+                $submission->ip ?: '-',
             );
             Mail::raw($body, function ($message) use ($to, $submission) {
                 $message->to($to)
-                    ->subject('[Rene Football] Demande de contact — ' . $submission->name)
+                    ->subject('[Rene Football] Demande de contact - ' . $submission->name)
                     ->replyTo($submission->email, $submission->name);
             });
         } catch (Throwable $e) {

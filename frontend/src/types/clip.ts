@@ -1,4 +1,4 @@
-/* Mirrors App\Models\PlayerClip. The original video is NEVER stored —
+/* Mirrors App\Models\PlayerClip. The original video is NEVER stored -
    only the rendered PNG (`image_path`) plus a re-editable `annotations_json`. */
 
 export interface ClipAnnotationArrow {

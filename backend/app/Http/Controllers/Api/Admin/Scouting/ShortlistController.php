@@ -92,7 +92,7 @@ class ShortlistController extends Controller
         return response()->json(['data' => $entry->load('player:id,slug,name,position,photo_url')], 201);
     }
 
-    /** Patch a single shortlist entry — typically the kanban move. */
+    /** Patch a single shortlist entry - typically the kanban move. */
     public function updateEntry(Request $request, Shortlist $shortlist, ShortlistPlayer $entry): JsonResponse
     {
         abort_unless($entry->shortlist_id === $shortlist->id, 404);

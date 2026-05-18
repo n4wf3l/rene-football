@@ -156,7 +156,7 @@ function ContactPage() {
             </h1>
             <p className="mt-6 text-base lg:text-lg text-zinc-600 leading-relaxed">
               Votre message a bien été reçu. Notre équipe traite chaque
-              demande personnellement — nous priorisons les sujets selon
+              demande personnellement - nous priorisons les sujets selon
               leur urgence et votre profil.
             </p>
             <div className="mt-10 flex flex-wrap gap-3">

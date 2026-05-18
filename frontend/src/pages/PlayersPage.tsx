@@ -16,7 +16,7 @@ const POSITION_FILTERS: PositionFilter[] = ['Tous', 'Gardien', 'Defenseur', 'Mil
 const AGE_FILTERS: { key: AgeFilter; label: string }[] = [
   { key: 'Tous',    label: 'Tous âges' },
   { key: 'U21',     label: 'Moins de 21' },
-  { key: '21-26',   label: '21–26 ans' },
+  { key: '21-26',   label: '21-26 ans' },
   { key: '27+',     label: '27 ans et plus' },
 ]
 
@@ -180,8 +180,8 @@ function PlayersPage() {
             </h1>
             <p className="mt-6 max-w-[58ch] text-base lg:text-lg text-stone-400 leading-relaxed">
               Une sélection volontairement resserrée. Pour chaque joueur,
-              une équipe dédiée — agent, conseiller juridique, préparateur
-              mental — qui le suit toute la saison.
+              une équipe dédiée - agent, conseiller juridique, préparateur
+              mental - qui le suit toute la saison.
             </p>
           </div>
           <div className="lg:col-span-4 lg:justify-self-end">

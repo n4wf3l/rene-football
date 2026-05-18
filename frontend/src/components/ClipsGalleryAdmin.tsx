@@ -15,7 +15,7 @@ interface ClipsResponse { data: PlayerClip[] }
 interface SingleClipResponse { data: PlayerClip }
 
 const FR_DURATION = (sec: number | null): string => {
-  if (sec == null) return '—'
+  if (sec == null) return '-'
   const m = Math.floor(sec / 60)
   const s = Math.floor(sec % 60)
   return `${m}:${s.toString().padStart(2, '0')}`

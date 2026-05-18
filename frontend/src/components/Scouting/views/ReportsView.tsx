@@ -36,7 +36,7 @@ function ReportsView() {
 
   /** Match the backend's `for_me` filter: a report is "for me" if I am the recipient
    *  (submitted_to) OR the original scout. `submitted_to` may be an integer FK or
-   *  the eager-loaded `{ id, name }` object — handle both. */
+   *  the eager-loaded `{ id, name }` object - handle both. */
   const isForMe = (r: ScoutingReport): boolean => {
     if (!myId) return false
     const v = r.submitted_to
@@ -56,7 +56,7 @@ function ReportsView() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reports, tab, myId])
 
-  /** Count surfaced next to the "Pour moi" tab — pulls eyes on it. */
+  /** Count surfaced next to the "Pour moi" tab - pulls eyes on it. */
   const forMeCount = useMemo(() => reports.filter(isForMe).length, [reports, myId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const open = (id: number) => {
@@ -138,13 +138,13 @@ function ReportsView() {
                   </div>
                 </td>
                 <td className="px-4 py-3 text-zinc-700 dark:text-stone-300 text-xs">
-                  {r.match ? `${r.match.home_team} – ${r.match.away_team}` : 'Hors match'}
+                  {r.match ? `${r.match.home_team} - ${r.match.away_team}` : 'Hors match'}
                 </td>
-                <td className="px-4 py-3 text-zinc-700 dark:text-stone-300 text-xs">{r.scout?.name ?? '—'}</td>
-                <td className="px-4 py-3 text-right font-mono tabular-nums text-zinc-900 dark:text-stone-50">{r.global_rating != null ? Number(r.global_rating).toFixed(1) : '—'}</td>
-                <td className="px-4 py-3 text-xs text-zinc-700 dark:text-stone-300 capitalize">{r.recommendation?.replace(/_/g, ' ') ?? '—'}</td>
+                <td className="px-4 py-3 text-zinc-700 dark:text-stone-300 text-xs">{r.scout?.name ?? '-'}</td>
+                <td className="px-4 py-3 text-right font-mono tabular-nums text-zinc-900 dark:text-stone-50">{r.global_rating != null ? Number(r.global_rating).toFixed(1) : '-'}</td>
+                <td className="px-4 py-3 text-xs text-zinc-700 dark:text-stone-300 capitalize">{r.recommendation?.replace(/_/g, ' ') ?? '-'}</td>
                 <td className="px-4 py-3"><ReportStatusBadge status={r.status} /></td>
-                <td className="px-4 py-3 text-xs text-zinc-600 dark:text-stone-400 truncate max-w-[24ch]">{r.next_action ?? '—'}</td>
+                <td className="px-4 py-3 text-xs text-zinc-600 dark:text-stone-400 truncate max-w-[24ch]">{r.next_action ?? '-'}</td>
               </tr>
             ))}
           </tbody>

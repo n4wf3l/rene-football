@@ -62,7 +62,7 @@ class FootballMatch extends Model
         return $this->hasMany(QuickObservation::class);
     }
 
-    /** Players observed during this match — derived through scouting_reports. */
+    /** Players observed during this match - derived through scouting_reports. */
     public function observedPlayers()
     {
         return Player::query()

@@ -4,7 +4,7 @@ import { ArrowRight, X as XIcon } from '@phosphor-icons/react'
 import { scoutingApi } from '../../lib/scoutingApi'
 import type { ScoutingValidator } from '../../types/scouting'
 
-/* Action types this modal supports — each maps to a different controller route + UI tone. */
+/* Action types this modal supports - each maps to a different controller route + UI tone. */
 export type ReportAction = 'submit' | 'validate' | 'request_changes'
 
 export interface ReportActionResult {
@@ -16,7 +16,7 @@ export interface ReportActionResult {
 
 interface Props {
   action: ReportAction
-  /** Default selected recipient — usually the auto-routed validator. */
+  /** Default selected recipient - usually the auto-routed validator. */
   defaultRecipientId?: number | null
   /** Show the recipient picker. Disable for `validate` (no recipient). */
   showRecipientPicker?: boolean
@@ -56,7 +56,7 @@ function ReportActionModal({ action, defaultRecipientId, showRecipientPicker = t
     scoutingApi.inbox().then((d) => setValidators(d.validators ?? [])).catch(() => {})
   }, [showRecipientPicker])
 
-  // Lock body scroll while the modal is open — small UX detail but it prevents
+  // Lock body scroll while the modal is open - small UX detail but it prevents
   // a long drawer behind from scrolling under the dialog.
   useEffect(() => {
     const prev = document.body.style.overflow
@@ -120,7 +120,7 @@ function ReportActionModal({ action, defaultRecipientId, showRecipientPicker = t
                   const role = v.is_head_of_scouting ? 'Chef scouting' : v.is_admin ? 'Admin' : ''
                   return (
                     <option key={v.id} value={v.id}>
-                      {v.name} — {role} ({scope})
+                      {v.name} - {role} ({scope})
                     </option>
                   )
                 })}

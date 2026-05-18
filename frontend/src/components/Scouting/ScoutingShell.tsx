@@ -28,7 +28,7 @@ const NeedsView       = lazy(() => import('./views/NeedsView'))
 const VideosView      = lazy(() => import('./views/VideosView'))
 const IntelligenceView= lazy(() => import('./views/IntelligenceView'))
 
-/* Lazy drawers — only loaded when the matching query param is present. */
+/* Lazy drawers - only loaded when the matching query param is present. */
 const PlayerDrawer    = lazy(() => import('./drawers/PlayerDrawer'))
 const ReportDrawer    = lazy(() => import('./drawers/ReportDrawer'))
 const MissionDrawer   = lazy(() => import('./drawers/MissionDrawer'))
@@ -54,7 +54,7 @@ const SIDEBAR: SidebarItem[] = [
 
 const VIEW_LABELS: Record<ScoutingView, { title: string; subtitle: string }> = {
   dashboard:    { title: 'Tableau de bord scouting',   subtitle: 'Vue d\'ensemble des priorités, joueurs prioritaires et alertes.' },
-  players:      { title: 'Joueurs suivis',             subtitle: 'Base interne — statuts, scores, complétude des dossiers.' },
+  players:      { title: 'Joueurs suivis',             subtitle: 'Base interne - statuts, scores, complétude des dossiers.' },
   matches:      { title: 'Matchs',                     subtitle: 'Calendrier des rencontres observées.' },
   reports:      { title: 'Rapports scouts',            subtitle: 'Production, soumission, validation.' },
   missions:     { title: 'Missions scout',             subtitle: 'Attributions terrain et validations.' },
@@ -108,7 +108,7 @@ function ScoutingShell() {
 
   return (
     <div className="flex min-h-[100dvh] bg-stone-50 dark:bg-zinc-950">
-      {/* Internal scouting sidebar — distinct from the outer admin sidebar (which auto-collapses on this route). */}
+      {/* Internal scouting sidebar - distinct from the outer admin sidebar (which auto-collapses on this route). */}
       <aside className="hidden lg:flex flex-col w-56 shrink-0 sticky top-0 h-[100dvh] border-r border-stone-200 dark:border-stone-50/8 bg-white dark:bg-zinc-900/40">
         <div className="px-5 h-16 flex items-center gap-2.5 border-b border-stone-200 dark:border-stone-50/8">
           <span className="grid place-items-center w-8 h-8 rounded-lg bg-zinc-950 text-stone-50 dark:bg-stone-50 dark:text-zinc-950">
@@ -146,7 +146,7 @@ function ScoutingShell() {
       </aside>
 
       <main className="flex-1 min-w-0 flex flex-col">
-        {/* Mobile horizontal nav — quick access without the desktop rail. */}
+        {/* Mobile horizontal nav - quick access without the desktop rail. */}
         <div className="lg:hidden border-b border-stone-200 dark:border-stone-50/10 bg-white dark:bg-zinc-900/40 overflow-x-auto">
           <div className="flex gap-1 px-3 py-2 min-w-max">
             {SIDEBAR.map((item) => {

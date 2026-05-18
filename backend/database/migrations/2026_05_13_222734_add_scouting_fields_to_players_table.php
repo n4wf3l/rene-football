@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Scouting workflow lives ON the existing Player record (one identity, multiple
  * facets). The public-facing `is_published` flag stays separate from the
- * internal `scouting_status` workflow — a Shortlist A player can still be
+ * internal `scouting_status` workflow - a Shortlist A player can still be
  * unpublished on the public site.
  */
 return new class extends Migration

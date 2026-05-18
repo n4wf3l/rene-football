@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::table('scouting_reports', function (Blueprint $table) {
             // Validator the scout submitted the report to. Null means "broadcast queue"
-            // (legacy reports) — the inbox endpoint surfaces both.
+            // (legacy reports) - the inbox endpoint surfaces both.
             $table->foreignId('submitted_to')->nullable()->after('validated_by')
                 ->constrained('users')->nullOnDelete();
         });

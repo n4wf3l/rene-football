@@ -25,7 +25,7 @@ const DOTS: AccentDot[] = [
   { top: 90, left: 42, size: 4, duration: 12, delay: 1.2, baseOpacity: 0.30 },
 ]
 
-/* Glowing turf accents that float in a section background — six points slowly
+/* Glowing turf accents that float in a section background - six points slowly
    drift on independent loops, breathing in opacity. Pointer-events disabled.
    Memoized so the rest of the page never causes them to rerender. */
 function FloatingAccentsBase() {

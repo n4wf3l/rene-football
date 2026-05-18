@@ -7,7 +7,7 @@ export interface AdminUser {
   name?: string
   email?: string
   is_admin?: boolean
-  /** True for users wired into the validator pool — see ScoutingRoutingService. */
+  /** True for users wired into the validator pool - see ScoutingRoutingService. */
   is_head_of_scouting?: boolean
   /** Player-category buckets this validator owns (`['Pro']`, `['U19','U23']`, …).
    *  Null/undefined means "covers everything". */

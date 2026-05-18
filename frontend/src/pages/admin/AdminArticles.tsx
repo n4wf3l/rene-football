@@ -47,7 +47,7 @@ function Toast({ kind, message, onDismiss }: ToastState & { onDismiss: () => voi
 }
 
 function fmtDate(value: string | null): string {
-  if (!value) return '—'
+  if (!value) return '-'
   try {
     return new Date(value).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
   } catch {
@@ -277,7 +277,7 @@ export default function AdminArticles() {
                       <span className="text-xs text-zinc-700 dark:text-stone-300 truncate">{a.player.name}</span>
                     </span>
                   ) : (
-                    <span className="text-xs text-zinc-400 dark:text-stone-500">—</span>
+                    <span className="text-xs text-zinc-400 dark:text-stone-500">-</span>
                   )}
                 </td>
                 <td className="px-4 py-3 text-right">

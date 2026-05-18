@@ -13,7 +13,7 @@ interface ToastProps extends ToastState {
 /**
  * Bottom-right notification used across admin modules. Same animation
  * (slide+fade) and dismissable via the X. The caller controls visibility +
- * timeout — wrap in <AnimatePresence> for graceful exits.
+ * timeout - wrap in <AnimatePresence> for graceful exits.
  */
 function Toast({ kind = 'success', message, onDismiss }: ToastProps) {
   return (

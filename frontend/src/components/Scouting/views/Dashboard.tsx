@@ -107,7 +107,7 @@ function Dashboard() {
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-medium text-zinc-900 dark:text-stone-100 truncate">{r.player?.name}</div>
                       <div className="text-[0.7rem] text-zinc-500 dark:text-stone-400 truncate">
-                        {r.match ? `${r.match.home_team} – ${r.match.away_team}` : 'Vidéo'}
+                        {r.match ? `${r.match.home_team} - ${r.match.away_team}` : 'Vidéo'}
                       </div>
                     </div>
                     <ReportStatusBadge status={r.status} />
@@ -131,7 +131,7 @@ function Dashboard() {
                   >
                     <span className="text-sm font-medium text-zinc-900 dark:text-stone-100 truncate">{m.title}</span>
                     {m.match && (
-                      <span className="text-[0.7rem] text-zinc-500 dark:text-stone-400">{m.match.home_team} – {m.match.away_team}</span>
+                      <span className="text-[0.7rem] text-zinc-500 dark:text-stone-400">{m.match.home_team} - {m.match.away_team}</span>
                     )}
                   </button>
                 </li>
@@ -196,7 +196,7 @@ function Dashboard() {
                       <span className="font-medium text-zinc-950 dark:text-stone-50">{p.name}</span>
                     </div>
                   </td>
-                  <td className="px-4 py-2.5 text-zinc-700 dark:text-stone-300">{p.position} · <span className="text-zinc-500 dark:text-stone-400">{p.club ?? '—'}</span></td>
+                  <td className="px-4 py-2.5 text-zinc-700 dark:text-stone-300">{p.position} · <span className="text-zinc-500 dark:text-stone-400">{p.club ?? '-'}</span></td>
                   <td className="px-4 py-2.5 text-right"><ScoreBadge score={p.score_global} /></td>
                   <td className="px-4 py-2.5 text-right"><ScoreBadge score={p.score_confidence} /></td>
                   <td className="px-4 py-2.5"><StatusBadge status={p.scouting_status} /></td>
@@ -228,10 +228,10 @@ function Dashboard() {
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium text-zinc-900 dark:text-stone-100 truncate">{r.player?.name}</div>
                   <div className="text-[0.7rem] text-zinc-500 dark:text-stone-400 truncate">
-                    {r.match ? `${r.match.home_team} – ${r.match.away_team}` : 'Vidéo / hors match'} · {r.scout?.name ?? '—'}
+                    {r.match ? `${r.match.home_team} - ${r.match.away_team}` : 'Vidéo / hors match'} · {r.scout?.name ?? '-'}
                   </div>
                 </div>
-                <span className="font-mono text-xs tabular-nums text-zinc-700 dark:text-stone-300">{r.global_rating != null ? `${Number(r.global_rating).toFixed(1)}/10` : '—'}</span>
+                <span className="font-mono text-xs tabular-nums text-zinc-700 dark:text-stone-300">{r.global_rating != null ? `${Number(r.global_rating).toFixed(1)}/10` : '-'}</span>
                 <ReportStatusBadge status={r.status} />
               </button>
             </li>
@@ -251,7 +251,7 @@ function Dashboard() {
         />
         <header className="relative flex items-center gap-2 mb-4">
           <Bell size={16} weight="duotone" className="text-turf-300" />
-          <h3 className="font-mono uppercase tracking-[0.18em] text-[0.7rem] text-turf-300">Intelligence — {alertCount} signaux</h3>
+          <h3 className="font-mono uppercase tracking-[0.18em] text-[0.7rem] text-turf-300">Intelligence - {alertCount} signaux</h3>
           <button onClick={() => open({ view: 'intelligence' })} className="ml-auto text-xs text-stone-300 hover:text-stone-50">Tout voir →</button>
         </header>
         <div className="relative grid grid-cols-1 md:grid-cols-3 gap-3">

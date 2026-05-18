@@ -12,14 +12,14 @@ export interface RadarAxis {
 
 export interface PlayerRadarProps {
   players: Player[]
-  /** Override axes — defaults to a per-category preset. */
+  /** Override axes - defaults to a per-category preset. */
   axes?: RadarAxis[]
   size?: number
   /** Show a faint comparison label (default true when 2+ players). */
   showLegend?: boolean
 }
 
-/* ---- Per-category axes — six dimensions that matter for the position. ---- */
+/* ---- Per-category axes - six dimensions that matter for the position. ---- */
 const ATTACKER_AXES: RadarAxis[] = [
   { key: 'goals',              label: 'Buts',          max: 25 },
   { key: 'xg',                 label: 'xG',            max: 18 },

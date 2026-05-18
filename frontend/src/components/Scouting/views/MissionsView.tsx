@@ -129,7 +129,7 @@ function Card({ mission, dragging = false }: { mission: ScoutAssignment; draggin
         <PriorityBadge priority={mission.priority} />
       </div>
       {mission.match && (
-        <div className="text-[0.7rem] text-zinc-500 dark:text-stone-400 truncate">{mission.match.home_team} – {mission.match.away_team}</div>
+        <div className="text-[0.7rem] text-zinc-500 dark:text-stone-400 truncate">{mission.match.home_team} - {mission.match.away_team}</div>
       )}
       <div className="mt-1.5 flex items-center gap-2 text-[0.7rem] text-zinc-500 dark:text-stone-400">
         {mission.due_date && (

@@ -83,7 +83,7 @@ class PdfController extends Controller
         $pitchBlock = '';
         if (is_array($player->heatmap_grid) && count($player->heatmap_grid) === 4) {
             $pitchBlock =
-                '<div class="section-title">Zones d\'activité — terrain</div>'
+                '<div class="section-title">Zones d\'activité - terrain</div>'
                 .'<div class="pitch-caption">Le joueur attaque de gauche à droite. Les zones les plus vertes sont celles où il est le plus actif.</div>'
                 .'<div class="pitch-wrap">'.$this->buildPitchSvg($player->heatmap_grid).'</div>';
         }
@@ -92,8 +92,8 @@ class PdfController extends Controller
         $name     = e($player->name);
         $position = e($player->position);
         $category = e($player->category);
-        $club     = e($player->club ?? '—');
-        $since    = $player->since !== null ? (int) $player->since : '—';
+        $club     = e($player->club ?? '-');
+        $since    = $player->since !== null ? (int) $player->since : '-';
 
         // ---------- Document ----------
         return <<<HTML
@@ -101,7 +101,7 @@ class PdfController extends Controller
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Profil joueur — {$name}</title>
+    <title>Profil joueur - {$name}</title>
     <style>
         @page { margin: 24mm 18mm 22mm 18mm; }
         * { box-sizing: border-box; }

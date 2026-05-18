@@ -1,4 +1,4 @@
-/* Player domain — mirrors the backend Player model.
+/* Player domain - mirrors the backend Player model.
    Stats default to 0 server-side, so they're always present (no `undefined` checks needed). */
 
 export type PlayerCategory = 'Gardien' | 'Defenseur' | 'Milieu' | 'Attaquant'
@@ -49,13 +49,13 @@ export interface Player {
   potential_rating?: number | null
   /** Short qualifier next to the rating (e.g. "Future star mondiale"). */
   potential_label?: string | null
-  /** One-paragraph scout report — shown as a quote block. */
+  /** One-paragraph scout report - shown as a quote block. */
   scout_quote?: string | null
 
   /** Free-form short labels: status / contractual situation / availability. */
   tags?: string[] | null
 
-  /** Per-match averages from GPS tracking. All optional — show only if present. */
+  /** Per-match averages from GPS tracking. All optional - show only if present. */
   distance_avg_km?: number | null
   sprints_avg?: number | null
   top_speed_kmh?: number | null

@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Annotated frame snapshots — NOT the source video. The admin uploads
+     * Annotated frame snapshots - NOT the source video. The admin uploads
      * a video LOCALLY in the browser, pauses, draws on a frame, and we
      * persist only the resulting PNG (~100-300 KB) plus optional re-editable
      * annotation JSON. The original video never touches the server.

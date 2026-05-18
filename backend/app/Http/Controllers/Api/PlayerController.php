@@ -70,7 +70,7 @@ class PlayerController extends Controller
         $count = $peers->count();
         $out = [];
         if ($count < 2) {
-            // No comparison possible — every metric is 50 by convention.
+            // No comparison possible - every metric is 50 by convention.
             foreach (self::RANKABLE_METRICS as $metric => $_) {
                 $out[$metric] = 50.0;
             }

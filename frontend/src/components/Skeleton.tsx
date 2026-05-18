@@ -15,7 +15,7 @@ const RADII: Record<NonNullable<SkeletonProps['rounded']>, string> = {
   full:  'rounded-full',
 }
 
-/* Generic pulsing block — matches the dark/light surface tokens of the app
+/* Generic pulsing block - matches the dark/light surface tokens of the app
    (stone-200 in light mode, stone-50/8 on dark). Tailwind's animate-pulse is
    GPU-friendly (opacity only). Pass `className` to size it: `h-4 w-32`, etc. */
 export default function Skeleton({

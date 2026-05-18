@@ -31,7 +31,7 @@ class ScoutingReportSeeder extends Seeder
                 'observed_position' => 'Attaquant axial',
                 'minutes_observed' => 87,
                 'context' => 'live',
-                'tactical_role' => 'Pivot — point d\'appui',
+                'tactical_role' => 'Pivot - point d\'appui',
                 'strengths' => 'Jeu dos au but, finition pied gauche, lecture des espaces dans le dernier tiers.',
                 'weaknesses' => 'Repli défensif sur les transitions adverses.',
                 'global_rating' => 8.0,
@@ -100,7 +100,7 @@ class ScoutingReportSeeder extends Seeder
                 'minutes_observed' => 90,
                 'context' => 'live',
                 'tactical_role' => 'Ailier inversé pied droit',
-                'strengths' => 'Très haut potentiel — explosivité, dribble en 1v1.',
+                'strengths' => 'Très haut potentiel - explosivité, dribble en 1v1.',
                 'weaknesses' => 'Choix sous pression, mental encore jeune.',
                 'global_rating' => 7.2,
                 'current_level' => 6.5,
@@ -210,7 +210,7 @@ class ScoutingReportSeeder extends Seeder
                     'to_status'          => 'submitted',
                     'from_user_id'       => $scoutId,
                     'to_user_id'         => $picked,
-                    'comment'            => 'Soumis pour validation — auto-routing par catégorie.',
+                    'comment'            => 'Soumis pour validation - auto-routing par catégorie.',
                     'created_at'         => $r['submitted_at'] ?? $createdAt,
                 ]);
             }
@@ -221,7 +221,7 @@ class ScoutingReportSeeder extends Seeder
                     'to_status'          => 'validated',
                     'from_user_id'       => $r['validated_by'] ?? $chef?->id,
                     'to_user_id'         => null,
-                    'comment'            => 'Rapport conforme — passage en shortlist A.',
+                    'comment'            => 'Rapport conforme - passage en shortlist A.',
                     'created_at'         => $r['validated_at'] ?? now(),
                 ]);
             }

@@ -12,7 +12,7 @@ export interface AnimatedNumberProps {
   separator?: string
   /** Plays only the first time the element enters the viewport. */
   once?: boolean
-  /** Element wrapping the number — defaults to span. */
+  /** Element wrapping the number - defaults to span. */
   className?: string
 }
 

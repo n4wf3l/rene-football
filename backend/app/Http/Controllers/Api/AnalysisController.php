@@ -53,7 +53,7 @@ class AnalysisController extends Controller
         foreach ($byCategory as $category => $group) {
             $count = count($group);
             if ($count < 2) {
-                // Single player in his category — every metric is by definition 50.
+                // Single player in his category - every metric is by definition 50.
                 foreach ($group as $p) {
                     $out[$p->slug] = array_fill_keys(array_keys(self::RANKABLE_METRICS), 50.0);
                 }

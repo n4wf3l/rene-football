@@ -31,7 +31,7 @@ function formatDate(iso: string | null): string {
 
 /**
  * Render the article body as a sequence of paragraphs. We keep this lightweight
- * (split on blank lines) because the admin textarea uses plain text — anything
+ * (split on blank lines) because the admin textarea uses plain text - anything
  * fancier than that should land via dedicated rich blocks later.
  */
 function renderContent(content: string | null): React.ReactElement | null {
@@ -345,7 +345,7 @@ export default function ArticleDetailPage() {
                 </li>
                 <li className="flex items-center justify-between gap-2">
                   <span className="text-zinc-500 dark:text-stone-500">Publié le</span>
-                  <span className="font-mono tabular-nums">{formatDate(article.published_at) || '—'}</span>
+                  <span className="font-mono tabular-nums">{formatDate(article.published_at) || '-'}</span>
                 </li>
                 <li className="flex items-center justify-between gap-2">
                   <span className="text-zinc-500 dark:text-stone-500">Photos</span>
@@ -385,7 +385,7 @@ export default function ArticleDetailPage() {
               Les moments-clés annotés autour de l'article
             </h2>
             <p className="mt-3 max-w-[58ch] text-sm text-zinc-600 dark:text-stone-400">
-              Captures issues de l'analyse vidéo de notre staff — flèches et zones tracées sur les images-clés.
+              Captures issues de l'analyse vidéo de notre staff - flèches et zones tracées sur les images-clés.
             </p>
             <div className="mt-8">
               <ClipsGalleryPublic clips={clips} />
@@ -404,7 +404,7 @@ export default function ArticleDetailPage() {
               Plus d'actualités du roster.
             </h2>
             <p className="mt-4 max-w-[55ch] text-stone-400 leading-relaxed">
-              Transferts, signatures, profils de joueurs — toutes nos publications.
+              Transferts, signatures, profils de joueurs - toutes nos publications.
             </p>
           </div>
           <div className="lg:col-span-4 lg:justify-self-end">

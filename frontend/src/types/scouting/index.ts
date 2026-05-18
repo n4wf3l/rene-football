@@ -96,11 +96,11 @@ export interface ScoutingReport {
   match?: Pick<FootballMatch, 'id' | 'slug' | 'kickoff_at' | 'home_team' | 'away_team'> | null
   scout?: { id: number; name: string } | null
   validator?: { id: number; name: string } | null
-  /** Same column as the FK — Laravel replaces the integer with the user object
+  /** Same column as the FK - Laravel replaces the integer with the user object
    *  when the relation is eager-loaded. Handle both shapes in the consumer. */
   submitted_to?: number | { id: number; name: string } | null
   scores?: ReportScore[]
-  /** Append-only audit trail — populated on `show()`. */
+  /** Append-only audit trail - populated on `show()`. */
   transitions?: ScoutingReportTransition[]
 }
 
@@ -118,7 +118,7 @@ export interface ScoutingReportTransition {
   to_user?: { id: number; name: string } | null
 }
 
-/** Compact user row returned by /admin/scouting/inbox.validators — used in
+/** Compact user row returned by /admin/scouting/inbox.validators - used in
  *  the recipient picker when the scout overrides auto-routing. */
 export interface ScoutingValidator {
   id: number

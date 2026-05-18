@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * Append-only history of every status change applied to a ScoutingReport.
- * Never UPDATE these rows — only INSERT — so the audit trail stays trustworthy.
+ * Never UPDATE these rows - only INSERT - so the audit trail stays trustworthy.
  */
 class ScoutingReportTransition extends Model
 {

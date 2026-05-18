@@ -6,7 +6,7 @@ import { ArrowUp } from '@phosphor-icons/react'
 /**
  * Floating bottom companion to the main navbar.
  *
- * Behaviour mirrors the smart-hide top capsule in reverse — when the user
+ * Behaviour mirrors the smart-hide top capsule in reverse - when the user
  * scrolls *down* past the threshold, the top navbar tucks away and this one
  * slides up from the bottom with the same glass-capsule styling. Scrolling
  * back up hides it again so the page never shows two capsules at once.
@@ -71,7 +71,7 @@ function FooterNav() {
             aria-label="Navigation rapide"
             className="pointer-events-auto relative mx-auto max-w-page flex items-center justify-between gap-2 rounded-full bg-zinc-950/85 backdrop-blur-xl border border-stone-50/10 px-2.5 py-1.5 shadow-[0_24px_50px_-22px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.08)]"
           >
-            {/* Inner top hairline — same liquid-glass refraction as the top navbar. */}
+            {/* Inner top hairline - same liquid-glass refraction as the top navbar. */}
             <span
               aria-hidden="true"
               className="pointer-events-none absolute left-6 right-6 top-0 h-px bg-gradient-to-r from-transparent via-stone-50/15 to-transparent"

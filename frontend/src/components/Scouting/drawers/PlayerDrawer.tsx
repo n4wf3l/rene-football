@@ -174,7 +174,7 @@ function ResumeTab({ detail, onPatch, onRefresh, saving }: { detail: ScoutingPla
         <div className="flex-1 space-y-1">
           <div className="flex items-center gap-2 flex-wrap">
             <StatusBadge status={p.scouting_status} />
-            <span className="text-[0.7rem] text-zinc-500 dark:text-stone-400">{p.position} · {p.club ?? '—'} · {p.age ?? '—'} ans</span>
+            <span className="text-[0.7rem] text-zinc-500 dark:text-stone-400">{p.position} · {p.club ?? '-'} · {p.age ?? '-'} ans</span>
           </div>
           <p className="text-sm text-zinc-700 dark:text-stone-300 leading-relaxed">{p.scout_summary || <span className="italic text-zinc-400 dark:text-stone-500">Pas de résumé scout encore.</span>}</p>
         </div>
@@ -226,7 +226,7 @@ function ResumeTab({ detail, onPatch, onRefresh, saving }: { detail: ScoutingPla
 
       {!detail.shortlist_a_gate.ok && (
         <div className="rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-400/30 px-4 py-3">
-          <div className="text-[0.65rem] font-mono uppercase tracking-[0.16em] text-amber-800 dark:text-amber-300 mb-1.5">Passage Shortlist A — prérequis</div>
+          <div className="text-[0.65rem] font-mono uppercase tracking-[0.16em] text-amber-800 dark:text-amber-300 mb-1.5">Passage Shortlist A - prérequis</div>
           <ul className="text-xs text-amber-900 dark:text-amber-200 space-y-1">
             {detail.shortlist_a_gate.reasons.map((r, i) => <li key={i}>• {r}</li>)}
           </ul>
@@ -240,7 +240,7 @@ function Metric({ label, value }: { label: string; value: number | null }) {
   return (
     <div className="rounded-xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/8 p-3">
       <div className="text-[0.6rem] font-mono uppercase tracking-[0.16em] text-zinc-500 dark:text-stone-400">{label}</div>
-      <div className="mt-1 font-mono text-2xl tabular-nums text-zinc-950 dark:text-stone-50">{value == null ? '—' : Math.round(value)}</div>
+      <div className="mt-1 font-mono text-2xl tabular-nums text-zinc-950 dark:text-stone-50">{value == null ? '-' : Math.round(value)}</div>
     </div>
   )
 }
@@ -254,9 +254,9 @@ function ReportsTab({ detail }: { detail: ScoutingPlayerDetail }) {
         <li key={r.id} className="rounded-xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/8 p-3">
           <div className="flex items-center justify-between">
             <div className="text-xs text-zinc-500 dark:text-stone-400">
-              {r.match ? `${r.match.home_team} – ${r.match.away_team}` : 'Hors match'} · {r.scout?.name ?? '—'}
+              {r.match ? `${r.match.home_team} - ${r.match.away_team}` : 'Hors match'} · {r.scout?.name ?? '-'}
             </div>
-            <span className="text-xs font-mono tabular-nums text-zinc-700 dark:text-stone-300">{r.global_rating != null ? `${Number(r.global_rating).toFixed(1)}/10` : '—'}</span>
+            <span className="text-xs font-mono tabular-nums text-zinc-700 dark:text-stone-300">{r.global_rating != null ? `${Number(r.global_rating).toFixed(1)}/10` : '-'}</span>
           </div>
           {r.strengths && <p className="mt-1.5 text-sm text-zinc-700 dark:text-stone-300 line-clamp-2">{r.strengths}</p>}
           {r.next_action && <div className="mt-2"><NextActionBadge action={r.next_action} /></div>}
@@ -350,7 +350,7 @@ function HistoryTab({ detail }: { detail: ScoutingPlayerDetail }) {
             {h.old_status ? <><span className="text-zinc-400">{STATUS_LABEL[h.old_status as keyof typeof STATUS_LABEL]}</span> → </> : null}
             <strong className="text-zinc-950 dark:text-stone-50">{STATUS_LABEL[h.new_status]}</strong>
           </span>
-          {h.reason && <span className="text-xs text-zinc-500 dark:text-stone-400 truncate">— {h.reason}</span>}
+          {h.reason && <span className="text-xs text-zinc-500 dark:text-stone-400 truncate">- {h.reason}</span>}
         </li>
       ))}
     </ul>
@@ -365,8 +365,8 @@ function SourcesTab({ detail }: { detail: ScoutingPlayerDetail }) {
       {sources.map((s) => (
         <div key={s.id} className="px-4 py-2.5 grid grid-cols-[1fr_2fr_auto] gap-3 items-center text-sm">
           <span className="font-mono text-[0.65rem] uppercase tracking-[0.16em] text-zinc-500 dark:text-stone-400">{s.field_name}</span>
-          <span className="text-zinc-900 dark:text-stone-50 truncate">{s.value ?? '—'}</span>
-          <span className="text-[0.65rem] font-mono text-zinc-500 dark:text-stone-400">{s.source_type} · {s.reliability_score ?? '—'}</span>
+          <span className="text-zinc-900 dark:text-stone-50 truncate">{s.value ?? '-'}</span>
+          <span className="text-[0.65rem] font-mono text-zinc-500 dark:text-stone-400">{s.source_type} · {s.reliability_score ?? '-'}</span>
         </div>
       ))}
     </div>

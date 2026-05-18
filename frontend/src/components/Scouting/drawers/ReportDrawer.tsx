@@ -74,7 +74,7 @@ function ReportDrawer({ id, onClose }: Props) {
   }
 
   // Recipient pre-selected in the modal. `submitted_to` can be either an integer FK
-  // (when the relation isn't loaded) or the eager-loaded `{ id, name }` object — handle both.
+  // (when the relation isn't loaded) or the eager-loaded `{ id, name }` object - handle both.
   const currentRecipient = ((): { id: number; name: string } | null => {
     if (!report) return null
     const v = report.submitted_to
@@ -98,7 +98,7 @@ function ReportDrawer({ id, onClose }: Props) {
         <header className="flex items-center justify-between px-6 h-16 border-b border-stone-200 dark:border-stone-50/8 bg-white dark:bg-zinc-900">
           <div className="min-w-0 flex-1">
             <div className="font-mono text-[0.62rem] uppercase tracking-[0.12em] text-turf-700 dark:text-turf-300">Rapport scout</div>
-            <div className="font-display font-semibold text-lg text-zinc-950 dark:text-stone-50 truncate">{report?.player?.name ?? '—'}</div>
+            <div className="font-display font-semibold text-lg text-zinc-950 dark:text-stone-50 truncate">{report?.player?.name ?? '-'}</div>
           </div>
           <button
             type="button"
@@ -117,16 +117,16 @@ function ReportDrawer({ id, onClose }: Props) {
                 <ReportStatusBadge status={report.status} />
                 {report.match && (
                   <span className="text-xs text-zinc-500 dark:text-stone-400">
-                    {report.match.home_team} – {report.match.away_team}
+                    {report.match.home_team} - {report.match.away_team}
                   </span>
                 )}
-                <span className="text-xs text-zinc-500 dark:text-stone-400">· {report.scout?.name ?? '—'}</span>
+                <span className="text-xs text-zinc-500 dark:text-stone-400">· {report.scout?.name ?? '-'}</span>
                 {report.global_rating != null && (
                   <span className="ml-auto font-mono text-lg tabular-nums text-zinc-950 dark:text-stone-50">{Number(report.global_rating).toFixed(1)}/10</span>
                 )}
               </div>
 
-              {/* Routing summary — who's currently expected to action it. */}
+              {/* Routing summary - who's currently expected to action it. */}
               {(report.status === 'submitted' || report.status === 'needs_changes') && currentRecipient && (
                 <div className="rounded-xl border border-stone-200/70 dark:border-stone-50/[0.06] bg-white dark:bg-zinc-900 px-3 py-2.5 flex items-center gap-2.5">
                   <UserCircle size={16} weight="duotone" className="text-turf-700 dark:text-turf-300 shrink-0" />
@@ -177,7 +177,7 @@ function ReportDrawer({ id, onClose }: Props) {
                 </Section>
               )}
 
-              {/* Audit timeline — always last so the meat of the report comes first. */}
+              {/* Audit timeline - always last so the meat of the report comes first. */}
               {report.transitions && report.transitions.length > 0 && (
                 <Section label={`Historique (${report.transitions.length})`}>
                   <TransitionTimeline transitions={report.transitions} />

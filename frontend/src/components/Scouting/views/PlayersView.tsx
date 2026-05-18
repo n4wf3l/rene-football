@@ -116,13 +116,13 @@ function PlayersView() {
                     <img src={p.photo_url || ''} alt="" className="w-9 h-9 rounded-full object-cover bg-stone-200 dark:bg-stone-800" />
                     <div>
                       <div className="font-medium text-zinc-950 dark:text-stone-50">{p.name}</div>
-                      <div className="text-xs text-zinc-500 dark:text-stone-400">{p.age ?? '—'} ans</div>
+                      <div className="text-xs text-zinc-500 dark:text-stone-400">{p.age ?? '-'} ans</div>
                     </div>
                   </div>
                 </td>
                 <td className="px-4 py-3 text-zinc-700 dark:text-stone-300">
                   <div>{p.position}</div>
-                  <div className="text-xs text-zinc-500 dark:text-stone-400">{p.club ?? '—'}</div>
+                  <div className="text-xs text-zinc-500 dark:text-stone-400">{p.club ?? '-'}</div>
                 </td>
                 <td className="px-4 py-3 text-right"><ScoreBadge score={p.score_global} /></td>
                 <td className="px-4 py-3 text-right"><ScoreBadge score={p.score_confidence} /></td>

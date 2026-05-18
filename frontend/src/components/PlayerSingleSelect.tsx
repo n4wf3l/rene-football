@@ -50,7 +50,7 @@ export default function PlayerSingleSelect({
               <span className="min-w-0 flex-1 text-left">
                 <span className="block font-medium truncate">{selected.name}</span>
                 <span className="block text-[0.65rem] font-mono uppercase tracking-wider text-zinc-500 dark:text-stone-500 truncate">
-                  {selected.position} · {selected.club ?? '—'}
+                  {selected.position} · {selected.club ?? '-'}
                 </span>
               </span>
             </>
@@ -125,7 +125,7 @@ export default function PlayerSingleSelect({
                             {p.name}
                           </span>
                           <span className="block text-[0.65rem] font-mono uppercase tracking-wider text-zinc-500 dark:text-stone-500 truncate">
-                            {p.position} · {p.club ?? '—'}
+                            {p.position} · {p.club ?? '-'}
                           </span>
                         </span>
                       </button>

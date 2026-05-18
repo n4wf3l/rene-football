@@ -27,7 +27,7 @@ function label(value: number) {
 }
 
 /**
- * Horizontal percentile bars — one row per metric. Colors shift from rose
+ * Horizontal percentile bars - one row per metric. Colors shift from rose
  * (bottom 20%) through amber to turf (top 20%) so a single glance tells
  * the scout where the player is strong / weak vs his positional pool.
  */

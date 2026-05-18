@@ -95,7 +95,7 @@ export default function AppearancesTable({
         <div className="px-5 py-4 border-b border-stone-200 dark:border-stone-50/8 flex flex-wrap items-end justify-between gap-4">
           <div>
             <div className="font-mono uppercase tracking-[0.18em] text-[0.65rem] text-zinc-500 dark:text-stone-400 mb-1">
-              Tendance des notes — {appearances.length} matchs
+              Tendance des notes - {appearances.length} matchs
             </div>
             <div className="font-mono text-2xl tabular-nums text-zinc-950 dark:text-stone-50">
               {avg?.toFixed(1).replace('.', ',')}
@@ -161,7 +161,7 @@ export default function AppearancesTable({
                   {a.shots > 0 ? `${a.shots_on_target}/${a.shots}` : ''}
                 </td>
                 <td className={`px-4 py-3 text-right font-mono tabular-nums ${ratingClass(a.rating)}`}>
-                  {a.rating !== null ? a.rating.toFixed(1).replace('.', ',') : '—'}
+                  {a.rating !== null ? a.rating.toFixed(1).replace('.', ',') : '-'}
                 </td>
               </tr>
             ))}

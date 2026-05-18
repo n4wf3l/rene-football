@@ -12,7 +12,7 @@ use Illuminate\Support\Str;
 
 /**
  * Admin CRUD on a player's annotated frame clips. The original video file is
- * NEVER uploaded — only the rendered PNG (already merged with annotations
+ * NEVER uploaded - only the rendered PNG (already merged with annotations
  * client-side) plus the JSON annotation list (so the editor can re-open it).
  */
 class AdminClipController extends Controller

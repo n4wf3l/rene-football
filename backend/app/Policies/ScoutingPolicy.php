@@ -5,7 +5,7 @@ namespace App\Policies;
 use App\Models\User;
 
 /**
- * V1 — any admin can do anything in the scouting cockpit. Wired through so
+ * V1 - any admin can do anything in the scouting cockpit. Wired through so
  * future role-based rules (scout_junior / scout_senior / head_of_scouting /
  * sporting_director) drop in here without touching controllers.
  *

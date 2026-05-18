@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Per-field provenance — lets us know *how* we know a given fact about a
+ * Per-field provenance - lets us know *how* we know a given fact about a
  * player, so the cockpit can show low-reliability rows in amber.
  */
 return new class extends Migration

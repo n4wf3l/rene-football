@@ -23,7 +23,7 @@ class ScoutAssignmentSeeder extends Seeder
 
         $missions = [
             [
-                'title' => 'Observation live FC Twente — focus Idriss N\'Diaye',
+                'title' => 'Observation live FC Twente - focus Idriss N\'Diaye',
                 'football_match_id' => $matchTwente?->id,
                 'assigned_to' => $scoutId, 'assigned_by' => $scoutId,
                 'priority' => 'haute',
@@ -40,7 +40,7 @@ class ScoutAssignmentSeeder extends Seeder
                 ],
             ],
             [
-                'title' => 'Mission U19 — observer Hamzath Mohamadou',
+                'title' => 'Mission U19 - observer Hamzath Mohamadou',
                 'football_match_id' => $matchDortmundU19?->id,
                 'assigned_to' => $scoutId, 'assigned_by' => $scoutId,
                 'priority' => 'moyenne',
@@ -54,13 +54,13 @@ class ScoutAssignmentSeeder extends Seeder
                 'football_match_id' => $matchGenk?->id,
                 'assigned_to' => $scoutId, 'assigned_by' => $scoutId,
                 'priority' => 'moyenne',
-                'objective' => 'Reporting double — Yanis Lefèvre (Genk) + Ousmane Camara (Antwerp).',
+                'objective' => 'Reporting double - Yanis Lefèvre (Genk) + Ousmane Camara (Antwerp).',
                 'players_to_watch' => Player::whereIn('slug', ['yanis-lefevre', 'ousmane-camara'])->pluck('id')->toArray(),
                 'due_date' => Carbon::today()->subDay(),
                 'status' => 'rapport_soumis',
             ],
             [
-                'title' => 'Approfondir cas Mehdi Boukar — pré-validation Shortlist A',
+                'title' => 'Approfondir cas Mehdi Boukar - pré-validation Shortlist A',
                 'football_match_id' => null,
                 'assigned_to' => $scoutId, 'assigned_by' => $scoutId,
                 'priority' => 'haute',

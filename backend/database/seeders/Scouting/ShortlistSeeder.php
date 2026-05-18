@@ -18,7 +18,7 @@ class ShortlistSeeder extends Seeder
         $needMilieu = RecruitmentNeed::where('title', 'Milieu défensif U23 fin de mercato')->first();
 
         $sl1 = Shortlist::updateOrCreate(
-            ['name' => 'Ailiers droits — pied gauche'],
+            ['name' => 'Ailiers droits - pied gauche'],
             [
                 'recruitment_need_id' => $needAilier?->id,
                 'description' => 'Cibles ailiers droits pied gauche pour la fenêtre estivale.',
@@ -38,12 +38,12 @@ class ShortlistSeeder extends Seeder
             ],
         );
 
-        // sl1 — ailiers droits
+        // sl1 - ailiers droits
         $entries1 = [
-            ['slug' => 'nabil-sangare',  'stage' => 'shortlist_a', 'reason' => 'Profil cible — gauche dévastateur',                    'estimated_price' => 1800000, 'risk_level' => 'moyen', 'confidence_score' => 72, 'next_action' => 'Approche officielle'],
+            ['slug' => 'nabil-sangare',  'stage' => 'shortlist_a', 'reason' => 'Profil cible - gauche dévastateur',                    'estimated_price' => 1800000, 'risk_level' => 'moyen', 'confidence_score' => 72, 'next_action' => 'Approche officielle'],
             ['slug' => 'ousmane-camara', 'stage' => 'shortlist_b', 'reason' => 'Bonus polyvalence couloirs',                            'estimated_price' => 1200000, 'risk_level' => 'moyen', 'confidence_score' => 64, 'next_action' => 'Compléter dossier médical'],
             ['slug' => 'hamzath-mohamadou','stage' => 'watchlist', 'reason' => 'Pari long terme, à suivre 2 saisons',                  'estimated_price' => 400000,  'risk_level' => 'eleve', 'confidence_score' => 58, 'next_action' => 'Observer en U19 internationale'],
-            ['slug' => 'karim-toure',    'stage' => 'valide',      'reason' => 'Sécurité — déjà sous mandat agence',                  'estimated_price' => 2500000, 'risk_level' => 'faible','confidence_score' => 86, 'next_action' => 'Activer plan B si transfert OK'],
+            ['slug' => 'karim-toure',    'stage' => 'valide',      'reason' => 'Sécurité - déjà sous mandat agence',                  'estimated_price' => 2500000, 'risk_level' => 'faible','confidence_score' => 86, 'next_action' => 'Activer plan B si transfert OK'],
         ];
 
         foreach ($entries1 as $i => $e) {
@@ -63,7 +63,7 @@ class ShortlistSeeder extends Seeder
             );
         }
 
-        // sl2 — milieux défensifs
+        // sl2 - milieux défensifs
         $entries2 = [
             ['slug' => 'adil-berkane',   'stage' => 'shortlist_a', 'reason' => 'Sentinelle confirmée Pro League',                     'estimated_price' => 1200000, 'risk_level' => 'faible','confidence_score' => 70],
             ['slug' => 'yanis-lefevre',  'stage' => 'shortlist_b', 'reason' => 'Jeune profil luxembourgeois en progression',           'estimated_price' => 600000,  'risk_level' => 'moyen', 'confidence_score' => 54],

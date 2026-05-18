@@ -33,7 +33,7 @@ function VideosView() {
   return (
     <div className="space-y-4">
       <div className="rounded-2xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-400/30 px-4 py-3 text-sm text-amber-900 dark:text-amber-200">
-        Module vidéos — version légère. La création / annotation de clips se fait depuis
+        Module vidéos - version légère. La création / annotation de clips se fait depuis
         <a href="/admin/joueurs" className="underline ml-1">/admin/joueurs → édition d'un joueur</a>.
         Vue agrégée prévue en V2.
       </div>

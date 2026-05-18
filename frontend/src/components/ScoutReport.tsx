@@ -178,7 +178,7 @@ const StrengthsRow = memo(function StrengthsRow({ items }: { items: PlayerStreng
   )
 })
 
-/* ---- Composite scout report — quote + comparisons + strengths + potential gauge ---- */
+/* ---- Composite scout report - quote + comparisons + strengths + potential gauge ---- */
 function ScoutReport({
   comparisons,
   strengths,

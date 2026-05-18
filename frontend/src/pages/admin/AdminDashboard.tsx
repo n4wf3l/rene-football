@@ -38,7 +38,7 @@ interface PlayersResponse {
 /* ─────────────────────────── Helpers ─────────────────────────── */
 
 function formatRelative(iso?: string | null): string {
-  if (!iso) return '—'
+  if (!iso) return '-'
   const date = new Date(iso)
   const now = Date.now()
   const diff = Math.max(0, now - date.getTime())
@@ -60,12 +60,12 @@ function startOfMonth(): number {
 }
 
 function lastName(full?: string | null): string {
-  if (!full) return '—'
+  if (!full) return '-'
   const parts = full.trim().split(/\s+/)
   return parts.length > 1 ? parts.slice(-1)[0] : parts[0]
 }
 
-/* Shared typography tokens — used everywhere to avoid drift. */
+/* Shared typography tokens - used everywhere to avoid drift. */
 const EYEBROW = 'font-mono uppercase tracking-[0.12em] text-[0.62rem] text-zinc-500 dark:text-stone-400'
 const META    = 'text-[0.72rem] text-zinc-500 dark:text-stone-400'
 
@@ -265,7 +265,7 @@ function LeaderCard({ eyebrow, player, primary, secondary, tertiary, summary, va
           {player.name}
         </div>
         <div className={`text-sm mt-1 ${subText}`}>
-          {player.club || '—'} <span className="opacity-50">·</span> {player.position}
+          {player.club || '-'} <span className="opacity-50">·</span> {player.position}
         </div>
         <div className="mt-5 grid grid-cols-3 gap-3">
           <div>
@@ -336,7 +336,7 @@ function AdminDashboard() {
     }
   }, [players])
 
-  /* Build priority rows from real data — Player gaps + scouting backend. */
+  /* Build priority rows from real data - Player gaps + scouting backend. */
   const priorities = useMemo<PriorityItem[]>(() => {
     if (!stats) return []
     const list: PriorityItem[] = []
@@ -413,7 +413,7 @@ function AdminDashboard() {
     return list.slice(0, 5)
   }, [players, stats, scouting])
 
-  /* Recent activity feed — fusionne 5 sources réelles avec types variés. */
+  /* Recent activity feed - fusionne 5 sources réelles avec types variés. */
   const activities = useMemo<ActivityItem[]>(() => {
     if (!stats) return []
     type Evt = ActivityItem & { ts: number }
@@ -424,7 +424,7 @@ function AdminDashboard() {
       if (r.status === 'validated') {
         events.push({
           kind: 'rapport',
-          text: `Rapport scouting validé — ${r.player?.name ?? 'joueur inconnu'}`,
+          text: `Rapport scouting validé - ${r.player?.name ?? 'joueur inconnu'}`,
           meta: formatRelative(r.validated_at ?? r.updated_at ?? r.created_at),
           to: '/admin/scouting?view=reports',
           ts: new Date(r.validated_at ?? r.updated_at ?? r.created_at).getTime(),
@@ -432,7 +432,7 @@ function AdminDashboard() {
       } else if (r.status === 'submitted') {
         events.push({
           kind: 'scouting',
-          text: `Rapport soumis — ${r.player?.name ?? 'joueur inconnu'}`,
+          text: `Rapport soumis - ${r.player?.name ?? 'joueur inconnu'}`,
           meta: formatRelative(r.updated_at ?? r.created_at),
           to: '/admin/scouting?view=reports',
           ts: new Date(r.updated_at ?? r.created_at).getTime(),
@@ -449,7 +449,7 @@ function AdminDashboard() {
       .forEach((p) => {
         events.push({
           kind: 'profil',
-          text: `Nouveau profil ajouté — ${p.name}`,
+          text: `Nouveau profil ajouté - ${p.name}`,
           meta: formatRelative(p.created_at),
           to: `/admin/joueurs/${p.slug}/edit`,
           ts: new Date(p.created_at!).getTime(),
@@ -464,7 +464,7 @@ function AdminDashboard() {
       .forEach((p) => {
         events.push({
           kind: 'stats',
-          text: `Statistiques mises à jour — ${p.name}`,
+          text: `Statistiques mises à jour - ${p.name}`,
           meta: formatRelative(p.updated_at),
           to: `/admin/joueurs/${p.slug}/edit`,
           ts: new Date(p.updated_at!).getTime(),
@@ -475,7 +475,7 @@ function AdminDashboard() {
     scouting?.alerts?.incomplete_files?.slice(0, 1).forEach((p) => {
       events.push({
         kind: 'alerte',
-        text: `Dossier incomplet détecté — ${p.name}`,
+        text: `Dossier incomplet détecté - ${p.name}`,
         meta: 'détecté aujourd\'hui',
         to: '/admin/scouting?view=intelligence',
         ts: Date.now() - 2 * 60 * 60_000,
@@ -486,7 +486,7 @@ function AdminDashboard() {
     scouting?.alerts?.missing_next_action?.slice(0, 1).forEach((p) => {
       events.push({
         kind: 'alerte',
-        text: `Action suivante manquante — ${p.name}`,
+        text: `Action suivante manquante - ${p.name}`,
         meta: 'à définir',
         to: '/admin/scouting?view=players',
         ts: Date.now() - 4 * 60 * 60_000,
@@ -565,7 +565,7 @@ function AdminDashboard() {
           Vue opérationnelle de l'effectif Rene Football : performances,
           profils joueurs, statistiques et priorités d'analyse.
         </p>
-        {/* Inline meta — packed right under the description, not floating right. */}
+        {/* Inline meta - packed right under the description, not floating right. */}
         <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.72rem] text-zinc-500 dark:text-stone-400">
           <span className="inline-flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-turf-500 animate-pulse" />
@@ -613,7 +613,7 @@ function AdminDashboard() {
         />
       </div>
 
-      {/* ─────────── Main two-column section — sections shaped so the LeaderCards align. ─────────── */}
+      {/* ─────────── Main two-column section - sections shaped so the LeaderCards align. ─────────── */}
       <div className="grid lg:grid-cols-2 gap-4 lg:items-stretch">
         {/* Left column */}
         <div className="flex flex-col gap-4 min-w-0">
@@ -654,7 +654,7 @@ function AdminDashboard() {
               stats.xgVsGoals > 0.5
                 ? `Surperforme son xG de +${stats.xgVsGoals.toFixed(1)} sur ${stats.topScorer.matches_played} matchs.`
                 : stats.xgVsGoals < -0.5
-                  ? `Sous-performance face au xG (${stats.xgVsGoals.toFixed(1)}) — efficacité à surveiller.`
+                  ? `Sous-performance face au xG (${stats.xgVsGoals.toFixed(1)}) - efficacité à surveiller.`
                   : `Conversion alignée sur le xG attendu (${stats.topScorer.xg.toFixed(1)}).`
             }
             variant="dark"
@@ -696,8 +696,8 @@ function AdminDashboard() {
             tertiary={{ value: Number(stats.topAssist.xa).toFixed(1), label: 'xA' }}
             summary={
               stats.topAssist.key_passes > 30
-                ? `Créateur le plus régulier du roster — ${stats.topAssist.key_passes} passes clés sur la saison.`
-                : `Profil de relais — ${stats.topAssist.assists} passes décisives pour ${stats.topAssist.matches_played} matchs.`
+                ? `Créateur le plus régulier du roster - ${stats.topAssist.key_passes} passes clés sur la saison.`
+                : `Profil de relais - ${stats.topAssist.assists} passes décisives pour ${stats.topAssist.matches_played} matchs.`
             }
             variant="light"
           />

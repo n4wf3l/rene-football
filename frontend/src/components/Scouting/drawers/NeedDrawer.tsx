@@ -39,7 +39,7 @@ function NeedDrawer({ slug, onClose }: Props) {
         <header className="flex items-center justify-between px-6 h-16 border-b border-stone-200 dark:border-stone-50/8 bg-white dark:bg-zinc-900">
           <div className="min-w-0 flex-1">
             <div className="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-turf-700 dark:text-turf-300">Besoin de recrutement</div>
-            <div className="font-display font-semibold text-lg text-zinc-950 dark:text-stone-50 truncate">{need?.title ?? '—'}</div>
+            <div className="font-display font-semibold text-lg text-zinc-950 dark:text-stone-50 truncate">{need?.title ?? '-'}</div>
           </div>
           <button type="button" onClick={onClose} className="grid place-items-center w-9 h-9 rounded-full text-zinc-500 hover:bg-stone-100 hover:text-zinc-900 dark:text-stone-400 dark:hover:bg-stone-50/8 dark:hover:text-stone-50 transition">
             <XIcon size={18} weight="bold" />
@@ -52,7 +52,7 @@ function NeedDrawer({ slug, onClose }: Props) {
             <>
               <div className="flex items-center gap-2 flex-wrap">
                 <PriorityBadge priority={need.priority} />
-                <span className="text-xs text-zinc-500 dark:text-stone-400">{need.position} · {need.category} · Saison {need.season ?? '—'}</span>
+                <span className="text-xs text-zinc-500 dark:text-stone-400">{need.position} · {need.category} · Saison {need.season ?? '-'}</span>
                 {need.deadline && <span className="text-xs text-zinc-500 dark:text-stone-400">Deadline {new Date(need.deadline).toLocaleDateString('fr-FR')}</span>}
               </div>
 
@@ -61,9 +61,9 @@ function NeedDrawer({ slug, onClose }: Props) {
               )}
 
               <div className="grid grid-cols-2 gap-2">
-                <Metric label="Budget" value={need.budget_min && need.budget_max ? `${Math.round(need.budget_min/1000)}k – ${Math.round(need.budget_max/1000)}k €` : '—'} />
-                <Metric label="Âge" value={need.age_min && need.age_max ? `${need.age_min} – ${need.age_max} ans` : '—'} />
-                <Metric label="Pied fort" value={need.preferred_foot ?? '—'} />
+                <Metric label="Budget" value={need.budget_min && need.budget_max ? `${Math.round(need.budget_min/1000)}k - ${Math.round(need.budget_max/1000)}k €` : '-'} />
+                <Metric label="Âge" value={need.age_min && need.age_max ? `${need.age_min} - ${need.age_max} ans` : '-'} />
+                <Metric label="Pied fort" value={need.preferred_foot ?? '-'} />
                 <Metric label="Profils liés" value={String(playersTotal)} />
               </div>
 
@@ -71,7 +71,7 @@ function NeedDrawer({ slug, onClose }: Props) {
                 <div className="rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-400/30 px-4 py-3 flex items-start gap-2">
                   <Warning size={16} className="text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                   <p className="text-xs text-amber-900 dark:text-amber-200">
-                    Couverture faible — seulement {playersTotal} profil{playersTotal > 1 ? 's' : ''} lié{playersTotal > 1 ? 's' : ''} à ce besoin.
+                    Couverture faible - seulement {playersTotal} profil{playersTotal > 1 ? 's' : ''} lié{playersTotal > 1 ? 's' : ''} à ce besoin.
                     Envisage d'élargir la veille ou de créer une mission scout.
                   </p>
                 </div>

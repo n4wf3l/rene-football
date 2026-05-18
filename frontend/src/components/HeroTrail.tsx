@@ -5,7 +5,7 @@ import { motion } from 'framer-motion'
 /* Trail of turf "dust" specks following the cursor inside the hero.
    - Listener attaches to a parent ref via addEventListener (no parent rerenders).
    - Throttled to 40ms (~25 spawns/sec max), capped at 25 live particles.
-   - Skipped entirely on coarse pointers (touch/mobile) — no listener, no DOM, zero cost.
+   - Skipped entirely on coarse pointers (touch/mobile) - no listener, no DOM, zero cost.
    - GPU-only animation (opacity + transform).
 */
 

@@ -66,12 +66,12 @@ const ScrollProgress = memo(function ScrollProgress() {
   )
 })
 
-/* ---- Brand mark — capsule navbar is always dark, so we force the white logo. ---- */
+/* ---- Brand mark - capsule navbar is always dark, so we force the white logo. ---- */
 const BrandMark = memo(function BrandMark() {
   return <BrandLogo size={32} variant="light" withPulse />
 })
 
-/* ---- Magnetic NavLink — each link tugs the cursor subtly. ---- */
+/* ---- Magnetic NavLink - each link tugs the cursor subtly. ---- */
 const NAV_SPRING = { stiffness: 220, damping: 22, mass: 0.5 }
 
 interface MagneticNavLinkProps {
@@ -122,7 +122,7 @@ function MagneticNavLink({ to, end, isActive, onMouseEnter, onMouseLeave, childr
   )
 }
 
-/* ---- Stadium lights — drifting radial gradients inside the mega-menu. ---- */
+/* ---- Stadium lights - drifting radial gradients inside the mega-menu. ---- */
 const StadiumLights = memo(function StadiumLights() {
   return (
     <div aria-hidden="true" className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
@@ -235,7 +235,7 @@ const MegaPanel = memo(function MegaPanel({ open, onClose, onMouseEnter, onMouse
   )
 })
 
-/* ---- Header — floating glass capsule, smart hide-on-scroll-down. ---- */
+/* ---- Header - floating glass capsule, smart hide-on-scroll-down. ---- */
 function Header() {
   const [open, setOpen] = useState(false)
   const [hidden, setHidden] = useState(false)
@@ -303,7 +303,7 @@ function Header() {
     <>
       <ScrollProgress />
 
-      {/* Floating capsule — sticky, glass, centered. */}
+      {/* Floating capsule - sticky, glass, centered. */}
       <motion.div
         animate={{ y: hidden ? -120 : 0, opacity: hidden ? 0 : 1 }}
         transition={{ type: 'spring', stiffness: 240, damping: 30 }}
@@ -311,7 +311,7 @@ function Header() {
         className="fixed inset-x-0 top-3 sm:top-4 z-40 px-3 sm:px-6 will-change-transform pointer-events-none"
       >
         <nav className="pointer-events-auto relative mx-auto max-w-page flex items-center justify-between gap-2 rounded-full bg-zinc-950/85 backdrop-blur-xl border border-stone-50/10 px-2.5 py-1.5 shadow-[0_24px_50px_-22px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.08)]">
-          {/* Top inner hairline — liquid glass refraction. */}
+          {/* Top inner hairline - liquid glass refraction. */}
           <span
             aria-hidden="true"
             className="pointer-events-none absolute left-6 right-6 top-0 h-px bg-gradient-to-r from-transparent via-stone-50/15 to-transparent"
@@ -462,7 +462,7 @@ function Header() {
         </nav>
       </motion.div>
 
-      {/* Mobile drawer — anchored just below the floating capsule. */}
+      {/* Mobile drawer - anchored just below the floating capsule. */}
       <AnimatePresence>
         {open && (
           <>

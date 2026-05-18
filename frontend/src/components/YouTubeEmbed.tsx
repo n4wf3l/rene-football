@@ -3,10 +3,10 @@ import { motion } from 'framer-motion'
 import { Play } from '@phosphor-icons/react'
 
 /**
- * Facade YouTube — affiche le poster + bouton play, charge l'iframe seulement au clic.
+ * Facade YouTube - affiche le poster + bouton play, charge l'iframe seulement au clic.
  * Évite ~500ko de JS YouTube au premier paint et améliore le LCP.
  *
- * Utilise youtube-nocookie.com (mode privacy enhanced — pas de cookies tant qu'on n'a pas joué).
+ * Utilise youtube-nocookie.com (mode privacy enhanced - pas de cookies tant qu'on n'a pas joué).
  */
 interface YouTubeEmbedProps {
   videoId: string

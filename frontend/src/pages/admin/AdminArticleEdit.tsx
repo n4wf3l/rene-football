@@ -52,7 +52,7 @@ function FieldRow({ label, hint, children, error }: FieldRowProps) {
   return (
     <label className="block">
       <span className="block text-[0.65rem] font-mono uppercase tracking-[0.16em] text-zinc-500 dark:text-stone-400 mb-1">
-        {label}{hint ? <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal ml-1">— {hint}</span> : null}
+        {label}{hint ? <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal ml-1">- {hint}</span> : null}
       </span>
       {children}
       {error && <span className="mt-1 block text-[0.7rem] text-rose-600 dark:text-rose-400">{error}</span>}
@@ -112,7 +112,7 @@ export default function AdminArticleEdit({ creating = false }: { creating?: bool
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [toast, setToast] = useState<ToastState | null>(null)
 
-  // Cover file state — separate from form so we can show a preview without
+  // Cover file state - separate from form so we can show a preview without
   // mutating the persisted cover_url until save.
   const [coverFile, setCoverFile] = useState<File | null>(null)
   const [coverPreview, setCoverPreview] = useState<string | null>(null)
@@ -511,7 +511,7 @@ export default function AdminArticleEdit({ creating = false }: { creating?: bool
                 </button>
               )}
               <p className="text-[0.65rem] text-zinc-500 dark:text-stone-500">
-                JPG, PNG ou WebP — 6&nbsp;Mo max.
+                JPG, PNG ou WebP - 6&nbsp;Mo max.
               </p>
             </div>
           </div>
@@ -520,7 +520,7 @@ export default function AdminArticleEdit({ creating = false }: { creating?: bool
         {/* LOOP */}
         <section className="space-y-4">
           <h3 className="font-mono uppercase tracking-[0.18em] text-[0.7rem] text-zinc-500 dark:text-stone-400">
-            Loop sur un joueur <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">— optionnel</span>
+            Loop sur un joueur <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">- optionnel</span>
           </h3>
           <p className="text-xs text-zinc-500 dark:text-stone-400">
             Liez l'article à un joueur du roster. Sa fiche pourra mettre l'article en avant, et le filtre « par joueur » fonctionnera côté public.
@@ -650,7 +650,7 @@ export default function AdminArticleEdit({ creating = false }: { creating?: bool
         <section className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="font-mono uppercase tracking-[0.18em] text-[0.7rem] text-zinc-500 dark:text-stone-400">
-              Captures d'annotations <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">— attachées</span>
+              Captures d'annotations <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">- attachées</span>
             </h3>
             <button
               type="button"
@@ -686,7 +686,7 @@ export default function AdminArticleEdit({ creating = false }: { creating?: bool
                   <div className="min-w-0 flex-1">
                     <div className="text-sm font-medium text-zinc-950 dark:text-stone-50 truncate">{c.title}</div>
                     <div className="text-[0.65rem] font-mono uppercase tracking-wider text-zinc-500 dark:text-stone-500 truncate">
-                      {c.player?.name ?? '—'}
+                      {c.player?.name ?? '-'}
                       {c.video_source_label ? ` · ${c.video_source_label}` : ''}
                     </div>
                   </div>
@@ -878,7 +878,7 @@ function ClipPicker({ clips, picked, onToggle, onClose }: ClipPickerProps) {
                     <div className="px-2 py-1.5 bg-white dark:bg-zinc-900">
                       <div className="text-[0.7rem] font-medium text-zinc-950 dark:text-stone-50 truncate">{c.title}</div>
                       <div className="text-[0.6rem] font-mono uppercase tracking-wider text-zinc-500 dark:text-stone-500 truncate">
-                        {c.player?.name ?? '—'}
+                        {c.player?.name ?? '-'}
                       </div>
                     </div>
                   </button>

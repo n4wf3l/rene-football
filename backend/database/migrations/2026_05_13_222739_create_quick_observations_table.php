@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Rapid in-stadium tagging — one row per click on a + Action button. They get
+ * Rapid in-stadium tagging - one row per click on a + Action button. They get
  * surfaced as a draft "key actions" list when the scout opens the formal
  * report editor after the match.
  */

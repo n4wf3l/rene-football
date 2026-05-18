@@ -4,7 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /**
- * The root route is reserved for a tiny API-only landing — this Laravel
+ * The root route is reserved for a tiny API-only landing - this Laravel
  * instance is the API/PDF backend; the SPA lives on Vite (port 5173 in dev).
  * Blade is intentionally not used in the project (PdfController also renders
  * inline HTML instead of views).
@@ -30,7 +30,7 @@ Route::get('/', function (Request $request) {
 <html lang="fr">
 <head>
     <meta charset="utf-8">
-    <title>Rene Football — API</title>
+    <title>Rene Football - API</title>
     <meta name="robots" content="noindex">
     <style>
         :root { color-scheme: light dark; }

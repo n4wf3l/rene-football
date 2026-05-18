@@ -9,7 +9,7 @@ export interface TagPickerProps {
   max?: number
 }
 
-/* Multi-select tag picker — preset chips + free-text input.
+/* Multi-select tag picker - preset chips + free-text input.
    Adding the same string twice is a no-op. Removing happens via the X on each chip. */
 export default function TagPicker({ value, onChange, max = 8 }: TagPickerProps) {
   const [draft, setDraft] = useState('')

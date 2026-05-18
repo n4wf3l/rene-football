@@ -50,7 +50,7 @@ class ScoutAssignmentController extends Controller
         return response()->json(['ok' => true]);
     }
 
-    /** Lightweight status patch — used by the kanban drag/drop. */
+    /** Lightweight status patch - used by the kanban drag/drop. */
     public function setStatus(Request $request, ScoutAssignment $assignment): JsonResponse
     {
         $data = $request->validate([

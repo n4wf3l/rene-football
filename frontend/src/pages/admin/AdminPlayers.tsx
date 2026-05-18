@@ -85,7 +85,7 @@ function FieldRow({ label, hint, children }: FieldRowProps) {
   return (
     <label className="block">
       <span className="block text-[0.65rem] font-mono uppercase tracking-[0.16em] text-zinc-500 dark:text-stone-400 mb-1">
-        {label}{hint ? <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal ml-1">— {hint}</span> : null}
+        {label}{hint ? <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal ml-1">- {hint}</span> : null}
       </span>
       {children}
     </label>
@@ -187,7 +187,7 @@ interface PlayerEditorProps {
   onClose: () => void
   onSaved: (saved: AdminPlayer, kind: SaveKind) => void
   onDelete: (player: PlayerFormState) => void
-  /** "modal" = slide-from-right panel (default). "page" = inline embedded — no fixed wrapper. */
+  /** "modal" = slide-from-right panel (default). "page" = inline embedded - no fixed wrapper. */
   mode?: 'modal' | 'page'
 }
 
@@ -319,7 +319,7 @@ function PlayerEditor({ player, isNew, onClose, onSaved, onDelete, mode = 'modal
     }
   }
 
-  // Pick a stable wrapper — both refs live at module scope so React keeps the
+  // Pick a stable wrapper - both refs live at module scope so React keeps the
   // form subtree mounted across re-renders (otherwise the input loses focus
   // on every keystroke).
   const Wrapper = mode === 'page' ? PageWrapper : ModalWrapper
@@ -440,7 +440,7 @@ function PlayerEditor({ player, isNew, onClose, onSaved, onDelete, mode = 'modal
                         </button>
                       )}
                       <p className="text-[0.65rem] text-zinc-500 dark:text-stone-500">
-                        JPG, PNG ou WebP — 4&nbsp;Mo max.
+                        JPG, PNG ou WebP - 4&nbsp;Mo max.
                       </p>
                     </div>
                   </div>
@@ -502,7 +502,7 @@ function PlayerEditor({ player, isNew, onClose, onSaved, onDelete, mode = 'modal
             <FieldRow label="xA"><NumberInput value={form.xa} onChange={(v) => set('xa', v)} step="0.1" max={200} /></FieldRow>
             <FieldRow label="Passes clés"><NumberInput value={form.key_passes} onChange={(v) => set('key_passes', v)} max={1000} /></FieldRow>
 
-            <FieldRow label="% passes" hint="0–100"><NumberInput value={form.pass_accuracy} onChange={(v) => set('pass_accuracy', v)} step="0.1" max={100} /></FieldRow>
+            <FieldRow label="% passes" hint="0-100"><NumberInput value={form.pass_accuracy} onChange={(v) => set('pass_accuracy', v)} step="0.1" max={100} /></FieldRow>
             <FieldRow label="Dribbles réussis"><NumberInput value={form.dribbles_completed} onChange={(v) => set('dribbles_completed', v)} max={1000} /></FieldRow>
             <FieldRow label="Duels gagnés"><NumberInput value={form.duels_won} onChange={(v) => set('duels_won', v)} max={1000} /></FieldRow>
 
@@ -518,7 +518,7 @@ function PlayerEditor({ player, isNew, onClose, onSaved, onDelete, mode = 'modal
 
         <section className="space-y-4">
           <h3 className="font-mono uppercase tracking-[0.18em] text-[0.7rem] text-zinc-500 dark:text-stone-400">
-            Tracking physique <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">— moyennes par match (GPS)</span>
+            Tracking physique <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">- moyennes par match (GPS)</span>
           </h3>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             <FieldRow label="Distance / match" hint="km">
@@ -557,7 +557,7 @@ function PlayerEditor({ player, isNew, onClose, onSaved, onDelete, mode = 'modal
         <section className="space-y-3">
           <div className="flex items-baseline justify-between">
             <h3 className="font-mono uppercase tracking-[0.18em] text-[0.7rem] text-zinc-500 dark:text-stone-400">
-              Zones d'activité — terrain
+              Zones d'activité - terrain
             </h3>
             <span className="text-[0.65rem] text-zinc-400 dark:text-stone-500">
               Le joueur attaque de gauche à droite
@@ -583,7 +583,7 @@ function PlayerEditor({ player, isNew, onClose, onSaved, onDelete, mode = 'modal
 
         <section className="space-y-3">
           <h3 className="font-mono uppercase tracking-[0.18em] text-[0.7rem] text-zinc-500 dark:text-stone-400">
-            Moments clés <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">— frames annotées (vidéos jamais stockées)</span>
+            Moments clés <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">- frames annotées (vidéos jamais stockées)</span>
           </h3>
           <ClipsGalleryAdmin playerSlug={(form as AdminPlayer).slug ?? null} />
         </section>
@@ -653,9 +653,9 @@ interface PlayersListResponse {
 type BusinessStatus =
   | 'stats_a_jour'   // dossier complet + matchs renseignés
   | 'a_completer'    // dossier sous le seuil (< 60 %)
-  | 'a_verifier'     // dossier intermédiaire (60–85 %)
+  | 'a_verifier'     // dossier intermédiaire (60-85 %)
   | 'a_surveiller'   // tag « À surveiller » présent
-  | 'scouting'       // potentiel renseigné (≥ 7) — préfigure le module scouting
+  | 'scouting'       // potentiel renseigné (≥ 7) - préfigure le module scouting
   | 'blesse'         // tag « Blessé long »
   | 'archive'        // marqué hors-ligne par l'admin
 
@@ -703,7 +703,7 @@ const STATUS_META: Record<BusinessStatus, StatusMeta> = {
   },
 }
 
-/* ───── Completeness scoring (0–100) ───── */
+/* ───── Completeness scoring (0-100) ───── */
 
 interface CompletenessSlot { key: string; weight: number; filled: boolean }
 
@@ -801,7 +801,7 @@ const DEFAULT_DIR: Record<SortColumn, SortDir> = {
 const AGE_OPTIONS: { key: AgeFilter; label: string }[] = [
   { key: 'Tous',  label: 'Tous âges' },
   { key: 'U21',   label: 'Moins de 21' },
-  { key: '21-26', label: '21–26' },
+  { key: '21-26', label: '21-26' },
   { key: '27+',   label: '27 et plus' },
 ]
 
@@ -987,7 +987,7 @@ function AdminPlayers() {
     return [...rows].sort(compare)
   }, [enriched, query, filter, clubFilter, statusFilter, ageFilter, tagFilter, sortColumn, sortDir])
 
-  /* Mini-KPI counters — computed from the unfiltered enriched set. */
+  /* Mini-KPI counters - computed from the unfiltered enriched set. */
   const kpi = useMemo(() => {
     const acc = { total: enriched.length, clubs: allClubs.length, statsAJour: 0, aCompleter: 0, aVerifier: 0 }
     for (const { status } of enriched) {
@@ -1055,7 +1055,7 @@ function AdminPlayers() {
   }
 
   /**
-   * Quick publish/hide toggle from the table row — bypasses the editor.
+   * Quick publish/hide toggle from the table row - bypasses the editor.
    * Optimistic UI: flip the badge immediately and roll back on API error.
    */
   const togglePublished = async (player: AdminPlayer) => {
@@ -1078,7 +1078,7 @@ function AdminPlayers() {
     }
   }
 
-  /* Completeness pill — colored bucket + percentage. */
+  /* Completeness pill - colored bucket + percentage. */
   function CompletenessPill({ pct }: { pct: number }) {
     const tone =
       pct >= 85 ? 'text-turf-700 bg-turf-50 border-turf-200 dark:text-turf-200 dark:bg-turf-900/30 dark:border-turf-400/20' :
@@ -1106,7 +1106,7 @@ function AdminPlayers() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          {/* Editor preference toggle — relabelled for football back-office. */}
+          {/* Editor preference toggle - relabelled for football back-office. */}
           <div className="hidden sm:inline-flex items-center gap-0.5 rounded-full border border-stone-200 dark:border-stone-50/10 p-0.5 text-[0.7rem]">
             {(['modal', 'page'] as const).map((m) => (
               <button
@@ -1294,7 +1294,7 @@ function AdminPlayers() {
                     </div>
                   </td>
                   <td className="px-4 py-3 text-zinc-700 dark:text-stone-300">{p.category}</td>
-                  <td className="px-4 py-3 text-zinc-700 dark:text-stone-300 truncate max-w-[20ch]">{p.club || '—'}</td>
+                  <td className="px-4 py-3 text-zinc-700 dark:text-stone-300 truncate max-w-[20ch]">{p.club || '-'}</td>
                   <td className="px-4 py-3 text-right tabular-nums text-zinc-900 dark:text-stone-100">{p.age}</td>
                   <td className="px-4 py-3 text-right tabular-nums text-zinc-900 dark:text-stone-100">{p.matches_played}</td>
                   <td className="px-4 py-3 text-right tabular-nums text-zinc-900 dark:text-stone-100">{p.goals}</td>
