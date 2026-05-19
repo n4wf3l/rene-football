@@ -42,7 +42,7 @@ class ShortlistSeeder extends Seeder
         $entries1 = [
             ['slug' => 'nabil-sangare',  'stage' => 'shortlist_a', 'reason' => 'Profil cible - gauche dévastateur',                    'estimated_price' => 1800000, 'risk_level' => 'moyen', 'confidence_score' => 72, 'next_action' => 'Approche officielle'],
             ['slug' => 'ousmane-camara', 'stage' => 'shortlist_b', 'reason' => 'Bonus polyvalence couloirs',                            'estimated_price' => 1200000, 'risk_level' => 'moyen', 'confidence_score' => 64, 'next_action' => 'Compléter dossier médical'],
-            ['slug' => 'hamzath-mohamadou','stage' => 'watchlist', 'reason' => 'Pari long terme, à suivre 2 saisons',                  'estimated_price' => 400000,  'risk_level' => 'eleve', 'confidence_score' => 58, 'next_action' => 'Observer en U19 internationale'],
+            ['slug' => 'adams-saeed',    'stage' => 'shortlist_b', 'reason' => 'Bi-national Ghana / Pays-Bas - passeport UE - polyvalence striker / ailes', 'estimated_price' => 750000, 'risk_level' => 'moyen', 'confidence_score' => 66, 'next_action' => 'Observer en U21 vs Club Brugge'],
             ['slug' => 'karim-toure',    'stage' => 'valide',      'reason' => 'Sécurité - déjà sous mandat agence',                  'estimated_price' => 2500000, 'risk_level' => 'faible','confidence_score' => 86, 'next_action' => 'Activer plan B si transfert OK'],
         ];
 
@@ -65,7 +65,7 @@ class ShortlistSeeder extends Seeder
 
         // sl2 - milieux défensifs
         $entries2 = [
-            ['slug' => 'adil-berkane',   'stage' => 'shortlist_a', 'reason' => 'Sentinelle confirmée Pro League',                     'estimated_price' => 1200000, 'risk_level' => 'faible','confidence_score' => 70],
+            ['slug' => 'ativie-megogo',  'stage' => 'shortlist_a', 'reason' => 'CB U17 espagnol trilingue - prêt Genk → Mönchengladbach', 'estimated_price' => 950000, 'risk_level' => 'moyen','confidence_score' => 68],
             ['slug' => 'yanis-lefevre',  'stage' => 'shortlist_b', 'reason' => 'Jeune profil luxembourgeois en progression',           'estimated_price' => 600000,  'risk_level' => 'moyen', 'confidence_score' => 54],
             ['slug' => 'ayoub-el-bahri', 'stage' => 'watchlist',   'reason' => 'Profil intéressant à confirmer en équipe première',  'estimated_price' => 350000,  'risk_level' => 'moyen', 'confidence_score' => 50],
         ];

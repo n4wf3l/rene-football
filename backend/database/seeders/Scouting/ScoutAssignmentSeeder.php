@@ -18,7 +18,7 @@ class ScoutAssignmentSeeder extends Seeder
 
         $matches = FootballMatch::orderBy('kickoff_at')->get();
         $matchTwente = $matches->firstWhere('home_team', 'FC Twente');
-        $matchDortmundU19 = $matches->firstWhere('category', 'U19');
+        $matchMechelenU21 = $matches->firstWhere('category', 'U19');
         $matchGenk = $matches->firstWhere('home_team', 'KRC Genk');
 
         $missions = [
@@ -40,12 +40,12 @@ class ScoutAssignmentSeeder extends Seeder
                 ],
             ],
             [
-                'title' => 'Mission U19 - observer Hamzath Mohamadou',
-                'football_match_id' => $matchDortmundU19?->id,
+                'title' => 'Mission U21 - observer Adams Saeed à Mechelen',
+                'football_match_id' => $matchMechelenU21?->id,
                 'assigned_to' => $scoutId, 'assigned_by' => $scoutId,
                 'priority' => 'moyenne',
-                'objective' => 'Évaluer maturité mentale et choix sous pression dans un match international.',
-                'players_to_watch' => Player::where('slug', 'hamzath-mohamadou')->pluck('id')->toArray(),
+                'objective' => 'Évaluer polyvalence striker / ailier et choix sous pression contre Club Brugge U21.',
+                'players_to_watch' => Player::where('slug', 'adams-saeed')->pluck('id')->toArray(),
                 'due_date' => Carbon::today()->addDays(5),
                 'status' => 'a_faire',
             ],
