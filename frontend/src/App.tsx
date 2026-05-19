@@ -8,6 +8,7 @@ import HomePage from './pages/HomePage'
 import PlaceholderPage from './pages/PlaceholderPage'
 import NotFoundPage from './pages/NotFoundPage'
 import RouteFallback from './components/RouteFallback'
+import ScrollToTop from './components/ScrollToTop'
 
 /* Lazy public routes - kept off the initial bundle. HomePage stays eager
    so the landing first-paint is fast. */
@@ -34,6 +35,7 @@ function App() {
     <ThemeProvider>
       <AuthProvider>
         <BrowserRouter>
+          <ScrollToTop />
           <Suspense fallback={<RouteFallback />}>
             <Routes>
               {/* Public */}

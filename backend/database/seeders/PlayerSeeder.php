@@ -122,6 +122,21 @@ class PlayerSeeder extends Seeder
             $scout = $this->generateScoutProfile($p[4], $p[2], $p[1], $p[11], $p[12], $p[10]);
             $tracking = $this->generateTracking($p[4], $p[0]);
 
+            // Resolve photo_url BEFORE writing.
+            //
+            // Why : `updateOrCreate` rewrites every field on every run. If we always
+            // pass the picsum URL, any photo the admin uploaded via the back-office
+            // (which lives under `/storage/players/...` or any other non-picsum URL)
+            // gets clobbered on the next `db:seed`. So we lookup the existing row
+            // first and preserve a user-uploaded photo if one is in place.
+            $existing = Player::where('slug', $p[0])->first();
+            $defaultPhoto = $p[28] ?? "https://picsum.photos/seed/{$p[0]}/600/800";
+            $photoUrl = $this->resolvePhotoUrl($existing?->photo_url, $defaultPhoto);
+
+            // Same protection for the bio — if the admin wrote one in the back-office,
+            // don't reset it to null on every seed run.
+            $bio = $existing?->bio ?? null;
+
             Player::updateOrCreate(
                 ['slug' => $p[0]],
                 [
@@ -163,14 +178,30 @@ class PlayerSeeder extends Seeder
                     'top_speed_kmh'           => $tracking['top_speed_kmh'],
                     'high_intensity_runs_avg' => $tracking['high_intensity_runs_avg'],
                     'is_published' => true,
-                    // Optional photo_url override (index 28) - lets us swap the player
-                    // identity without changing the visual when an image is intentionally
-                    // pinned to a previous slug seed.
-                    'photo_url' => $p[28] ?? "https://picsum.photos/seed/{$p[0]}/600/800",
-                    'bio' => null,
+                    'photo_url' => $photoUrl,
+                    'bio' => $bio,
                 ]
             );
         }
+    }
+
+    /**
+     * Decide which photo_url to write. A "user-uploaded" photo is anything that
+     * isn't the picsum placeholder we ship with the seed — so once an admin uploads
+     * a real picture through the back-office, `db:seed` stops touching it.
+     *
+     * Pure picsum URLs (the only thing the seeder ever writes) are considered
+     * disposable and get refreshed to the latest seeder default.
+     */
+    private function resolvePhotoUrl(?string $existing, string $default): string
+    {
+        if (! $existing) return $default;
+        // Anything that doesn't look like our placeholder is treated as a real
+        // upload — local /storage path, external URL pasted by the admin, etc.
+        if (! str_starts_with($existing, 'https://picsum.photos/')) {
+            return $existing;
+        }
+        return $default;
     }
 
     /**

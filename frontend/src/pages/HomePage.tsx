@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useMemo, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
@@ -15,8 +15,16 @@ import MeshGradient from '../components/MeshGradient'
 import FloatingAccents from '../components/FloatingAccents'
 import AnimatedNumber from '../components/AnimatedNumber'
 import AnimatedUnderline from '../components/AnimatedUnderline'
+import { usePublicPlayers, pickShowcase } from '../lib/usePublicPlayers'
 import heroPortrait from '../assets/player2.png'
 import karimPortrait from '../assets/player1.png'
+
+/** Local portrait overrides — keyed by slug. Lets us pin the agency's
+ *  hand-shot photos for specific players without breaking the rest of the
+ *  roster (which falls back to the backend's photo_url, then picsum). */
+const LOCAL_PORTRAITS: Record<string, string> = {
+  'karim-toure': karimPortrait,
+}
 
 const HERO_PORTRAIT = heroPortrait
 
@@ -55,23 +63,6 @@ const SERVICES = [
   },
 ]
 
-interface RosterEntry {
-  name: string
-  pos: string
-  club: string
-  age: number
-  seed: string
-  /** Optional local asset; falls back to picsum if absent. */
-  image?: string
-}
-
-const ROSTER_PREVIEW: RosterEntry[] = [
-  { name: 'Karim Touré',     pos: 'Attaquant',          club: 'Borussia Dortmund', age: 24, seed: 'karim-toure', image: karimPortrait },
-  { name: 'Adil Berkane',    pos: 'Milieu défensif',    club: 'Standard Liège',    age: 24, seed: 'adil-berkane' },
-  { name: 'Yanis Lefèvre',   pos: 'Milieu défensif',    club: 'KRC Genk',          age: 19, seed: 'yanis-lefevre' },
-  { name: 'Mehdi Boukar',    pos: 'Milieu offensif',    club: 'FC Metz',           age: 22, seed: 'mehdi-boukar' },
-]
-
 const FADE_UP = {
   hidden: { opacity: 0, y: 16 },
   show:   { opacity: 1, y: 0 },
@@ -79,6 +70,10 @@ const FADE_UP = {
 
 function HomePage() {
   const heroRef = useRef<HTMLElement | null>(null)
+  const { players, loading } = usePublicPlayers()
+  // Top 4 showcase roster picked from the real DB — sorts by minutes_played
+  // so the visible cards always reflect the agency's active stars, not seed order.
+  const roster = useMemo(() => pickShowcase(players, 4), [players])
   return (
     <>
       {/* HERO - asymmetric 60/40 split, dark stadium feel */}
@@ -247,51 +242,66 @@ function HomePage() {
             </Link>
           </div>
 
-          <motion.ul
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, margin: '-100px' }}
-            variants={{ show: { transition: { staggerChildren: 0.08 } } }}
-            className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6"
-          >
-            {ROSTER_PREVIEW.map((p) => (
-              <motion.li
-                key={p.seed}
-                variants={FADE_UP}
-                transition={{ type: 'spring', stiffness: 110, damping: 20 }}
-                className="group"
-              >
-                <Link to={`/joueurs/${p.seed}`} className="block">
-                  <div className="relative aspect-[3/4] overflow-hidden rounded-2xl bg-stone-200">
-                    <img
-                      src={p.image ?? `https://picsum.photos/seed/${p.seed}/600/800`}
-                      alt=""
-                      loading="lazy"
-                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-premium group-hover:scale-[1.04]"
-                    />
-                    <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-zinc-950/70 to-transparent" />
-                    <div className="absolute top-3 left-3 font-mono text-[0.65rem] uppercase tracking-wider text-stone-50/90 bg-zinc-950/40 backdrop-blur px-2 py-1 rounded-full">
-                      {p.age} ans
-                    </div>
-                    <div className="absolute bottom-3 left-3 right-3 text-stone-50">
-                      <div className="font-display font-medium text-base lg:text-lg leading-tight">
-                        {p.name}
+          {loading && roster.length === 0 ? (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="aspect-[3/4] rounded-2xl bg-stone-200 dark:bg-zinc-900 animate-pulse" />
+              ))}
+            </div>
+          ) : roster.length === 0 ? (
+            <p className="text-sm text-zinc-600 dark:text-stone-400">
+              Aucun joueur publié pour le moment.
+            </p>
+          ) : (
+            <motion.ul
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, margin: '-100px' }}
+              variants={{ show: { transition: { staggerChildren: 0.08 } } }}
+              className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6"
+            >
+              {roster.map((p) => {
+                const photo = LOCAL_PORTRAITS[p.slug] ?? p.photo_url ?? `https://picsum.photos/seed/${p.slug}/600/800`
+                return (
+                  <motion.li
+                    key={p.slug}
+                    variants={FADE_UP}
+                    transition={{ type: 'spring', stiffness: 110, damping: 20 }}
+                    className="group"
+                  >
+                    <Link to={`/joueurs/${p.slug}`} className="block">
+                      <div className="relative aspect-[3/4] overflow-hidden rounded-2xl bg-stone-200">
+                        <img
+                          src={photo}
+                          alt=""
+                          loading="lazy"
+                          className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-premium group-hover:scale-[1.04]"
+                        />
+                        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-zinc-950/70 to-transparent" />
+                        <div className="absolute top-3 left-3 font-mono text-[0.65rem] uppercase tracking-wider text-stone-50/90 bg-zinc-950/40 backdrop-blur px-2 py-1 rounded-full">
+                          {p.age} ans
+                        </div>
+                        <div className="absolute bottom-3 left-3 right-3 text-stone-50">
+                          <div className="font-display font-medium text-base lg:text-lg leading-tight">
+                            {p.name}
+                          </div>
+                          <div className="text-xs text-stone-300 mt-0.5">{p.position}</div>
+                        </div>
                       </div>
-                      <div className="text-xs text-stone-300 mt-0.5">{p.pos}</div>
-                    </div>
-                  </div>
-                  <div className="mt-3 flex items-center justify-between text-sm">
-                    <span className="text-zinc-700 dark:text-stone-300">{p.club}</span>
-                    <ArrowUpRight
-                      size={14}
-                      weight="bold"
-                      className="text-zinc-400 group-hover:text-turf-700 dark:group-hover:text-turf-300 transition"
-                    />
-                  </div>
-                </Link>
-              </motion.li>
-            ))}
-          </motion.ul>
+                      <div className="mt-3 flex items-center justify-between text-sm">
+                        <span className="text-zinc-700 dark:text-stone-300">{p.club ?? '—'}</span>
+                        <ArrowUpRight
+                          size={14}
+                          weight="bold"
+                          className="text-zinc-400 group-hover:text-turf-700 dark:group-hover:text-turf-300 transition"
+                        />
+                      </div>
+                    </Link>
+                  </motion.li>
+                )
+              })}
+            </motion.ul>
+          )}
         </div>
       </section>
 

@@ -15,6 +15,7 @@ import { ArrowUpRight, CaretDown, Gauge, Lock, List, X } from '@phosphor-icons/r
 import ThemeToggle from '../theme/ThemeToggle'
 import BrandLogo from './BrandLogo'
 import { useAuth } from '../auth/AuthContext'
+import { usePublicPlayers, pickShowcase } from '../lib/usePublicPlayers'
 
 interface NavItem {
   to: string
@@ -30,12 +31,8 @@ const NAV: NavItem[] = [
   { to: '/contact',    label: 'Contact' },
 ]
 
-const MEGA_PLAYERS = [
-  { name: 'Karim Touré',  pos: 'Attaquant',          club: 'Borussia Dortmund', seed: 'karim-toure' },
-  { name: 'Adil Berkane', pos: 'Milieu défensif',    club: 'Standard Liège',    seed: 'adil-berkane' },
-  { name: 'Yanis Lefèvre',pos: 'Milieu défensif',    club: 'KRC Genk',          seed: 'yanis-lefevre' },
-]
-const TOTAL_PLAYERS = 12
+/* Mega-menu showcase is populated live from /api/players via usePublicPlayers().
+   No more hardcoded names — what's on the public roster IS what shows here. */
 
 /* Per-item hover-pill geometry. The capsule stays dark in both themes (premium
    editorial-sport identity), so a single tint per item is enough. */
@@ -157,6 +154,9 @@ interface MegaPanelProps {
 }
 
 const MegaPanel = memo(function MegaPanel({ open, onClose, onMouseEnter, onMouseLeave }: MegaPanelProps) {
+  const { players } = usePublicPlayers()
+  const showcase = pickShowcase(players, 3)
+  const total = players.length
   return (
     <AnimatePresence>
       {open && (
@@ -178,21 +178,21 @@ const MegaPanel = memo(function MegaPanel({ open, onClose, onMouseEnter, onMouse
                 Dernières signatures
               </span>
               <span className="font-mono text-[0.65rem] tabular-nums text-stone-500">
-                {TOTAL_PLAYERS} joueurs actifs
+                {total} joueurs actifs
               </span>
             </div>
             <ul className="relative z-10 grid grid-cols-3 gap-3 p-4">
-              {MEGA_PLAYERS.map((p, i) => (
+              {showcase.map((p, i) => (
                 <motion.li
-                  key={p.seed}
+                  key={p.slug}
                   initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.05 + i * 0.05, type: 'spring', stiffness: 180, damping: 22 }}
                 >
-                  <Link to={`/joueurs/${p.seed}`} onClick={onClose} className="group block">
+                  <Link to={`/joueurs/${p.slug}`} onClick={onClose} className="group block">
                     <div className="relative aspect-[3/4] overflow-hidden rounded-xl border border-stone-50/8">
                       <img
-                        src={`https://picsum.photos/seed/${p.seed}/300/400`}
+                        src={p.photo_url ?? `https://picsum.photos/seed/${p.slug}/300/400`}
                         alt=""
                         loading="lazy"
                         className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-premium group-hover:scale-[1.06]"
@@ -202,11 +202,11 @@ const MegaPanel = memo(function MegaPanel({ open, onClose, onMouseEnter, onMouse
                         <div className="font-display font-medium text-[0.85rem] leading-tight">
                           {p.name}
                         </div>
-                        <div className="text-[0.65rem] text-stone-300 mt-0.5">{p.pos}</div>
+                        <div className="text-[0.65rem] text-stone-300 mt-0.5">{p.position}</div>
                       </div>
                     </div>
                     <div className="mt-2 text-[0.7rem] text-stone-400 group-hover:text-stone-200 transition flex items-center justify-between">
-                      <span>{p.club}</span>
+                      <span>{p.club ?? '—'}</span>
                       <ArrowUpRight size={11} weight="bold" className="text-stone-500 group-hover:text-turf-300 transition" />
                     </div>
                   </Link>
@@ -220,7 +220,7 @@ const MegaPanel = memo(function MegaPanel({ open, onClose, onMouseEnter, onMouse
             >
               <span className="flex items-center gap-2">
                 <span>Voir tous nos joueurs</span>
-                <span className="font-mono text-[0.7rem] text-stone-500 tabular-nums">({TOTAL_PLAYERS})</span>
+                <span className="font-mono text-[0.7rem] text-stone-500 tabular-nums">({total})</span>
               </span>
               <ArrowUpRight
                 size={15}

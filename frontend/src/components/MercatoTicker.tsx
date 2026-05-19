@@ -1,19 +1,20 @@
-import { memo } from 'react'
+import { memo, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowRight } from '@phosphor-icons/react'
+import { usePublicPlayers } from '../lib/usePublicPlayers'
+import type { Player } from '../types/player'
 
-/* Each item links to the player's profile when their slug exists in the roster.
-   Slugs match the backend seeder (no accents). Display labels keep accents. */
-const ITEMS = [
-  { slug: 'karim-toure',     player: 'Karim Touré',     move: 'Borussia Dortmund', note: 'transfert définitif' },
-  { slug: 'yanis-lefevre',   player: 'Yanis Lefèvre',   move: 'KRC Genk',          note: 'signature pro' },
-  { slug: 'adil-berkane',    player: 'Adil Berkane',    move: 'Standard Liège',    note: 'prolongation 2 ans' },
-  { slug: 'mehdi-boukar',    player: 'Mehdi Boukar',    move: 'FC Metz',           note: 'prêt 1 an' },
-  { slug: 'theo-vasseur',    player: 'Théo Vasseur',    move: 'OGC Nice',          note: 'prolongation 3 ans' },
-  { slug: 'ousmane-camara',  player: 'Ousmane Camara',  move: 'Royal Antwerp',     note: 'prêt avec option' },
-  { slug: 'lucas-marini',    player: 'Lucas Marini',    move: 'AS Monaco',         note: 'prolongation 2 ans' },
-  { slug: 'idriss-ndiaye',   player: 'Idriss N’Diaye',  move: 'FC Twente',         note: 'transfert définitif' },
+/* Stable "note" pool used to dress each ticker entry. We rotate them by index
+   so the ticker stays visually varied even though the underlying data comes
+   straight from /api/players. */
+const NOTE_POOL = [
+  'transfert définitif',
+  'prolongation contrat',
+  'prêt avec option',
+  'signature pro',
+  'mandat agence',
+  'observation scout',
 ]
 
 interface MercatoItem {
@@ -21,6 +22,17 @@ interface MercatoItem {
   player: string
   move: string
   note: string
+}
+
+function buildItems(players: Player[]): MercatoItem[] {
+  return players
+    .filter((p) => p.club)
+    .map((p, i) => ({
+      slug: p.slug,
+      player: p.name,
+      move: p.club ?? '—',
+      note: NOTE_POOL[i % NOTE_POOL.length],
+    }))
 }
 
 interface RowProps {
@@ -63,6 +75,11 @@ function Row({ items, ariaHidden = false }: RowProps) {
 }
 
 function MercatoTickerBase() {
+  const { players } = usePublicPlayers()
+  const items = useMemo(() => buildItems(players), [players])
+  // Don't render the band at all when we have nothing to show — avoids an
+  // empty strip on first paint before the API resolves.
+  if (items.length === 0) return null
   return (
     <div className="relative overflow-hidden border-y border-stone-50/10 bg-zinc-950/60 py-4 group/ticker">
       <div
@@ -80,8 +97,8 @@ function MercatoTickerBase() {
         whileHover={{ animationPlayState: 'paused' }}
         style={{ willChange: 'transform' }}
       >
-        <Row items={ITEMS} />
-        <Row items={ITEMS} ariaHidden />
+        <Row items={items} />
+        <Row items={items} ariaHidden />
       </motion.div>
     </div>
   )
