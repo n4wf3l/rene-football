@@ -21,7 +21,7 @@ class PlayerRiskSeeder extends Seeder
             ['slug' => 'adams-saeed', 'risk_type' => 'adaptation', 'title' => 'Sélection internationale à arbitrer',     'description' => 'Bi-national Ghana / Pays-Bas - choix sportif à fixer avec le joueur et son entourage.', 'probability' => 'moyenne', 'impact' => 'moyen', 'status' => 'surveille'],
             ['slug' => 'idriss-ndiaye', 'risk_type' => 'marche',     'title' => 'Clause libératoire active à 8 M€',       'probability' => 'elevee', 'impact' => 'eleve', 'status' => 'ouvert'],
             ['slug' => 'mehdi-boukar',  'risk_type' => 'sportif',    'title' => 'Polyvalence = risque de positionnement', 'probability' => 'faible',  'impact' => 'moyen', 'status' => 'ouvert'],
-            ['slug' => 'yanis-lefevre', 'risk_type' => 'physique',   'title' => 'Gabarit léger pour Pro League',          'probability' => 'moyenne', 'impact' => 'moyen', 'status' => 'surveille'],
+            ['slug' => 'abakar-abba',   'risk_type' => 'physique',   'title' => 'Intensité duels à renforcer pour Pro League', 'probability' => 'moyenne', 'impact' => 'moyen', 'status' => 'surveille'],
         ];
 
         foreach ($rows as $r) {

@@ -66,7 +66,7 @@ class ShortlistSeeder extends Seeder
         // sl2 - milieux défensifs
         $entries2 = [
             ['slug' => 'ativie-megogo',  'stage' => 'shortlist_a', 'reason' => 'CB U17 espagnol trilingue - prêt Genk → Mönchengladbach', 'estimated_price' => 950000, 'risk_level' => 'moyen','confidence_score' => 68],
-            ['slug' => 'yanis-lefevre',  'stage' => 'shortlist_b', 'reason' => 'Jeune profil luxembourgeois en progression',           'estimated_price' => 600000,  'risk_level' => 'moyen', 'confidence_score' => 54],
+            ['slug' => 'abakar-abba',    'stage' => 'shortlist_b', 'reason' => 'Sentinelle U19 belge Standard - profil moderne à confirmer', 'estimated_price' => 800000,  'risk_level' => 'moyen', 'confidence_score' => 60],
             ['slug' => 'ayoub-el-bahri', 'stage' => 'watchlist',   'reason' => 'Profil intéressant à confirmer en équipe première',  'estimated_price' => 350000,  'risk_level' => 'moyen', 'confidence_score' => 50],
         ];
 

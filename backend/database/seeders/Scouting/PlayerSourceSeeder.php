@@ -25,7 +25,9 @@ class PlayerSourceSeeder extends Seeder
             ['slug' => 'ativie-megogo', 'field_name' => 'date_of_birth', 'value' => '2009-07-06',                   'source_type' => 'officiel', 'source_label' => 'Passeport', 'reliability_score' => 100],
             ['slug' => 'ativie-megogo', 'field_name' => 'nationality',   'value' => 'Espagne',                      'source_type' => 'officiel', 'source_label' => 'Passeport', 'reliability_score' => 100],
             ['slug' => 'ativie-megogo', 'field_name' => 'languages',     'value' => 'Anglais / Français / Espagnol','source_type' => 'agent',    'source_label' => 'Entretien agent (vidéo)', 'reliability_score' => 85],
-            ['slug' => 'yanis-lefevre', 'field_name' => 'nationalities', 'value' => 'Luxembourg / France', 'source_type' => 'feuille_match', 'source_label' => 'Feuille de match UEFA', 'reliability_score' => 90],
+            ['slug' => 'abakar-abba',   'field_name' => 'club',          'value' => 'Standard de Liège',  'source_type' => 'officiel', 'source_label' => 'Roster Standard de Liège 2025-2026', 'reliability_score' => 95],
+            ['slug' => 'abakar-abba',   'field_name' => 'date_of_birth', 'value' => '2009-01-04',         'source_type' => 'officiel', 'source_label' => 'Passeport', 'reliability_score' => 100],
+            ['slug' => 'abakar-abba',   'field_name' => 'nationality',   'value' => 'Belgique',           'source_type' => 'officiel', 'source_label' => 'Passeport', 'reliability_score' => 100],
             ['slug' => 'idriss-ndiaye', 'field_name' => 'release_clause', 'value' => '8 M€', 'source_type' => 'agent',         'source_label' => 'Entretien agent 03/2026', 'reliability_score' => 70],
         ];
 

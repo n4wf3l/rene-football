@@ -100,7 +100,10 @@ class PlayerSeeder extends Seeder
             ['ativie-megogo',   'Ativie Megogo Destini Emmanuel', 16, '1m83', 'Defenseur central',   'Defenseur', 'Borussia Mönchengladbach', 'Espagne',  'Droit',  2024, 22, 1,  1,  1880, 9,  4,  0.7,  0.4, 6,  85.6, 5,  48, 36, 92, 3, 0,  8,  0],
             ['theo-vasseur',    'Theo Vasseur',    26, '1m91', 'Defenseur central',   'Defenseur', 'OGC Nice',          'France',         'Gauche', 2019, 34, 3,  1,  3050, 22, 9,  2.7,  0.9, 11, 86.1, 8,  72, 54, 96, 5, 0,  6,  0],
             ['karim-toure',     'Karim Toure',     24, '1m86', 'Attaquant',           'Attaquant', 'Borussia Dortmund', 'Senegal',        'Droit',  2020, 29, 14, 6,  2580, 78, 41, 12.6, 5.1, 32, 76.4, 47, 12, 8,  58, 3, 0,  0,  0],
-            ['yanis-lefevre',   'Yanis Lefevre',   19, '1m81', 'Milieu defensif',     'Milieu',    'KRC Genk',          'Luxembourg',     'Droit',  2024, 12, 0,  2,  890,  6,  2,  0.4,  1.6, 9,  89.2, 7,  18, 14, 28, 2, 0,  0,  0],
+            // Abakar Abba - vrai joueur Rene Football (17 ans, né le 04/01/2009).
+            // Milieu défensif belge au Standard de Liège.
+            // photo_url verrouillée sur l'image existante (index 28 = override).
+            ['abakar-abba',     'Abakar Abba',     17, '1m83', 'Milieu defensif',     'Milieu',    'Standard de Liège', 'Belgique',       'Droit',  2024, 16, 1,  3,  1180, 9,  3,  0.5,  2.4, 14, 87.8, 11, 38, 26, 54, 4, 0,  0,  0, 'https://picsum.photos/seed/yanis-lefevre/600/800'],
             ['ousmane-camara',  'Ousmane Camara',  21, '1m77', 'Ailier gauche',       'Attaquant', 'Royal Antwerp',     'Mali',           'Droit',  2023, 24, 7,  9,  2010, 51, 22, 7.8,  6.9, 42, 80.5, 64, 9,  11, 49, 4, 0,  0,  0],
             ['lucas-marini',    'Lucas Marini',    27, '1m80', 'Lateral droit',       'Defenseur', 'AS Monaco',         'Italie',         'Droit',  2018, 26, 1,  3,  2280, 14, 5,  1.1,  2.4, 22, 84.7, 15, 48, 36, 71, 5, 0,  4,  0],
             ['idriss-ndiaye',   "Idriss N'Diaye",  23, '1m89', 'Avant-centre',        'Attaquant', 'FC Twente',         'Senegal',        'Droit',  2022, 33, 17, 2,  2740, 84, 47, 14.3, 1.8, 18, 72.1, 19, 8,  5,  62, 4, 0,  0,  0],
@@ -160,7 +163,10 @@ class PlayerSeeder extends Seeder
                     'top_speed_kmh'           => $tracking['top_speed_kmh'],
                     'high_intensity_runs_avg' => $tracking['high_intensity_runs_avg'],
                     'is_published' => true,
-                    'photo_url' => "https://picsum.photos/seed/{$p[0]}/600/800",
+                    // Optional photo_url override (index 28) - lets us swap the player
+                    // identity without changing the visual when an image is intentionally
+                    // pinned to a previous slug seed.
+                    'photo_url' => $p[28] ?? "https://picsum.photos/seed/{$p[0]}/600/800",
                     'bio' => null,
                 ]
             );
