@@ -103,6 +103,7 @@ class PlayerSeeder extends Seeder
         'adil-berkane',      // replaced by ativie-megogo
         'yanis-lefevre',     // replaced by abakar-abba
         'ayoub-el-bahri',    // replaced by camara-philan
+        'hugo-tessier',      // replaced by tesfegabir-solomon
     ];
 
     public function run(): void
@@ -132,7 +133,10 @@ class PlayerSeeder extends Seeder
             // Attaquant droitier belge, academie KRC Genk - profil long terme. Photo
             // pinnee sur l'ancien slug (ayoub-el-bahri) pour preserver l'image existante.
             ['camara-philan',   'Camara Philan',   11, '1m48', 'Attaquant',           'Attaquant', 'KRC Genk (académie U13)','Belgique',  'Droit',  2024, 8,  6,  3,  480,  22, 12, 4.2,  2.8, 12, 78.4, 28, 2,  1,  18, 0, 0,  0,  0, 'https://picsum.photos/seed/ayoub-el-bahri/600/800'],
-            ['hugo-tessier',    'Hugo Tessier',    25, '1m88', 'Defenseur central',   'Defenseur', 'Royale Union SG',   'France',         'Droit',  2020, 30, 2,  0,  2680, 16, 7,  1.8,  0.4, 6,  87.4, 5,  68, 49, 88, 6, 1,  5,  0],
+            // Tesfegabir Solomon Hanibal - vrai joueur Rene Football (18 ans, ne le 01/01/2008).
+            // Attaquant droitier érythréen au F91 Dudelange (BGL Ligue Luxembourg).
+            // Photo pinnee sur l'ancien slug pour preserver l'image existante.
+            ['tesfegabir-solomon','Tesfegabir Solomon Hanibal',18,'1m80','Attaquant',         'Attaquant', 'F91 Dudelange',     'Érythrée',       'Droit',  2024, 21, 9,  5,  1620, 48, 22, 7.4,  4.2, 24, 77.6, 38, 8,  5,  48, 2, 0,  0,  0, 'https://picsum.photos/seed/hugo-tessier/600/800'],
             ['nabil-sangare',   'Nabil Sangare',   22, '1m76', 'Ailier droit',        'Attaquant', 'FC Bale',           "Cote d'Ivoire",  'Gauche', 2022, 27, 11, 8,  2310, 62, 31, 9.2,  6.4, 39, 79.8, 58, 11, 9,  53, 5, 0,  0,  0],
             // Adams Saeed - vrai joueur Rene Football (16 ans, KV Mechelen, ne le 17/10/2009).
             // Striker / ailier droite ou gauche, bi-national Ghana / Pays-Bas (passeport UE).

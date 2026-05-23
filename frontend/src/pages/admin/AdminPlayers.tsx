@@ -359,7 +359,8 @@ function PlayerEditor({ player, isNew, onClose, onSaved, onDelete, mode = 'modal
               </FieldRow>
             </div>
             <FieldRow label="Âge">
-              <NumberInput value={form.age} onChange={(v) => set('age', v)} min={14} max={60} />
+              {/* Min 8 to cover U13 academy players represented by the agency. */}
+              <NumberInput value={form.age} onChange={(v) => set('age', v)} min={8} max={60} />
             </FieldRow>
             <FieldRow label="Taille" hint="ex. 1m83">
               <TextInput value={form.height || ''} onChange={(e) => set('height', e.target.value)} />

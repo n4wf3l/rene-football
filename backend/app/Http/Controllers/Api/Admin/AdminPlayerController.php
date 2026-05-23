@@ -116,7 +116,9 @@ class AdminPlayerController extends Controller
 
         $rules = [
             'name' => ['required', 'string', 'max:255'],
-            'age' => ['required', 'integer', 'min:14', 'max:60'],
+            // Lowered to 8 to allow young academy players (e.g. U13 representés
+            // par l'agence). The frontend mirrors this bound.
+            'age' => ['required', 'integer', 'min:8', 'max:60'],
             'height' => ['nullable', 'string', 'max:20'],
             'position' => ['required', 'string', 'max:120'],
             'category' => ['required', 'string', 'in:Gardien,Defenseur,Milieu,Attaquant'],

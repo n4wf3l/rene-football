@@ -81,8 +81,9 @@ class RecruitmentNeedController extends Controller
             'category'            => ['nullable', 'string', 'in:Pro,U23,U19,U18,U16'],
             'budget_min'          => ['nullable', 'integer', 'min:0'],
             'budget_max'          => ['nullable', 'integer', 'min:0'],
-            'age_min'             => ['nullable', 'integer', 'min:14', 'max:60'],
-            'age_max'             => ['nullable', 'integer', 'min:14', 'max:60'],
+            // 8 as the floor so academy needs (U13+) can be expressed.
+            'age_min'             => ['nullable', 'integer', 'min:8', 'max:60'],
+            'age_max'             => ['nullable', 'integer', 'min:8', 'max:60'],
             'preferred_foot'      => ['nullable', 'string', 'max:16'],
             'profile_description' => ['nullable', 'string'],
             'required_attributes' => ['nullable', 'array'],
