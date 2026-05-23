@@ -90,8 +90,28 @@ class PlayerSeeder extends Seeder
         ],
     ];
 
+    /**
+     * Slugs that USED to belong to the demo roster but have since been replaced
+     * by real Rene Football players. We delete these rows at the start of every
+     * seed run so the cockpit doesn't drag around orphan profiles when the user
+     * runs `db:seed` (without `migrate:fresh`).
+     *
+     * Photo files on disk are left untouched — only the DB row is cleaned up.
+     */
+    private const OBSOLETE_SLUGS = [
+        'hamzath-mohamadou', // replaced by adams-saeed
+        'adil-berkane',      // replaced by ativie-megogo
+        'yanis-lefevre',     // replaced by abakar-abba
+        'ayoub-el-bahri',    // replaced by camara-philan
+    ];
+
     public function run(): void
     {
+        // Drop any obsolete demo slug before re-seeding. Cascade is handled by
+        // the foreign keys (scouting_reports, sources, risks, shortlist entries
+        // all reference player_id with onDelete cascade or nullOnDelete).
+        Player::whereIn('slug', self::OBSOLETE_SLUGS)->delete();
+
         $players = [
             ['mehdi-boukar',    'Mehdi Boukar',    22, '1m78', 'Milieu offensif',     'Milieu',    'FC Metz',           'France',         'Droit',  2022, 31, 8,  5,  2740, 42, 18, 6.4,  4.8, 38, 84.2, 41, 22, 14, 64, 4, 0,  0,  0],
             // Ativie Megogo Destini Emmanuel - vrai joueur Rene Football (16 ans, ne le 06/07/2009).
@@ -108,7 +128,10 @@ class PlayerSeeder extends Seeder
             ['lucas-marini',    'Lucas Marini',    27, '1m80', 'Lateral droit',       'Defenseur', 'AS Monaco',         'Italie',         'Droit',  2018, 26, 1,  3,  2280, 14, 5,  1.1,  2.4, 22, 84.7, 15, 48, 36, 71, 5, 0,  4,  0],
             ['idriss-ndiaye',   "Idriss N'Diaye",  23, '1m89', 'Avant-centre',        'Attaquant', 'FC Twente',         'Senegal',        'Droit',  2022, 33, 17, 2,  2740, 84, 47, 14.3, 1.8, 18, 72.1, 19, 8,  5,  62, 4, 0,  0,  0],
             ['romain-caillard', 'Romain Caillard', 29, '1m92', 'Gardien',             'Gardien',   'KAS Eupen',         'Luxembourg',     'Droit',  2017, 31, 0,  0,  2790, 0,  0,  0,    0,   2,  68.3, 0,  0,  4,  6,  3, 0,  10, 102],
-            ['ayoub-el-bahri',  'Ayoub El Bahri',  20, '1m74', 'Meneur de jeu',       'Milieu',    'RC Lens',           'Maroc',          'Gauche', 2024, 18, 4,  7,  1480, 27, 12, 3.6,  5.8, 31, 86.8, 38, 14, 11, 41, 3, 0,  0,  0],
+            // Camara Philan - vrai joueur mineur Rene Football (U13, 11 ans, ne le 21/01/2015).
+            // Attaquant droitier belge, academie KRC Genk - profil long terme. Photo
+            // pinnee sur l'ancien slug (ayoub-el-bahri) pour preserver l'image existante.
+            ['camara-philan',   'Camara Philan',   11, '1m48', 'Attaquant',           'Attaquant', 'KRC Genk (académie U13)','Belgique',  'Droit',  2024, 8,  6,  3,  480,  22, 12, 4.2,  2.8, 12, 78.4, 28, 2,  1,  18, 0, 0,  0,  0, 'https://picsum.photos/seed/ayoub-el-bahri/600/800'],
             ['hugo-tessier',    'Hugo Tessier',    25, '1m88', 'Defenseur central',   'Defenseur', 'Royale Union SG',   'France',         'Droit',  2020, 30, 2,  0,  2680, 16, 7,  1.8,  0.4, 6,  87.4, 5,  68, 49, 88, 6, 1,  5,  0],
             ['nabil-sangare',   'Nabil Sangare',   22, '1m76', 'Ailier droit',        'Attaquant', 'FC Bale',           "Cote d'Ivoire",  'Gauche', 2022, 27, 11, 8,  2310, 62, 31, 9.2,  6.4, 39, 79.8, 58, 11, 9,  53, 5, 0,  0,  0],
             // Adams Saeed - vrai joueur Rene Football (16 ans, KV Mechelen, ne le 17/10/2009).

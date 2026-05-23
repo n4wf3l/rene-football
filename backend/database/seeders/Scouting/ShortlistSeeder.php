@@ -67,7 +67,7 @@ class ShortlistSeeder extends Seeder
         $entries2 = [
             ['slug' => 'ativie-megogo',  'stage' => 'shortlist_a', 'reason' => 'CB U17 espagnol trilingue - prêt Genk → Mönchengladbach', 'estimated_price' => 950000, 'risk_level' => 'moyen','confidence_score' => 68],
             ['slug' => 'abakar-abba',    'stage' => 'shortlist_b', 'reason' => 'Sentinelle U19 belge Standard - profil moderne à confirmer', 'estimated_price' => 800000,  'risk_level' => 'moyen', 'confidence_score' => 60],
-            ['slug' => 'ayoub-el-bahri', 'stage' => 'watchlist',   'reason' => 'Profil intéressant à confirmer en équipe première',  'estimated_price' => 350000,  'risk_level' => 'moyen', 'confidence_score' => 50],
+            ['slug' => 'camara-philan',  'stage' => 'watchlist',   'reason' => 'Joueur U13 belge - projet long terme, à suivre 2-3 saisons',  'estimated_price' => 0,       'risk_level' => 'eleve', 'confidence_score' => 48],
         ];
 
         foreach ($entries2 as $i => $e) {
