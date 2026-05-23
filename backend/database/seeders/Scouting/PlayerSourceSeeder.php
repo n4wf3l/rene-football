@@ -13,11 +13,11 @@ class PlayerSourceSeeder extends Seeder
     {
         $adminId = User::where('is_admin', true)->value('id');
 
+        // Sources documentaires pour le roster Rene Football uniquement.
+        // Les demo pros retirés (mehdi-boukar, karim-toure, idriss-ndiaye…)
+        // n'apparaissent plus ici — leurs lignes seraient skippées de toute
+        // façon par le `if (! $player) continue` ci-dessous.
         $rows = [
-            ['slug' => 'mehdi-boukar',  'field_name' => 'club',     'value' => 'FC Metz',     'source_type' => 'officiel',     'source_label' => 'Site officiel FC Metz', 'reliability_score' => 95],
-            ['slug' => 'mehdi-boukar',  'field_name' => 'salary',   'value' => 'Confidentiel', 'source_type' => 'agent',        'source_label' => 'Entretien agent 04/2026', 'reliability_score' => 65],
-            ['slug' => 'karim-toure',   'field_name' => 'club',     'value' => 'Borussia Dortmund', 'source_type' => 'officiel', 'source_label' => 'Bundesliga.de', 'reliability_score' => 95],
-            ['slug' => 'karim-toure',   'field_name' => 'contract_end', 'value' => '2028-06-30','source_type' => 'agent',       'source_label' => 'Entretien agent', 'reliability_score' => 80],
             ['slug' => 'adams-saeed', 'field_name' => 'club',           'value' => 'KV Mechelen',                  'source_type' => 'officiel', 'source_label' => 'Roster KV Mechelen 2025-2026', 'reliability_score' => 95],
             ['slug' => 'adams-saeed', 'field_name' => 'nationalities',  'value' => 'Ghana / Pays-Bas',             'source_type' => 'officiel', 'source_label' => 'Passeport (copie certifiée)', 'reliability_score' => 100],
             ['slug' => 'adams-saeed', 'field_name' => 'date_of_birth',  'value' => '2009-10-17',                   'source_type' => 'officiel', 'source_label' => 'Passeport', 'reliability_score' => 100],
@@ -28,7 +28,6 @@ class PlayerSourceSeeder extends Seeder
             ['slug' => 'abakar-abba',   'field_name' => 'club',          'value' => 'Standard de Liège',  'source_type' => 'officiel', 'source_label' => 'Roster Standard de Liège 2025-2026', 'reliability_score' => 95],
             ['slug' => 'abakar-abba',   'field_name' => 'date_of_birth', 'value' => '2009-01-04',         'source_type' => 'officiel', 'source_label' => 'Passeport', 'reliability_score' => 100],
             ['slug' => 'abakar-abba',   'field_name' => 'nationality',   'value' => 'Belgique',           'source_type' => 'officiel', 'source_label' => 'Passeport', 'reliability_score' => 100],
-            ['slug' => 'idriss-ndiaye', 'field_name' => 'release_clause', 'value' => '8 M€', 'source_type' => 'agent',         'source_label' => 'Entretien agent 03/2026', 'reliability_score' => 70],
         ];
 
         foreach ($rows as $r) {

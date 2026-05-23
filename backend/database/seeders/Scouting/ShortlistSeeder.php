@@ -38,12 +38,10 @@ class ShortlistSeeder extends Seeder
             ],
         );
 
-        // sl1 - ailiers droits
+        // sl1 - ailiers droits (les demo pros nabil-sangare, ousmane-camara,
+        // karim-toure ont été retirés du roster — seul Adams Saeed reste).
         $entries1 = [
-            ['slug' => 'nabil-sangare',  'stage' => 'shortlist_a', 'reason' => 'Profil cible - gauche dévastateur',                    'estimated_price' => 1800000, 'risk_level' => 'moyen', 'confidence_score' => 72, 'next_action' => 'Approche officielle'],
-            ['slug' => 'ousmane-camara', 'stage' => 'shortlist_b', 'reason' => 'Bonus polyvalence couloirs',                            'estimated_price' => 1200000, 'risk_level' => 'moyen', 'confidence_score' => 64, 'next_action' => 'Compléter dossier médical'],
-            ['slug' => 'adams-saeed',    'stage' => 'shortlist_b', 'reason' => 'Bi-national Ghana / Pays-Bas - passeport UE - polyvalence striker / ailes', 'estimated_price' => 750000, 'risk_level' => 'moyen', 'confidence_score' => 66, 'next_action' => 'Observer en U21 vs Club Brugge'],
-            ['slug' => 'karim-toure',    'stage' => 'valide',      'reason' => 'Sécurité - déjà sous mandat agence',                  'estimated_price' => 2500000, 'risk_level' => 'faible','confidence_score' => 86, 'next_action' => 'Activer plan B si transfert OK'],
+            ['slug' => 'adams-saeed',    'stage' => 'shortlist_a', 'reason' => 'Bi-national Ghana / Pays-Bas - passeport UE - polyvalence striker / ailes', 'estimated_price' => 750000, 'risk_level' => 'moyen', 'confidence_score' => 66, 'next_action' => 'Observer en U21 vs Club Brugge'],
         ];
 
         foreach ($entries1 as $i => $e) {

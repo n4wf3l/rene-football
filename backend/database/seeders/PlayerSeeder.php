@@ -99,12 +99,24 @@ class PlayerSeeder extends Seeder
      * Photo files on disk are left untouched — only the DB row is cleaned up.
      */
     private const OBSOLETE_SLUGS = [
+        // Players who used to fill demo slots but have since been swapped for
+        // real Rene Football roster members.
         'hamzath-mohamadou', // replaced by adams-saeed
         'adil-berkane',      // replaced by ativie-megogo
         'yanis-lefevre',     // replaced by abakar-abba
         'ayoub-el-bahri',    // replaced by camara-philan
         'hugo-tessier',      // replaced by tesfegabir-solomon
         'romain-caillard',   // replaced by batomi-zoran-mawel
+
+        // Demo pros removed wholesale — the agency only wants the real roster
+        // to show. These slugs are deleted on every seed and never re-inserted.
+        'idriss-ndiaye',
+        'karim-toure',
+        'lucas-marini',
+        'mehdi-boukar',
+        'nabil-sangare',
+        'ousmane-camara',
+        'theo-vasseur',
     ];
 
     public function run(): void
@@ -114,34 +126,31 @@ class PlayerSeeder extends Seeder
         // all reference player_id with onDelete cascade or nullOnDelete).
         Player::whereIn('slug', self::OBSOLETE_SLUGS)->delete();
 
+        // Roster Rene Football — only real players represented by the agency
+        // are seeded here. Demo pros (Karim, Idriss, Mehdi, Théo, Lucas, Nabil,
+        // Ousmane) have been pulled out and their slugs added to OBSOLETE_SLUGS
+        // above so the seed is fully idempotent.
         $players = [
-            ['mehdi-boukar',    'Mehdi Boukar',    22, '1m78', 'Milieu offensif',     'Milieu',    'FC Metz',           'France',         'Droit',  2022, 31, 8,  5,  2740, 42, 18, 6.4,  4.8, 38, 84.2, 41, 22, 14, 64, 4, 0,  0,  0],
-            // Ativie Megogo Destini Emmanuel - vrai joueur Rene Football (16 ans, ne le 06/07/2009).
+            // Ativie Megogo Destini Emmanuel - 16 ans, ne le 06/07/2009.
             // Défenseur central espagnol, actuellement en prêt à Borussia Mönchengladbach (club d'origine : KRC Genk).
             // Trilingue anglais / français / espagnol, droitier.
             ['ativie-megogo',   'Ativie Megogo Destini Emmanuel', 16, '1m83', 'Defenseur central',   'Defenseur', 'Borussia Mönchengladbach', 'Espagne',  'Droit',  2024, 22, 1,  1,  1880, 9,  4,  0.7,  0.4, 6,  85.6, 5,  48, 36, 92, 3, 0,  8,  0],
-            ['theo-vasseur',    'Theo Vasseur',    26, '1m91', 'Defenseur central',   'Defenseur', 'OGC Nice',          'France',         'Gauche', 2019, 34, 3,  1,  3050, 22, 9,  2.7,  0.9, 11, 86.1, 8,  72, 54, 96, 5, 0,  6,  0],
-            ['karim-toure',     'Karim Toure',     24, '1m86', 'Attaquant',           'Attaquant', 'Borussia Dortmund', 'Senegal',        'Droit',  2020, 29, 14, 6,  2580, 78, 41, 12.6, 5.1, 32, 76.4, 47, 12, 8,  58, 3, 0,  0,  0],
-            // Abakar Abba - vrai joueur Rene Football (17 ans, né le 04/01/2009).
+            // Abakar Abba - 17 ans, né le 04/01/2009.
             // Milieu défensif belge au Standard de Liège.
             // photo_url verrouillée sur l'image existante (index 28 = override).
             ['abakar-abba',     'Abakar Abba',     17, '1m83', 'Milieu defensif',     'Milieu',    'Standard de Liège', 'Belgique',       'Droit',  2024, 16, 1,  3,  1180, 9,  3,  0.5,  2.4, 14, 87.8, 11, 38, 26, 54, 4, 0,  0,  0, 'https://picsum.photos/seed/yanis-lefevre/600/800'],
-            ['ousmane-camara',  'Ousmane Camara',  21, '1m77', 'Ailier gauche',       'Attaquant', 'Royal Antwerp',     'Mali',           'Droit',  2023, 24, 7,  9,  2010, 51, 22, 7.8,  6.9, 42, 80.5, 64, 9,  11, 49, 4, 0,  0,  0],
-            ['lucas-marini',    'Lucas Marini',    27, '1m80', 'Lateral droit',       'Defenseur', 'AS Monaco',         'Italie',         'Droit',  2018, 26, 1,  3,  2280, 14, 5,  1.1,  2.4, 22, 84.7, 15, 48, 36, 71, 5, 0,  4,  0],
-            ['idriss-ndiaye',   "Idriss N'Diaye",  23, '1m89', 'Avant-centre',        'Attaquant', 'FC Twente',         'Senegal',        'Droit',  2022, 33, 17, 2,  2740, 84, 47, 14.3, 1.8, 18, 72.1, 19, 8,  5,  62, 4, 0,  0,  0],
-            // Batomi Zoran-Mawel - vrai joueur mineur Rene Football (8 ans, ne le 24/04/2018).
+            // Batomi Zoran-Mawel - 8 ans, ne le 24/04/2018.
             // Attaquant droitier belge a l'academie du Royal Sporting Club Anderlecht (RSCA).
             // Photo pinnee sur l'ancien slug pour preserver l'image existante.
             ['batomi-zoran-mawel','Batomi Zoran-Mawel',8, '1m35', 'Attaquant',          'Attaquant', 'Royal Sporting Club Anderlecht', 'Belgique', 'Droit', 2024, 6,  5,  2,  280,  18, 10, 3.4,  1.8, 8,  72.0, 24, 1,  1,  12, 0, 0,  0,  0, 'https://picsum.photos/seed/romain-caillard/600/800'],
-            // Camara Philan - vrai joueur mineur Rene Football (U13, 11 ans, ne le 21/01/2015).
+            // Camara Philan - U13, 11 ans, ne le 21/01/2015.
             // Attaquant droitier belge, academie KRC Genk - profil long terme. Photo
             // pinnee sur l'ancien slug (ayoub-el-bahri) pour preserver l'image existante.
             ['camara-philan',   'Camara Philan',   11, '1m48', 'Attaquant',           'Attaquant', 'KRC Genk (académie U13)','Belgique',  'Droit',  2024, 8,  6,  3,  480,  22, 12, 4.2,  2.8, 12, 78.4, 28, 2,  1,  18, 0, 0,  0,  0, 'https://picsum.photos/seed/ayoub-el-bahri/600/800'],
-            // Tesfegabir Solomon Hanibal - vrai joueur Rene Football (18 ans, ne le 01/01/2008).
+            // Tesfegabir Solomon Hanibal - 18 ans, ne le 01/01/2008.
             // Attaquant droitier érythréen au F91 Dudelange (BGL Ligue Luxembourg).
             // Photo pinnee sur l'ancien slug pour preserver l'image existante.
             ['tesfegabir-solomon','Tesfegabir Solomon Hanibal',18,'1m80','Attaquant',         'Attaquant', 'F91 Dudelange',     'Érythrée',       'Droit',  2024, 21, 9,  5,  1620, 48, 22, 7.4,  4.2, 24, 77.6, 38, 8,  5,  48, 2, 0,  0,  0, 'https://picsum.photos/seed/hugo-tessier/600/800'],
-            ['nabil-sangare',   'Nabil Sangare',   22, '1m76', 'Ailier droit',        'Attaquant', 'FC Bale',           "Cote d'Ivoire",  'Gauche', 2022, 27, 11, 8,  2310, 62, 31, 9.2,  6.4, 39, 79.8, 58, 11, 9,  53, 5, 0,  0,  0],
             // Adams Saeed - vrai joueur Rene Football (16 ans, KV Mechelen, ne le 17/10/2009).
             // Striker / ailier droite ou gauche, bi-national Ghana / Pays-Bas (passeport UE).
             // Carte agence : https://renefootball.com.

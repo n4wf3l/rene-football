@@ -38,7 +38,7 @@ class AnalysisController extends Controller
      * rankable metric. Pre-computed server-side so the frontend can drop a
      * single request payload onto any player profile.
      *
-     * Shape: { byCategory: { Attaquant: ['mehdi', 'idriss',...] }, percentiles: { 'mehdi-boukar': { goals: 73.2, xg: 88, ... } } }
+     * Shape: { byCategory: { Attaquant: ['adams', 'tesfegabir', ...] }, percentiles: { 'adams-saeed': { goals: 73.2, xg: 88, ... } } }
      */
     public function percentiles(): JsonResponse
     {

@@ -14,13 +14,8 @@ class PlayerRiskSeeder extends Seeder
         $adminId = User::where('is_admin', true)->value('id');
 
         $rows = [
-            ['slug' => 'karim-toure', 'risk_type' => 'marche',       'title' => 'Concurrence forte sur le profil',        'description' => 'Plusieurs clubs européens identifiés sur le dossier.', 'probability' => 'elevee',  'impact' => 'moyen', 'status' => 'ouvert'],
-            ['slug' => 'karim-toure', 'risk_type' => 'sportif',      'title' => 'Adaptation tactique nouveau championnat', 'probability' => 'moyenne', 'impact' => 'moyen', 'status' => 'surveille'],
-            ['slug' => 'ousmane-camara', 'risk_type' => 'blessure',  'title' => 'Entorse de cheville en septembre 2025',  'description' => 'Suivi médical à confirmer avant approche.', 'probability' => 'moyenne', 'impact' => 'eleve', 'status' => 'surveille'],
             ['slug' => 'adams-saeed', 'risk_type' => 'mental',     'title' => 'Maturité à confirmer en haut niveau',     'description' => 'Premier saison pro - à accompagner sur la gestion de la pression et de la rotation.', 'probability' => 'moyenne', 'impact' => 'moyen', 'status' => 'ouvert'],
             ['slug' => 'adams-saeed', 'risk_type' => 'adaptation', 'title' => 'Sélection internationale à arbitrer',     'description' => 'Bi-national Ghana / Pays-Bas - choix sportif à fixer avec le joueur et son entourage.', 'probability' => 'moyenne', 'impact' => 'moyen', 'status' => 'surveille'],
-            ['slug' => 'idriss-ndiaye', 'risk_type' => 'marche',     'title' => 'Clause libératoire active à 8 M€',       'probability' => 'elevee', 'impact' => 'eleve', 'status' => 'ouvert'],
-            ['slug' => 'mehdi-boukar',  'risk_type' => 'sportif',    'title' => 'Polyvalence = risque de positionnement', 'probability' => 'faible',  'impact' => 'moyen', 'status' => 'ouvert'],
             ['slug' => 'abakar-abba',   'risk_type' => 'physique',   'title' => 'Intensité duels à renforcer pour Pro League', 'probability' => 'moyenne', 'impact' => 'moyen', 'status' => 'surveille'],
         ];
 

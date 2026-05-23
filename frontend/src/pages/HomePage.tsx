@@ -17,14 +17,13 @@ import AnimatedNumber from '../components/AnimatedNumber'
 import AnimatedUnderline from '../components/AnimatedUnderline'
 import { usePublicPlayers, pickShowcase } from '../lib/usePublicPlayers'
 import heroPortrait from '../assets/player2.png'
-import karimPortrait from '../assets/player1.png'
 
 /** Local portrait overrides — keyed by slug. Lets us pin the agency's
  *  hand-shot photos for specific players without breaking the rest of the
- *  roster (which falls back to the backend's photo_url, then picsum). */
-const LOCAL_PORTRAITS: Record<string, string> = {
-  'karim-toure': karimPortrait,
-}
+ *  roster (which falls back to the backend's photo_url, then picsum).
+ *  Currently empty (the previous Karim override was removed when the
+ *  demo pro was pulled from the seed). */
+const LOCAL_PORTRAITS: Record<string, string> = {}
 
 const HERO_PORTRAIT = heroPortrait
 

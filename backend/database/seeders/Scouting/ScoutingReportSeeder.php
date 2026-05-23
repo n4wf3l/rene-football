@@ -24,54 +24,10 @@ class ScoutingReportSeeder extends Seeder
 
         $matches = FootballMatch::all()->keyBy(fn ($m) => $m->slug);
 
+        // Rapports scouts pour le roster Rene Football. Les anciens rapports
+        // sur les demo pros (karim-toure / idriss-ndiaye / nabil-sangare) ont
+        // été retirés en même temps que leurs fiches.
         $reports = [
-            [
-                'player' => 'karim-toure',
-                'match'  => $matches->keys()->first(),
-                'observed_position' => 'Attaquant axial',
-                'minutes_observed' => 87,
-                'context' => 'live',
-                'tactical_role' => 'Pivot - point d\'appui',
-                'strengths' => 'Jeu dos au but, finition pied gauche, lecture des espaces dans le dernier tiers.',
-                'weaknesses' => 'Repli défensif sur les transitions adverses.',
-                'global_rating' => 8.0,
-                'current_level' => 7.8,
-                'potential_level' => 9.0,
-                'recommendation' => 'shortlist_a',
-                'next_action' => 'Rendez-vous agent pour cadrer salaire',
-                'status' => 'validated',
-                'submitted_at' => Carbon::now()->subDays(2),
-                'validated_at' => Carbon::now()->subDays(1),
-                'validated_by' => $chef?->id,
-                'scores' => [
-                    ['category' => 'offensif', 'criterion' => 'Finition', 'score' => 9],
-                    ['category' => 'offensif', 'criterion' => 'Jeu dos au but', 'score' => 9],
-                    ['category' => 'tactique', 'criterion' => 'Mouvement sans ballon', 'score' => 8],
-                    ['category' => 'defensif', 'criterion' => 'Pressing avant', 'score' => 7],
-                ],
-            ],
-            [
-                'player' => 'idriss-ndiaye',
-                'match'  => 'fc-twente-vs-az-alkmaar-' . optional($matches->where('home_team', 'FC Twente')->first()?->kickoff_at)->format('Y-m-d'),
-                'observed_position' => 'Avant-centre',
-                'minutes_observed' => 75,
-                'context' => 'video',
-                'tactical_role' => 'Point d\'appui + appel profondeur',
-                'strengths' => 'Finition rapide, mentalité gagnante, joue beaucoup en une touche.',
-                'weaknesses' => 'Premier contrôle sous pression à améliorer.',
-                'global_rating' => 7.5,
-                'current_level' => 7.4,
-                'potential_level' => 8.6,
-                'recommendation' => 'shortlist_a',
-                'next_action' => 'Observation live à Twente + rendez-vous club',
-                'status' => 'submitted',
-                'submitted_at' => Carbon::now()->subDays(8),
-                'scores' => [
-                    ['category' => 'offensif', 'criterion' => 'Finition', 'score' => 8],
-                    ['category' => 'tactique', 'criterion' => 'Sens de l\'appel', 'score' => 8],
-                    ['category' => 'technique', 'criterion' => 'Premier contrôle', 'score' => 6],
-                ],
-            ],
             [
                 'player' => 'abakar-abba',
                 'match'  => null,
@@ -114,25 +70,6 @@ class ScoutingReportSeeder extends Seeder
                     ['category' => 'offensif', 'criterion' => '1v1 offensif', 'score' => 9],
                     ['category' => 'mental', 'criterion' => 'Réaction après erreur', 'score' => 6],
                 ],
-            ],
-            [
-                'player' => 'nabil-sangare',
-                'match'  => null,
-                'observed_position' => 'Ailier droit',
-                'minutes_observed' => 70,
-                'context' => 'live',
-                'tactical_role' => 'Ailier inversé',
-                'strengths' => 'Coup de patte gauche, rentre dans l\'axe, créateur d\'occasions.',
-                'weaknesses' => 'Repli défensif moyen.',
-                'global_rating' => 7.8,
-                'current_level' => 7.6,
-                'potential_level' => 8.8,
-                'recommendation' => 'shortlist_a',
-                'next_action' => 'Confirmer disponibilité été 2026',
-                'status' => 'validated',
-                'submitted_at' => Carbon::now()->subDays(7),
-                'validated_at' => Carbon::now()->subDays(5),
-                'validated_by' => $chef?->id,
             ],
             [
                 'player' => 'ativie-megogo',
