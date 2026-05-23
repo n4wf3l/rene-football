@@ -160,20 +160,20 @@ function ScrollRail({ sections, scrollYProgress }: ScrollRailProps) {
       aria-hidden="true"
       className="hidden xl:block fixed left-6 top-1/2 -translate-y-1/2 z-20 h-72 pointer-events-none"
     >
-      <div className="relative h-full w-px bg-stone-200">
+      <div className="relative h-full w-px bg-stone-200 dark:bg-stone-50/10">
         <motion.span
-          className="absolute inset-0 origin-top bg-turf-700 w-px"
+          className="absolute inset-0 origin-top bg-turf-700 dark:bg-turf-300 w-px"
           style={{ scaleY }}
         />
         {sections.map((s, i) => (
           <span
             key={s.id}
-            className="absolute -left-[3px] w-1.5 h-1.5 rounded-full bg-stone-300"
+            className="absolute -left-[3px] w-1.5 h-1.5 rounded-full bg-stone-300 dark:bg-stone-50/20"
             style={{ top: `${(i / (sections.length - 1)) * 100}%` }}
           />
         ))}
         <div className="absolute -right-2 top-0 translate-x-full -translate-y-1/2">
-          <span className="font-mono uppercase tracking-[0.18em] text-[0.6rem] text-zinc-500 whitespace-nowrap">
+          <span className="font-mono uppercase tracking-[0.18em] text-[0.6rem] text-zinc-500 dark:text-stone-400 whitespace-nowrap">
             Profil
           </span>
         </div>
@@ -268,7 +268,84 @@ interface PlayerDetailProps {
 function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips = [] }: PlayerDetailProps) {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const isKeeper = player.category === 'Gardien'
-  const sections = isKeeper ? SECTIONS_KEEPER : SECTIONS_FIELD
+
+  /* ─────────────────────────── Section visibility ───────────────────────────
+   * A public profile must never expose empty/zero stat sections — a U9 player
+   * shouldn't display "0 cartons / 0 cartons" or an empty defense bloc. We
+   * compute a `vis` map up-front and use it to (a) filter the nav rail,
+   * (b) gate each <section>, (c) renumber the eyebrows so there are no holes
+   * like "06 - Défense" jumping to "08 - Discipline".
+   * ----------------------------------------------------------------------- */
+  const hasTracking = (player.distance_avg_km ?? 0) > 0
+    || (player.sprints_avg ?? 0) > 0
+    || (player.top_speed_kmh ?? 0) > 0
+    || (player.high_intensity_runs_avg ?? 0) > 0
+
+  const hasScoutProfile = (player.comparisons?.length ?? 0) > 0
+    || (player.strengths?.length ?? 0) > 0
+    || (player.scout_quote?.trim().length ?? 0) > 0
+    || (player.potential_rating ?? 0) > 0
+
+  const vis = {
+    identite:   true, // identity is always shown — individual fields filter themselves below
+    scout:      hasScoutProfile,
+    saison:     (player.matches_played ?? 0) > 0,
+    // Only show the heatmap if the admin actually painted one — never the
+    // generic fallback from `heatmapFromPosition`, which is a placeholder.
+    terrain:    isValidGrid(player.heatmap_grid),
+    creation:   !isKeeper && (
+      (player.goals ?? 0) > 0
+      || (player.assists ?? 0) > 0
+      || (player.xg ?? 0) > 0
+      || (player.xa ?? 0) > 0
+      || (player.key_passes ?? 0) > 0
+      || (player.dribbles_completed ?? 0) > 0
+    ),
+    gardien:    isKeeper && (
+      (player.clean_sheets ?? 0) > 0
+      || (player.saves ?? 0) > 0
+    ),
+    defense:    !isKeeper && (
+      (player.tackles ?? 0) > 0
+      || (player.interceptions ?? 0) > 0
+      || (player.duels_won ?? 0) > 0
+    ),
+    physique:   hasTracking,
+    discipline: (player.yellow_cards ?? 0) > 0 || (player.red_cards ?? 0) > 0,
+    matchs:     appearances.length > 0,
+    moments:    clips.length > 0,
+  }
+
+  // Labels used both for the rail and the section eyebrow (no number — added below).
+  const sectionLabels: Record<string, string> = {
+    identite:   'Profil',
+    scout:      'Évaluation',
+    saison:     'Volume',
+    terrain:    'Terrain',
+    creation:   'Création',
+    gardien:    'Activité',
+    defense:    'Défense',
+    physique:   'Physique',
+    discipline: 'Discipline',
+    matchs:     'Match log',
+    moments:    'Moments',
+  }
+
+  // Ordered list of section ids that survive the visibility gate. Drives the
+  // nav rail AND the eyebrow numbering, so they stay in sync at all costs.
+  const allOrder = isKeeper ? SECTIONS_KEEPER : SECTIONS_FIELD
+  const visibleSections = allOrder.filter((s) => (vis as Record<string, boolean>)[s.id])
+  const sections = visibleSections
+
+  // 1-based, zero-padded number for the eyebrow of a given section id.
+  // Returns null when the section isn't visible — caller should not render it.
+  const numberFor = (id: string): string | null => {
+    const idx = visibleSections.findIndex((s) => s.id === id)
+    if (idx < 0) return null
+    return String(idx + 1).padStart(2, '0')
+  }
+  // Eyebrow with the current dynamic number, e.g. "03 - Défense".
+  const eyebrow = (id: string): string => `${numberFor(id) ?? '00'} - ${sectionLabels[id] ?? id}`
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -433,18 +510,18 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
         </div>
       </nav>
 
-      {/* Identité */}
+      {/* Identité — always shown, individual cards filter themselves out when null. */}
       <section className="container-page py-16 lg:py-24">
-        <SectionHeading id="identite" eyebrow="01 - Profil" title="Identité du joueur." />
+        <SectionHeading id="identite" eyebrow={eyebrow('identite')} title="Identité du joueur." />
 
         <div className="grid lg:grid-cols-5 gap-5">
-          {[
+          {([
             { Icon: Person,     label: 'Catégorie',     value: player.category },
             { Icon: SoccerBall, label: 'Poste',          value: player.position },
-            { Icon: Flag,       label: 'Nationalité',    value: player.nationality ?? '-' },
-            { Icon: Ruler,      label: 'Taille',         value: player.height ?? '-' },
-            { Icon: Calendar,   label: 'Suivi depuis',   value: player.since ?? '-' },
-          ].map(({ Icon, label, value }) => (
+            { Icon: Flag,       label: 'Nationalité',    value: player.nationality },
+            { Icon: Ruler,      label: 'Taille',         value: player.height },
+            { Icon: Calendar,   label: 'Suivi depuis',   value: player.since },
+          ] as const).filter((card) => card.value !== null && card.value !== undefined && card.value !== '').map(({ Icon, label, value }) => (
             <motion.div
               key={label}
               initial={{ opacity: 0, y: 12 }}
@@ -471,10 +548,11 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
         )}
       </section>
 
-      {/* Profil scout */}
+      {/* Profil scout — only shown when at least one scout-side field is filled. */}
+      {vis.scout && (
       <section className="bg-white border-y border-stone-200/80 py-16 lg:py-24 dark:bg-zinc-950 dark:border-stone-50/8">
         <div className="container-page">
-          <SectionHeading id="scout" eyebrow="02 - Évaluation" title="Profil scout." />
+          <SectionHeading id="scout" eyebrow={eyebrow('scout')} title="Profil scout." />
           <ScoutReport
             comparisons={player.comparisons}
             strengths={player.strengths}
@@ -521,14 +599,16 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
           </div>
         </div>
       </section>
+      )}
 
-      {/* Saison */}
+      {/* Saison — hidden if the player hasn't played a match yet. */}
+      {vis.saison && (
       <section className="bg-stone-50 border-b border-stone-200/80 py-16 lg:py-24 dark:bg-zinc-950 dark:border-stone-50/8">
         <div className="container-page">
-          <SectionHeading id="saison" eyebrow="03 - Volume" title="Saison en cours." />
+          <SectionHeading id="saison" eyebrow={eyebrow('saison')} title="Saison en cours." />
 
           <div className="grid lg:grid-cols-12 gap-6 lg:gap-8">
-            <div className="lg:col-span-7 grid grid-cols-2 gap-y-10 gap-x-8 lg:border-r lg:border-stone-200 lg:pr-12">
+            <div className="lg:col-span-7 grid grid-cols-2 gap-y-10 gap-x-8 lg:border-r lg:border-stone-200 dark:lg:border-stone-50/10 lg:pr-12">
               <StatNumber value={player.matches_played} sub="Matchs joués" />
               {isKeeper ? (
                 <>
@@ -565,20 +645,20 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
               </div>
 
               {!isKeeper && (
-                <div className="rounded-3xl border border-stone-200/80 bg-white p-6 lg:p-8">
-                  <div className="font-mono uppercase tracking-[0.18em] text-[0.65rem] text-zinc-500 mb-4">
+                <div className="rounded-3xl border border-stone-200/80 dark:border-stone-50/8 bg-white dark:bg-zinc-900/40 p-6 lg:p-8">
+                  <div className="font-mono uppercase tracking-[0.18em] text-[0.65rem] text-zinc-500 dark:text-stone-400 mb-4">
                     Performance vs attendu
                   </div>
                   <div className="flex items-baseline gap-6">
                     <div>
-                      <div className="text-xs text-zinc-500 mb-1">Buts − xG</div>
-                      <div className={`font-mono text-2xl tabular-nums ${Number(xgDelta) >= 0 ? 'text-turf-700' : 'text-rose-700'}`}>
+                      <div className="text-xs text-zinc-500 dark:text-stone-400 mb-1">Buts − xG</div>
+                      <div className={`font-mono text-2xl tabular-nums ${Number(xgDelta) >= 0 ? 'text-turf-700 dark:text-turf-300' : 'text-rose-700 dark:text-rose-300'}`}>
                         {Number(xgDelta) >= 0 ? '+' : ''}{xgDelta}
                       </div>
                     </div>
                     <div>
-                      <div className="text-xs text-zinc-500 mb-1">Passes − xA</div>
-                      <div className={`font-mono text-2xl tabular-nums ${Number(xaDelta) >= 0 ? 'text-turf-700' : 'text-rose-700'}`}>
+                      <div className="text-xs text-zinc-500 dark:text-stone-400 mb-1">Passes − xA</div>
+                      <div className={`font-mono text-2xl tabular-nums ${Number(xaDelta) >= 0 ? 'text-turf-700 dark:text-turf-300' : 'text-rose-700 dark:text-rose-300'}`}>
                         {Number(xaDelta) >= 0 ? '+' : ''}{xaDelta}
                       </div>
                     </div>
@@ -589,11 +669,14 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
           </div>
         </div>
       </section>
+      )}
 
-      {/* Terrain - heatmap des zones d'activité (commun field + gardien) */}
+      {/* Terrain — only shown when a real heatmap was painted (not the generic
+          position fallback, which would mislead for very young players). */}
+      {vis.terrain && (
       <section className="bg-stone-50 dark:bg-zinc-950 border-y border-stone-200/80 dark:border-stone-50/8 py-16 lg:py-24">
         <div className="container-page">
-          <SectionHeading id="terrain" eyebrow="04 - Terrain" title="Zones d'activité." />
+          <SectionHeading id="terrain" eyebrow={eyebrow('terrain')} title="Zones d'activité." />
           <div className="grid lg:grid-cols-12 gap-8 lg:gap-12">
             <div className="lg:col-span-4 space-y-4">
               <p className="text-zinc-700 dark:text-stone-300 leading-relaxed">
@@ -624,11 +707,12 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
           </div>
         </div>
       </section>
+      )}
 
-      {/* Création (champ) ou Activité (gardien) */}
-      {!isKeeper ? (
+      {/* Création (champ) ou Activité (gardien) — gated by vis.creation/vis.gardien. */}
+      {vis.creation ? (
         <section className="container-page py-16 lg:py-24">
-          <SectionHeading id="creation" eyebrow="05 - Création" title="Création offensive." />
+          <SectionHeading id="creation" eyebrow={eyebrow('creation')} title="Création offensive." />
 
           <div className="grid lg:grid-cols-2 gap-10 lg:gap-16">
             <div className="space-y-6">
@@ -643,78 +727,81 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
             </div>
             <div className="grid grid-cols-2 gap-6">
               <div>
-                <div className="font-mono uppercase tracking-wider text-[0.65rem] text-zinc-500">xG cumulé</div>
-                <div className="mt-1 font-mono text-3xl tabular-nums text-zinc-950">
+                <div className="font-mono uppercase tracking-wider text-[0.65rem] text-zinc-500 dark:text-stone-400">xG cumulé</div>
+                <div className="mt-1 font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">
                   {Number(player.xg ?? 0).toFixed(2)}
                 </div>
               </div>
               <div>
-                <div className="font-mono uppercase tracking-wider text-[0.65rem] text-zinc-500">xA cumulé</div>
-                <div className="mt-1 font-mono text-3xl tabular-nums text-zinc-950">
+                <div className="font-mono uppercase tracking-wider text-[0.65rem] text-zinc-500 dark:text-stone-400">xA cumulé</div>
+                <div className="mt-1 font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">
                   {Number(player.xa ?? 0).toFixed(2)}
                 </div>
               </div>
               <div>
-                <div className="font-mono uppercase tracking-wider text-[0.65rem] text-zinc-500">Passes clés</div>
-                <div className="mt-1 font-mono text-3xl tabular-nums text-zinc-950">{player.key_passes}</div>
+                <div className="font-mono uppercase tracking-wider text-[0.65rem] text-zinc-500 dark:text-stone-400">Passes clés</div>
+                <div className="mt-1 font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">{player.key_passes}</div>
               </div>
               <div>
-                <div className="font-mono uppercase tracking-wider text-[0.65rem] text-zinc-500">Dribbles réussis</div>
-                <div className="mt-1 font-mono text-3xl tabular-nums text-zinc-950">{player.dribbles_completed}</div>
+                <div className="font-mono uppercase tracking-wider text-[0.65rem] text-zinc-500 dark:text-stone-400">Dribbles réussis</div>
+                <div className="mt-1 font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">{player.dribbles_completed}</div>
               </div>
             </div>
           </div>
         </section>
-      ) : (
+      ) : vis.gardien ? (
         <section className="container-page py-16 lg:py-24">
-          <SectionHeading id="gardien" eyebrow="05 - Activité" title="Activité dans la surface." />
+          <SectionHeading id="gardien" eyebrow={eyebrow('gardien')} title="Activité dans la surface." />
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="rounded-2xl border border-stone-200/80 bg-white p-6">
-              <Shield size={20} weight="regular" className="text-turf-800" />
-              <div className="mt-4 font-mono text-3xl tabular-nums text-zinc-950">{player.clean_sheets}</div>
-              <div className="mt-1 text-xs text-zinc-500 font-mono uppercase tracking-wider">Clean sheets</div>
+            <div className="rounded-2xl border border-stone-200/80 dark:border-stone-50/8 bg-white dark:bg-zinc-900/40 p-6">
+              <Shield size={20} weight="regular" className="text-turf-800 dark:text-turf-300" />
+              <div className="mt-4 font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">{player.clean_sheets}</div>
+              <div className="mt-1 text-xs text-zinc-500 dark:text-stone-400 font-mono uppercase tracking-wider">Clean sheets</div>
             </div>
-            <div className="rounded-2xl border border-stone-200/80 bg-white p-6">
-              <Sparkle size={20} weight="regular" className="text-turf-800" />
-              <div className="mt-4 font-mono text-3xl tabular-nums text-zinc-950">{player.saves}</div>
-              <div className="mt-1 text-xs text-zinc-500 font-mono uppercase tracking-wider">Arrêts</div>
+            <div className="rounded-2xl border border-stone-200/80 dark:border-stone-50/8 bg-white dark:bg-zinc-900/40 p-6">
+              <Sparkle size={20} weight="regular" className="text-turf-800 dark:text-turf-300" />
+              <div className="mt-4 font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">{player.saves}</div>
+              <div className="mt-1 text-xs text-zinc-500 dark:text-stone-400 font-mono uppercase tracking-wider">Arrêts</div>
             </div>
-            <div className="rounded-2xl border border-stone-200/80 bg-white p-6">
-              <ListMagnifyingGlass size={20} weight="regular" className="text-turf-800" />
-              <div className="mt-4 font-mono text-3xl tabular-nums text-zinc-950">
+            <div className="rounded-2xl border border-stone-200/80 dark:border-stone-50/8 bg-white dark:bg-zinc-900/40 p-6">
+              <ListMagnifyingGlass size={20} weight="regular" className="text-turf-800 dark:text-turf-300" />
+              <div className="mt-4 font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">
                 {Number(player.pass_accuracy ?? 0).toFixed(1)}
                 <span className="text-stone-400 text-xl">%</span>
               </div>
-              <div className="mt-1 text-xs text-zinc-500 font-mono uppercase tracking-wider">Passes réussies</div>
+              <div className="mt-1 text-xs text-zinc-500 dark:text-stone-400 font-mono uppercase tracking-wider">Passes réussies</div>
             </div>
-            <div className="rounded-2xl border border-stone-200/80 bg-white p-6">
-              <Person size={20} weight="regular" className="text-turf-800" />
-              <div className="mt-4 font-mono text-3xl tabular-nums text-zinc-950">{player.duels_won}</div>
-              <div className="mt-1 text-xs text-zinc-500 font-mono uppercase tracking-wider">Duels gagnés</div>
+            <div className="rounded-2xl border border-stone-200/80 dark:border-stone-50/8 bg-white dark:bg-zinc-900/40 p-6">
+              <Person size={20} weight="regular" className="text-turf-800 dark:text-turf-300" />
+              <div className="mt-4 font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">{player.duels_won}</div>
+              <div className="mt-1 text-xs text-zinc-500 dark:text-stone-400 font-mono uppercase tracking-wider">Duels gagnés</div>
             </div>
           </div>
         </section>
-      )}
+      ) : null}
 
-      {/* Défense (champ uniquement) */}
-      {!isKeeper && (
+      {/* Défense (champ uniquement) — hidden when no defensive action recorded. */}
+      {vis.defense && (
         <section className="bg-white border-y border-stone-200/80 py-16 lg:py-24 dark:bg-zinc-950 dark:border-stone-50/8">
           <div className="container-page">
-            <SectionHeading id="defense" eyebrow="06 - Défense" title="Travail défensif." />
+            <SectionHeading id="defense" eyebrow={eyebrow('defense')} title="Travail défensif." />
 
             <div className="grid lg:grid-cols-3 gap-5 lg:gap-6">
-              <div className="rounded-3xl border border-stone-200/80 p-6 lg:p-8">
-                <Shield size={22} weight="regular" className="text-turf-800" />
-                <div className="mt-5 font-mono text-4xl tabular-nums text-zinc-950">{player.tackles}</div>
-                <div className="mt-1 text-xs text-zinc-500 font-mono uppercase tracking-wider">Tacles</div>
+              <div className="rounded-3xl border border-stone-200/80 dark:border-stone-50/8 dark:bg-zinc-900/40 p-6 lg:p-8">
+                <Shield size={22} weight="regular" className="text-turf-800 dark:text-turf-300" />
+                <div className="mt-5 font-mono text-4xl tabular-nums text-zinc-950 dark:text-stone-50">{player.tackles}</div>
+                <div className="mt-1 text-xs text-zinc-500 dark:text-stone-400 font-mono uppercase tracking-wider">Tacles</div>
               </div>
-              <div className="rounded-3xl border border-stone-200/80 p-6 lg:p-8">
-                <ListMagnifyingGlass size={22} weight="regular" className="text-turf-800" />
-                <div className="mt-5 font-mono text-4xl tabular-nums text-zinc-950">{player.interceptions}</div>
-                <div className="mt-1 text-xs text-zinc-500 font-mono uppercase tracking-wider">Interceptions</div>
+              <div className="rounded-3xl border border-stone-200/80 dark:border-stone-50/8 dark:bg-zinc-900/40 p-6 lg:p-8">
+                <ListMagnifyingGlass size={22} weight="regular" className="text-turf-800 dark:text-turf-300" />
+                <div className="mt-5 font-mono text-4xl tabular-nums text-zinc-950 dark:text-stone-50">{player.interceptions}</div>
+                <div className="mt-1 text-xs text-zinc-500 dark:text-stone-400 font-mono uppercase tracking-wider">Interceptions</div>
               </div>
-              <div className="rounded-3xl bg-zinc-950 text-stone-100 p-6 lg:p-8 relative overflow-hidden">
+              {/* Carte d'accent (toujours sombre) — en dark mode on lui donne une bordure
+                  subtile et un fond légèrement plus clair que le `section` parent (zinc-950)
+                  pour qu'elle ne se fonde pas dans le background. */}
+              <div className="rounded-3xl bg-zinc-950 dark:bg-zinc-900 text-stone-100 p-6 lg:p-8 relative overflow-hidden border border-transparent dark:border-stone-50/8">
                 <div
                   aria-hidden="true"
                   className="pointer-events-none absolute -bottom-12 -right-10 w-48 h-48 rounded-full"
@@ -729,16 +816,13 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
         </section>
       )}
 
-      {/* Profil physique - affiché seulement si au moins une donnée tracking est présente */}
-      {(player.distance_avg_km != null
-        || player.sprints_avg != null
-        || player.top_speed_kmh != null
-        || player.high_intensity_runs_avg != null) && (
+      {/* Profil physique — gated by vis.physique (at least one tracking value > 0). */}
+      {vis.physique && (
         <section className="bg-white border-y border-stone-200/80 py-16 lg:py-24 dark:bg-zinc-950 dark:border-stone-50/8">
           <div className="container-page">
             <SectionHeading
               id="physique"
-              eyebrow={isKeeper ? '06 - Physique' : '07 - Physique'}
+              eyebrow={eyebrow('physique')}
               title="Profil physique."
             />
             <p className="text-sm text-zinc-600 dark:text-stone-400 mb-6 max-w-[60ch]">
@@ -796,35 +880,38 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
         </section>
       )}
 
-      {/* Discipline */}
+      {/* Discipline — hidden when no card has ever been recorded (also drops the
+          0/0 cards card for U9 / U13 profiles where it would be meaningless). */}
+      {vis.discipline && (
       <section className="container-page py-16 lg:py-24">
         <SectionHeading
           id="discipline"
-          eyebrow={isKeeper ? '07 - Discipline' : '08 - Discipline'}
+          eyebrow={eyebrow('discipline')}
           title="Discipline."
         />
 
         <div className="grid sm:grid-cols-2 gap-5 max-w-2xl">
-          <div className="rounded-2xl border border-amber-200/70 bg-amber-50/40 p-6">
-            <Cards size={20} weight="regular" className="text-amber-700" />
-            <div className="mt-4 font-mono text-3xl tabular-nums text-zinc-950">{player.yellow_cards}</div>
-            <div className="mt-1 text-xs text-zinc-500 font-mono uppercase tracking-wider">Cartons jaunes</div>
+          <div className="rounded-2xl border border-amber-200/70 dark:border-amber-400/20 bg-amber-50/40 dark:bg-amber-500/[0.08] p-6">
+            <Cards size={20} weight="regular" className="text-amber-700 dark:text-amber-300" />
+            <div className="mt-4 font-mono text-3xl tabular-nums text-zinc-950 dark:text-amber-50">{player.yellow_cards}</div>
+            <div className="mt-1 text-xs text-zinc-500 dark:text-amber-200/80 font-mono uppercase tracking-wider">Cartons jaunes</div>
           </div>
-          <div className="rounded-2xl border border-rose-200/70 bg-rose-50/40 p-6">
-            <Cards size={20} weight="regular" className="text-rose-700" />
-            <div className="mt-4 font-mono text-3xl tabular-nums text-zinc-950">{player.red_cards}</div>
-            <div className="mt-1 text-xs text-zinc-500 font-mono uppercase tracking-wider">Cartons rouges</div>
+          <div className="rounded-2xl border border-rose-200/70 dark:border-rose-400/20 bg-rose-50/40 dark:bg-rose-500/[0.08] p-6">
+            <Cards size={20} weight="regular" className="text-rose-700 dark:text-rose-300" />
+            <div className="mt-4 font-mono text-3xl tabular-nums text-zinc-950 dark:text-rose-50">{player.red_cards}</div>
+            <div className="mt-1 text-xs text-zinc-500 dark:text-rose-200/80 font-mono uppercase tracking-wider">Cartons rouges</div>
           </div>
         </div>
       </section>
+      )}
 
-      {/* Match log - last 8 appearances */}
-      {appearances.length > 0 && (
+      {/* Match log — last 8 appearances. Gated by vis.matchs (= appearances.length > 0). */}
+      {vis.matchs && (
         <section className="bg-white border-y border-stone-200/80 py-16 lg:py-24 dark:bg-zinc-950 dark:border-stone-50/8">
           <div className="container-page">
             <SectionHeading
               id="matchs"
-              eyebrow={isKeeper ? '08 - Match log' : '09 - Match log'}
+              eyebrow={eyebrow('matchs')}
               title="Derniers matchs."
             />
             <p className="text-sm text-zinc-600 dark:text-stone-400 mb-6 max-w-[60ch]">
@@ -836,12 +923,12 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
         </section>
       )}
 
-      {/* Annotated key moments - frame snapshots, no source video. */}
-      {clips.length > 0 && (
+      {/* Annotated key moments — frame snapshots, no source video. */}
+      {vis.moments && (
         <section className="container-page py-16 lg:py-24">
           <SectionHeading
             id="moments"
-            eyebrow={isKeeper ? '09 - Moments' : '10 - Moments'}
+            eyebrow={eyebrow('moments')}
             title="Moments clés annotés."
           />
           <p className="text-sm text-zinc-600 dark:text-stone-400 mb-6 max-w-[60ch]">
