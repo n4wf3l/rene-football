@@ -74,6 +74,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             PlayerSeeder::class,
             AppearanceSeeder::class,
+            StaffSeeder::class,
         ]);
 
         // Scouting cockpit demo data - order matters (DNA + needs first, then

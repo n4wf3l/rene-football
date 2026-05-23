@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\Admin\AdminAppearanceController;
 use App\Http\Controllers\Api\Admin\AdminArticleController;
 use App\Http\Controllers\Api\Admin\AdminClipController;
 use App\Http\Controllers\Api\Admin\AdminPlayerController;
+use App\Http\Controllers\Api\Admin\AdminStaffController;
 use App\Http\Controllers\Api\Admin\Scouting\ClubDnaProfileController as ScoutingClubDnaProfileController;
 use App\Http\Controllers\Api\Admin\Scouting\FootballMatchController;
 use App\Http\Controllers\Api\Admin\Scouting\PlayerAliasController as ScoutingPlayerAliasController;
@@ -24,6 +25,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\PdfController;
 use App\Http\Controllers\Api\PlayerController;
+use App\Http\Controllers\Api\StaffController;
 use Illuminate\Support\Facades\Route;
 
 // --- Public ---
@@ -35,6 +37,8 @@ Route::get('/players/{player:slug}/pdf', [PdfController::class, 'playerProfile']
 
 Route::get('/articles', [ArticleController::class, 'index']);
 Route::get('/articles/{article:slug}', [ArticleController::class, 'show']);
+
+Route::get('/staff', [StaffController::class, 'index']);
 
 Route::post('/contact', [ContactController::class, 'store'])
     ->middleware('throttle:5,1');
@@ -81,6 +85,16 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::patch('/articles/{article:slug}',      [AdminArticleController::class, 'update']);
     Route::post('/articles/{article:slug}',       [AdminArticleController::class, 'update']);
     Route::delete('/articles/{article:slug}',     [AdminArticleController::class, 'destroy']);
+
+    // Staff (À propos / L'équipe) - photo via multipart, _method=PUT spoofing.
+    Route::get('/staff',                       [AdminStaffController::class, 'index']);
+    Route::post('/staff',                      [AdminStaffController::class, 'store']);
+    Route::post('/staff/reorder',              [AdminStaffController::class, 'reorder']);
+    Route::get('/staff/{staff:slug}',          [AdminStaffController::class, 'show']);
+    Route::put('/staff/{staff:slug}',          [AdminStaffController::class, 'update']);
+    Route::patch('/staff/{staff:slug}',        [AdminStaffController::class, 'update']);
+    Route::post('/staff/{staff:slug}',         [AdminStaffController::class, 'update']);
+    Route::delete('/staff/{staff:slug}',       [AdminStaffController::class, 'destroy']);
 
     /* -----------------------------------------------------------------
      * SCOUTING COCKPIT

@@ -13,6 +13,7 @@ import {
   Newspaper,
   SignOut,
   SoccerBall,
+  UsersThree,
   X as XIcon,
 } from '@phosphor-icons/react'
 import { useAuth } from '../auth/AuthContext'
@@ -39,6 +40,7 @@ const NAV_ITEMS: AdminNavItem[] = [
   { to: '/admin/analyse',   label: 'Data analyse',    icon: ChartLineUp },
   { to: '/admin/articles',  label: 'Actualités',      icon: Newspaper },
   { to: '/admin/scouting',  label: 'Scouting',        icon: Binoculars,    badgeKey: 'scouting' },
+  { to: '/admin/equipe',    label: 'Équipe',          icon: UsersThree },
 ]
 
 interface SidebarLinkProps {
@@ -264,6 +266,8 @@ const FOCUS_ROUTES: RegExp[] = [
   /^\/admin\/joueurs\/[^/]+\/edit$/,
   /^\/admin\/articles\/nouveau$/,
   /^\/admin\/articles\/[^/]+\/edit$/,
+  /^\/admin\/equipe\/nouveau$/,
+  /^\/admin\/equipe\/[^/]+\/edit$/,
   // Scouting cockpit has its own internal sidebar - collapse the outer one.
   /^\/admin\/scouting$/,
 ]
