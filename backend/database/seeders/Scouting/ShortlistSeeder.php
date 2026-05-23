@@ -38,9 +38,9 @@ class ShortlistSeeder extends Seeder
             ],
         );
 
-        // sl1 - ailiers droits (les demo pros nabil-sangare, ousmane-camara,
-        // karim-toure ont été retirés du roster — seul Adams Saeed reste).
+        // sl1 - ailiers (profils larges offensifs).
         $entries1 = [
+            ['slug' => 'hamzath-mohamadou','stage' => 'shortlist_a', 'reason' => 'Ailier gauche U-15 BVB - potentiel world class (10/10 FutureBallers)', 'estimated_price' => 1200000, 'risk_level' => 'faible', 'confidence_score' => 80, 'next_action' => 'Suivi U-17 + entretien représentation'],
             ['slug' => 'adams-saeed',    'stage' => 'shortlist_a', 'reason' => 'Bi-national Ghana / Pays-Bas - passeport UE - polyvalence striker / ailes', 'estimated_price' => 750000, 'risk_level' => 'moyen', 'confidence_score' => 66, 'next_action' => 'Observer en U21 vs Club Brugge'],
         ];
 

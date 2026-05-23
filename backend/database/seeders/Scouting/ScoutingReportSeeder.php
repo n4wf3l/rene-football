@@ -88,6 +88,32 @@ class ScoutingReportSeeder extends Seeder
                 'status' => 'needs_changes',
                 'submitted_at' => Carbon::now()->subDays(4),
             ],
+            [
+                'player' => 'hamzath-mohamadou',
+                'match'  => null,
+                'observed_position' => 'Ailier gauche',
+                'minutes_observed' => 80,
+                'context' => 'live',
+                'tactical_role' => 'Ailier gauche inversé pied droit - repique dans l\'axe',
+                'strengths' => 'Capacité 1v1 hors-norme, explosivité top niveau, dribble en mouvement, imprévisibilité dans les choix offensifs. Profil comparable à Dembélé / Barcola.',
+                'weaknesses' => 'Structuration défensive et discipline de poste à construire, encore très jeune (15 ans) - exposition médiatique à gérer.',
+                'global_rating' => 8.5,
+                'current_level' => 7.2,
+                'potential_level' => 9.7,
+                'recommendation' => 'shortlist_a',
+                'next_action' => 'Suivi rapproché U-17 + entretien représentation long terme',
+                'status' => 'validated',
+                'submitted_at' => Carbon::now()->subDays(3),
+                'validated_at' => Carbon::now()->subDays(1),
+                'validated_by' => $jeunes?->id,
+                'scores' => [
+                    ['category' => 'offensif',  'criterion' => '1v1 offensif',         'score' => 10],
+                    ['category' => 'physique',  'criterion' => 'Explosivité',          'score' => 10],
+                    ['category' => 'technique', 'criterion' => 'Dribble en mouvement', 'score' => 9],
+                    ['category' => 'mental',    'criterion' => 'Imprévisibilité',      'score' => 9],
+                    ['category' => 'defensif',  'criterion' => 'Repli défensif',       'score' => 5],
+                ],
+            ],
         ];
 
         foreach ($reports as $r) {

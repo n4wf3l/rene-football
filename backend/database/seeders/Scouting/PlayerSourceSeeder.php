@@ -28,6 +28,9 @@ class PlayerSourceSeeder extends Seeder
             ['slug' => 'abakar-abba',   'field_name' => 'club',          'value' => 'Standard de Liège',  'source_type' => 'officiel', 'source_label' => 'Roster Standard de Liège 2025-2026', 'reliability_score' => 95],
             ['slug' => 'abakar-abba',   'field_name' => 'date_of_birth', 'value' => '2009-01-04',         'source_type' => 'officiel', 'source_label' => 'Passeport', 'reliability_score' => 100],
             ['slug' => 'abakar-abba',   'field_name' => 'nationality',   'value' => 'Belgique',           'source_type' => 'officiel', 'source_label' => 'Passeport', 'reliability_score' => 100],
+            ['slug' => 'hamzath-mohamadou', 'field_name' => 'club',          'value' => 'Borussia Dortmund (U-17)', 'source_type' => 'officiel', 'source_label' => 'Roster BVB U-17 2025-2026', 'reliability_score' => 95],
+            ['slug' => 'hamzath-mohamadou', 'field_name' => 'nationality',   'value' => 'Allemagne (U-15)',         'source_type' => 'officiel', 'source_label' => 'DFB - sélection U-15', 'reliability_score' => 100],
+            ['slug' => 'hamzath-mohamadou', 'field_name' => 'profile',       'value' => 'World Class 10/10',        'source_type' => 'externe',  'source_label' => 'Carte FutureBallers DE', 'reliability_score' => 75],
         ];
 
         foreach ($rows as $r) {

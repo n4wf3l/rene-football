@@ -101,7 +101,10 @@ class PlayerSeeder extends Seeder
     private const OBSOLETE_SLUGS = [
         // Players who used to fill demo slots but have since been swapped for
         // real Rene Football roster members.
-        'hamzath-mohamadou', // replaced by adams-saeed
+        // NB : hamzath-mohamadou avait été retire en pensant qu'il s'agissait
+        // d'un profil de demo ; il est en fait un vrai joueur Rene Football
+        // (BVB U17, 15 ans). Il est donc re-inseré dans `$players` plus bas
+        // et retiré de cette liste.
         'adil-berkane',      // replaced by ativie-megogo
         'yanis-lefevre',     // replaced by abakar-abba
         'ayoub-el-bahri',    // replaced by camara-philan
@@ -151,6 +154,10 @@ class PlayerSeeder extends Seeder
             // Attaquant droitier érythréen au F91 Dudelange (BGL Ligue Luxembourg).
             // Photo pinnee sur l'ancien slug pour preserver l'image existante.
             ['tesfegabir-solomon','Tesfegabir Solomon Hanibal',18,'1m80','Attaquant',         'Attaquant', 'F91 Dudelange',     'Érythrée',       'Droit',  2024, 21, 9,  5,  1620, 48, 22, 7.4,  4.2, 24, 77.6, 38, 8,  5,  48, 2, 0,  0,  0, 'https://picsum.photos/seed/hugo-tessier/600/800'],
+            // Hamzath Mohamadou - vrai joueur Rene Football (15 ans, BVB U-17).
+            // Ailier gauche allemand U-15, 17 contributions decisives en U-17 cette
+            // saison. Comparable a Dembele / Barcola. Potentiel 10/10 (carte FutureBallers).
+            ['hamzath-mohamadou','Hamzath Mohamadou',15,'1m72','Ailier gauche','Attaquant', 'Borussia Dortmund', 'Allemagne',      'Droit',  2024, 22, 12, 5,  1620, 58, 28, 9.4,  4.6, 26, 77.8, 84, 4,  3,  52, 1, 0,  0,  0],
             // Adams Saeed - vrai joueur Rene Football (16 ans, KV Mechelen, ne le 17/10/2009).
             // Striker / ailier droite ou gauche, bi-national Ghana / Pays-Bas (passeport UE).
             // Carte agence : https://renefootball.com.

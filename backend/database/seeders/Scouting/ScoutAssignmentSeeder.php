@@ -61,6 +61,16 @@ class ScoutAssignmentSeeder extends Seeder
                 'status' => 'a_faire',
             ],
             [
+                'title' => 'BVB U-17 - observation Hamzath Mohamadou',
+                'football_match_id' => null,
+                'assigned_to' => $scoutId, 'assigned_by' => $scoutId,
+                'priority' => 'urgente',
+                'objective' => 'Confirmer en live le potentiel 10/10 - focus 1v1 et lecture du jeu sans ballon. Entretien représentation à caler.',
+                'players_to_watch' => Player::where('slug', 'hamzath-mohamadou')->pluck('id')->toArray(),
+                'due_date' => Carbon::today()->addDays(3),
+                'status' => 'en_cours',
+            ],
+            [
                 'title' => 'Audit shortlists fin de saison',
                 'football_match_id' => null,
                 'assigned_to' => $scoutId, 'assigned_by' => $scoutId,
