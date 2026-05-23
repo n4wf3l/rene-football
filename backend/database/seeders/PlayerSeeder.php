@@ -104,6 +104,7 @@ class PlayerSeeder extends Seeder
         'yanis-lefevre',     // replaced by abakar-abba
         'ayoub-el-bahri',    // replaced by camara-philan
         'hugo-tessier',      // replaced by tesfegabir-solomon
+        'romain-caillard',   // replaced by batomi-zoran-mawel
     ];
 
     public function run(): void
@@ -128,7 +129,10 @@ class PlayerSeeder extends Seeder
             ['ousmane-camara',  'Ousmane Camara',  21, '1m77', 'Ailier gauche',       'Attaquant', 'Royal Antwerp',     'Mali',           'Droit',  2023, 24, 7,  9,  2010, 51, 22, 7.8,  6.9, 42, 80.5, 64, 9,  11, 49, 4, 0,  0,  0],
             ['lucas-marini',    'Lucas Marini',    27, '1m80', 'Lateral droit',       'Defenseur', 'AS Monaco',         'Italie',         'Droit',  2018, 26, 1,  3,  2280, 14, 5,  1.1,  2.4, 22, 84.7, 15, 48, 36, 71, 5, 0,  4,  0],
             ['idriss-ndiaye',   "Idriss N'Diaye",  23, '1m89', 'Avant-centre',        'Attaquant', 'FC Twente',         'Senegal',        'Droit',  2022, 33, 17, 2,  2740, 84, 47, 14.3, 1.8, 18, 72.1, 19, 8,  5,  62, 4, 0,  0,  0],
-            ['romain-caillard', 'Romain Caillard', 29, '1m92', 'Gardien',             'Gardien',   'KAS Eupen',         'Luxembourg',     'Droit',  2017, 31, 0,  0,  2790, 0,  0,  0,    0,   2,  68.3, 0,  0,  4,  6,  3, 0,  10, 102],
+            // Batomi Zoran-Mawel - vrai joueur mineur Rene Football (8 ans, ne le 24/04/2018).
+            // Attaquant droitier belge a l'academie du Royal Sporting Club Anderlecht (RSCA).
+            // Photo pinnee sur l'ancien slug pour preserver l'image existante.
+            ['batomi-zoran-mawel','Batomi Zoran-Mawel',8, '1m35', 'Attaquant',          'Attaquant', 'Royal Sporting Club Anderlecht', 'Belgique', 'Droit', 2024, 6,  5,  2,  280,  18, 10, 3.4,  1.8, 8,  72.0, 24, 1,  1,  12, 0, 0,  0,  0, 'https://picsum.photos/seed/romain-caillard/600/800'],
             // Camara Philan - vrai joueur mineur Rene Football (U13, 11 ans, ne le 21/01/2015).
             // Attaquant droitier belge, academie KRC Genk - profil long terme. Photo
             // pinnee sur l'ancien slug (ayoub-el-bahri) pour preserver l'image existante.
