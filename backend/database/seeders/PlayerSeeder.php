@@ -129,6 +129,13 @@ class PlayerSeeder extends Seeder
         // all reference player_id with onDelete cascade or nullOnDelete).
         Player::whereIn('slug', self::OBSOLETE_SLUGS)->delete();
 
+        // Purge legacy picsum URLs left behind by earlier seeds. The frontend
+        // renders an inline SVG placeholder when photo_url is null — way
+        // faster than a third-party CDN round-trip.
+        Player::query()
+            ->where('photo_url', 'LIKE', 'https://picsum.photos/%')
+            ->update(['photo_url' => null]);
+
         // Roster Rene Football — only real players represented by the agency
         // are seeded here. Demo pros (Karim, Idriss, Mehdi, Théo, Lucas, Nabil,
         // Ousmane) have been pulled out and their slugs added to OBSOLETE_SLUGS
@@ -177,8 +184,12 @@ class PlayerSeeder extends Seeder
             // gets clobbered on the next `db:seed`. So we lookup the existing row
             // first and preserve a user-uploaded photo if one is in place.
             $existing = Player::where('slug', $p[0])->first();
-            $defaultPhoto = $p[28] ?? "https://picsum.photos/seed/{$p[0]}/600/800";
-            $photoUrl = $this->resolvePhotoUrl($existing?->photo_url, $defaultPhoto);
+            // Default is now null — the frontend's playerImage() renders an inline
+            // SVG with the player's initials, far faster than a CDN round-trip.
+            // The legacy index-28 picsum pins (which were only there to "preserve
+            // the previous visual" during replacements) are now harmless and
+            // ignored by resolvePhotoUrl(), which treats picsum as placeholder.
+            $photoUrl = $this->resolvePhotoUrl($existing?->photo_url, null);
 
             // Same protection for the bio — if the admin wrote one in the back-office,
             // don't reset it to null on every seed run.
@@ -233,19 +244,19 @@ class PlayerSeeder extends Seeder
     }
 
     /**
-     * Decide which photo_url to write. A "user-uploaded" photo is anything that
-     * isn't the picsum placeholder we ship with the seed — so once an admin uploads
-     * a real picture through the back-office, `db:seed` stops touching it.
+     * Decide which photo_url to write.
      *
-     * Pure picsum URLs (the only thing the seeder ever writes) are considered
-     * disposable and get refreshed to the latest seeder default.
+     * Behaviour :
+     *   - If the admin uploaded a real photo (anything not picsum) → keep it.
+     *   - Otherwise → return null. The frontend's playerImage() helper renders
+     *     an inline SVG with the player's initials, with zero network request.
+     *     We no longer inject picsum URLs into the DB — they were the main
+     *     cause of the 20s perceived load time on the public roster.
      */
-    private function resolvePhotoUrl(?string $existing, string $default): string
+    private function resolvePhotoUrl(?string $existing, ?string $default): ?string
     {
-        if (! $existing) return $default;
-        // Anything that doesn't look like our placeholder is treated as a real
-        // upload — local /storage path, external URL pasted by the admin, etc.
-        if (! str_starts_with($existing, 'https://picsum.photos/')) {
+        // Real upload preserved (back-office upload, external CDN URL, etc.).
+        if ($existing && ! str_starts_with($existing, 'https://picsum.photos/')) {
             return $existing;
         }
         return $default;

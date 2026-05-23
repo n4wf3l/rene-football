@@ -16,6 +16,7 @@ import { api } from '../../api/client'
 import type { Article, ArticleCategory } from '../../types/article'
 import { ARTICLE_CATEGORIES } from '../../types/article'
 import Skeleton from '../../components/Skeleton'
+import { playerImage } from '../../lib/playerImage'
 
 interface ArticleListResponse {
   data: Article[]
@@ -270,8 +271,10 @@ export default function AdminArticles() {
                   {a.player ? (
                     <span className="inline-flex items-center gap-2">
                       <img
-                        src={a.player.photo_url || `https://picsum.photos/seed/${a.player.slug}/40`}
+                        src={playerImage(a.player)}
                         alt=""
+                        loading="lazy"
+                        decoding="async"
                         className="w-6 h-6 rounded-full object-cover"
                       />
                       <span className="text-xs text-zinc-700 dark:text-stone-300 truncate">{a.player.name}</span>

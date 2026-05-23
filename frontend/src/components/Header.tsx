@@ -16,6 +16,7 @@ import ThemeToggle from '../theme/ThemeToggle'
 import BrandLogo from './BrandLogo'
 import { useAuth } from '../auth/AuthContext'
 import { usePublicPlayers, pickShowcase } from '../lib/usePublicPlayers'
+import { playerImage } from '../lib/playerImage'
 
 interface NavItem {
   to: string
@@ -192,9 +193,10 @@ const MegaPanel = memo(function MegaPanel({ open, onClose, onMouseEnter, onMouse
                   <Link to={`/joueurs/${p.slug}`} onClick={onClose} className="group block">
                     <div className="relative aspect-[3/4] overflow-hidden rounded-xl border border-stone-50/8">
                       <img
-                        src={p.photo_url ?? `https://picsum.photos/seed/${p.slug}/300/400`}
+                        src={playerImage(p)}
                         alt=""
                         loading="lazy"
+                        decoding="async"
                         className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-premium group-hover:scale-[1.06]"
                       />
                       <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent" />

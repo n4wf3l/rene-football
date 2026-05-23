@@ -17,6 +17,7 @@ import MeshGradient from '../components/MeshGradient'
 import Skeleton from '../components/Skeleton'
 import ClipsGalleryPublic from '../components/ClipsGalleryPublic'
 import { api, ApiError } from '../api/client'
+import { playerImage } from '../lib/playerImage'
 import type { Article, ArticleImage } from '../types/article'
 
 interface ArticleResponse { data: Article }
@@ -313,8 +314,10 @@ export default function ArticleDetailPage() {
                   className="mt-4 group flex items-center gap-3"
                 >
                   <img
-                    src={article.player.photo_url || `https://picsum.photos/seed/${article.player.slug}/120`}
+                    src={playerImage(article.player)}
                     alt=""
+                    loading="lazy"
+                    decoding="async"
                     className="w-14 h-14 rounded-full object-cover border border-stone-200 dark:border-stone-50/10"
                   />
                   <div className="min-w-0 flex-1">

@@ -16,11 +16,12 @@ import FloatingAccents from '../components/FloatingAccents'
 import AnimatedNumber from '../components/AnimatedNumber'
 import AnimatedUnderline from '../components/AnimatedUnderline'
 import { usePublicPlayers, pickShowcase } from '../lib/usePublicPlayers'
+import { playerImage } from '../lib/playerImage'
 import heroPortrait from '../assets/player2.png'
 
 /** Local portrait overrides — keyed by slug. Lets us pin the agency's
  *  hand-shot photos for specific players without breaking the rest of the
- *  roster (which falls back to the backend's photo_url, then picsum).
+ *  roster (which falls back to playerImage()).
  *  Currently empty (the previous Karim override was removed when the
  *  demo pro was pulled from the seed). */
 const LOCAL_PORTRAITS: Record<string, string> = {}
@@ -260,7 +261,7 @@ function HomePage() {
               className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6"
             >
               {roster.map((p) => {
-                const photo = LOCAL_PORTRAITS[p.slug] ?? p.photo_url ?? `https://picsum.photos/seed/${p.slug}/600/800`
+                const photo = LOCAL_PORTRAITS[p.slug] ?? playerImage(p)
                 return (
                   <motion.li
                     key={p.slug}
@@ -274,6 +275,7 @@ function HomePage() {
                           src={photo}
                           alt=""
                           loading="lazy"
+                          decoding="async"
                           className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-premium group-hover:scale-[1.04]"
                         />
                         <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-zinc-950/70 to-transparent" />

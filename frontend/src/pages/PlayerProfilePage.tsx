@@ -33,6 +33,7 @@ import ClipsGalleryPublic from '../components/ClipsGalleryPublic'
 import type { Appearance } from '../types/appearance'
 import type { PlayerClip } from '../types/clip'
 import { heatmapFromPosition, isValidGrid } from '../lib/heatmap'
+import { playerImage } from '../lib/playerImage'
 
 interface SectionEntry {
   id: string
@@ -446,9 +447,10 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
             >
               <div className="relative aspect-[3/4] w-full max-w-[440px] ml-auto rounded-[2rem] overflow-hidden border border-stone-50/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
                 <img
-                  src={player.photo_url || `https://picsum.photos/seed/${player.slug}/600/800`}
+                  src={playerImage(player)}
                   alt={player.name}
                   loading="eager"
+                  decoding="async"
                   className="absolute inset-0 w-full h-full object-cover"
                 />
                 <div

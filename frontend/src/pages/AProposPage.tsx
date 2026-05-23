@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { RefObject } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, useMotionTemplate, useScroll, useSpring, useTransform } from 'framer-motion'
@@ -6,12 +6,16 @@ import {
   ArrowUpRight,
   Compass,
   Handshake,
+  Person,
   ScanSmiley,
   ShieldCheck,
 } from '@phosphor-icons/react'
 import MeshGradient from '../components/MeshGradient'
 import AnimatedNumber from '../components/AnimatedNumber'
 import AnimatedUnderline from '../components/AnimatedUnderline'
+import Skeleton from '../components/Skeleton'
+import { api } from '../api/client'
+import type { StaffMember } from '../types/staff'
 
 const PILLARS = [
   {
@@ -31,32 +35,7 @@ const PILLARS = [
   },
 ]
 
-const STAFF = [
-  {
-    name: 'Hélène Marchetti',
-    role: 'Fondatrice · Agent FIFA',
-    bio: "Passée par la direction sportive d'un club professionnel belge avant de fonder l'agence à Luxembourg en 2010.",
-    seed: 'helene-marchetti',
-  },
-  {
-    name: 'Rénald Dubois',
-    role: 'Conseiller juridique · Droit du sport',
-    bio: "Avocat spécialisé en droit du sport. Sécurise transferts, prolongations et droits à l'image.",
-    seed: 'renald-dubois',
-  },
-  {
-    name: 'Jérôme Allègre',
-    role: 'Responsable scouting',
-    bio: "20 ans dans le scouting professionnel. Coordonne un réseau de 12 scouts à travers l'Europe.",
-    seed: 'jerome-allegre',
-  },
-  {
-    name: 'Fatou Sow',
-    role: 'Communication & relations médias',
-    bio: "Encadre la communication des joueurs, forme à la prise de parole et gère les relations presse.",
-    seed: 'fatou-sow',
-  },
-]
+interface StaffResponse { data: StaffMember[] }
 
 const STATS: { value: number; label: string; suffix?: string }[] = [
   { value: 127, label: 'Joueurs représentés', suffix: '+' },
@@ -105,6 +84,17 @@ function TimelineRail({ targetRef }: TimelineRailProps) {
 
 function AProposPage() {
   const timelineRef = useRef<HTMLOListElement | null>(null)
+  const [staff, setStaff] = useState<StaffMember[]>([])
+  const [staffLoading, setStaffLoading] = useState(true)
+
+  useEffect(() => {
+    let cancelled = false
+    api.get<StaffResponse>('/staff')
+      .then((res) => { if (!cancelled) setStaff(res.data) })
+      .catch(() => { /* non-fatal - the section just renders empty */ })
+      .finally(() => { if (!cancelled) setStaffLoading(false) })
+    return () => { cancelled = true }
+  }, [])
 
   return (
     <>
@@ -186,7 +176,10 @@ function AProposPage() {
         </div>
       </section>
 
-      {/* Staff */}
+      {/* Staff — hidden entirely once we know there is no staff to show.
+          We keep the section visible during the initial fetch so the layout
+          doesn't pop ; the skeleton fills the slot until we have the answer. */}
+      {(staffLoading || staff.length > 0) && (
       <section className="bg-white dark:bg-zinc-950 border-y border-stone-200/80 dark:border-stone-50/10 py-20 lg:py-28 transition-colors">
         <div className="container-page">
           <div className="flex items-end justify-between gap-6 mb-12 flex-wrap">
@@ -202,43 +195,66 @@ function AProposPage() {
             </p>
           </div>
 
-          <motion.ul
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, margin: '-100px' }}
-            variants={{ show: { transition: { staggerChildren: 0.08 } } }}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 lg:gap-6"
-          >
-            {STAFF.map((m) => (
-              <motion.li
-                key={m.seed}
-                variants={FADE_UP}
-                transition={{ type: 'spring', stiffness: 110, damping: 22 }}
-                className="group"
-              >
-                <div className="relative aspect-[3/4] overflow-hidden rounded-2xl bg-stone-200 dark:bg-stone-50/5">
-                  <img
-                    src={`https://picsum.photos/seed/${m.seed}/600/800`}
-                    alt=""
-                    loading="lazy"
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-premium group-hover:scale-[1.04]"
-                  />
-                  <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-zinc-950/70 to-transparent" />
-                  <div className="absolute bottom-3 left-3 right-3 text-stone-50">
-                    <div className="font-display font-medium text-base leading-tight">{m.name}</div>
-                    <div className="text-[0.7rem] text-stone-300 mt-0.5 font-mono uppercase tracking-wider">
-                      {m.role}
+          {staffLoading && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 lg:gap-6">
+              {[0, 1, 2, 3].map((i) => (
+                <div key={i} className="space-y-4">
+                  <Skeleton className="aspect-[3/4] w-full rounded-2xl" />
+                  <Skeleton className="h-4 w-2/3" />
+                  <Skeleton className="h-4 w-full" />
+                </div>
+              ))}
+            </div>
+          )}
+
+          {!staffLoading && staff.length > 0 && (
+            <motion.ul
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, margin: '-100px' }}
+              variants={{ show: { transition: { staggerChildren: 0.08 } } }}
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 lg:gap-6"
+            >
+              {staff.map((m) => (
+                <motion.li
+                  key={m.slug}
+                  variants={FADE_UP}
+                  transition={{ type: 'spring', stiffness: 110, damping: 22 }}
+                  className="group"
+                >
+                  <div className="relative aspect-[3/4] overflow-hidden rounded-2xl bg-stone-200 dark:bg-stone-50/5">
+                    {m.photo_url ? (
+                      <img
+                        src={m.photo_url}
+                        alt=""
+                        loading="lazy"
+                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-premium group-hover:scale-[1.04]"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 grid place-items-center text-stone-400 dark:text-stone-500">
+                        <Person size={48} weight="duotone" />
+                      </div>
+                    )}
+                    <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-zinc-950/70 to-transparent" />
+                    <div className="absolute bottom-3 left-3 right-3 text-stone-50">
+                      <div className="font-display font-medium text-base leading-tight">{m.name}</div>
+                      <div className="text-[0.7rem] text-stone-300 mt-0.5 font-mono uppercase tracking-wider">
+                        {m.role}
+                      </div>
                     </div>
                   </div>
-                </div>
-                <p className="mt-4 text-sm text-zinc-600 dark:text-stone-400 leading-relaxed">
-                  {m.bio}
-                </p>
-              </motion.li>
-            ))}
-          </motion.ul>
+                  {m.bio && (
+                    <p className="mt-4 text-sm text-zinc-600 dark:text-stone-400 leading-relaxed">
+                      {m.bio}
+                    </p>
+                  )}
+                </motion.li>
+              ))}
+            </motion.ul>
+          )}
         </div>
       </section>
+      )}
 
       {/* Timeline */}
       <section className="bg-stone-50 dark:bg-zinc-950 py-20 lg:py-28 transition-colors">

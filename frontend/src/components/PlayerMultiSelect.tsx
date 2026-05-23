@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Check, MagnifyingGlass, X } from '@phosphor-icons/react'
 import type { Player } from '../types/player'
 import { RADAR_PLAYER_COLORS } from './PlayerRadar'
+import { playerImage } from '../lib/playerImage'
 
 export interface PlayerMultiSelectProps {
   players: Player[]
@@ -97,9 +98,10 @@ export default function PlayerMultiSelect({
               >
                 <div className="relative shrink-0 w-7 h-7 rounded-full overflow-hidden bg-stone-200 dark:bg-stone-50/10">
                   <img
-                    src={p.photo_url || `https://picsum.photos/seed/${p.slug}/56`}
+                    src={playerImage(p)}
                     alt=""
                     loading="lazy"
+                    decoding="async"
                     className="absolute inset-0 w-full h-full object-cover"
                   />
                   {isSelected && (

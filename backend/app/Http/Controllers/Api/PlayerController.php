@@ -29,14 +29,35 @@ class PlayerController extends Controller
         'red_cards'           => true,
     ];
 
+    /**
+     * Public roster listing.
+     *
+     * Returns ONLY the fields the public list pages actually render
+     * (HomePage roster preview, /joueurs grid, Header mega menu, MercatoTicker).
+     * The big JSON columns (heatmap_grid, comparisons, strengths, scout_quote,
+     * bio, …) are deliberately NOT selected — they belong to the detail
+     * endpoint. Reduces the payload from ~14 KB to ~2 KB for 7 players.
+     *
+     * A 60-second public HTTP cache is set so a browser reload / a second tab
+     * doesn't refetch — the roster is stable on this timescale.
+     */
     public function index(): JsonResponse
     {
         $players = Player::query()
             ->where('is_published', true)
             ->orderBy('name')
-            ->get();
+            ->get([
+                'id', 'slug', 'name', 'age', 'height', 'position', 'category',
+                'club', 'nationality', 'preferred_foot', 'since', 'photo_url',
+                'matches_played', 'goals', 'assists', 'minutes_played',
+                'shots_on_target', 'xg', 'xa', 'key_passes', 'pass_accuracy',
+                'dribbles_completed', 'tackles', 'interceptions', 'duels_won',
+                'yellow_cards', 'red_cards', 'clean_sheets', 'saves',
+                'updated_at',
+            ]);
 
-        return response()->json(['data' => $players]);
+        return response()->json(['data' => $players])
+            ->header('Cache-Control', 'public, max-age=60');
     }
 
     public function show(Player $player): JsonResponse
@@ -44,10 +65,18 @@ class PlayerController extends Controller
         abort_unless($player->is_published, 404);
 
         // Percentile rank within same-category published players.
+        // We only need the metric columns + id/category for ranking, so we
+        // select() to avoid loading heatmap_grid / comparisons / scout_quote
+        // for every peer.
         $peers = Player::query()
             ->where('is_published', true)
             ->where('category', $player->category)
-            ->get();
+            ->get([
+                'id', 'category', 'matches_played', 'goals', 'assists',
+                'minutes_played', 'shots_on_target', 'xg', 'xa', 'key_passes',
+                'pass_accuracy', 'dribbles_completed', 'tackles', 'interceptions',
+                'duels_won', 'clean_sheets', 'saves', 'yellow_cards', 'red_cards',
+            ]);
 
         $percentiles = $this->computePercentiles($peers, $player);
 
@@ -62,7 +91,7 @@ class PlayerController extends Controller
             'peers_count' => $peers->count(),
             'appearances' => $appearances,
             'clips' => $clips,
-        ]);
+        ])->header('Cache-Control', 'public, max-age=30');
     }
 
     private function computePercentiles($peers, Player $self): array

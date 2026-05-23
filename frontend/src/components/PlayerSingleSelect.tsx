@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { CaretDown, MagnifyingGlass, X } from '@phosphor-icons/react'
 import type { Player } from '../types/player'
+import { playerImage } from '../lib/playerImage'
 
 export interface PlayerSingleSelectProps {
   players: Player[]
@@ -43,8 +44,10 @@ export default function PlayerSingleSelect({
           {selected ? (
             <>
               <img
-                src={selected.photo_url || `https://picsum.photos/seed/${selected.slug}/56`}
+                src={playerImage(selected)}
                 alt=""
+                loading="lazy"
+                decoding="async"
                 className="w-7 h-7 rounded-full object-cover"
               />
               <span className="min-w-0 flex-1 text-left">
@@ -116,8 +119,10 @@ export default function PlayerSingleSelect({
                         }`}
                       >
                         <img
-                          src={p.photo_url || `https://picsum.photos/seed/${p.slug}/56`}
+                          src={playerImage(p)}
                           alt=""
+                          loading="lazy"
+                          decoding="async"
                           className="w-8 h-8 rounded-full object-cover shrink-0"
                         />
                         <span className="min-w-0 flex-1">

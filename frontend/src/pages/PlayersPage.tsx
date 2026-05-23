@@ -10,6 +10,7 @@ import { api } from '../api/client'
 import MeshGradient from '../components/MeshGradient'
 import AnimatedNumber from '../components/AnimatedNumber'
 import Skeleton from '../components/Skeleton'
+import { playerImage } from '../lib/playerImage'
 import type { Player, PositionFilter, AgeFilter } from '../types/player'
 
 const POSITION_FILTERS: PositionFilter[] = ['Tous', 'Gardien', 'Defenseur', 'Milieu', 'Attaquant']
@@ -48,9 +49,10 @@ function PlayerCard({ player }: PlayerCardProps) {
 
       <div className="relative aspect-[3/4] overflow-hidden bg-stone-200">
         <img
-          src={player.photo_url || `https://picsum.photos/seed/${player.slug}/600/800`}
+          src={playerImage(player)}
           alt=""
           loading="lazy"
+          decoding="async"
           className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-premium group-hover:scale-[1.04]"
         />
         <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-zinc-950/80 via-zinc-950/30 to-transparent" />
