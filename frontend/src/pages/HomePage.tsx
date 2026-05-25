@@ -76,9 +76,11 @@ function HomePage() {
   const roster = useMemo(() => pickShowcase(players, 4), [players])
   return (
     <>
-      {/* HERO - asymmetric 60/40 split, dark stadium feel */}
-      <section ref={heroRef} className="relative overflow-hidden text-stone-100">
-        <MeshGradient intensity="medium" />
+      {/* HERO - asymmetric 60/40 split. Theme-aware : light mode keeps the
+          editorial layout with high-contrast dark text, dark mode keeps the
+          stadium-at-night feel that defines the brand. */}
+      <section ref={heroRef} className="relative overflow-hidden text-zinc-900 dark:text-stone-100">
+        <MeshGradient intensity="medium" tone="auto" />
         <FloatingAccents />
         <div
           aria-hidden="true"
@@ -105,27 +107,27 @@ function HomePage() {
             <motion.span
               variants={FADE_UP}
               transition={{ type: 'spring', stiffness: 110, damping: 18 }}
-              className="inline-flex items-center gap-2 rounded-full border border-turf-400/30 bg-turf-800/20 px-3 py-1 text-xs font-medium uppercase tracking-[0.18em] text-turf-300"
+              className="inline-flex items-center gap-2 rounded-full border border-turf-300/60 bg-turf-50 px-3 py-1 text-xs font-medium uppercase tracking-[0.18em] text-turf-800 dark:border-turf-400/30 dark:bg-turf-800/20 dark:text-turf-300"
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-turf-300 animate-pulse" />
+              <span className="w-1.5 h-1.5 rounded-full bg-turf-600 dark:bg-turf-300 animate-pulse" />
               Agence de football
             </motion.span>
 
             <motion.h1
               variants={FADE_UP}
               transition={{ type: 'spring', stiffness: 110, damping: 18 }}
-              className="mt-5 font-display font-semibold leading-[1.05] tracking-tightest text-stone-50"
+              className="mt-5 font-display font-semibold leading-[1.05] tracking-tightest text-zinc-950 dark:text-stone-50"
               style={{ fontSize: 'clamp(2.4rem, 5.5vw, 4.25rem)' }}
             >
               Nous façonnons les{' '}
-              <span className="text-turf-300">carrières</span> qui marquent
+              <span className="text-turf-700 dark:text-turf-300">carrières</span> qui marquent
               le football européen.
             </motion.h1>
 
             <motion.p
               variants={FADE_UP}
               transition={{ type: 'spring', stiffness: 110, damping: 18 }}
-              className="mt-5 max-w-[58ch] text-base lg:text-lg text-stone-400 leading-relaxed"
+              className="mt-5 max-w-[58ch] text-base lg:text-lg text-zinc-600 dark:text-stone-400 leading-relaxed"
             >
               Basée au Luxembourg, Rene Football accompagne jeunes talents,
               joueurs confirmés et clubs partout en Europe - de la signature
@@ -139,7 +141,7 @@ function HomePage() {
             >
               <Link
                 to="/joueurs"
-                className="btn bg-stone-50 text-zinc-950 hover:bg-stone-200 ease-premium"
+                className="btn bg-zinc-950 text-stone-50 hover:bg-zinc-800 dark:bg-stone-50 dark:text-zinc-950 dark:hover:bg-stone-200 ease-premium"
               >
                 Découvrir nos joueurs
                 <ArrowUpRight size={18} weight="bold" />
@@ -159,7 +161,7 @@ function HomePage() {
             className="lg:col-span-5 relative flex lg:justify-end"
           >
             <div
-              className="relative aspect-[3/4] w-full lg:max-w-[440px] ml-auto rounded-[2rem] overflow-hidden border border-stone-50/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
+              className="relative aspect-[3/4] w-full lg:max-w-[440px] ml-auto rounded-[2rem] overflow-hidden border border-stone-300/60 dark:border-stone-50/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
               style={{ maxHeight: 'min(75dvh, 600px)' }}
             >
               <img
@@ -198,7 +200,7 @@ function HomePage() {
            Sits BELOW the 100dvh hero box so it never competes for vertical space
            with the headline + portrait. Visible on scroll-down. */}
         <div className="container-page pb-16 lg:pb-20">
-          <div className="grid grid-cols-2 lg:grid-cols-4 lg:divide-x divide-stone-50/10 border-t border-stone-50/10 pt-10">
+          <div className="grid grid-cols-2 lg:grid-cols-4 lg:divide-x divide-stone-200 dark:divide-stone-50/10 border-t border-stone-200 dark:border-stone-50/10 pt-10">
             {STATS.map((s, i) => (
               <motion.div
                 key={s.label}
@@ -208,11 +210,11 @@ function HomePage() {
                 transition={{ delay: i * 0.06, type: 'spring', stiffness: 110, damping: 18 }}
                 className="px-0 lg:px-8 first:lg:pl-0 py-4 lg:py-0"
               >
-                <div className="font-mono text-3xl lg:text-4xl text-stone-50 tabular-nums inline-flex items-baseline">
+                <div className="font-mono text-3xl lg:text-4xl text-zinc-950 dark:text-stone-50 tabular-nums inline-flex items-baseline">
                   <AnimatedNumber value={s.value} duration={1.6} />
-                  {s.suffix && <span className="text-turf-300 ml-0.5">{s.suffix}</span>}
+                  {s.suffix && <span className="text-turf-700 dark:text-turf-300 ml-0.5">{s.suffix}</span>}
                 </div>
-                <div className="mt-2 text-sm text-stone-400">{s.label}</div>
+                <div className="mt-2 text-sm text-zinc-600 dark:text-stone-400">{s.label}</div>
               </motion.div>
             ))}
           </div>

@@ -29,6 +29,32 @@ function matchesAge(player: Player, key: AgeFilter): boolean {
   return true
 }
 
+/* Variants used by each card. The parent <motion.ul> drives the stagger
+   (see GRID_VARIANTS below) — cards don't define their own initial/animate
+   so the cascade order is consistent. */
+const CARD_VARIANTS = {
+  hidden: { opacity: 0, y: 22, scale: 0.97 },
+  show:   {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { type: 'spring' as const, stiffness: 200, damping: 24, mass: 0.6 },
+  },
+  exit:   { opacity: 0, scale: 0.96, transition: { duration: 0.18 } },
+}
+
+/* Parent orchestrator : cards appear one after the other with a 70ms gap,
+   after a tiny initial delay so the page chrome settles first. */
+const GRID_VARIANTS = {
+  hidden: {},
+  show: {
+    transition: {
+      staggerChildren: 0.07,
+      delayChildren: 0.08,
+    },
+  },
+}
+
 interface PlayerCardProps {
   player: Player
 }
@@ -39,10 +65,8 @@ function PlayerCard({ player }: PlayerCardProps) {
     <motion.li
       layout
       layoutId={`player-${player.slug}`}
-      initial={{ opacity: 0, y: 14 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.96 }}
-      transition={{ type: 'spring', stiffness: 220, damping: 26 }}
+      variants={CARD_VARIANTS}
+      exit="exit"
       className="group relative overflow-hidden rounded-3xl bg-white border border-stone-200/80 hover:border-zinc-300 shadow-diffusion transition-colors duration-300 ease-premium dark:bg-zinc-900 dark:border-stone-50/8 dark:hover:border-stone-50/20"
     >
       <Link to={`/joueurs/${player.slug}`} className="absolute inset-0 z-10" aria-label={`Voir ${player.name}`} />
@@ -319,6 +343,9 @@ function PlayersPage() {
           ) : (
             <motion.ul
               layout
+              initial="hidden"
+              animate="show"
+              variants={GRID_VARIANTS}
               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 lg:gap-6"
             >
               <AnimatePresence mode="popLayout">
