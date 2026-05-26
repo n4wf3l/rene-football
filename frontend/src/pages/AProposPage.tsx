@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef } from 'react'
 import type { RefObject } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, useMotionTemplate, useScroll, useSpring, useTransform } from 'framer-motion'
@@ -14,8 +14,7 @@ import MeshGradient from '../components/MeshGradient'
 import AnimatedNumber from '../components/AnimatedNumber'
 import AnimatedUnderline from '../components/AnimatedUnderline'
 import Skeleton from '../components/Skeleton'
-import { api } from '../api/client'
-import type { StaffMember } from '../types/staff'
+import { usePublicStaff } from '../lib/usePublicStaff'
 
 const PILLARS = [
   {
@@ -34,8 +33,6 @@ const PILLARS = [
     text: "Trajectoire de carrière, image, partenariats. Nous pensons une carrière comme un projet, pas comme un transfert.",
   },
 ]
-
-interface StaffResponse { data: StaffMember[] }
 
 const STATS: { value: number; label: string; suffix?: string }[] = [
   { value: 127, label: 'Joueurs représentés', suffix: '+' },
@@ -84,17 +81,10 @@ function TimelineRail({ targetRef }: TimelineRailProps) {
 
 function AProposPage() {
   const timelineRef = useRef<HTMLOListElement | null>(null)
-  const [staff, setStaff] = useState<StaffMember[]>([])
-  const [staffLoading, setStaffLoading] = useState(true)
-
-  useEffect(() => {
-    let cancelled = false
-    api.get<StaffResponse>('/staff')
-      .then((res) => { if (!cancelled) setStaff(res.data) })
-      .catch(() => { /* non-fatal - the section just renders empty */ })
-      .finally(() => { if (!cancelled) setStaffLoading(false) })
-    return () => { cancelled = true }
-  }, [])
+  // Module-level cache via usePublicStaff() — a second visit to /a-propos
+  // does NOT re-fetch the API, which was the main cause of the perceived
+  // "éternité" load.
+  const { staff, loading: staffLoading } = usePublicStaff()
 
   return (
     <>
@@ -228,6 +218,7 @@ function AProposPage() {
                         src={m.photo_url}
                         alt=""
                         loading="lazy"
+                        decoding="async"
                         className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-premium group-hover:scale-[1.04]"
                       />
                     ) : (
