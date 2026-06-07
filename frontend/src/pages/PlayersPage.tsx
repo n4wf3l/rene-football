@@ -30,7 +30,7 @@ function matchesAge(player: Player, key: AgeFilter): boolean {
 }
 
 /* Variants used by each card. The parent <motion.ul> drives the stagger
-   (see GRID_VARIANTS below) — cards don't define their own initial/animate
+   (see GRID_VARIANTS below) - cards don't define their own initial/animate
    so the cascade order is consistent. */
 const CARD_VARIANTS = {
   hidden: { opacity: 0, y: 22, scale: 0.97 },

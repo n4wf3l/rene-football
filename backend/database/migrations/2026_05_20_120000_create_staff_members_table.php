@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Public "À propos / L'équipe" roster — small CRUD-managed list shown on
+     * Public "À propos / L'équipe" roster - small CRUD-managed list shown on
      * the about page. Photo is uploaded the same way as players/articles:
      * stored under storage/app/public/staff and served via /storage/...
      */

@@ -96,7 +96,7 @@ class PlayerSeeder extends Seeder
      * seed run so the cockpit doesn't drag around orphan profiles when the user
      * runs `db:seed` (without `migrate:fresh`).
      *
-     * Photo files on disk are left untouched — only the DB row is cleaned up.
+     * Photo files on disk are left untouched - only the DB row is cleaned up.
      */
     private const OBSOLETE_SLUGS = [
         // Players who used to fill demo slots but have since been swapped for
@@ -111,7 +111,7 @@ class PlayerSeeder extends Seeder
         'hugo-tessier',      // replaced by tesfegabir-solomon
         'romain-caillard',   // replaced by batomi-zoran-mawel
 
-        // Demo pros removed wholesale — the agency only wants the real roster
+        // Demo pros removed wholesale - the agency only wants the real roster
         // to show. These slugs are deleted on every seed and never re-inserted.
         'idriss-ndiaye',
         'karim-toure',
@@ -130,13 +130,13 @@ class PlayerSeeder extends Seeder
         Player::whereIn('slug', self::OBSOLETE_SLUGS)->delete();
 
         // Purge legacy picsum URLs left behind by earlier seeds. The frontend
-        // renders an inline SVG placeholder when photo_url is null — way
+        // renders an inline SVG placeholder when photo_url is null - way
         // faster than a third-party CDN round-trip.
         Player::query()
             ->where('photo_url', 'LIKE', 'https://picsum.photos/%')
             ->update(['photo_url' => null]);
 
-        // Roster Rene Football — only real players represented by the agency
+        // Roster Rene Football - only real players represented by the agency
         // are seeded here. Demo pros (Karim, Idriss, Mehdi, Théo, Lucas, Nabil,
         // Ousmane) have been pulled out and their slugs added to OBSOLETE_SLUGS
         // above so the seed is fully idempotent.
@@ -184,14 +184,14 @@ class PlayerSeeder extends Seeder
             // gets clobbered on the next `db:seed`. So we lookup the existing row
             // first and preserve a user-uploaded photo if one is in place.
             $existing = Player::where('slug', $p[0])->first();
-            // Default is now null — the frontend's playerImage() renders an inline
+            // Default is now null - the frontend's playerImage() renders an inline
             // SVG with the player's initials, far faster than a CDN round-trip.
             // The legacy index-28 picsum pins (which were only there to "preserve
             // the previous visual" during replacements) are now harmless and
             // ignored by resolvePhotoUrl(), which treats picsum as placeholder.
             $photoUrl = $this->resolvePhotoUrl($existing?->photo_url, null);
 
-            // Same protection for the bio — if the admin wrote one in the back-office,
+            // Same protection for the bio - if the admin wrote one in the back-office,
             // don't reset it to null on every seed run.
             $bio = $existing?->bio ?? null;
 
@@ -250,7 +250,7 @@ class PlayerSeeder extends Seeder
      *   - If the admin uploaded a real photo (anything not picsum) → keep it.
      *   - Otherwise → return null. The frontend's playerImage() helper renders
      *     an inline SVG with the player's initials, with zero network request.
-     *     We no longer inject picsum URLs into the DB — they were the main
+     *     We no longer inject picsum URLs into the DB - they were the main
      *     cause of the 20s perceived load time on the public roster.
      */
     private function resolvePhotoUrl(?string $existing, ?string $default): ?string

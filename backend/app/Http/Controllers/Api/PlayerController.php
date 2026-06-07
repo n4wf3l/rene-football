@@ -35,11 +35,11 @@ class PlayerController extends Controller
      * Returns ONLY the fields the public list pages actually render
      * (HomePage roster preview, /joueurs grid, Header mega menu, MercatoTicker).
      * The big JSON columns (heatmap_grid, comparisons, strengths, scout_quote,
-     * bio, …) are deliberately NOT selected — they belong to the detail
+     * bio, …) are deliberately NOT selected - they belong to the detail
      * endpoint. Reduces the payload from ~14 KB to ~2 KB for 7 players.
      *
      * A 60-second public HTTP cache is set so a browser reload / a second tab
-     * doesn't refetch — the roster is stable on this timescale.
+     * doesn't refetch - the roster is stable on this timescale.
      */
     public function index(): JsonResponse
     {

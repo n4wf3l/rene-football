@@ -30,7 +30,7 @@ function buildItems(players: Player[]): MercatoItem[] {
     .map((p, i) => ({
       slug: p.slug,
       player: p.name,
-      move: p.club ?? '—',
+      move: p.club ?? '-',
       note: NOTE_POOL[i % NOTE_POOL.length],
     }))
 }
@@ -77,7 +77,7 @@ function Row({ items, ariaHidden = false }: RowProps) {
 function MercatoTickerBase() {
   const { players } = usePublicPlayers()
   const items = useMemo(() => buildItems(players), [players])
-  // Don't render the band at all when we have nothing to show — avoids an
+  // Don't render the band at all when we have nothing to show - avoids an
   // empty strip on first paint before the API resolves.
   if (items.length === 0) return null
   return (

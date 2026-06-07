@@ -33,7 +33,7 @@ const NAV: NavItem[] = [
 ]
 
 /* Mega-menu showcase is populated live from /api/players via usePublicPlayers().
-   No more hardcoded names — what's on the public roster IS what shows here. */
+   No more hardcoded names - what's on the public roster IS what shows here. */
 
 /* Per-item hover-pill geometry. The capsule stays dark in both themes (premium
    editorial-sport identity), so a single tint per item is enough. */
@@ -208,7 +208,7 @@ const MegaPanel = memo(function MegaPanel({ open, onClose, onMouseEnter, onMouse
                       </div>
                     </div>
                     <div className="mt-2 text-[0.7rem] text-stone-400 group-hover:text-stone-200 transition flex items-center justify-between">
-                      <span>{p.club ?? '—'}</span>
+                      <span>{p.club ?? '-'}</span>
                       <ArrowUpRight size={11} weight="bold" className="text-stone-500 group-hover:text-turf-300 transition" />
                     </div>
                   </Link>

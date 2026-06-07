@@ -6,7 +6,7 @@ interface StaffResponse { data: StaffMember[] }
 
 /**
  * Module-level cache so revisiting `/a-propos` doesn't re-fetch the staff list.
- * The roster changes rarely and the section is tiny (4-6 rows) — a single
+ * The roster changes rarely and the section is tiny (4-6 rows) - a single
  * GET per session is plenty. Same pattern as `usePublicPlayers`.
  */
 let cache: StaffMember[] | null = null

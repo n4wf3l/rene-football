@@ -5,7 +5,7 @@ import { motion } from 'framer-motion'
 export type MeshGradientIntensity = 'subtle' | 'medium' | 'strong'
 
 /** Background tone strategy.
- *  - `dark`  : always-dark (stadium-at-night) — legacy default, used by every
+ *  - `dark`  : always-dark (stadium-at-night) - legacy default, used by every
  *              section that hasn't been migrated to a theme-aware text palette.
  *  - `auto`  : light in light mode, dark in dark mode. Use this only when the
  *              section's text/borders all carry the right dark: variants. */

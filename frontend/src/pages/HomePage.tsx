@@ -19,7 +19,7 @@ import { usePublicPlayers, pickShowcase } from '../lib/usePublicPlayers'
 import { playerImage } from '../lib/playerImage'
 import heroPortrait from '../assets/player2.png'
 
-/** Local portrait overrides — keyed by slug. Lets us pin the agency's
+/** Local portrait overrides - keyed by slug. Lets us pin the agency's
  *  hand-shot photos for specific players without breaking the rest of the
  *  roster (which falls back to playerImage()).
  *  Currently empty (the previous Karim override was removed when the
@@ -71,7 +71,7 @@ const FADE_UP = {
 function HomePage() {
   const heroRef = useRef<HTMLElement | null>(null)
   const { players, loading } = usePublicPlayers()
-  // Top 4 showcase roster picked from the real DB — sorts by minutes_played
+  // Top 4 showcase roster picked from the real DB - sorts by minutes_played
   // so the visible cards always reflect the agency's active stars, not seed order.
   const roster = useMemo(() => pickShowcase(players, 4), [players])
   return (
@@ -292,7 +292,7 @@ function HomePage() {
                         </div>
                       </div>
                       <div className="mt-3 flex items-center justify-between text-sm">
-                        <span className="text-zinc-700 dark:text-stone-300">{p.club ?? '—'}</span>
+                        <span className="text-zinc-700 dark:text-stone-300">{p.club ?? '-'}</span>
                         <ArrowUpRight
                           size={14}
                           weight="bold"

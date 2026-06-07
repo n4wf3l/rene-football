@@ -271,7 +271,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
   const isKeeper = player.category === 'Gardien'
 
   /* ─────────────────────────── Section visibility ───────────────────────────
-   * A public profile must never expose empty/zero stat sections — a U9 player
+   * A public profile must never expose empty/zero stat sections - a U9 player
    * shouldn't display "0 cartons / 0 cartons" or an empty defense bloc. We
    * compute a `vis` map up-front and use it to (a) filter the nav rail,
    * (b) gate each <section>, (c) renumber the eyebrows so there are no holes
@@ -288,10 +288,10 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
     || (player.potential_rating ?? 0) > 0
 
   const vis = {
-    identite:   true, // identity is always shown — individual fields filter themselves below
+    identite:   true, // identity is always shown - individual fields filter themselves below
     scout:      hasScoutProfile,
     saison:     (player.matches_played ?? 0) > 0,
-    // Only show the heatmap if the admin actually painted one — never the
+    // Only show the heatmap if the admin actually painted one - never the
     // generic fallback from `heatmapFromPosition`, which is a placeholder.
     terrain:    isValidGrid(player.heatmap_grid),
     creation:   !isKeeper && (
@@ -317,7 +317,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
     moments:    clips.length > 0,
   }
 
-  // Labels used both for the rail and the section eyebrow (no number — added below).
+  // Labels used both for the rail and the section eyebrow (no number - added below).
   const sectionLabels: Record<string, string> = {
     identite:   'Profil',
     scout:      'Évaluation',
@@ -339,7 +339,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
   const sections = visibleSections
 
   // 1-based, zero-padded number for the eyebrow of a given section id.
-  // Returns null when the section isn't visible — caller should not render it.
+  // Returns null when the section isn't visible - caller should not render it.
   const numberFor = (id: string): string | null => {
     const idx = visibleSections.findIndex((s) => s.id === id)
     if (idx < 0) return null
@@ -512,7 +512,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
         </div>
       </nav>
 
-      {/* Identité — always shown, individual cards filter themselves out when null. */}
+      {/* Identité - always shown, individual cards filter themselves out when null. */}
       <section className="container-page py-16 lg:py-24">
         <SectionHeading id="identite" eyebrow={eyebrow('identite')} title="Identité du joueur." />
 
@@ -550,7 +550,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
         )}
       </section>
 
-      {/* Profil scout — only shown when at least one scout-side field is filled. */}
+      {/* Profil scout - only shown when at least one scout-side field is filled. */}
       {vis.scout && (
       <section className="bg-white border-y border-stone-200/80 py-16 lg:py-24 dark:bg-zinc-950 dark:border-stone-50/8">
         <div className="container-page">
@@ -603,7 +603,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
       </section>
       )}
 
-      {/* Saison — hidden if the player hasn't played a match yet. */}
+      {/* Saison - hidden if the player hasn't played a match yet. */}
       {vis.saison && (
       <section className="bg-stone-50 border-b border-stone-200/80 py-16 lg:py-24 dark:bg-zinc-950 dark:border-stone-50/8">
         <div className="container-page">
@@ -673,7 +673,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
       </section>
       )}
 
-      {/* Terrain — only shown when a real heatmap was painted (not the generic
+      {/* Terrain - only shown when a real heatmap was painted (not the generic
           position fallback, which would mislead for very young players). */}
       {vis.terrain && (
       <section className="bg-stone-50 dark:bg-zinc-950 border-y border-stone-200/80 dark:border-stone-50/8 py-16 lg:py-24">
@@ -711,7 +711,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
       </section>
       )}
 
-      {/* Création (champ) ou Activité (gardien) — gated by vis.creation/vis.gardien. */}
+      {/* Création (champ) ou Activité (gardien) - gated by vis.creation/vis.gardien. */}
       {vis.creation ? (
         <section className="container-page py-16 lg:py-24">
           <SectionHeading id="creation" eyebrow={eyebrow('creation')} title="Création offensive." />
@@ -783,7 +783,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
         </section>
       ) : null}
 
-      {/* Défense (champ uniquement) — hidden when no defensive action recorded. */}
+      {/* Défense (champ uniquement) - hidden when no defensive action recorded. */}
       {vis.defense && (
         <section className="bg-white border-y border-stone-200/80 py-16 lg:py-24 dark:bg-zinc-950 dark:border-stone-50/8">
           <div className="container-page">
@@ -800,7 +800,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
                 <div className="mt-5 font-mono text-4xl tabular-nums text-zinc-950 dark:text-stone-50">{player.interceptions}</div>
                 <div className="mt-1 text-xs text-zinc-500 dark:text-stone-400 font-mono uppercase tracking-wider">Interceptions</div>
               </div>
-              {/* Carte d'accent (toujours sombre) — en dark mode on lui donne une bordure
+              {/* Carte d'accent (toujours sombre) - en dark mode on lui donne une bordure
                   subtile et un fond légèrement plus clair que le `section` parent (zinc-950)
                   pour qu'elle ne se fonde pas dans le background. */}
               <div className="rounded-3xl bg-zinc-950 dark:bg-zinc-900 text-stone-100 p-6 lg:p-8 relative overflow-hidden border border-transparent dark:border-stone-50/8">
@@ -818,7 +818,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
         </section>
       )}
 
-      {/* Profil physique — gated by vis.physique (at least one tracking value > 0). */}
+      {/* Profil physique - gated by vis.physique (at least one tracking value > 0). */}
       {vis.physique && (
         <section className="bg-white border-y border-stone-200/80 py-16 lg:py-24 dark:bg-zinc-950 dark:border-stone-50/8">
           <div className="container-page">
@@ -882,7 +882,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
         </section>
       )}
 
-      {/* Discipline — hidden when no card has ever been recorded (also drops the
+      {/* Discipline - hidden when no card has ever been recorded (also drops the
           0/0 cards card for U9 / U13 profiles where it would be meaningless). */}
       {vis.discipline && (
       <section className="container-page py-16 lg:py-24">
@@ -907,7 +907,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
       </section>
       )}
 
-      {/* Match log — last 8 appearances. Gated by vis.matchs (= appearances.length > 0). */}
+      {/* Match log - last 8 appearances. Gated by vis.matchs (= appearances.length > 0). */}
       {vis.matchs && (
         <section className="bg-white border-y border-stone-200/80 py-16 lg:py-24 dark:bg-zinc-950 dark:border-stone-50/8">
           <div className="container-page">
@@ -925,7 +925,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
         </section>
       )}
 
-      {/* Annotated key moments — frame snapshots, no source video. */}
+      {/* Annotated key moments - frame snapshots, no source video. */}
       {vis.moments && (
         <section className="container-page py-16 lg:py-24">
           <SectionHeading

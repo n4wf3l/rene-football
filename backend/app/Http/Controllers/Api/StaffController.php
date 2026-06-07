@@ -12,7 +12,7 @@ class StaffController extends Controller
      * Public staff listing for the AProposPage block.
      *
      * The roster is tiny (typically 4-6 rows) and changes rarely, so we add
-     * a 60-second public cache header — a reload or a navigation back to the
+     * a 60-second public cache header - a reload or a navigation back to the
      * page no longer round-trips the DB.
      */
     public function index(): JsonResponse

@@ -15,7 +15,7 @@ class PlayerSourceSeeder extends Seeder
 
         // Sources documentaires pour le roster Rene Football uniquement.
         // Les demo pros retirés (mehdi-boukar, karim-toure, idriss-ndiaye…)
-        // n'apparaissent plus ici — leurs lignes seraient skippées de toute
+        // n'apparaissent plus ici - leurs lignes seraient skippées de toute
         // façon par le `if (! $player) continue` ci-dessous.
         $rows = [
             ['slug' => 'adams-saeed', 'field_name' => 'club',           'value' => 'KV Mechelen',                  'source_type' => 'officiel', 'source_label' => 'Roster KV Mechelen 2025-2026', 'reliability_score' => 95],

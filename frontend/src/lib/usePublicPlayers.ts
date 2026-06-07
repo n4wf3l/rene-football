@@ -7,7 +7,7 @@ interface PlayersResponse { data: Player[] }
 /**
  * Module-level cache so all the homepage widgets (HomePage roster, Header mega
  * menu, MercatoTicker) share a single GET /api/players call. The cache is
- * volatile : it lives only for the page session, which is what we want — the
+ * volatile : it lives only for the page session, which is what we want - the
  * Vite dev server + browser HTTP cache handle the rest.
  */
 let cache: Player[] | null = null

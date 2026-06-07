@@ -81,7 +81,7 @@ function TimelineRail({ targetRef }: TimelineRailProps) {
 
 function AProposPage() {
   const timelineRef = useRef<HTMLOListElement | null>(null)
-  // Module-level cache via usePublicStaff() — a second visit to /a-propos
+  // Module-level cache via usePublicStaff() - a second visit to /a-propos
   // does NOT re-fetch the API, which was the main cause of the perceived
   // "éternité" load.
   const { staff, loading: staffLoading } = usePublicStaff()
@@ -166,7 +166,7 @@ function AProposPage() {
         </div>
       </section>
 
-      {/* Staff — hidden entirely once we know there is no staff to show.
+      {/* Staff - hidden entirely once we know there is no staff to show.
           We keep the section visible during the initial fetch so the layout
           doesn't pop ; the skeleton fills the slot until we have the answer. */}
       {(staffLoading || staff.length > 0) && (

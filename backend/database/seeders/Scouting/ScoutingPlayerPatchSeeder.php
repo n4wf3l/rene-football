@@ -14,7 +14,7 @@ use Illuminate\Database\Seeder;
  *
  * Slugs that were here for demo pros (mehdi-boukar, theo-vasseur, karim-toure,
  * ousmane-camara, lucas-marini, idriss-ndiaye, nabil-sangare) have been removed
- * along with their player rows — see PlayerSeeder::OBSOLETE_SLUGS.
+ * along with their player rows - see PlayerSeeder::OBSOLETE_SLUGS.
  */
 class ScoutingPlayerPatchSeeder extends Seeder
 {

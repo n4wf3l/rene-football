@@ -21,7 +21,7 @@ function initials(name: string): string {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
 }
 
-/** Deterministic 0-359 hue from a slug — same player always gets the same color. */
+/** Deterministic 0-359 hue from a slug - same player always gets the same color. */
 function hashHue(seed: string): number {
   let h = 0
   for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0
