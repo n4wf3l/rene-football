@@ -174,7 +174,7 @@ const MegaPanel = memo(function MegaPanel({ open, onClose, onMouseEnter, onMouse
         >
           <div className="relative rounded-2xl border border-stone-50/10 bg-zinc-950/95 backdrop-blur-xl shadow-[0_30px_60px_-20px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.08)] overflow-hidden">
             <StadiumLights />
-            <div className="relative z-10 flex items-center justify-between px-5 pt-4 pb-3 border-b border-stone-50/8">
+            <div className="relative z-10 flex items-center justify-between px-5 pt-4 pb-3 border-b border-stone-50/10">
               <span className="font-mono uppercase tracking-[0.18em] text-[0.65rem] text-turf-300">
                 Dernières signatures
               </span>
@@ -191,7 +191,7 @@ const MegaPanel = memo(function MegaPanel({ open, onClose, onMouseEnter, onMouse
                   transition={{ delay: 0.05 + i * 0.05, type: 'spring', stiffness: 180, damping: 22 }}
                 >
                   <Link to={`/joueurs/${p.slug}`} onClick={onClose} className="group block">
-                    <div className="relative aspect-[3/4] overflow-hidden rounded-xl border border-stone-50/8">
+                    <div className="relative aspect-[3/4] overflow-hidden rounded-xl border border-stone-50/10">
                       <img
                         src={playerImage(p)}
                         alt=""
@@ -218,7 +218,7 @@ const MegaPanel = memo(function MegaPanel({ open, onClose, onMouseEnter, onMouse
             <Link
               to="/joueurs"
               onClick={onClose}
-              className="relative z-10 flex items-center justify-between px-5 py-4 border-t border-stone-50/8 text-sm text-stone-200 hover:text-stone-50 hover:bg-stone-50/5 transition group"
+              className="relative z-10 flex items-center justify-between px-5 py-4 border-t border-stone-50/10 text-sm text-stone-200 hover:text-stone-50 hover:bg-stone-50/5 transition group"
             >
               <span className="flex items-center gap-2">
                 <span>Voir tous nos joueurs</span>
@@ -506,7 +506,7 @@ function Header() {
                   </li>
                 ))}
               </ul>
-              <div className="border-t border-stone-50/8 px-3 py-3 flex items-center justify-between">
+              <div className="border-t border-stone-50/10 px-3 py-3 flex items-center justify-between">
                 <Link
                   to={isAdmin ? '/admin' : '/admin/login'}
                   onClick={close}

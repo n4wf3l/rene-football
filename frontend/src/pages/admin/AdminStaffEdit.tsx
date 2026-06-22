@@ -183,7 +183,7 @@ export default function AdminStaffEdit({ creating = false }: { creating?: boolea
 
   return (
     <div className="bg-stone-50 dark:bg-zinc-950 min-h-[100dvh] flex flex-col">
-      <div className="sticky top-0 z-10 flex items-center justify-between px-6 h-16 border-b border-stone-200 bg-white dark:bg-zinc-900 dark:border-stone-50/8">
+      <div className="sticky top-0 z-10 flex items-center justify-between px-6 h-16 border-b border-stone-200 bg-white dark:bg-zinc-900 dark:border-stone-50/10">
         <div className="min-w-0">
           <div className="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-turf-700 dark:text-turf-300">
             {creating ? 'Nouveau membre' : 'Édition'}
@@ -205,7 +205,7 @@ export default function AdminStaffEdit({ creating = false }: { creating?: boolea
           <button
             type="button"
             onClick={() => navigate('/admin/equipe')}
-            className="grid place-items-center w-9 h-9 rounded-full text-zinc-500 hover:bg-stone-100 hover:text-zinc-900 dark:text-stone-400 dark:hover:bg-stone-50/8 dark:hover:text-stone-50 transition"
+            className="grid place-items-center w-9 h-9 rounded-full text-zinc-500 hover:bg-stone-100 hover:text-zinc-900 dark:text-stone-400 dark:hover:bg-stone-50/10 dark:hover:text-stone-50 transition"
             aria-label="Retour à la liste"
           >
             <XIcon size={18} weight="bold" />
@@ -338,11 +338,11 @@ export default function AdminStaffEdit({ creating = false }: { creating?: boolea
         </section>
 
         {/* Save bar */}
-        <div className="sticky bottom-0 -mx-6 lg:-mx-10 px-6 lg:px-10 py-4 bg-stone-50/95 dark:bg-zinc-950/95 backdrop-blur border-t border-stone-200 dark:border-stone-50/8 flex items-center justify-end gap-2">
+        <div className="sticky bottom-0 -mx-6 lg:-mx-10 px-6 lg:px-10 py-4 bg-stone-50/95 dark:bg-zinc-950/95 backdrop-blur border-t border-stone-200 dark:border-stone-50/10 flex items-center justify-end gap-2">
           <button
             type="button"
             onClick={() => navigate('/admin/equipe')}
-            className="px-4 py-2 rounded-lg text-sm font-medium text-zinc-700 hover:bg-stone-100 dark:text-stone-300 dark:hover:bg-stone-50/8 transition"
+            className="px-4 py-2 rounded-lg text-sm font-medium text-zinc-700 hover:bg-stone-100 dark:text-stone-300 dark:hover:bg-stone-50/10 transition"
           >
             Annuler
           </button>

@@ -302,7 +302,7 @@ export default function ClipAnnotator({ onSave, onCancel }: ClipAnnotatorProps) 
                     className={`grid place-items-center w-7 h-7 rounded-md text-[0.65rem] font-mono ${
                       strokeWidth === w
                         ? 'bg-zinc-950 text-stone-50 dark:bg-stone-50 dark:text-zinc-950'
-                        : 'text-zinc-700 hover:bg-stone-200 dark:text-stone-300 dark:hover:bg-stone-50/8'
+                        : 'text-zinc-700 hover:bg-stone-200 dark:text-stone-300 dark:hover:bg-stone-50/10'
                     }`}
                   >
                     {w}
@@ -360,7 +360,7 @@ export default function ClipAnnotator({ onSave, onCancel }: ClipAnnotatorProps) 
           )}
 
           {/* Metadata */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-3 border-t border-stone-200 dark:border-stone-50/8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-3 border-t border-stone-200 dark:border-stone-50/10">
             <label className="block">
               <span className="block text-[0.65rem] font-mono uppercase tracking-[0.16em] text-zinc-500 dark:text-stone-400 mb-1">
                 Titre du moment <span className="text-rose-700">*</span>

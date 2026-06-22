@@ -88,7 +88,7 @@ function Gallery({ images }: GalleryProps) {
             <button
               type="button"
               onClick={() => setOpenIndex(i)}
-              className="group relative block w-full aspect-[4/3] overflow-hidden rounded-2xl bg-stone-200 dark:bg-zinc-900 border border-stone-200/80 dark:border-stone-50/8 hover:border-zinc-400 dark:hover:border-stone-50/30 transition"
+              className="group relative block w-full aspect-[4/3] overflow-hidden rounded-2xl bg-stone-200 dark:bg-zinc-900 border border-stone-200/80 dark:border-stone-50/10 hover:border-zinc-400 dark:hover:border-stone-50/30 transition"
             >
               <img
                 src={img.image_path}
@@ -305,7 +305,7 @@ export default function ArticleDetailPage() {
 
           <aside className="lg:col-span-4 space-y-6">
             {article.player && (
-              <div className="rounded-2xl border border-stone-200/80 dark:border-stone-50/8 bg-white dark:bg-zinc-900 p-5">
+              <div className="rounded-2xl border border-stone-200/80 dark:border-stone-50/10 bg-white dark:bg-zinc-900 p-5">
                 <span className="font-mono uppercase tracking-[0.18em] text-[0.6rem] text-turf-700 dark:text-turf-300">
                   Loop sur un joueur
                 </span>
@@ -337,7 +337,7 @@ export default function ArticleDetailPage() {
               </div>
             )}
 
-            <div className="rounded-2xl border border-stone-200/80 dark:border-stone-50/8 bg-white dark:bg-zinc-900 p-5">
+            <div className="rounded-2xl border border-stone-200/80 dark:border-stone-50/10 bg-white dark:bg-zinc-900 p-5">
               <span className="font-mono uppercase tracking-[0.18em] text-[0.6rem] text-zinc-500 dark:text-stone-500">
                 En bref
               </span>
@@ -381,7 +381,7 @@ export default function ArticleDetailPage() {
 
       {/* Attached clips */}
       {clips.length > 0 && (
-        <section className="bg-stone-100 dark:bg-zinc-900/40 transition-colors py-14 lg:py-20 border-y border-stone-200/80 dark:border-stone-50/8">
+        <section className="bg-stone-100 dark:bg-zinc-900/40 transition-colors py-14 lg:py-20 border-y border-stone-200/80 dark:border-stone-50/10">
           <div className="container-page">
             <span className="eyebrow">Captures d'analyse</span>
             <h2 className="mt-2 font-display font-semibold text-2xl lg:text-3xl tracking-tight text-zinc-950 dark:text-stone-50 max-w-[24ch]">

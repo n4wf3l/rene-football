@@ -535,7 +535,7 @@ function AdminAnalysis() {
       {loading ? (
         <div className="grid grid-cols-1 xl:grid-cols-[280px_1fr] gap-6">
           {/* Left filters skeleton */}
-          <aside className="rounded-2xl bg-white border border-stone-200 dark:bg-zinc-900 dark:border-stone-50/8 p-5 space-y-5">
+          <aside className="rounded-2xl bg-white border border-stone-200 dark:bg-zinc-900 dark:border-stone-50/10 p-5 space-y-5">
             <div>
               <Skeleton className="h-3 w-12 mb-3" />
               <div className="grid grid-cols-3 gap-1.5">
@@ -554,7 +554,7 @@ function AdminAnalysis() {
             </div>
           </aside>
           {/* Chart skeleton */}
-          <div className="rounded-2xl bg-white border border-stone-200 dark:bg-zinc-900 dark:border-stone-50/8 p-5 space-y-4">
+          <div className="rounded-2xl bg-white border border-stone-200 dark:bg-zinc-900 dark:border-stone-50/10 p-5 space-y-4">
             <div className="flex items-center justify-between">
               <Skeleton className="h-4 w-44" />
               <Skeleton className="h-3 w-24" />
@@ -584,7 +584,7 @@ function AdminAnalysis() {
         />
       ) : (
         <div className="grid grid-cols-1 xl:grid-cols-[280px_1fr] gap-6">
-          <aside className="rounded-2xl bg-white border border-stone-200 dark:bg-zinc-900 dark:border-stone-50/8 p-5 space-y-5 self-start sticky top-6">
+          <aside className="rounded-2xl bg-white border border-stone-200 dark:bg-zinc-900 dark:border-stone-50/10 p-5 space-y-5 self-start sticky top-6">
             <div>
               <div className="font-mono uppercase tracking-[0.18em] text-[0.65rem] text-zinc-500 dark:text-stone-400 mb-2">Type</div>
               <div className="grid grid-cols-3 gap-1.5">
@@ -794,7 +794,7 @@ function AdminAnalysis() {
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35 }}
-            className="rounded-2xl bg-white border border-stone-200 dark:bg-zinc-900 dark:border-stone-50/8 p-5"
+            className="rounded-2xl bg-white border border-stone-200 dark:bg-zinc-900 dark:border-stone-50/10 p-5"
           >
             <div className="flex items-baseline justify-between mb-4">
               <h3 className="font-display font-semibold text-lg text-zinc-950 dark:text-stone-50">
@@ -1006,7 +1006,7 @@ function HeatmapSlot({
   const grid = pendingGrid ?? baseGrid
 
   return (
-    <section className="rounded-2xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/8 p-5 flex flex-col">
+    <section className="rounded-2xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/10 p-5 flex flex-col">
       <header className="flex items-start justify-between gap-3 mb-4">
         <div className="min-w-0 flex-1">
           <div className="font-mono uppercase tracking-[0.18em] text-[0.6rem] text-zinc-400 dark:text-stone-500">
@@ -1271,7 +1271,7 @@ function ComparisonView({ players, selectedSlugs, onChangeSlugs }: ComparisonVie
   return (
     <div className="space-y-8">
       {/* Picker */}
-      <section className="rounded-2xl bg-white border border-stone-200 dark:bg-zinc-900 dark:border-stone-50/8 p-5 lg:p-6">
+      <section className="rounded-2xl bg-white border border-stone-200 dark:bg-zinc-900 dark:border-stone-50/10 p-5 lg:p-6">
         <div className="flex items-center justify-between mb-3 gap-3">
           <div className="font-mono uppercase tracking-[0.18em] text-[0.65rem] text-zinc-500 dark:text-stone-400">
             Sélection
@@ -1317,7 +1317,7 @@ function ComparisonView({ players, selectedSlugs, onChangeSlugs }: ComparisonVie
         <>
           {/* Radar + headline metrics side-by-side */}
           <section className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_360px] gap-6">
-            <div className="rounded-2xl bg-white border border-stone-200 dark:bg-zinc-900 dark:border-stone-50/8 p-6">
+            <div className="rounded-2xl bg-white border border-stone-200 dark:bg-zinc-900 dark:border-stone-50/10 p-6">
               <div className="font-mono uppercase tracking-[0.18em] text-[0.65rem] text-zinc-500 dark:text-stone-400 mb-2">
                 Radar
               </div>
@@ -1339,7 +1339,7 @@ function ComparisonView({ players, selectedSlugs, onChangeSlugs }: ComparisonVie
                 return (
                   <article
                     key={p.slug}
-                    className="rounded-2xl bg-white border border-stone-200 dark:bg-zinc-900 dark:border-stone-50/8 p-5"
+                    className="rounded-2xl bg-white border border-stone-200 dark:bg-zinc-900 dark:border-stone-50/10 p-5"
                   >
                     <div className="flex items-center gap-3 mb-3">
                       <span className={`w-2.5 h-2.5 rounded-full ${['bg-turf-500','bg-rose-600','bg-amber-600','bg-sky-600'][i]}`} />
@@ -1350,7 +1350,7 @@ function ComparisonView({ players, selectedSlugs, onChangeSlugs }: ComparisonVie
                         </div>
                       </div>
                     </div>
-                    <dl className="grid grid-cols-3 gap-3 border-t border-stone-200 dark:border-stone-50/8 pt-3">
+                    <dl className="grid grid-cols-3 gap-3 border-t border-stone-200 dark:border-stone-50/10 pt-3">
                       <div>
                         <dt className="text-[0.6rem] uppercase tracking-wider font-mono text-zinc-500 dark:text-stone-500">Matchs</dt>
                         <dd className="font-mono text-base tabular-nums text-zinc-950 dark:text-stone-50">{p.matches_played}</dd>
@@ -1397,7 +1397,7 @@ interface ClipsViewProps {
 function ClipsView({ players, selectedSlug, onChangeSlug }: ClipsViewProps) {
   return (
     <div className="space-y-6">
-      <section className="rounded-2xl bg-white border border-stone-200 dark:bg-zinc-900 dark:border-stone-50/8 p-5 lg:p-6">
+      <section className="rounded-2xl bg-white border border-stone-200 dark:bg-zinc-900 dark:border-stone-50/10 p-5 lg:p-6">
         <div className="font-mono uppercase tracking-[0.18em] text-[0.65rem] text-zinc-500 dark:text-stone-400 mb-3">
           Joueur cible
         </div>
@@ -1418,7 +1418,7 @@ function ClipsView({ players, selectedSlug, onChangeSlug }: ClipsViewProps) {
           </p>
         </div>
       ) : (
-        <section className="rounded-2xl bg-white border border-stone-200 dark:bg-zinc-900 dark:border-stone-50/8 p-5 lg:p-6">
+        <section className="rounded-2xl bg-white border border-stone-200 dark:bg-zinc-900 dark:border-stone-50/10 p-5 lg:p-6">
           <ClipsGalleryAdmin playerSlug={selectedSlug} />
         </section>
       )}

@@ -74,7 +74,7 @@ function Dashboard() {
             <motion.div
               key={d.key}
               initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}
-              className="relative overflow-hidden rounded-2xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/8 p-4"
+              className="relative overflow-hidden rounded-2xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/10 p-4"
             >
               <div className="flex items-start justify-between">
                 <span className="text-[0.6rem] font-mono uppercase tracking-[0.16em] text-zinc-500 dark:text-stone-400">{d.label}</span>
@@ -166,8 +166,8 @@ function Dashboard() {
       </section>
 
       {/* Joueurs prioritaires */}
-      <section className="rounded-2xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/8 overflow-hidden">
-        <header className="px-5 py-3 flex items-center justify-between border-b border-stone-200 dark:border-stone-50/8">
+      <section className="rounded-2xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/10 overflow-hidden">
+        <header className="px-5 py-3 flex items-center justify-between border-b border-stone-200 dark:border-stone-50/10">
           <h3 className="font-mono uppercase tracking-[0.18em] text-[0.7rem] text-zinc-500 dark:text-stone-400">Joueurs prioritaires</h3>
           <button onClick={() => open({ view: 'players' })} className="text-xs text-turf-700 dark:text-turf-300 hover:underline">Tout voir</button>
         </header>
@@ -188,7 +188,7 @@ function Dashboard() {
                 <tr
                   key={p.id}
                   onClick={() => open({ view: 'players', player: p.slug })}
-                  className="border-t border-stone-200 dark:border-stone-50/8 hover:bg-stone-50 dark:hover:bg-stone-50/5 cursor-pointer"
+                  className="border-t border-stone-200 dark:border-stone-50/10 hover:bg-stone-50 dark:hover:bg-stone-50/5 cursor-pointer"
                 >
                   <td className="px-4 py-2.5">
                     <div className="flex items-center gap-3">
@@ -212,12 +212,12 @@ function Dashboard() {
       </section>
 
       {/* Rapports récents */}
-      <section className="rounded-2xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/8 overflow-hidden">
-        <header className="px-5 py-3 flex items-center justify-between border-b border-stone-200 dark:border-stone-50/8">
+      <section className="rounded-2xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/10 overflow-hidden">
+        <header className="px-5 py-3 flex items-center justify-between border-b border-stone-200 dark:border-stone-50/10">
           <h3 className="font-mono uppercase tracking-[0.18em] text-[0.7rem] text-zinc-500 dark:text-stone-400">Rapports récents</h3>
           <button onClick={() => open({ view: 'reports' })} className="text-xs text-turf-700 dark:text-turf-300 hover:underline">Tout voir</button>
         </header>
-        <ul className="divide-y divide-stone-200 dark:divide-stone-50/8">
+        <ul className="divide-y divide-stone-200 dark:divide-stone-50/10">
           {snapshot.recent_reports.map((r) => (
             <li key={r.id}>
               <button
@@ -275,8 +275,8 @@ function Block({ title, hint, accent, children }: { title: string; hint?: string
     rose: 'border-l-rose-500',
   }
   return (
-    <div className={`rounded-2xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/8 border-l-4 ${accents[accent]}`}>
-      <header className="px-5 py-3 flex items-baseline justify-between border-b border-stone-200 dark:border-stone-50/8">
+    <div className={`rounded-2xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/10 border-l-4 ${accents[accent]}`}>
+      <header className="px-5 py-3 flex items-baseline justify-between border-b border-stone-200 dark:border-stone-50/10">
         <h3 className="font-mono uppercase tracking-[0.18em] text-[0.7rem] text-zinc-500 dark:text-stone-400">{title}</h3>
         {hint && <span className="text-[0.65rem] font-mono text-zinc-400 dark:text-stone-500">{hint}</span>}
       </header>

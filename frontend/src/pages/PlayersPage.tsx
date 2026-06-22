@@ -67,7 +67,7 @@ function PlayerCard({ player }: PlayerCardProps) {
       layoutId={`player-${player.slug}`}
       variants={CARD_VARIANTS}
       exit="exit"
-      className="group relative overflow-hidden rounded-3xl bg-white border border-stone-200/80 hover:border-zinc-300 shadow-diffusion transition-colors duration-300 ease-premium dark:bg-zinc-900 dark:border-stone-50/8 dark:hover:border-stone-50/20"
+      className="group relative overflow-hidden rounded-3xl bg-white border border-stone-200/80 hover:border-zinc-300 shadow-diffusion transition-colors duration-300 ease-premium dark:bg-zinc-900 dark:border-stone-50/10 dark:hover:border-stone-50/20"
     >
       <Link to={`/joueurs/${player.slug}`} className="absolute inset-0 z-10" aria-label={`Voir ${player.name}`} />
 
@@ -102,7 +102,7 @@ function PlayerCard({ player }: PlayerCardProps) {
             depuis {player.since}
           </span>
         </div>
-        <dl className="grid grid-cols-3 gap-3 border-t border-stone-200 dark:border-stone-50/8 pt-4">
+        <dl className="grid grid-cols-3 gap-3 border-t border-stone-200 dark:border-stone-50/10 pt-4">
           <div>
             <dt className="font-mono uppercase tracking-wider text-[0.6rem] text-zinc-500 dark:text-stone-400">Matchs</dt>
             <dd className="font-mono text-lg text-zinc-950 dark:text-stone-50 tabular-nums mt-0.5">{player.matches_played}</dd>
@@ -323,7 +323,7 @@ function PlayersPage() {
               {Array.from({ length: 8 }).map((_, i) => (
                 <li
                   key={i}
-                  className="rounded-3xl bg-white border border-stone-200/80 dark:bg-zinc-900 dark:border-stone-50/8 overflow-hidden"
+                  className="rounded-3xl bg-white border border-stone-200/80 dark:bg-zinc-900 dark:border-stone-50/10 overflow-hidden"
                 >
                   <Skeleton className="aspect-[3/4] w-full" rounded="sm" />
                   <div className="p-5 space-y-3">
@@ -331,7 +331,7 @@ function PlayersPage() {
                       <Skeleton className="h-3 w-32" />
                       <Skeleton className="h-3 w-16" />
                     </div>
-                    <div className="grid grid-cols-3 gap-3 border-t border-stone-200 dark:border-stone-50/8 pt-4">
+                    <div className="grid grid-cols-3 gap-3 border-t border-stone-200 dark:border-stone-50/10 pt-4">
                       <Skeleton className="h-6 w-full" />
                       <Skeleton className="h-6 w-full" />
                       <Skeleton className="h-6 w-full" />

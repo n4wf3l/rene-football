@@ -63,14 +63,20 @@ export default function PlayerSingleSelect({
         </span>
         <span className="flex items-center gap-2 shrink-0">
           {selected && (
-            <button
-              type="button"
+            <span
+              role="button"
+              tabIndex={0}
               onClick={(e) => { e.stopPropagation(); onChange(null) }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault(); e.stopPropagation(); onChange(null)
+                }
+              }}
               aria-label="Effacer la sélection"
-              className="text-zinc-400 hover:text-rose-700 dark:hover:text-rose-400 transition"
+              className="cursor-pointer text-zinc-400 hover:text-rose-700 dark:hover:text-rose-400 transition focus:outline-none focus:ring-1 focus:ring-rose-400 rounded"
             >
               <X size={12} weight="bold" />
-            </button>
+            </span>
           )}
           <CaretDown size={12} weight="bold" className={`transition-transform ${open ? 'rotate-180' : ''}`} />
         </span>
@@ -114,7 +120,7 @@ export default function PlayerSingleSelect({
                         }}
                         className={`w-full flex items-center gap-3 px-3 py-2 text-left transition ${
                           isActive
-                            ? 'bg-stone-100 dark:bg-stone-50/8'
+                            ? 'bg-stone-100 dark:bg-stone-50/10'
                             : 'hover:bg-stone-100/60 dark:hover:bg-stone-50/5'
                         }`}
                       >

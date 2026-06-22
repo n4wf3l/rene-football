@@ -98,7 +98,7 @@ function ReportsView() {
         </span>
       </div>
 
-      <div className="overflow-x-auto rounded-2xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/8">
+      <div className="overflow-x-auto rounded-2xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/10">
         <table className="w-full text-sm">
           <thead className="bg-stone-50 dark:bg-zinc-950 text-[0.6rem] font-mono uppercase tracking-[0.16em] text-zinc-500 dark:text-stone-400">
             <tr>
@@ -113,7 +113,7 @@ function ReportsView() {
           </thead>
           <tbody>
             {loading && Array.from({ length: 5 }).map((_, i) => (
-              <tr key={i} className="border-t border-stone-200 dark:border-stone-50/8">
+              <tr key={i} className="border-t border-stone-200 dark:border-stone-50/10">
                 {Array.from({ length: 7 }).map((__, j) => (
                   <td key={j} className="px-4 py-3"><Skeleton className="h-3 w-full" /></td>
                 ))}
@@ -126,7 +126,7 @@ function ReportsView() {
               <tr
                 key={r.id}
                 onClick={() => open(r.id)}
-                className="border-t border-stone-200 dark:border-stone-50/8 hover:bg-stone-50 dark:hover:bg-stone-50/5 cursor-pointer"
+                className="border-t border-stone-200 dark:border-stone-50/10 hover:bg-stone-50 dark:hover:bg-stone-50/5 cursor-pointer"
               >
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">

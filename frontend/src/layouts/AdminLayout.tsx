@@ -10,6 +10,7 @@ import {
   ChartLineUp,
   House,
   List as ListIcon,
+  FilePdf,
   Newspaper,
   SignOut,
   SoccerBall,
@@ -41,6 +42,7 @@ const NAV_ITEMS: AdminNavItem[] = [
   { to: '/admin/articles',  label: 'Actualités',      icon: Newspaper },
   { to: '/admin/scouting',  label: 'Scouting',        icon: Binoculars,    badgeKey: 'scouting' },
   { to: '/admin/equipe',    label: 'Équipe',          icon: UsersThree },
+  { to: '/admin/presentations', label: 'Présentations', icon: FilePdf },
 ]
 
 interface SidebarLinkProps {
@@ -137,8 +139,8 @@ function Sidebar({ onCloseMobile, onCollapseDesktop }: SidebarProps) {
   }
 
   return (
-    <aside className="flex flex-col h-full w-64 bg-white text-zinc-900 border-r border-stone-200 dark:bg-zinc-950 dark:text-stone-100 dark:border-stone-50/8">
-      <div className="flex items-center justify-between px-5 h-16 border-b border-stone-200 dark:border-stone-50/8">
+    <aside className="flex flex-col h-full w-64 bg-white text-zinc-900 border-r border-stone-200 dark:bg-zinc-950 dark:text-stone-100 dark:border-stone-50/10">
+      <div className="flex items-center justify-between px-5 h-16 border-b border-stone-200 dark:border-stone-50/10">
         <div className="inline-flex items-center gap-2.5 min-w-0">
           <BrandLogo size={32} />
           <div className="leading-tight min-w-0">
@@ -160,7 +162,7 @@ function Sidebar({ onCloseMobile, onCollapseDesktop }: SidebarProps) {
           <button
             type="button"
             onClick={onCollapseDesktop}
-            className="hidden lg:grid place-items-center w-7 h-7 rounded-md text-zinc-500 hover:bg-stone-200/60 hover:text-zinc-900 dark:text-stone-400 dark:hover:bg-stone-50/8 dark:hover:text-stone-50 transition shrink-0"
+            className="hidden lg:grid place-items-center w-7 h-7 rounded-md text-zinc-500 hover:bg-stone-200/60 hover:text-zinc-900 dark:text-stone-400 dark:hover:bg-stone-50/10 dark:hover:text-stone-50 transition shrink-0"
             aria-label="Replier la sidebar"
             title="Replier la sidebar"
           >
@@ -194,7 +196,7 @@ function Sidebar({ onCloseMobile, onCollapseDesktop }: SidebarProps) {
         </Link>
       </nav>
 
-      <div className="border-t border-stone-200 dark:border-stone-50/8 p-4">
+      <div className="border-t border-stone-200 dark:border-stone-50/10 p-4">
         <div className="flex items-center gap-3 mb-3">
           <div className="grid place-items-center w-9 h-9 rounded-full bg-stone-200 text-zinc-700 dark:bg-stone-50/10 dark:text-stone-100 text-xs font-medium">
             {(user?.name || '?').slice(0, 2).toUpperCase()}
@@ -268,6 +270,8 @@ const FOCUS_ROUTES: RegExp[] = [
   /^\/admin\/articles\/[^/]+\/edit$/,
   /^\/admin\/equipe\/nouveau$/,
   /^\/admin\/equipe\/[^/]+\/edit$/,
+  /^\/admin\/presentations\/nouvelle$/,
+  /^\/admin\/presentations\/[^/]+\/edit$/,
   // Scouting cockpit has its own internal sidebar - collapse the outer one.
   /^\/admin\/scouting$/,
 ]
@@ -348,7 +352,7 @@ function AdminLayout() {
       </AnimatePresence>
 
       <div className="flex-1 min-w-0 flex flex-col">
-        <header className="lg:hidden flex items-center justify-between bg-white text-zinc-900 border-stone-200 dark:bg-zinc-950 dark:text-stone-100 dark:border-stone-50/8 h-14 px-4 border-b">
+        <header className="lg:hidden flex items-center justify-between bg-white text-zinc-900 border-stone-200 dark:bg-zinc-950 dark:text-stone-100 dark:border-stone-50/10 h-14 px-4 border-b">
           <button
             type="button"
             onClick={() => setMobileOpen(true)}

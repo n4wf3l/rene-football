@@ -16,7 +16,7 @@ const RADII: Record<NonNullable<SkeletonProps['rounded']>, string> = {
 }
 
 /* Generic pulsing block - matches the dark/light surface tokens of the app
-   (stone-200 in light mode, stone-50/8 on dark). Tailwind's animate-pulse is
+   (stone-200 in light mode, stone-50/10 on dark). Tailwind's animate-pulse is
    GPU-friendly (opacity only). Pass `className` to size it: `h-4 w-32`, etc. */
 export default function Skeleton({
   rounded = 'md',
@@ -28,7 +28,7 @@ export default function Skeleton({
   return (
     <div
       aria-hidden="true"
-      className={`bg-stone-200 dark:bg-stone-50/8 animate-pulse ${RADII[rounded]} ${className}`}
+      className={`bg-stone-200 dark:bg-stone-50/10 animate-pulse ${RADII[rounded]} ${className}`}
       style={styles}
       {...rest}
     />

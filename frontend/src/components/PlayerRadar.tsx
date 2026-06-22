@@ -140,7 +140,7 @@ export default function PlayerRadar({
             fill="none"
             stroke="currentColor"
             strokeWidth="1"
-            className="text-stone-300 dark:text-stone-50/8"
+            className="text-stone-300 dark:text-stone-50/10"
           />
         ))}
 
@@ -156,7 +156,7 @@ export default function PlayerRadar({
               y2={y.toFixed(2)}
               stroke="currentColor"
               strokeWidth="1"
-              className="text-stone-300 dark:text-stone-50/8"
+              className="text-stone-300 dark:text-stone-50/10"
             />
           )
         })}

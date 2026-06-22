@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\Admin\AdminAppearanceController;
 use App\Http\Controllers\Api\Admin\AdminArticleController;
 use App\Http\Controllers\Api\Admin\AdminClipController;
 use App\Http\Controllers\Api\Admin\AdminPlayerController;
+use App\Http\Controllers\Api\Admin\AdminPresentationController;
 use App\Http\Controllers\Api\Admin\AdminStaffController;
 use App\Http\Controllers\Api\Admin\Scouting\ClubDnaProfileController as ScoutingClubDnaProfileController;
 use App\Http\Controllers\Api\Admin\Scouting\FootballMatchController;
@@ -25,6 +26,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\PdfController;
 use App\Http\Controllers\Api\PlayerController;
+use App\Http\Controllers\Api\PresentationController;
 use App\Http\Controllers\Api\StaffController;
 use Illuminate\Support\Facades\Route;
 
@@ -39,6 +41,9 @@ Route::get('/articles', [ArticleController::class, 'index']);
 Route::get('/articles/{article:slug}', [ArticleController::class, 'show']);
 
 Route::get('/staff', [StaffController::class, 'index']);
+
+Route::get('/players/{player:slug}/presentations', [PresentationController::class, 'indexForPlayer']);
+Route::get('/presentations/{token}',               [PresentationController::class, 'show']);
 
 Route::post('/contact', [ContactController::class, 'store'])
     ->middleware('throttle:5,1');
@@ -85,6 +90,16 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::patch('/articles/{article:slug}',      [AdminArticleController::class, 'update']);
     Route::post('/articles/{article:slug}',       [AdminArticleController::class, 'update']);
     Route::delete('/articles/{article:slug}',     [AdminArticleController::class, 'destroy']);
+
+    // Presentations (player PDF generator with templates).
+    Route::get('/presentations',                          [AdminPresentationController::class, 'index']);
+    Route::get('/presentations/catalogue',                [AdminPresentationController::class, 'catalogue']);
+    Route::post('/presentations',                         [AdminPresentationController::class, 'store']);
+    Route::post('/presentations/upload-photo',            [AdminPresentationController::class, 'uploadPhoto']);
+    Route::get('/presentations/{presentation}',           [AdminPresentationController::class, 'show']);
+    Route::get('/presentations/{presentation}/preview',   [AdminPresentationController::class, 'preview']);
+    Route::patch('/presentations/{presentation}',         [AdminPresentationController::class, 'update']);
+    Route::delete('/presentations/{presentation}',        [AdminPresentationController::class, 'destroy']);
 
     // Staff (À propos / L'équipe) - photo via multipart, _method=PUT spoofing.
     Route::get('/staff',                       [AdminStaffController::class, 'index']);

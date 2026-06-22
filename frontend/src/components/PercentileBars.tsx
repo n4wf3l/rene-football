@@ -61,7 +61,7 @@ export default function PercentileBars({
               <span className="text-xs text-zinc-700 dark:text-stone-300 truncate">
                 {m.label}
               </span>
-              <div className="relative h-1.5 rounded-full bg-stone-200 dark:bg-stone-50/8 overflow-hidden">
+              <div className="relative h-1.5 rounded-full bg-stone-200 dark:bg-stone-50/10 overflow-hidden">
                 <motion.span
                   initial={{ scaleX: 0 }}
                   whileInView={{ scaleX: v / 100 }}

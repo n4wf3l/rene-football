@@ -90,9 +90,9 @@ export default function AppearancesTable({
     : null
 
   return (
-    <div className="rounded-2xl border border-stone-200/80 dark:border-stone-50/8 bg-white dark:bg-zinc-900/40 overflow-hidden">
+    <div className="rounded-2xl border border-stone-200/80 dark:border-stone-50/10 bg-white dark:bg-zinc-900/40 overflow-hidden">
       {withSparkline && ratings.length >= 2 && (
-        <div className="px-5 py-4 border-b border-stone-200 dark:border-stone-50/8 flex flex-wrap items-end justify-between gap-4">
+        <div className="px-5 py-4 border-b border-stone-200 dark:border-stone-50/10 flex flex-wrap items-end justify-between gap-4">
           <div>
             <div className="font-mono uppercase tracking-[0.18em] text-[0.65rem] text-zinc-500 dark:text-stone-400 mb-1">
               Tendance des notes - {appearances.length} matchs
@@ -108,7 +108,7 @@ export default function AppearancesTable({
 
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-stone-50 dark:bg-zinc-950/40 border-b border-stone-200 dark:border-stone-50/8">
+          <thead className="bg-stone-50 dark:bg-zinc-950/40 border-b border-stone-200 dark:border-stone-50/10">
             <tr className="text-left text-[0.65rem] font-mono uppercase tracking-[0.16em] text-zinc-500 dark:text-stone-400">
               <th className="px-4 py-2.5">Date</th>
               <th className="px-4 py-2.5">Compétition</th>

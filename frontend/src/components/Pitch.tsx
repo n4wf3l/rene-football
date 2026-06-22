@@ -187,7 +187,7 @@ function Pitch({ grid, mode = 'view', position, slug, onChange, hideToolbar = fa
         </div>
       )}
 
-      <div className="relative aspect-[3/2] w-full rounded-2xl overflow-hidden bg-turf-700 dark:bg-turf-900 ring-1 ring-stone-200 dark:ring-stone-50/8">
+      <div className="relative aspect-[3/2] w-full rounded-2xl overflow-hidden bg-turf-700 dark:bg-turf-900 ring-1 ring-stone-200 dark:ring-stone-50/10">
         {/* Field "grass" pattern via stripes - pure CSS underlay so dompdf doesn't choke. */}
         <div
           aria-hidden="true"

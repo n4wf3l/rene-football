@@ -36,12 +36,12 @@ function NeedDrawer({ slug, onClose }: Props) {
         transition={{ type: 'spring', stiffness: 280, damping: 32 }}
         className="fixed top-0 right-0 h-[100dvh] w-full max-w-xl bg-stone-50 dark:bg-zinc-950 shadow-2xl flex flex-col z-50"
       >
-        <header className="flex items-center justify-between px-6 h-16 border-b border-stone-200 dark:border-stone-50/8 bg-white dark:bg-zinc-900">
+        <header className="flex items-center justify-between px-6 h-16 border-b border-stone-200 dark:border-stone-50/10 bg-white dark:bg-zinc-900">
           <div className="min-w-0 flex-1">
             <div className="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-turf-700 dark:text-turf-300">Besoin de recrutement</div>
             <div className="font-display font-semibold text-lg text-zinc-950 dark:text-stone-50 truncate">{need?.title ?? '-'}</div>
           </div>
-          <button type="button" onClick={onClose} className="grid place-items-center w-9 h-9 rounded-full text-zinc-500 hover:bg-stone-100 hover:text-zinc-900 dark:text-stone-400 dark:hover:bg-stone-50/8 dark:hover:text-stone-50 transition">
+          <button type="button" onClick={onClose} className="grid place-items-center w-9 h-9 rounded-full text-zinc-500 hover:bg-stone-100 hover:text-zinc-900 dark:text-stone-400 dark:hover:bg-stone-50/10 dark:hover:text-stone-50 transition">
             <XIcon size={18} weight="bold" />
           </button>
         </header>
@@ -81,7 +81,7 @@ function NeedDrawer({ slug, onClose }: Props) {
                 <Section label="Shortlists liées">
                   <ul className="space-y-2">
                     {shortlists.map((s) => (
-                      <li key={s.id} className="rounded-xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/8 p-3">
+                      <li key={s.id} className="rounded-xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/10 p-3">
                         <div className="font-medium text-sm text-zinc-950 dark:text-stone-50">{s.name}</div>
                         <div className="text-xs text-zinc-500 dark:text-stone-400">{s.players?.length ?? 0} joueurs</div>
                       </li>
@@ -108,7 +108,7 @@ function Section({ label, children }: { label: string; children: React.ReactNode
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/8 p-3">
+    <div className="rounded-xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/10 p-3">
       <div className="text-[0.6rem] font-mono uppercase tracking-[0.16em] text-zinc-500 dark:text-stone-400">{label}</div>
       <div className="mt-1 text-sm text-zinc-950 dark:text-stone-50">{value}</div>
     </div>

@@ -390,7 +390,7 @@ function HomePage() {
                 className={`relative overflow-hidden rounded-3xl border p-7 lg:p-8 flex flex-col justify-between ${span} ${
                   accent
                     ? 'bg-zinc-950 text-stone-100 border-stone-950/10 shadow-diffusion'
-                    : 'bg-white text-zinc-900 border-stone-200/80 dark:bg-zinc-900 dark:text-stone-50 dark:border-stone-50/8'
+                    : 'bg-white text-zinc-900 border-stone-200/80 dark:bg-zinc-900 dark:text-stone-50 dark:border-stone-50/10'
                 }`}
               >
                 <div

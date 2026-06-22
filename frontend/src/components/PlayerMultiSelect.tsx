@@ -92,8 +92,8 @@ export default function PlayerMultiSelect({
                   isSelected
                     ? 'bg-zinc-950 text-stone-50 border-zinc-950 dark:bg-stone-50 dark:text-zinc-950 dark:border-stone-50'
                     : isDisabled
-                    ? 'opacity-40 cursor-not-allowed border-stone-200 dark:border-stone-50/8'
-                    : 'bg-white text-zinc-900 border-stone-200 hover:border-zinc-500 dark:bg-zinc-900 dark:text-stone-100 dark:border-stone-50/8 dark:hover:border-stone-50/30'
+                    ? 'opacity-40 cursor-not-allowed border-stone-200 dark:border-stone-50/10'
+                    : 'bg-white text-zinc-900 border-stone-200 hover:border-zinc-500 dark:bg-zinc-900 dark:text-stone-100 dark:border-stone-50/10 dark:hover:border-stone-50/30'
                 }`}
               >
                 <div className="relative shrink-0 w-7 h-7 rounded-full overflow-hidden bg-stone-200 dark:bg-stone-50/10">

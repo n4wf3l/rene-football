@@ -86,7 +86,7 @@ function PlayerDrawer({ slug, onClose }: Props) {
         transition={{ type: 'spring', stiffness: 280, damping: 32 }}
         className="fixed top-0 right-0 h-[100dvh] w-full max-w-2xl bg-stone-50 dark:bg-zinc-950 shadow-2xl flex flex-col z-50"
       >
-        <header className="flex items-center justify-between px-6 h-16 border-b border-stone-200 dark:border-stone-50/8 bg-white dark:bg-zinc-900">
+        <header className="flex items-center justify-between px-6 h-16 border-b border-stone-200 dark:border-stone-50/10 bg-white dark:bg-zinc-900">
           <div className="min-w-0 flex-1">
             <div className="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-turf-700 dark:text-turf-300">Joueur scouting</div>
             <div className="font-display font-semibold text-lg text-zinc-950 dark:text-stone-50 truncate">{p?.name ?? slug}</div>
@@ -94,7 +94,7 @@ function PlayerDrawer({ slug, onClose }: Props) {
           <a
             href={`/joueurs/${slug}`}
             target="_blank" rel="noopener"
-            className="grid place-items-center w-9 h-9 rounded-full text-zinc-500 hover:bg-stone-100 hover:text-zinc-900 dark:text-stone-400 dark:hover:bg-stone-50/8 dark:hover:text-stone-50 transition"
+            className="grid place-items-center w-9 h-9 rounded-full text-zinc-500 hover:bg-stone-100 hover:text-zinc-900 dark:text-stone-400 dark:hover:bg-stone-50/10 dark:hover:text-stone-50 transition"
             aria-label="Voir la fiche publique"
             title="Voir la fiche publique"
           >
@@ -103,7 +103,7 @@ function PlayerDrawer({ slug, onClose }: Props) {
           <button
             type="button"
             onClick={onClose}
-            className="grid place-items-center w-9 h-9 rounded-full text-zinc-500 hover:bg-stone-100 hover:text-zinc-900 dark:text-stone-400 dark:hover:bg-stone-50/8 dark:hover:text-stone-50 transition"
+            className="grid place-items-center w-9 h-9 rounded-full text-zinc-500 hover:bg-stone-100 hover:text-zinc-900 dark:text-stone-400 dark:hover:bg-stone-50/10 dark:hover:text-stone-50 transition"
             aria-label="Fermer"
           >
             <XIcon size={18} weight="bold" />
@@ -111,7 +111,7 @@ function PlayerDrawer({ slug, onClose }: Props) {
         </header>
 
         {/* Tabs */}
-        <div className="px-6 border-b border-stone-200 dark:border-stone-50/8 bg-white dark:bg-zinc-900 overflow-x-auto">
+        <div className="px-6 border-b border-stone-200 dark:border-stone-50/10 bg-white dark:bg-zinc-900 overflow-x-auto">
           <div className="flex gap-1 py-2 min-w-max">
             {TABS.map((t) => {
               const active = tab === t.key
@@ -209,7 +209,7 @@ function ResumeTab({ detail, onPatch, onRefresh, saving }: { detail: ScoutingPla
         )}
       </div>
 
-      <div className="rounded-xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/8 p-4">
+      <div className="rounded-xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/10 p-4">
         <div className="text-[0.65rem] font-mono uppercase tracking-[0.16em] text-zinc-500 dark:text-stone-400 mb-2">Prochaine action</div>
         <NextActionBadge action={p.next_action} />
         <input
@@ -238,7 +238,7 @@ function ResumeTab({ detail, onPatch, onRefresh, saving }: { detail: ScoutingPla
 
 function Metric({ label, value }: { label: string; value: number | null }) {
   return (
-    <div className="rounded-xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/8 p-3">
+    <div className="rounded-xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/10 p-3">
       <div className="text-[0.6rem] font-mono uppercase tracking-[0.16em] text-zinc-500 dark:text-stone-400">{label}</div>
       <div className="mt-1 font-mono text-2xl tabular-nums text-zinc-950 dark:text-stone-50">{value == null ? '-' : Math.round(value)}</div>
     </div>
@@ -251,7 +251,7 @@ function ReportsTab({ detail }: { detail: ScoutingPlayerDetail }) {
   return (
     <ul className="space-y-2">
       {reports.map((r) => (
-        <li key={r.id} className="rounded-xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/8 p-3">
+        <li key={r.id} className="rounded-xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/10 p-3">
           <div className="flex items-center justify-between">
             <div className="text-xs text-zinc-500 dark:text-stone-400">
               {r.match ? `${r.match.home_team} - ${r.match.away_team}` : 'Hors match'} · {r.scout?.name ?? '-'}
@@ -287,7 +287,7 @@ function ScoresTab({ detail, onRefresh, saving }: { detail: ScoutingPlayerDetail
       >
         <ArrowsClockwise size={12} weight="bold" /> Recalculer depuis les rapports + risques
       </button>
-      <div className="rounded-xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/8 divide-y divide-stone-200 dark:divide-stone-50/8">
+      <div className="rounded-xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/10 divide-y divide-stone-200 dark:divide-stone-50/10">
         {rows.map(([label, val]) => (
           <div key={label} className="px-4 py-3 flex items-center justify-between">
             <span className="text-sm text-zinc-700 dark:text-stone-300">{label}</span>
@@ -305,7 +305,7 @@ function VideosTab({ detail }: { detail: ScoutingPlayerDetail }) {
   return (
     <ul className="grid grid-cols-2 gap-2">
       {clips.map((c) => (
-        <li key={c.id} className="rounded-xl overflow-hidden bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/8">
+        <li key={c.id} className="rounded-xl overflow-hidden bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/10">
           {c.image_path && <img src={c.image_path} alt="" className="w-full aspect-[16/9] object-cover bg-stone-200 dark:bg-stone-800" />}
           <div className="px-3 py-2">
             <div className="text-xs font-medium text-zinc-950 dark:text-stone-50 truncate">{c.title}</div>
@@ -323,7 +323,7 @@ function RisksTab({ detail }: { detail: ScoutingPlayerDetail }) {
   return (
     <ul className="space-y-2">
       {risks.map((r) => (
-        <li key={r.id} className="rounded-xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/8 p-3">
+        <li key={r.id} className="rounded-xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/10 p-3">
           <div className="flex items-center gap-2 mb-1">
             <span className="text-[0.6rem] font-mono uppercase tracking-[0.16em] text-zinc-500 dark:text-stone-400">{r.risk_type}</span>
             <span className="text-[0.6rem] font-mono tabular-nums text-zinc-500 dark:text-stone-400">P:{r.probability} · I:{r.impact}</span>
@@ -361,7 +361,7 @@ function SourcesTab({ detail }: { detail: ScoutingPlayerDetail }) {
   const sources = detail.data.sources ?? []
   if (sources.length === 0) return <EmptyTab message="Aucune source enregistrée." />
   return (
-    <div className="rounded-xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/8 divide-y divide-stone-200 dark:divide-stone-50/8">
+    <div className="rounded-xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/10 divide-y divide-stone-200 dark:divide-stone-50/10">
       {sources.map((s) => (
         <div key={s.id} className="px-4 py-2.5 grid grid-cols-[1fr_2fr_auto] gap-3 items-center text-sm">
           <span className="font-mono text-[0.65rem] uppercase tracking-[0.16em] text-zinc-500 dark:text-stone-400">{s.field_name}</span>

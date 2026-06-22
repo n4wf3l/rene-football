@@ -109,8 +109,8 @@ function ScoutingShell() {
   return (
     <div className="flex min-h-[100dvh] bg-stone-50 dark:bg-zinc-950">
       {/* Internal scouting sidebar - distinct from the outer admin sidebar (which auto-collapses on this route). */}
-      <aside className="hidden lg:flex flex-col w-56 shrink-0 sticky top-0 h-[100dvh] border-r border-stone-200 dark:border-stone-50/8 bg-white dark:bg-zinc-900/40">
-        <div className="px-5 h-16 flex items-center gap-2.5 border-b border-stone-200 dark:border-stone-50/8">
+      <aside className="hidden lg:flex flex-col w-56 shrink-0 sticky top-0 h-[100dvh] border-r border-stone-200 dark:border-stone-50/10 bg-white dark:bg-zinc-900/40">
+        <div className="px-5 h-16 flex items-center gap-2.5 border-b border-stone-200 dark:border-stone-50/10">
           <span className="grid place-items-center w-8 h-8 rounded-lg bg-zinc-950 text-stone-50 dark:bg-stone-50 dark:text-zinc-950">
             <Binoculars size={18} weight="duotone" />
           </span>
@@ -132,7 +132,7 @@ function ScoutingShell() {
                 onClick={() => goTo(item.view)}
                 className={`group relative flex items-center gap-3 w-full px-3 py-2 rounded-xl text-sm transition-colors duration-200 ${
                   active
-                    ? 'bg-stone-200/70 text-zinc-950 dark:bg-stone-50/8 dark:text-stone-50'
+                    ? 'bg-stone-200/70 text-zinc-950 dark:bg-stone-50/10 dark:text-stone-50'
                     : 'text-zinc-600 hover:bg-stone-200/40 hover:text-zinc-950 dark:text-stone-400 dark:hover:bg-stone-50/5 dark:hover:text-stone-100'
                 }`}
               >
@@ -170,7 +170,7 @@ function ScoutingShell() {
           </div>
         </div>
 
-        <header className="px-6 lg:px-10 pt-8 pb-5 border-b border-stone-200 dark:border-stone-50/8 bg-white/70 dark:bg-zinc-950">
+        <header className="px-6 lg:px-10 pt-8 pb-5 border-b border-stone-200 dark:border-stone-50/10 bg-white/70 dark:bg-zinc-950">
           <span className="eyebrow">Scouting</span>
           <h1 className="mt-1 font-display font-semibold text-2xl lg:text-3xl tracking-tight text-zinc-950 dark:text-stone-50">
             {labels.title}

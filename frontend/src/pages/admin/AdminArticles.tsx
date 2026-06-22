@@ -202,7 +202,7 @@ export default function AdminArticles() {
         </span>
       </div>
 
-      <div className="overflow-x-auto rounded-2xl border border-stone-200 bg-white dark:bg-zinc-900 dark:border-stone-50/8">
+      <div className="overflow-x-auto rounded-2xl border border-stone-200 bg-white dark:bg-zinc-900 dark:border-stone-50/10">
         <table className="w-full text-sm">
           <thead className="bg-stone-100 dark:bg-zinc-950">
             <tr className="text-left text-[0.65rem] font-mono uppercase tracking-[0.16em] text-zinc-600 dark:text-stone-400">
@@ -215,7 +215,7 @@ export default function AdminArticles() {
               <th className="px-4 py-2.5 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-stone-200 dark:divide-stone-50/8">
+          <tbody className="divide-y divide-stone-200 dark:divide-stone-50/10">
             {loading && (
               [0, 1, 2, 3].map((i) => (
                 <tr key={i}>
@@ -231,7 +231,7 @@ export default function AdminArticles() {
               </tr>
             )}
             {!loading && filtered.map((a) => (
-              <tr key={a.slug} className="hover:bg-stone-50 dark:hover:bg-stone-50/3 transition-colors">
+              <tr key={a.slug} className="hover:bg-stone-50 dark:hover:bg-stone-50/5 transition-colors">
                 <td className="px-4 py-3">
                   <button
                     type="button"
@@ -263,7 +263,7 @@ export default function AdminArticles() {
                   </button>
                 </td>
                 <td className="px-4 py-3">
-                  <span className="inline-flex px-2 py-0.5 rounded-full text-[0.65rem] font-mono uppercase tracking-wider bg-stone-200/70 text-zinc-700 dark:bg-stone-50/8 dark:text-stone-300">
+                  <span className="inline-flex px-2 py-0.5 rounded-full text-[0.65rem] font-mono uppercase tracking-wider bg-stone-200/70 text-zinc-700 dark:bg-stone-50/10 dark:text-stone-300">
                     {a.category}
                   </span>
                 </td>
@@ -306,7 +306,7 @@ export default function AdminArticles() {
                     className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[0.65rem] font-mono uppercase tracking-wider transition ${
                       a.is_published
                         ? 'bg-turf-100 text-turf-800 hover:bg-turf-200 dark:bg-turf-300/15 dark:text-turf-300 dark:hover:bg-turf-300/25'
-                        : 'bg-stone-200/80 text-zinc-700 hover:bg-stone-300/80 dark:bg-stone-50/8 dark:text-stone-300 dark:hover:bg-stone-50/15'
+                        : 'bg-stone-200/80 text-zinc-700 hover:bg-stone-300/80 dark:bg-stone-50/10 dark:text-stone-300 dark:hover:bg-stone-50/15'
                     } ${togglingSlug === a.slug ? 'opacity-60 cursor-not-allowed' : ''}`}
                     title={a.is_published ? 'Cliquer pour masquer' : 'Cliquer pour publier'}
                   >
@@ -319,7 +319,7 @@ export default function AdminArticles() {
                     <button
                       type="button"
                       onClick={() => navigate(`/admin/articles/${a.slug}/edit`)}
-                      className="grid place-items-center w-8 h-8 rounded-lg text-zinc-500 hover:bg-stone-200/60 hover:text-zinc-900 dark:text-stone-400 dark:hover:bg-stone-50/8 dark:hover:text-stone-50 transition"
+                      className="grid place-items-center w-8 h-8 rounded-lg text-zinc-500 hover:bg-stone-200/60 hover:text-zinc-900 dark:text-stone-400 dark:hover:bg-stone-50/10 dark:hover:text-stone-50 transition"
                       aria-label="Éditer"
                       title="Éditer"
                     >

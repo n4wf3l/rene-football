@@ -149,7 +149,7 @@ export default function AdminStaff() {
         </button>
       </div>
 
-      <div className="overflow-x-auto rounded-2xl border border-stone-200 bg-white dark:bg-zinc-900 dark:border-stone-50/8">
+      <div className="overflow-x-auto rounded-2xl border border-stone-200 bg-white dark:bg-zinc-900 dark:border-stone-50/10">
         <table className="w-full text-sm">
           <thead className="bg-stone-100 dark:bg-zinc-950">
             <tr className="text-left text-[0.65rem] font-mono uppercase tracking-[0.16em] text-zinc-600 dark:text-stone-400">
@@ -160,7 +160,7 @@ export default function AdminStaff() {
               <th className="px-4 py-2.5 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-stone-200 dark:divide-stone-50/8">
+          <tbody className="divide-y divide-stone-200 dark:divide-stone-50/10">
             {loading && [0, 1, 2, 3].map((i) => (
               <tr key={i}><td colSpan={5} className="px-4 py-3"><Skeleton className="h-10 w-full" /></td></tr>
             ))}
@@ -172,14 +172,14 @@ export default function AdminStaff() {
               </tr>
             )}
             {!loading && members.map((m, i) => (
-              <tr key={m.id} className="hover:bg-stone-50 dark:hover:bg-stone-50/3 transition-colors">
+              <tr key={m.id} className="hover:bg-stone-50 dark:hover:bg-stone-50/5 transition-colors">
                 <td className="px-4 py-3">
                   <div className="inline-flex items-center gap-0.5">
                     <button
                       type="button"
                       onClick={() => move(i, -1)}
                       disabled={i === 0 || busy != null}
-                      className="grid place-items-center w-7 h-7 rounded-md text-zinc-500 hover:bg-stone-200/60 hover:text-zinc-900 dark:text-stone-400 dark:hover:bg-stone-50/8 dark:hover:text-stone-50 disabled:opacity-30 disabled:cursor-not-allowed transition"
+                      className="grid place-items-center w-7 h-7 rounded-md text-zinc-500 hover:bg-stone-200/60 hover:text-zinc-900 dark:text-stone-400 dark:hover:bg-stone-50/10 dark:hover:text-stone-50 disabled:opacity-30 disabled:cursor-not-allowed transition"
                       aria-label="Monter"
                     >
                       <ArrowUp size={12} weight="bold" />
@@ -188,7 +188,7 @@ export default function AdminStaff() {
                       type="button"
                       onClick={() => move(i, 1)}
                       disabled={i === members.length - 1 || busy != null}
-                      className="grid place-items-center w-7 h-7 rounded-md text-zinc-500 hover:bg-stone-200/60 hover:text-zinc-900 dark:text-stone-400 dark:hover:bg-stone-50/8 dark:hover:text-stone-50 disabled:opacity-30 disabled:cursor-not-allowed transition"
+                      className="grid place-items-center w-7 h-7 rounded-md text-zinc-500 hover:bg-stone-200/60 hover:text-zinc-900 dark:text-stone-400 dark:hover:bg-stone-50/10 dark:hover:text-stone-50 disabled:opacity-30 disabled:cursor-not-allowed transition"
                       aria-label="Descendre"
                     >
                       <ArrowDown size={12} weight="bold" />
@@ -224,7 +224,7 @@ export default function AdminStaff() {
                     className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[0.65rem] font-mono uppercase tracking-wider transition ${
                       m.is_published
                         ? 'bg-turf-100 text-turf-800 hover:bg-turf-200 dark:bg-turf-300/15 dark:text-turf-300 dark:hover:bg-turf-300/25'
-                        : 'bg-stone-200/80 text-zinc-700 hover:bg-stone-300/80 dark:bg-stone-50/8 dark:text-stone-300 dark:hover:bg-stone-50/15'
+                        : 'bg-stone-200/80 text-zinc-700 hover:bg-stone-300/80 dark:bg-stone-50/10 dark:text-stone-300 dark:hover:bg-stone-50/15'
                     } ${busy === m.id ? 'opacity-60 cursor-not-allowed' : ''}`}
                     title={m.is_published ? 'Cliquer pour masquer' : 'Cliquer pour publier'}
                   >
@@ -237,7 +237,7 @@ export default function AdminStaff() {
                     <button
                       type="button"
                       onClick={() => navigate(`/admin/equipe/${m.slug}/edit`)}
-                      className="grid place-items-center w-8 h-8 rounded-lg text-zinc-500 hover:bg-stone-200/60 hover:text-zinc-900 dark:text-stone-400 dark:hover:bg-stone-50/8 dark:hover:text-stone-50 transition"
+                      className="grid place-items-center w-8 h-8 rounded-lg text-zinc-500 hover:bg-stone-200/60 hover:text-zinc-900 dark:text-stone-400 dark:hover:bg-stone-50/10 dark:hover:text-stone-50 transition"
                       aria-label="Éditer"
                       title="Éditer"
                     >

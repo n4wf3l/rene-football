@@ -326,7 +326,7 @@ function PlayerEditor({ player, isNew, onClose, onSaved, onDelete, mode = 'modal
 
   return (
     <Wrapper>
-      <div className={`flex items-center justify-between px-6 h-16 border-b border-stone-200 bg-white dark:bg-zinc-900 dark:border-stone-50/8 ${
+      <div className={`flex items-center justify-between px-6 h-16 border-b border-stone-200 bg-white dark:bg-zinc-900 dark:border-stone-50/10 ${
         mode === 'page' ? 'sticky top-0 z-10' : ''
       }`}>
         <div>
@@ -340,7 +340,7 @@ function PlayerEditor({ player, isNew, onClose, onSaved, onDelete, mode = 'modal
         <button
           type="button"
           onClick={onClose}
-          className="grid place-items-center w-9 h-9 rounded-full text-zinc-500 hover:bg-stone-100 hover:text-zinc-900 dark:text-stone-400 dark:hover:bg-stone-50/8 dark:hover:text-stone-50 transition"
+          className="grid place-items-center w-9 h-9 rounded-full text-zinc-500 hover:bg-stone-100 hover:text-zinc-900 dark:text-stone-400 dark:hover:bg-stone-50/10 dark:hover:text-stone-50 transition"
           aria-label={mode === 'page' ? 'Retour à la liste' : 'Fermer'}
         >
           <XIcon size={18} weight="bold" />
@@ -616,7 +616,7 @@ function PlayerEditor({ player, isNew, onClose, onSaved, onDelete, mode = 'modal
         )}
       </form>
 
-      <div className={`border-t border-stone-200 bg-white dark:bg-zinc-900 dark:border-stone-50/8 px-6 py-4 flex items-center justify-between gap-3 ${
+      <div className={`border-t border-stone-200 bg-white dark:bg-zinc-900 dark:border-stone-50/10 px-6 py-4 flex items-center justify-between gap-3 ${
         mode === 'page' ? 'sticky bottom-0' : ''
       }`}>
         {!isNew ? (

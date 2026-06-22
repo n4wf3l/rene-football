@@ -95,7 +95,7 @@ function ReportDrawer({ id, onClose }: Props) {
         transition={{ type: 'spring', stiffness: 280, damping: 32 }}
         className="fixed top-0 right-0 h-[100dvh] w-full max-w-xl bg-stone-50 dark:bg-zinc-950 shadow-2xl flex flex-col z-50"
       >
-        <header className="flex items-center justify-between px-6 h-16 border-b border-stone-200 dark:border-stone-50/8 bg-white dark:bg-zinc-900">
+        <header className="flex items-center justify-between px-6 h-16 border-b border-stone-200 dark:border-stone-50/10 bg-white dark:bg-zinc-900">
           <div className="min-w-0 flex-1">
             <div className="font-mono text-[0.62rem] uppercase tracking-[0.12em] text-turf-700 dark:text-turf-300">Rapport scout</div>
             <div className="font-display font-semibold text-lg text-zinc-950 dark:text-stone-50 truncate">{report?.player?.name ?? '-'}</div>
@@ -103,7 +103,7 @@ function ReportDrawer({ id, onClose }: Props) {
           <button
             type="button"
             onClick={onClose}
-            className="grid place-items-center w-9 h-9 rounded-full text-zinc-500 hover:bg-stone-100 hover:text-zinc-900 dark:text-stone-400 dark:hover:bg-stone-50/8 dark:hover:text-stone-50 transition"
+            className="grid place-items-center w-9 h-9 rounded-full text-zinc-500 hover:bg-stone-100 hover:text-zinc-900 dark:text-stone-400 dark:hover:bg-stone-50/10 dark:hover:text-stone-50 transition"
           >
             <XIcon size={18} weight="bold" />
           </button>
@@ -149,7 +149,7 @@ function ReportDrawer({ id, onClose }: Props) {
 
               {report.scores && report.scores.length > 0 && (
                 <Section label="Notes par critère">
-                  <div className="rounded-xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/8 divide-y divide-stone-200 dark:divide-stone-50/8">
+                  <div className="rounded-xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/10 divide-y divide-stone-200 dark:divide-stone-50/10">
                     {report.scores.map((s) => (
                       <div key={`${s.category}-${s.criterion}`} className="px-3 py-2 flex items-center justify-between text-sm">
                         <div>
@@ -188,7 +188,7 @@ function ReportDrawer({ id, onClose }: Props) {
         </div>
 
         {!loading && report && (
-          <footer className="border-t border-stone-200 dark:border-stone-50/8 bg-white dark:bg-zinc-900 px-6 py-4 space-y-3">
+          <footer className="border-t border-stone-200 dark:border-stone-50/10 bg-white dark:bg-zinc-900 px-6 py-4 space-y-3">
             <ActionPanel
               report={report}
               busy={busy}

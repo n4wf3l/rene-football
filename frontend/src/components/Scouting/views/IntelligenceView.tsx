@@ -129,8 +129,8 @@ function AlertCard({ icon: Icon, tone, title, items, empty }: { icon: PhosphorIc
     ? 'bg-amber-50 border-amber-200 text-amber-900 dark:bg-amber-900/20 dark:border-amber-400/30 dark:text-amber-200'
     : 'bg-rose-50 border-rose-200 text-rose-900 dark:bg-rose-900/20 dark:border-rose-400/30 dark:text-rose-200'
   return (
-    <section className="rounded-2xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/8 overflow-hidden">
-      <header className={`px-4 py-3 border-b border-stone-200 dark:border-stone-50/8 flex items-center gap-2 ${palette}`}>
+    <section className="rounded-2xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/10 overflow-hidden">
+      <header className={`px-4 py-3 border-b border-stone-200 dark:border-stone-50/10 flex items-center gap-2 ${palette}`}>
         <Icon size={14} weight="duotone" />
         <h3 className="font-mono uppercase tracking-[0.18em] text-[0.7rem]">{title}</h3>
         <span className="ml-auto text-[0.65rem] font-mono tabular-nums">{items.length}</span>
@@ -138,7 +138,7 @@ function AlertCard({ icon: Icon, tone, title, items, empty }: { icon: PhosphorIc
       {items.length === 0 ? (
         <div className="px-4 py-6 text-center text-sm text-zinc-500 dark:text-stone-400">{empty}</div>
       ) : (
-        <ul className="divide-y divide-stone-200 dark:divide-stone-50/8">
+        <ul className="divide-y divide-stone-200 dark:divide-stone-50/10">
           {items.map((it) => (
             <li key={it.key}>
               <button

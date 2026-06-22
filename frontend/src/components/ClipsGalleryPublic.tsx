@@ -40,7 +40,7 @@ export default function ClipsGalleryPublic({ clips }: ClipsGalleryPublicProps) {
             <button
               type="button"
               onClick={() => setOpenIndex(idx)}
-              className="group block w-full text-left rounded-2xl overflow-hidden bg-stone-100 dark:bg-zinc-900 border border-stone-200/80 dark:border-stone-50/8 hover:border-zinc-400 dark:hover:border-stone-50/30 transition"
+              className="group block w-full text-left rounded-2xl overflow-hidden bg-stone-100 dark:bg-zinc-900 border border-stone-200/80 dark:border-stone-50/10 hover:border-zinc-400 dark:hover:border-stone-50/30 transition"
             >
               <div className="relative aspect-video bg-black">
                 <img

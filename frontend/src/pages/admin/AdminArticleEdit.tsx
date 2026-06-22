@@ -372,7 +372,7 @@ export default function AdminArticleEdit({ creating = false }: { creating?: bool
 
   return (
     <div className="bg-stone-50 dark:bg-zinc-950 min-h-[100dvh] flex flex-col">
-      <div className="sticky top-0 z-10 flex items-center justify-between px-6 h-16 border-b border-stone-200 bg-white dark:bg-zinc-900 dark:border-stone-50/8">
+      <div className="sticky top-0 z-10 flex items-center justify-between px-6 h-16 border-b border-stone-200 bg-white dark:bg-zinc-900 dark:border-stone-50/10">
         <div className="min-w-0">
           <div className="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-turf-700 dark:text-turf-300">
             {creating ? 'Nouvel article' : 'Édition'}
@@ -395,7 +395,7 @@ export default function AdminArticleEdit({ creating = false }: { creating?: bool
           <button
             type="button"
             onClick={() => navigate('/admin/articles')}
-            className="grid place-items-center w-9 h-9 rounded-full text-zinc-500 hover:bg-stone-100 hover:text-zinc-900 dark:text-stone-400 dark:hover:bg-stone-50/8 dark:hover:text-stone-50 transition"
+            className="grid place-items-center w-9 h-9 rounded-full text-zinc-500 hover:bg-stone-100 hover:text-zinc-900 dark:text-stone-400 dark:hover:bg-stone-50/10 dark:hover:text-stone-50 transition"
             aria-label="Retour à la liste"
           >
             <XIcon size={18} weight="bold" />
@@ -636,7 +636,7 @@ export default function AdminArticleEdit({ creating = false }: { creating?: bool
                       value={s.caption}
                       onChange={(e) => updateStagedCaption(s.id, e.target.value)}
                       placeholder="Légende (optionnelle)"
-                      className="w-full px-2 py-1.5 text-xs border-t border-stone-200 dark:border-stone-50/8 bg-white dark:bg-zinc-900 focus:outline-none"
+                      className="w-full px-2 py-1.5 text-xs border-t border-stone-200 dark:border-stone-50/10 bg-white dark:bg-zinc-900 focus:outline-none"
                       maxLength={200}
                     />
                   </div>
@@ -695,7 +695,7 @@ export default function AdminArticleEdit({ creating = false }: { creating?: bool
                       type="button"
                       onClick={() => moveClip(c.id, -1)}
                       disabled={i === 0}
-                      className="grid place-items-center w-7 h-7 rounded-md text-zinc-500 hover:bg-stone-100 hover:text-zinc-900 dark:text-stone-400 dark:hover:bg-stone-50/8 dark:hover:text-stone-50 disabled:opacity-30 disabled:cursor-not-allowed transition"
+                      className="grid place-items-center w-7 h-7 rounded-md text-zinc-500 hover:bg-stone-100 hover:text-zinc-900 dark:text-stone-400 dark:hover:bg-stone-50/10 dark:hover:text-stone-50 disabled:opacity-30 disabled:cursor-not-allowed transition"
                       aria-label="Monter"
                     >
                       ↑
@@ -704,7 +704,7 @@ export default function AdminArticleEdit({ creating = false }: { creating?: bool
                       type="button"
                       onClick={() => moveClip(c.id, 1)}
                       disabled={i === attachedClips.length - 1}
-                      className="grid place-items-center w-7 h-7 rounded-md text-zinc-500 hover:bg-stone-100 hover:text-zinc-900 dark:text-stone-400 dark:hover:bg-stone-50/8 dark:hover:text-stone-50 disabled:opacity-30 disabled:cursor-not-allowed transition"
+                      className="grid place-items-center w-7 h-7 rounded-md text-zinc-500 hover:bg-stone-100 hover:text-zinc-900 dark:text-stone-400 dark:hover:bg-stone-50/10 dark:hover:text-stone-50 disabled:opacity-30 disabled:cursor-not-allowed transition"
                       aria-label="Descendre"
                     >
                       ↓
@@ -762,11 +762,11 @@ export default function AdminArticleEdit({ creating = false }: { creating?: bool
         </section>
 
         {/* SAVE BAR */}
-        <div className="sticky bottom-0 -mx-6 lg:-mx-10 px-6 lg:px-10 py-4 bg-stone-50/95 dark:bg-zinc-950/95 backdrop-blur border-t border-stone-200 dark:border-stone-50/8 flex items-center justify-end gap-2">
+        <div className="sticky bottom-0 -mx-6 lg:-mx-10 px-6 lg:px-10 py-4 bg-stone-50/95 dark:bg-zinc-950/95 backdrop-blur border-t border-stone-200 dark:border-stone-50/10 flex items-center justify-end gap-2">
           <button
             type="button"
             onClick={() => navigate('/admin/articles')}
-            className="px-4 py-2 rounded-lg text-sm font-medium text-zinc-700 hover:bg-stone-100 dark:text-stone-300 dark:hover:bg-stone-50/8 transition"
+            className="px-4 py-2 rounded-lg text-sm font-medium text-zinc-700 hover:bg-stone-100 dark:text-stone-300 dark:hover:bg-stone-50/10 transition"
           >
             Annuler
           </button>
@@ -815,7 +815,7 @@ function ClipPicker({ clips, picked, onToggle, onClose }: ClipPickerProps) {
 
   return (
     <div className="rounded-2xl border border-stone-200 dark:border-stone-50/10 bg-white dark:bg-zinc-900 overflow-hidden">
-      <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-stone-200 dark:border-stone-50/8">
+      <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-stone-200 dark:border-stone-50/10">
         <div className="flex flex-1 items-center gap-2">
           <div className="relative flex-1 max-w-xs">
             <MagnifyingGlass size={13} weight="regular" className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
@@ -841,7 +841,7 @@ function ClipPicker({ clips, picked, onToggle, onClose }: ClipPickerProps) {
         <button
           type="button"
           onClick={onClose}
-          className="grid place-items-center w-7 h-7 rounded-md text-zinc-500 hover:bg-stone-100 hover:text-zinc-900 dark:text-stone-400 dark:hover:bg-stone-50/8 dark:hover:text-stone-50 transition"
+          className="grid place-items-center w-7 h-7 rounded-md text-zinc-500 hover:bg-stone-100 hover:text-zinc-900 dark:text-stone-400 dark:hover:bg-stone-50/10 dark:hover:text-stone-50 transition"
           aria-label="Fermer"
         >
           <XIcon size={14} weight="bold" />

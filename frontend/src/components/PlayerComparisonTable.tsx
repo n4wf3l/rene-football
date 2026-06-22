@@ -65,9 +65,9 @@ export default function PlayerComparisonTable({ players }: PlayerComparisonTable
   })
 
   return (
-    <div className="overflow-x-auto rounded-2xl border border-stone-200 dark:border-stone-50/8 bg-white dark:bg-zinc-900">
+    <div className="overflow-x-auto rounded-2xl border border-stone-200 dark:border-stone-50/10 bg-white dark:bg-zinc-900">
       <table className="w-full text-sm">
-        <thead className="bg-stone-50 dark:bg-zinc-950/40 border-b border-stone-200 dark:border-stone-50/8">
+        <thead className="bg-stone-50 dark:bg-zinc-950/40 border-b border-stone-200 dark:border-stone-50/10">
           <tr>
             <th className="text-left px-4 py-3 font-mono uppercase tracking-[0.16em] text-[0.65rem] text-zinc-500 dark:text-stone-400">
               Métrique

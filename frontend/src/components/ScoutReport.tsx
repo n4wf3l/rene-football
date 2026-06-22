@@ -127,7 +127,7 @@ const ComparisonsRow = memo(function ComparisonsRow({ items }: { items: PlayerCo
       {items.map((c) => (
         <li
           key={c.name}
-          className="flex-1 flex items-center gap-3 rounded-2xl border border-stone-200/80 dark:border-stone-50/8 bg-white dark:bg-zinc-900/40 px-4 py-3 transition-colors hover:border-turf-700/40 dark:hover:border-turf-300/40"
+          className="flex-1 flex items-center gap-3 rounded-2xl border border-stone-200/80 dark:border-stone-50/10 bg-white dark:bg-zinc-900/40 px-4 py-3 transition-colors hover:border-turf-700/40 dark:hover:border-turf-300/40"
         >
           <div className="relative w-12 h-12 shrink-0 rounded-xl overflow-hidden bg-stone-200 dark:bg-stone-50/5">
             {c.photo_url && (
@@ -163,7 +163,7 @@ const StrengthsRow = memo(function StrengthsRow({ items }: { items: PlayerStreng
         return (
           <li
             key={s.key}
-            className="flex items-center gap-3 rounded-2xl border border-stone-200/80 dark:border-stone-50/8 bg-white dark:bg-zinc-900/40 px-4 py-3"
+            className="flex items-center gap-3 rounded-2xl border border-stone-200/80 dark:border-stone-50/10 bg-white dark:bg-zinc-900/40 px-4 py-3"
           >
             <span className="grid place-items-center w-9 h-9 rounded-lg bg-turf-50 text-turf-800 border border-turf-100 dark:bg-turf-800/30 dark:text-turf-200 dark:border-turf-300/20 shrink-0">
               <Icon size={16} weight="regular" />
@@ -238,7 +238,7 @@ function ScoutReport({
 
       {/* Potential gauge (right, 4 cols) */}
       {typeof potentialRating === 'number' && (
-        <div className="lg:col-span-4 rounded-3xl border border-stone-200/80 dark:border-stone-50/8 bg-white dark:bg-zinc-900/40 p-6 lg:p-8 flex flex-col items-center justify-center">
+        <div className="lg:col-span-4 rounded-3xl border border-stone-200/80 dark:border-stone-50/10 bg-white dark:bg-zinc-900/40 p-6 lg:p-8 flex flex-col items-center justify-center">
           <div className="font-mono uppercase tracking-[0.18em] text-[0.65rem] text-zinc-500 dark:text-stone-400 mb-3">
             Potentiel
           </div>

@@ -42,7 +42,7 @@ function VideosView() {
           <button
             key={p.id}
             onClick={() => openPlayer(p.slug)}
-            className="text-left rounded-2xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/8 p-4 hover:border-turf-400 dark:hover:border-turf-300/30 transition"
+            className="text-left rounded-2xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/10 p-4 hover:border-turf-400 dark:hover:border-turf-300/30 transition"
           >
             <div className="flex items-center gap-3">
               <img src={p.photo_url || ''} alt="" className="w-10 h-10 rounded-full object-cover bg-stone-200 dark:bg-stone-800" />

@@ -85,7 +85,7 @@ function Column({ status, missions, onOpen }: { status: MissionStatus; missions:
       className={`rounded-2xl border p-3 flex flex-col transition-colors ${
         isOver
           ? 'border-turf-400 bg-turf-50 dark:bg-turf-900/20 dark:border-turf-300/30'
-          : 'border-stone-200 bg-white/60 dark:bg-zinc-900/40 dark:border-stone-50/8'
+          : 'border-stone-200 bg-white/60 dark:bg-zinc-900/40 dark:border-stone-50/10'
       }`}
     >
       <header className="flex items-center justify-between mb-3">
@@ -114,7 +114,7 @@ function DraggableCard({ mission, onOpen }: { mission: ScoutAssignment; onOpen: 
       {...listeners}
       whileHover={{ scale: 1.005 }}
       onClick={onOpen}
-      className="rounded-xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/8 px-3 py-2.5 text-sm cursor-grab active:cursor-grabbing select-none"
+      className="rounded-xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/10 px-3 py-2.5 text-sm cursor-grab active:cursor-grabbing select-none"
     >
       <Card mission={mission} />
     </motion.div>
@@ -123,7 +123,7 @@ function DraggableCard({ mission, onOpen }: { mission: ScoutAssignment; onOpen: 
 
 function Card({ mission, dragging = false }: { mission: ScoutAssignment; dragging?: boolean }) {
   return (
-    <div className={dragging ? 'rounded-xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/8 px-3 py-2.5 text-sm shadow-diffusion w-72' : ''}>
+    <div className={dragging ? 'rounded-xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/10 px-3 py-2.5 text-sm shadow-diffusion w-72' : ''}>
       <div className="flex items-start gap-2 mb-1.5">
         <span className="flex-1 font-medium text-zinc-950 dark:text-stone-50 line-clamp-2">{mission.title}</span>
         <PriorityBadge priority={mission.priority} />

@@ -32,6 +32,7 @@ import AppearancesTable from '../components/AppearancesTable'
 import ClipsGalleryPublic from '../components/ClipsGalleryPublic'
 import type { Appearance } from '../types/appearance'
 import type { PlayerClip } from '../types/clip'
+import type { Presentation } from '../types/presentation'
 import { heatmapFromPosition, isValidGrid } from '../lib/heatmap'
 import { playerImage } from '../lib/playerImage'
 
@@ -263,10 +264,11 @@ interface PlayerDetailProps {
   peersCount?: number
   appearances?: Appearance[]
   clips?: PlayerClip[]
+  presentations?: Presentation[]
   player: Player
 }
 
-function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips = [] }: PlayerDetailProps) {
+function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips = [], presentations = [] }: PlayerDetailProps) {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const isKeeper = player.category === 'Gardien'
 
@@ -508,6 +510,19 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
               <FilePdf size={13} weight="regular" />
               Fiche PDF
             </a>
+            {presentations.slice(0, 3).map((pres) => (
+              <a
+                key={pres.id}
+                href={`/api/presentations/${pres.public_token}`}
+                target="_blank"
+                rel="noreferrer"
+                title={pres.title}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium bg-turf-700 text-stone-50 hover:bg-turf-800 dark:bg-turf-300 dark:text-zinc-950 dark:hover:bg-turf-200 transition whitespace-nowrap"
+              >
+                <FilePdf size={13} weight="regular" />
+                Présentation
+              </a>
+            ))}
           </div>
         </div>
       </nav>
@@ -530,7 +545,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-60px' }}
               transition={{ type: 'spring', stiffness: 120, damping: 22 }}
-              className="rounded-2xl border border-stone-200/80 bg-white p-5 dark:bg-zinc-900 dark:border-stone-50/8"
+              className="rounded-2xl border border-stone-200/80 bg-white p-5 dark:bg-zinc-900 dark:border-stone-50/10"
             >
               <div className="grid place-items-center w-9 h-9 rounded-xl bg-turf-50 text-turf-800 border border-turf-100">
                 <Icon size={18} weight="regular" />
@@ -552,7 +567,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
 
       {/* Profil scout - only shown when at least one scout-side field is filled. */}
       {vis.scout && (
-      <section className="bg-white border-y border-stone-200/80 py-16 lg:py-24 dark:bg-zinc-950 dark:border-stone-50/8">
+      <section className="bg-white border-y border-stone-200/80 py-16 lg:py-24 dark:bg-zinc-950 dark:border-stone-50/10">
         <div className="container-page">
           <SectionHeading id="scout" eyebrow={eyebrow('scout')} title="Profil scout." />
           <ScoutReport
@@ -565,7 +580,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
 
           {/* Radar empreinte + percentiles vs catégorie */}
           <div className="mt-12 lg:mt-16 grid lg:grid-cols-12 gap-6 lg:gap-8 items-stretch">
-            <div className="lg:col-span-5 rounded-3xl border border-stone-200/80 dark:border-stone-50/8 bg-stone-50/60 dark:bg-zinc-900/40 p-6 lg:p-8 flex flex-col">
+            <div className="lg:col-span-5 rounded-3xl border border-stone-200/80 dark:border-stone-50/10 bg-stone-50/60 dark:bg-zinc-900/40 p-6 lg:p-8 flex flex-col">
               <div className="font-mono uppercase tracking-[0.18em] text-[0.65rem] text-zinc-500 dark:text-stone-400 mb-2">
                 Empreinte statistique
               </div>
@@ -580,7 +595,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
               </div>
             </div>
 
-            <div className="lg:col-span-7 rounded-3xl border border-stone-200/80 dark:border-stone-50/8 bg-white dark:bg-zinc-900/40 p-6 lg:p-8">
+            <div className="lg:col-span-7 rounded-3xl border border-stone-200/80 dark:border-stone-50/10 bg-white dark:bg-zinc-900/40 p-6 lg:p-8">
               <div className="font-mono uppercase tracking-[0.18em] text-[0.65rem] text-zinc-500 dark:text-stone-400 mb-2">
                 Position dans la catégorie
               </div>
@@ -605,7 +620,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
 
       {/* Saison - hidden if the player hasn't played a match yet. */}
       {vis.saison && (
-      <section className="bg-stone-50 border-b border-stone-200/80 py-16 lg:py-24 dark:bg-zinc-950 dark:border-stone-50/8">
+      <section className="bg-stone-50 border-b border-stone-200/80 py-16 lg:py-24 dark:bg-zinc-950 dark:border-stone-50/10">
         <div className="container-page">
           <SectionHeading id="saison" eyebrow={eyebrow('saison')} title="Saison en cours." />
 
@@ -647,7 +662,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
               </div>
 
               {!isKeeper && (
-                <div className="rounded-3xl border border-stone-200/80 dark:border-stone-50/8 bg-white dark:bg-zinc-900/40 p-6 lg:p-8">
+                <div className="rounded-3xl border border-stone-200/80 dark:border-stone-50/10 bg-white dark:bg-zinc-900/40 p-6 lg:p-8">
                   <div className="font-mono uppercase tracking-[0.18em] text-[0.65rem] text-zinc-500 dark:text-stone-400 mb-4">
                     Performance vs attendu
                   </div>
@@ -676,7 +691,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
       {/* Terrain - only shown when a real heatmap was painted (not the generic
           position fallback, which would mislead for very young players). */}
       {vis.terrain && (
-      <section className="bg-stone-50 dark:bg-zinc-950 border-y border-stone-200/80 dark:border-stone-50/8 py-16 lg:py-24">
+      <section className="bg-stone-50 dark:bg-zinc-950 border-y border-stone-200/80 dark:border-stone-50/10 py-16 lg:py-24">
         <div className="container-page">
           <SectionHeading id="terrain" eyebrow={eyebrow('terrain')} title="Zones d'activité." />
           <div className="grid lg:grid-cols-12 gap-8 lg:gap-12">
@@ -756,17 +771,17 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
           <SectionHeading id="gardien" eyebrow={eyebrow('gardien')} title="Activité dans la surface." />
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="rounded-2xl border border-stone-200/80 dark:border-stone-50/8 bg-white dark:bg-zinc-900/40 p-6">
+            <div className="rounded-2xl border border-stone-200/80 dark:border-stone-50/10 bg-white dark:bg-zinc-900/40 p-6">
               <Shield size={20} weight="regular" className="text-turf-800 dark:text-turf-300" />
               <div className="mt-4 font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">{player.clean_sheets}</div>
               <div className="mt-1 text-xs text-zinc-500 dark:text-stone-400 font-mono uppercase tracking-wider">Clean sheets</div>
             </div>
-            <div className="rounded-2xl border border-stone-200/80 dark:border-stone-50/8 bg-white dark:bg-zinc-900/40 p-6">
+            <div className="rounded-2xl border border-stone-200/80 dark:border-stone-50/10 bg-white dark:bg-zinc-900/40 p-6">
               <Sparkle size={20} weight="regular" className="text-turf-800 dark:text-turf-300" />
               <div className="mt-4 font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">{player.saves}</div>
               <div className="mt-1 text-xs text-zinc-500 dark:text-stone-400 font-mono uppercase tracking-wider">Arrêts</div>
             </div>
-            <div className="rounded-2xl border border-stone-200/80 dark:border-stone-50/8 bg-white dark:bg-zinc-900/40 p-6">
+            <div className="rounded-2xl border border-stone-200/80 dark:border-stone-50/10 bg-white dark:bg-zinc-900/40 p-6">
               <ListMagnifyingGlass size={20} weight="regular" className="text-turf-800 dark:text-turf-300" />
               <div className="mt-4 font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">
                 {Number(player.pass_accuracy ?? 0).toFixed(1)}
@@ -774,7 +789,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
               </div>
               <div className="mt-1 text-xs text-zinc-500 dark:text-stone-400 font-mono uppercase tracking-wider">Passes réussies</div>
             </div>
-            <div className="rounded-2xl border border-stone-200/80 dark:border-stone-50/8 bg-white dark:bg-zinc-900/40 p-6">
+            <div className="rounded-2xl border border-stone-200/80 dark:border-stone-50/10 bg-white dark:bg-zinc-900/40 p-6">
               <Person size={20} weight="regular" className="text-turf-800 dark:text-turf-300" />
               <div className="mt-4 font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">{player.duels_won}</div>
               <div className="mt-1 text-xs text-zinc-500 dark:text-stone-400 font-mono uppercase tracking-wider">Duels gagnés</div>
@@ -785,17 +800,17 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
 
       {/* Défense (champ uniquement) - hidden when no defensive action recorded. */}
       {vis.defense && (
-        <section className="bg-white border-y border-stone-200/80 py-16 lg:py-24 dark:bg-zinc-950 dark:border-stone-50/8">
+        <section className="bg-white border-y border-stone-200/80 py-16 lg:py-24 dark:bg-zinc-950 dark:border-stone-50/10">
           <div className="container-page">
             <SectionHeading id="defense" eyebrow={eyebrow('defense')} title="Travail défensif." />
 
             <div className="grid lg:grid-cols-3 gap-5 lg:gap-6">
-              <div className="rounded-3xl border border-stone-200/80 dark:border-stone-50/8 dark:bg-zinc-900/40 p-6 lg:p-8">
+              <div className="rounded-3xl border border-stone-200/80 dark:border-stone-50/10 dark:bg-zinc-900/40 p-6 lg:p-8">
                 <Shield size={22} weight="regular" className="text-turf-800 dark:text-turf-300" />
                 <div className="mt-5 font-mono text-4xl tabular-nums text-zinc-950 dark:text-stone-50">{player.tackles}</div>
                 <div className="mt-1 text-xs text-zinc-500 dark:text-stone-400 font-mono uppercase tracking-wider">Tacles</div>
               </div>
-              <div className="rounded-3xl border border-stone-200/80 dark:border-stone-50/8 dark:bg-zinc-900/40 p-6 lg:p-8">
+              <div className="rounded-3xl border border-stone-200/80 dark:border-stone-50/10 dark:bg-zinc-900/40 p-6 lg:p-8">
                 <ListMagnifyingGlass size={22} weight="regular" className="text-turf-800 dark:text-turf-300" />
                 <div className="mt-5 font-mono text-4xl tabular-nums text-zinc-950 dark:text-stone-50">{player.interceptions}</div>
                 <div className="mt-1 text-xs text-zinc-500 dark:text-stone-400 font-mono uppercase tracking-wider">Interceptions</div>
@@ -803,7 +818,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
               {/* Carte d'accent (toujours sombre) - en dark mode on lui donne une bordure
                   subtile et un fond légèrement plus clair que le `section` parent (zinc-950)
                   pour qu'elle ne se fonde pas dans le background. */}
-              <div className="rounded-3xl bg-zinc-950 dark:bg-zinc-900 text-stone-100 p-6 lg:p-8 relative overflow-hidden border border-transparent dark:border-stone-50/8">
+              <div className="rounded-3xl bg-zinc-950 dark:bg-zinc-900 text-stone-100 p-6 lg:p-8 relative overflow-hidden border border-transparent dark:border-stone-50/10">
                 <div
                   aria-hidden="true"
                   className="pointer-events-none absolute -bottom-12 -right-10 w-48 h-48 rounded-full"
@@ -820,7 +835,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
 
       {/* Profil physique - gated by vis.physique (at least one tracking value > 0). */}
       {vis.physique && (
-        <section className="bg-white border-y border-stone-200/80 py-16 lg:py-24 dark:bg-zinc-950 dark:border-stone-50/8">
+        <section className="bg-white border-y border-stone-200/80 py-16 lg:py-24 dark:bg-zinc-950 dark:border-stone-50/10">
           <div className="container-page">
             <SectionHeading
               id="physique"
@@ -832,7 +847,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
             </p>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {player.distance_avg_km != null && (
-                <div className="rounded-2xl border border-stone-200/80 dark:border-stone-50/8 bg-stone-50/60 dark:bg-zinc-900/40 p-5">
+                <div className="rounded-2xl border border-stone-200/80 dark:border-stone-50/10 bg-stone-50/60 dark:bg-zinc-900/40 p-5">
                   <Path size={20} weight="regular" className="text-turf-700 dark:text-turf-300" />
                   <div className="mt-4 font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">
                     {player.distance_avg_km.toFixed(1).replace('.', ',')}
@@ -844,7 +859,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
                 </div>
               )}
               {player.sprints_avg != null && (
-                <div className="rounded-2xl border border-stone-200/80 dark:border-stone-50/8 bg-stone-50/60 dark:bg-zinc-900/40 p-5">
+                <div className="rounded-2xl border border-stone-200/80 dark:border-stone-50/10 bg-stone-50/60 dark:bg-zinc-900/40 p-5">
                   <Lightning size={20} weight="regular" className="text-turf-700 dark:text-turf-300" />
                   <div className="mt-4 font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">
                     {player.sprints_avg}
@@ -855,7 +870,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
                 </div>
               )}
               {player.top_speed_kmh != null && (
-                <div className="rounded-2xl border border-stone-200/80 dark:border-stone-50/8 bg-stone-50/60 dark:bg-zinc-900/40 p-5">
+                <div className="rounded-2xl border border-stone-200/80 dark:border-stone-50/10 bg-stone-50/60 dark:bg-zinc-900/40 p-5">
                   <Wind size={20} weight="regular" className="text-turf-700 dark:text-turf-300" />
                   <div className="mt-4 font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">
                     {player.top_speed_kmh.toFixed(1).replace('.', ',')}
@@ -867,7 +882,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
                 </div>
               )}
               {player.high_intensity_runs_avg != null && (
-                <div className="rounded-2xl border border-stone-200/80 dark:border-stone-50/8 bg-stone-50/60 dark:bg-zinc-900/40 p-5">
+                <div className="rounded-2xl border border-stone-200/80 dark:border-stone-50/10 bg-stone-50/60 dark:bg-zinc-900/40 p-5">
                   <PersonSimpleRun size={20} weight="regular" className="text-turf-700 dark:text-turf-300" />
                   <div className="mt-4 font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">
                     {player.high_intensity_runs_avg}
@@ -909,7 +924,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
 
       {/* Match log - last 8 appearances. Gated by vis.matchs (= appearances.length > 0). */}
       {vis.matchs && (
-        <section className="bg-white border-y border-stone-200/80 py-16 lg:py-24 dark:bg-zinc-950 dark:border-stone-50/8">
+        <section className="bg-white border-y border-stone-200/80 py-16 lg:py-24 dark:bg-zinc-950 dark:border-stone-50/10">
           <div className="container-page">
             <SectionHeading
               id="matchs"
@@ -988,6 +1003,7 @@ function PlayerProfilePage() {
   const [peersCount, setPeersCount] = useState<number>(0)
   const [appearances, setAppearances] = useState<Appearance[]>([])
   const [clips, setClips] = useState<PlayerClip[]>([])
+  const [presentations, setPresentations] = useState<Presentation[]>([])
   const [status, setStatus] = useState<ProfileStatus>('loading')
 
   useEffect(() => {
@@ -997,6 +1013,7 @@ function PlayerProfilePage() {
     setPercentiles(null)
     setAppearances([])
     setClips([])
+    setPresentations([])
     api.get<PlayerResponse>(`/players/${slug}`)
       .then((res) => {
         if (!cancelled) {
@@ -1013,6 +1030,11 @@ function PlayerProfilePage() {
         if (err instanceof ApiError && err.status === 404) setStatus('not-found')
         else setStatus('error')
       })
+    // Presentations live behind a separate, optional endpoint - it's fine if
+    // it 404s or stays empty, the profile renders without it.
+    api.get<{ data: Presentation[] }>(`/players/${slug}/presentations`)
+      .then((res) => { if (!cancelled) setPresentations(res.data) })
+      .catch(() => { /* non-fatal */ })
     return () => { cancelled = true }
   }, [slug])
 
@@ -1026,6 +1048,7 @@ function PlayerProfilePage() {
       peersCount={peersCount}
       appearances={appearances}
       clips={clips}
+      presentations={presentations}
     />
   )
 }

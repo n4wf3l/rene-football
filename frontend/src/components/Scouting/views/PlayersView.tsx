@@ -77,7 +77,7 @@ function PlayersView() {
         </span>
       </div>
 
-      <div className="overflow-x-auto rounded-2xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/8">
+      <div className="overflow-x-auto rounded-2xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/10">
         <table className="w-full text-sm">
           <thead className="bg-stone-50 dark:bg-zinc-950 text-[0.6rem] font-mono uppercase tracking-[0.16em] text-zinc-500 dark:text-stone-400">
             <tr>
@@ -92,7 +92,7 @@ function PlayersView() {
           </thead>
           <tbody>
             {loading && Array.from({ length: 6 }).map((_, i) => (
-              <tr key={i} className="border-t border-stone-200 dark:border-stone-50/8">
+              <tr key={i} className="border-t border-stone-200 dark:border-stone-50/10">
                 <td className="px-4 py-3"><div className="flex items-center gap-3"><Skeleton className="w-9 h-9" rounded="full" /><Skeleton className="h-3 w-32" /></div></td>
                 <td className="px-4 py-3"><Skeleton className="h-3 w-40" /></td>
                 <td className="px-4 py-3 text-right"><Skeleton className="h-3 w-10 ml-auto" /></td>
@@ -109,7 +109,7 @@ function PlayersView() {
               <tr
                 key={p.id}
                 onClick={() => open(p.slug)}
-                className="border-t border-stone-200 dark:border-stone-50/8 hover:bg-stone-50 dark:hover:bg-stone-50/5 cursor-pointer transition-colors"
+                className="border-t border-stone-200 dark:border-stone-50/10 hover:bg-stone-50 dark:hover:bg-stone-50/5 cursor-pointer transition-colors"
               >
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">

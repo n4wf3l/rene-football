@@ -137,7 +137,7 @@ export default function ClipsGalleryAdmin({ playerSlug }: ClipsGalleryAdminProps
       {loading ? (
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
           {[0, 1, 2].map((i) => (
-            <div key={i} className="aspect-video rounded-xl bg-stone-200 dark:bg-stone-50/8 animate-pulse" />
+            <div key={i} className="aspect-video rounded-xl bg-stone-200 dark:bg-stone-50/10 animate-pulse" />
           ))}
         </div>
       ) : clips.length === 0 && !annotating ? (
@@ -153,7 +153,7 @@ export default function ClipsGalleryAdmin({ playerSlug }: ClipsGalleryAdminProps
       ) : (
         <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {clips.map((clip) => (
-            <li key={clip.id} className="group relative rounded-xl overflow-hidden bg-stone-100 dark:bg-zinc-950 border border-stone-200 dark:border-stone-50/8">
+            <li key={clip.id} className="group relative rounded-xl overflow-hidden bg-stone-100 dark:bg-zinc-950 border border-stone-200 dark:border-stone-50/10">
               <div className="relative aspect-video bg-black">
                 <img
                   src={clip.image_path}

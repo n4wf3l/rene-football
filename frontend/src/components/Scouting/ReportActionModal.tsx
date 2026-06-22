@@ -95,7 +95,7 @@ function ReportActionModal({ action, defaultRecipientId, showRecipientPicker = t
             type="button"
             onClick={onClose}
             disabled={busy}
-            className="grid place-items-center w-8 h-8 rounded-md text-zinc-500 hover:bg-stone-100 hover:text-zinc-900 dark:text-stone-400 dark:hover:bg-stone-50/8 dark:hover:text-stone-50 transition disabled:opacity-50"
+            className="grid place-items-center w-8 h-8 rounded-md text-zinc-500 hover:bg-stone-100 hover:text-zinc-900 dark:text-stone-400 dark:hover:bg-stone-50/10 dark:hover:text-stone-50 transition disabled:opacity-50"
             aria-label="Fermer"
           >
             <XIcon size={16} weight="bold" />

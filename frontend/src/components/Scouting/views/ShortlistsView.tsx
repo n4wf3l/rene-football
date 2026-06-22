@@ -86,7 +86,7 @@ function ShortlistsView() {
   if (loading) return <Skeleton className="h-72 rounded-2xl" />
 
   if (lists.length === 0) return (
-    <div className="rounded-2xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/8 p-12 text-center">
+    <div className="rounded-2xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/10 p-12 text-center">
       <p className="text-sm text-zinc-600 dark:text-stone-400">Aucune shortlist. Crée-en une depuis l'API admin scouting.</p>
     </div>
   )
@@ -141,7 +141,7 @@ function StageColumn({ stage, entries, onOpenPlayer }: { stage: ShortlistStage; 
       className={`rounded-2xl border p-3 flex flex-col transition-colors ${
         isOver
           ? 'border-turf-400 bg-turf-50 dark:bg-turf-900/20 dark:border-turf-300/30'
-          : 'border-stone-200 bg-white/60 dark:bg-zinc-900/40 dark:border-stone-50/8'
+          : 'border-stone-200 bg-white/60 dark:bg-zinc-900/40 dark:border-stone-50/10'
       }`}
     >
       <header className="flex items-center justify-between mb-3">
@@ -170,7 +170,7 @@ function DraggablePlayer({ player, onOpen }: { player: PlayerWithPivot; onOpen: 
       {...listeners}
       whileHover={{ scale: 1.005 }}
       onClick={onOpen}
-      className="rounded-xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/8 px-3 py-2.5 text-sm cursor-grab active:cursor-grabbing select-none"
+      className="rounded-xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/10 px-3 py-2.5 text-sm cursor-grab active:cursor-grabbing select-none"
     >
       <PlayerCard player={player} />
     </motion.div>
@@ -179,7 +179,7 @@ function DraggablePlayer({ player, onOpen }: { player: PlayerWithPivot; onOpen: 
 
 function PlayerCard({ player, dragging = false }: { player: PlayerWithPivot; dragging?: boolean }) {
   return (
-    <div className={dragging ? 'rounded-xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/8 px-3 py-2.5 text-sm shadow-diffusion w-64' : ''}>
+    <div className={dragging ? 'rounded-xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/10 px-3 py-2.5 text-sm shadow-diffusion w-64' : ''}>
       <div className="flex items-center gap-2">
         <img src={player.photo_url || ''} alt="" className="w-8 h-8 rounded-full object-cover bg-stone-200 dark:bg-stone-800" />
         <div className="flex-1 min-w-0">

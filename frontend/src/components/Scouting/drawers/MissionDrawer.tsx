@@ -43,12 +43,12 @@ function MissionDrawer({ id, onClose }: Props) {
         transition={{ type: 'spring', stiffness: 280, damping: 32 }}
         className="fixed top-0 right-0 h-[100dvh] w-full max-w-xl bg-stone-50 dark:bg-zinc-950 shadow-2xl flex flex-col z-50"
       >
-        <header className="flex items-center justify-between px-6 h-16 border-b border-stone-200 dark:border-stone-50/8 bg-white dark:bg-zinc-900">
+        <header className="flex items-center justify-between px-6 h-16 border-b border-stone-200 dark:border-stone-50/10 bg-white dark:bg-zinc-900">
           <div className="min-w-0 flex-1">
             <div className="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-turf-700 dark:text-turf-300">Mission</div>
             <div className="font-display font-semibold text-lg text-zinc-950 dark:text-stone-50 truncate">{m?.title ?? '-'}</div>
           </div>
-          <button type="button" onClick={onClose} className="grid place-items-center w-9 h-9 rounded-full text-zinc-500 hover:bg-stone-100 hover:text-zinc-900 dark:text-stone-400 dark:hover:bg-stone-50/8 dark:hover:text-stone-50 transition">
+          <button type="button" onClick={onClose} className="grid place-items-center w-9 h-9 rounded-full text-zinc-500 hover:bg-stone-100 hover:text-zinc-900 dark:text-stone-400 dark:hover:bg-stone-50/10 dark:hover:text-stone-50 transition">
             <XIcon size={18} weight="bold" />
           </button>
         </header>
@@ -66,7 +66,7 @@ function MissionDrawer({ id, onClose }: Props) {
 
               {m.match && (
                 <Section label="Match">
-                  <div className="rounded-xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/8 p-3">
+                  <div className="rounded-xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/10 p-3">
                     <div className="font-medium text-zinc-950 dark:text-stone-50">{m.match.home_team} - {m.match.away_team}</div>
                     <div className="text-xs text-zinc-500 dark:text-stone-400">{m.match.competition} · {new Date(m.match.kickoff_at).toLocaleString('fr-FR')}</div>
                   </div>
