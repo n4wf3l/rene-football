@@ -26,6 +26,10 @@ export interface PresentationOptions {
   youtube_url?: string | null
   /** Free-form list of clubs the player previously played for. */
   previous_clubs?: Array<{ name: string; logo_url?: string | null }>
+  /** Font pairing applied to the whole document. */
+  font_family?: 'editorial' | 'sans' | 'grotesque'
+  /** Base font-size scale relative to the template default. */
+  font_scale?: 'small' | 'normal' | 'large'
 }
 
 export type PresentationTemplateKey = 'classic' | 'magazine' | 'minimal' | 'stadium'

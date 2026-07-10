@@ -20,6 +20,7 @@ import type {
   PresentationTemplate,
   PresentationTemplateKey,
 } from '../../types/presentation'
+import PdfGenerationOverlay from '../../components/PdfGenerationOverlay'
 import PlayerSingleSelect from '../../components/PlayerSingleSelect'
 import PresentationPreview from '../../components/PresentationPreview'
 import Skeleton from '../../components/Skeleton'
@@ -31,6 +32,18 @@ interface CatalogueResponse {
   templates: PresentationTemplate[]
   stats: PresentationStatChoice[]
   articles?: CatalogueArticleRow[]
+}
+
+/**
+ * Which optional sections each template actually renders. If a capability is
+ * false, the editor hides that section entirely so the admin never wonders
+ * why the option they filled in doesn't show up on the PDF.
+ */
+const TEMPLATE_CAPABILITIES: Record<PresentationTemplateKey, { previousClubs: boolean; externalLinks: boolean }> = {
+  classic:  { previousClubs: true, externalLinks: true },
+  magazine: { previousClubs: true, externalLinks: true },
+  minimal:  { previousClubs: true, externalLinks: true },
+  stadium:  { previousClubs: true, externalLinks: true },
 }
 
 const INPUT_BASE =
@@ -101,6 +114,7 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
   const [existing, setExisting] = useState<Presentation | null>(null)
   const [photoFile, setPhotoFile] = useState<File | null>(null)
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
+  const [generatingPdf, setGeneratingPdf] = useState(false)
 
   const selectedPlayer = useMemo(
     () => players.find((p) => p.id === form.player_id) ?? null,
@@ -255,6 +269,7 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
       return
     }
     setSaving(true)
+    setGeneratingPdf(true)
     try {
       const payload = {
         player_id: form.player_id,
@@ -295,6 +310,7 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
       showToast('error', msg)
     } finally {
       setSaving(false)
+      setGeneratingPdf(false)
     }
   }
 
@@ -504,6 +520,64 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
           </label>
         </section>
 
+        {/* TYPOGRAPHIE */}
+        <section className="space-y-4">
+          <h3 className="font-mono uppercase tracking-[0.18em] text-[0.7rem] text-zinc-500 dark:text-stone-400">Typographie</h3>
+          <div className="grid sm:grid-cols-3 gap-3">
+            {([
+              { key: 'editorial', label: 'Éditoriale', hint: 'Serif classique, direction sportive traditionnelle', style: { fontFamily: 'Georgia, "Times New Roman", serif' } },
+              { key: 'sans',      label: 'Moderne',    hint: 'Sans-serif neutre, envoi corporate contemporain', style: { fontFamily: 'Inter, "Helvetica Neue", Helvetica, Arial, sans-serif' } },
+              { key: 'grotesque', label: 'Impact',     hint: 'Bold serré, ambiance sportive marketing',        style: { fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif', fontWeight: 800, letterSpacing: '-0.02em' } },
+            ] as const).map((f) => {
+              const active = (form.options.font_family ?? 'editorial') === f.key
+              return (
+                <button
+                  key={f.key}
+                  type="button"
+                  onClick={() => setOpt('font_family', f.key)}
+                  className={`text-left rounded-xl border p-3 transition ${
+                    active
+                      ? 'border-turf-700 dark:border-turf-300 ring-2 ring-turf-700/20 dark:ring-turf-300/20 bg-white dark:bg-zinc-900'
+                      : 'border-stone-200 dark:border-stone-50/10 bg-white/60 dark:bg-zinc-900/40 hover:border-stone-400 dark:hover:border-stone-50/25'
+                  }`}
+                >
+                  <div className="text-[22px] leading-none text-zinc-950 dark:text-stone-50" style={f.style}>Aa</div>
+                  <div className="mt-2 font-display font-semibold text-sm text-zinc-950 dark:text-stone-50">{f.label}</div>
+                  <div className="text-[0.65rem] text-zinc-500 dark:text-stone-500 leading-relaxed mt-1">{f.hint}</div>
+                </button>
+              )
+            })}
+          </div>
+          <div>
+            <span className="block text-[0.65rem] font-mono uppercase tracking-[0.16em] text-zinc-500 dark:text-stone-400 mb-1.5">
+              Taille de base
+            </span>
+            <div className="inline-flex items-center gap-0.5 rounded-full border border-stone-300 dark:border-stone-50/15 p-0.5 text-xs">
+              {([
+                { value: 'small' as const,  label: 'Compact' },
+                { value: 'normal' as const, label: 'Normal' },
+                { value: 'large' as const,  label: 'Confort' },
+              ]).map((s) => {
+                const active = (form.options.font_scale ?? 'normal') === s.value
+                return (
+                  <button
+                    key={s.value}
+                    type="button"
+                    onClick={() => setOpt('font_scale', s.value)}
+                    className={`px-3 py-1.5 rounded-full font-medium transition ${
+                      active
+                        ? 'bg-zinc-950 text-stone-50 dark:bg-stone-50 dark:text-zinc-950'
+                        : 'text-zinc-600 hover:text-zinc-900 dark:text-stone-400 dark:hover:text-stone-100'
+                    }`}
+                  >
+                    {s.label}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        </section>
+
         {/* PHOTO */}
         <section className="space-y-3">
           <h3 className="font-mono uppercase tracking-[0.18em] text-[0.7rem] text-zinc-500 dark:text-stone-400">Photo</h3>
@@ -697,11 +771,12 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
           </label>
         </section>
 
-        {/* ANCIENS CLUBS */}
+        {/* ANCIENS CLUBS (Stadium uniquement) */}
+        {TEMPLATE_CAPABILITIES[form.template_key].previousClubs && (
         <section className="space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="font-mono uppercase tracking-[0.18em] text-[0.7rem] text-zinc-500 dark:text-stone-400">
-              Anciens clubs <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">- affichés en bas, surtout sur le template Stadium</span>
+              Anciens clubs <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">- affichés en bas du template Stadium</span>
             </h3>
             <button
               type="button"
@@ -764,8 +839,10 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
             </ul>
           )}
         </section>
+        )}
 
-        {/* LIENS EXTERNES */}
+        {/* LIENS EXTERNES (Stadium uniquement) */}
+        {TEMPLATE_CAPABILITIES[form.template_key].externalLinks && (
         <section className="space-y-4">
           <h3 className="font-mono uppercase tracking-[0.18em] text-[0.7rem] text-zinc-500 dark:text-stone-400">
             Liens externes <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">- rendus en QR codes sur le template Stadium</span>
@@ -802,6 +879,7 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
             )}
           </label>
         </section>
+        )}
 
         {/* PUBLICATION */}
         <section className="space-y-3">
@@ -859,6 +937,7 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
       </div>
 
       {toast && <Toast {...toast} onDismiss={() => setToast(null)} />}
+      <PdfGenerationOverlay open={generatingPdf} />
     </div>
   )
 }

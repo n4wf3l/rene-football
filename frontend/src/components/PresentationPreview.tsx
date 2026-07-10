@@ -1,4 +1,4 @@
-import type { ReactElement } from 'react'
+import type { CSSProperties, ReactElement } from 'react'
 import type { Player } from '../types/player'
 import type { PresentationOptions, PresentationStatChoice, PresentationTemplateKey } from '../types/presentation'
 
@@ -54,6 +54,85 @@ function pickPhoto(player: Player | null, options: PresentationOptions): string 
   return player?.photo_url ?? null
 }
 
+/** Resolve the CSS font-family stack for a given font_family option. Preview
+ *  uses real desktop fonts so the admin can tell them apart at a glance. */
+function fontStack(family: PresentationOptions['font_family']): string {
+  switch (family) {
+    case 'sans':      return 'Inter, "Helvetica Neue", Helvetica, Arial, sans-serif'
+    case 'grotesque': return '"Helvetica Neue", Helvetica, Arial, sans-serif'
+    default:          return 'Georgia, "Times New Roman", serif'
+  }
+}
+
+/** 0.9 / 1.0 / 1.1 multiplier applied to text sizes for the small/normal/large toggle. */
+function scaleFactor(scale: PresentationOptions['font_scale']): number {
+  if (scale === 'small') return 0.9
+  if (scale === 'large') return 1.1
+  return 1
+}
+
+/** Style helpers pushed to preview roots so every child inherits family + scale. */
+/** Compact "extras" band shown at the bottom of Classic / Magazine / Minimal
+ *  when at least one of previous_clubs / article_slug / youtube_url is set.
+ *  Mirrors the same footprint as PHP so the preview stays predictive. */
+function ExtrasBand({ options, secondary }: { options: PresentationOptions; secondary: string }) {
+  const clubs = (options.previous_clubs ?? []).filter((c) => (c.name && c.name.trim() !== '') || c.logo_url)
+  const article = options.article_slug ?? null
+  const yt = options.youtube_url ?? null
+  if (clubs.length === 0 && !article && !yt) return null
+
+  return (
+    <div
+      className="mt-[3%] py-[2%] px-[3%] flex items-center justify-between gap-[4%]"
+      style={{ borderTop: `0.5px solid ${secondary}`, borderBottom: `0.5px solid ${secondary}` }}
+    >
+      {clubs.length > 0 ? (
+        <div className="flex-1 min-w-0">
+          <div className="text-[4.5px] tracking-[3px] uppercase font-bold mb-[1.5%]" style={{ color: secondary }}>Clubs précédents</div>
+          <div className="flex items-center gap-[3%] flex-wrap">
+            {clubs.slice(0, 6).map((c, i) => (
+              <div key={i} className="flex items-center" style={{ height: 18 }}>
+                {c.logo_url
+                  ? <img src={c.logo_url} alt="" style={{ height: 16, maxWidth: 32, objectFit: 'contain' }} />
+                  : <span className="font-bold uppercase text-[6px] tracking-[1px]">{c.name}</span>}
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : <div className="flex-1" />}
+
+      {(article || yt) && (
+        <div className="flex items-center gap-[4%] shrink-0">
+          {article && (
+            <div className="text-center">
+              <div className="bg-white grid place-items-center text-[4px] text-black" style={{ width: 24, height: 24 }}>QR</div>
+              <div className="text-[4.5px] tracking-[2px] font-bold mt-[3%]" style={{ color: secondary }}>ARTICLE</div>
+            </div>
+          )}
+          {yt && (
+            <div className="text-center">
+              <div className="bg-white grid place-items-center text-[4px] text-black" style={{ width: 24, height: 24 }}>QR</div>
+              <div className="text-[4.5px] tracking-[2px] font-bold mt-[3%]" style={{ color: secondary }}>VIDÉO</div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function typographyRootStyle(options: PresentationOptions): CSSProperties {
+  const style: CSSProperties = {
+    fontFamily: fontStack(options.font_family),
+    fontSize: `${scaleFactor(options.font_scale) * 100}%`,
+  }
+  if (options.font_family === 'grotesque') {
+    style.letterSpacing = '-0.02em'
+    style.fontWeight = 600
+  }
+  return style
+}
+
 /** Standard football heatmap ramp: yellow → orange → red → deep red. Used
  *  instead of the template accent so blobs stay visible on the green pitch. */
 function heatColor(v: number): [number, number, number] {
@@ -87,6 +166,7 @@ function HeatmapGrid({ grid }: { grid: number[][] | null | undefined; accent?: s
   const safe = (grid && grid.length === 4 ? grid : Array.from({ length: 4 }, () => Array(6).fill(0))) as number[][]
   const stroke = 'rgba(255,255,255,0.22)'
 
+  // Same maths as the PHP raster - keeps preview and PDF visually in lockstep.
   const gradients: ReactElement[] = []
   const blobs: ReactElement[] = []
   let idx = 0
@@ -96,15 +176,17 @@ function HeatmapGrid({ grid }: { grid: number[][] | null | undefined; accent?: s
       if (v < 5) return
       const cx = colI * 50 + 25
       const cy = rowI * 50 + 25
-      const r  = 32 + (v / 100) * 12
-      const core = Math.min(0.85, 0.35 + (v / 100) * 0.5)
-      const mid  = Math.min(0.60, 0.20 + (v / 100) * 0.4)
+      // maxR 37..52 in viewBox units matches the PHP 75..105 in 600px canvas
+      // (both around 12-17% of width) so blob overlap looks identical.
+      const r    = 37 + (v / 100) * 15
+      const peak = Math.min(0.9, 0.35 + (v / 100) * 0.55)
+      const mid  = peak * 0.7
       const [cr, cg, cb] = heatColor(v)
       const rgb = `rgb(${cr},${cg},${cb})`
       const gid = `hb${idx}`
       gradients.push(
         <radialGradient key={gid} id={gid} cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
-          <stop offset="0%"   stopColor={rgb} stopOpacity={core} />
+          <stop offset="0%"   stopColor={rgb} stopOpacity={peak} />
           <stop offset="55%"  stopColor={rgb} stopOpacity={mid} />
           <stop offset="100%" stopColor={rgb} stopOpacity={0} />
         </radialGradient>,
@@ -211,7 +293,7 @@ function ClassicPreview({ player, options, title, statCatalogue }: PresentationP
   const tagline    = options.tagline ?? ''
 
   return (
-    <div className="absolute inset-0 flex flex-col p-[5%]" style={{ background: bg, color: text, fontFamily: 'system-ui, sans-serif' }}>
+    <div className="absolute inset-0 flex flex-col p-[5%]" style={{ background: bg, color: text, ...typographyRootStyle(options) }}>
       <div className="pb-[2%] mb-[4%]" style={{ borderBottom: `2px solid ${accent}` }}>
         <div className="text-[6px] tracking-[1.5px] uppercase opacity-60">Présentation joueur · Rene Football</div>
         <div className="text-[10px] font-semibold mt-[1%] truncate">{title || 'Titre du document'}</div>
@@ -250,7 +332,7 @@ function ClassicPreview({ player, options, title, statCatalogue }: PresentationP
         <div className="flex-1 flex flex-col gap-[3%]">
           <div className="grid grid-cols-2 gap-[3%]">
             {stats.slice(0, 4).map((s) => (
-              <div key={s.label} className="rounded-[2px] p-[6%] bg-white border border-stone-200" style={{ borderLeft: `2px solid ${accent}` }}>
+              <div key={s.label} className="rounded-[2px] p-[6%] border border-stone-200" style={{ background: bg, borderLeft: `2px solid ${accent}` }}>
                 <div className="text-[14px] font-bold leading-none" style={{ color: accent }}>
                   {String(s.value)}<span className="text-[7px] ml-[2%] opacity-60">{s.suffix}</span>
                 </div>
@@ -259,13 +341,15 @@ function ClassicPreview({ player, options, title, statCatalogue }: PresentationP
             ))}
           </div>
           {options.show_heatmap && (
-            <div className="rounded-[2px] p-[4%] bg-white border border-stone-200">
+            <div className="rounded-[2px] p-[4%] border border-stone-200" style={{ background: bg }}>
               <div className="text-[5px] uppercase tracking-[1px] opacity-50 mb-[3%]">Zones d'influence</div>
               <HeatmapGrid grid={player?.heatmap_grid ?? null} accent={accent} />
             </div>
           )}
         </div>
       </div>
+
+      <ExtrasBand options={options} secondary="#78716c" />
 
       <div className="text-[5px] uppercase tracking-[1.5px] text-center opacity-40 mt-[3%]">
         Rene Football
@@ -288,7 +372,7 @@ function MagazinePreview({ player, options, title, statCatalogue }: Presentation
   const tagline    = options.tagline ?? ''
 
   return (
-    <div className="absolute inset-0 flex flex-col overflow-hidden" style={{ background: bg, color: text, fontFamily: 'system-ui, sans-serif' }}>
+    <div className="absolute inset-0 flex flex-col overflow-hidden" style={{ background: bg, color: text, ...typographyRootStyle(options) }}>
       {/* HERO 145mm / 297mm ≈ 48.8% */}
       <div className="relative w-full" style={{ height: '48.8%', background: secondary }}>
         <PhotoOrPlaceholder src={photo} fallbackBg={secondary} fit={options.photo_fit ?? "contain"} zoom={options.photo_zoom ?? 100} posX={options.photo_position_x ?? 50} posY={options.photo_position_y ?? 50} />
@@ -338,6 +422,8 @@ function MagazinePreview({ player, options, title, statCatalogue }: Presentation
             </div>
           </div>
         </div>
+
+        <ExtrasBand options={options} secondary={secondary} />
       </div>
 
       <div className="text-[4px] uppercase tracking-[1.5px] text-center opacity-50 py-[1.5%]">Rene Football</div>
@@ -357,15 +443,18 @@ function MinimalPreview({ player, options, title, statCatalogue }: PresentationP
   const photo      = pickPhoto(player, options)
   const stats      = computeStats(player, options, statCatalogue)
   const tagline    = options.tagline ?? ''
+  const strengths  = (player?.strengths ?? []).slice(0, 6)
+
+  const typoStyle = typographyRootStyle(options)
 
   return (
-    <div className="absolute inset-0 flex flex-col p-[6%]" style={{ background: bg, color: text, fontFamily: 'Georgia, serif' }}>
+    <div className="absolute inset-0 flex flex-col p-[5%]" style={{ background: bg, color: text, ...typoStyle }}>
       <div className="pt-[1%] pb-[2%]" style={{ borderTop: `1.5px solid ${accent}`, borderBottom: `0.5px solid ${secondary}` }}>
         <div className="text-[5px] tracking-[3px] uppercase" style={{ color: secondary }}>Rene Football · Présentation joueur</div>
         <div className="text-[8px] font-semibold mt-[1%] truncate">{title || 'Titre du document'}</div>
       </div>
 
-      <div className="text-[20px] font-semibold leading-none mt-[6%] tracking-tight truncate">{player?.name ?? 'Nom du joueur'}</div>
+      <div className="text-[22px] font-bold leading-none mt-[5%] tracking-tight truncate">{player?.name ?? 'Nom du joueur'}</div>
       {tagline && (
         <div className="text-[7px] italic mt-[2%]" style={{ color: secondary }}>{tagline}</div>
       )}
@@ -373,12 +462,12 @@ function MinimalPreview({ player, options, title, statCatalogue }: PresentationP
         {(player?.position ?? '') + (player?.club ? ' · ' + player.club : '') || 'Poste · Club'}
       </div>
 
-      <div className="flex-1 mt-[5%] flex gap-[4%]">
-        <div className="w-[37%]">
-          <div className="relative w-full overflow-hidden" style={{ paddingTop: '80%' }}>
+      <div className="mt-[4%] flex gap-[4%]">
+        <div className="w-[38%]">
+          <div className="relative w-full overflow-hidden" style={{ paddingTop: '119%' }}>
             <PhotoOrPlaceholder src={photo} fallbackBg={secondary} fit={options.photo_fit ?? "contain"} zoom={options.photo_zoom ?? 100} posX={options.photo_position_x ?? 50} posY={options.photo_position_y ?? 50} />
           </div>
-          <div className="mt-[5%] space-y-[3%] text-[6px]">
+          <div className="mt-[4%] space-y-[2.5%] text-[6px]">
             {[
               ['Âge', player ? `${player.age} ans` : '-'],
               ['Poste', player?.position ?? '-'],
@@ -387,7 +476,7 @@ function MinimalPreview({ player, options, title, statCatalogue }: PresentationP
             ].filter(Boolean).slice(0, 4).map((row) => {
               const [k, v] = row as [string, string]
               return (
-                <div key={k} className="flex justify-between border-b pb-[2%]" style={{ borderColor: secondary }}>
+                <div key={k} className="flex justify-between border-b pb-[1.5%]" style={{ borderColor: secondary }}>
                   <span style={{ color: secondary }}>{k}</span>
                   <span className="font-semibold truncate ml-2">{v}</span>
                 </div>
@@ -400,7 +489,7 @@ function MinimalPreview({ player, options, title, statCatalogue }: PresentationP
           <div className="grid grid-cols-2 gap-[4%]">
             {stats.slice(0, 4).map((s) => (
               <div key={s.label} className="py-[6%]" style={{ borderTop: `0.5px solid ${accent}`, borderBottom: `0.5px solid ${accent}` }}>
-                <div className="text-[12px] font-semibold leading-none">
+                <div className="text-[12px] font-bold leading-none" style={{ color: accent }}>
                   {String(s.value)}<span className="text-[6px] ml-[4%]" style={{ color: secondary }}>{s.suffix}</span>
                 </div>
                 <div className="text-[4px] uppercase tracking-[1.5px] mt-[8%]" style={{ color: secondary }}>{s.label}</div>
@@ -408,7 +497,7 @@ function MinimalPreview({ player, options, title, statCatalogue }: PresentationP
             ))}
           </div>
           {options.show_heatmap && (
-            <div className="mt-[6%]">
+            <div className="mt-[4%]">
               <div className="text-[4px] uppercase tracking-[1.5px] mb-[3%]" style={{ color: secondary }}>Zones d'influence</div>
               <HeatmapGrid grid={player?.heatmap_grid ?? null} accent={accent} />
             </div>
@@ -416,7 +505,34 @@ function MinimalPreview({ player, options, title, statCatalogue }: PresentationP
         </div>
       </div>
 
-      <div className="pt-[2%] mt-[3%] text-[4px] uppercase tracking-[2px]" style={{ borderTop: `1.5px solid ${accent}`, color: secondary }}>
+      {/* Bottom band that fills the previously-empty half: strengths + scout quote. */}
+      <div className="mt-[4%] pt-[3%] flex gap-[6%]" style={{ borderTop: `0.5px solid ${secondary}` }}>
+        <div className="w-1/2">
+          <div className="text-[4px] uppercase tracking-[1.5px] mb-[3%] font-bold" style={{ color: secondary }}>Points forts</div>
+          {strengths.length > 0 ? (
+            strengths.map((s) => (
+              <div key={s.key} className="flex items-center gap-[3%] py-[1.5%] text-[6px] border-b" style={{ borderColor: secondary }}>
+                <span className="inline-block rounded-full shrink-0" style={{ background: accent, width: 5, height: 5 }} />
+                <span className="font-medium truncate">{s.label}</span>
+              </div>
+            ))
+          ) : (
+            <p className="text-[6px] italic" style={{ color: secondary }}>Aucun point fort renseigné sur la fiche joueur.</p>
+          )}
+        </div>
+        <div className="flex-1">
+          <div className="text-[4px] uppercase tracking-[1.5px] mb-[3%] font-bold" style={{ color: secondary }}>Résumé scout</div>
+          {player?.bio ? (
+            <p className="text-[7px] italic leading-[1.55] text-justify">{player.bio}</p>
+          ) : (
+            <p className="text-[6px] italic" style={{ color: secondary }}>Ajoutez une bio dans la fiche joueur pour enrichir cette présentation.</p>
+          )}
+        </div>
+      </div>
+
+      <ExtrasBand options={options} secondary={secondary} />
+
+      <div className="mt-auto pt-[2%] text-[4px] uppercase tracking-[2px]" style={{ borderTop: `1.5px solid ${accent}`, color: secondary }}>
         Document interne
       </div>
     </div>
@@ -468,9 +584,9 @@ function StadiumPreview({ player, options, title, statCatalogue }: PresentationP
   // Heights map roughly to the PHP layout (in % of 297mm):
   //   hero 135mm ≈ 45.5%, band 34mm ≈ 11.4%, bottom 108mm ≈ 36.4%, footer 10mm ≈ 3.4%
   return (
-    <div className="absolute inset-0 flex flex-col" style={{ background: stageBg, color: text, fontFamily: 'system-ui, sans-serif' }}>
+    <div className="absolute inset-0 flex flex-col" style={{ background: stageBg, color: text, ...typographyRootStyle(options) }}>
       {/* HERO */}
-      <div style={{ height: '45.5%' }} className="px-[5%] pt-[3.5%] flex flex-col">
+      <div style={{ height: '39.1%' }} className="px-[5%] pt-[2.5%] flex flex-col">
         <div className="flex gap-[4%]" style={{ height: '70%' }}>
           <div className="w-[44%] relative rounded-[3px] overflow-hidden">
             <PhotoOrPlaceholder src={photo} fallbackBg="rgba(255,255,255,0.04)" fit={options.photo_fit ?? 'contain'} zoom={options.photo_zoom ?? 100} posX={options.photo_position_x ?? 50} posY={options.photo_position_y ?? 50} />
@@ -509,7 +625,7 @@ function StadiumPreview({ player, options, title, statCatalogue }: PresentationP
       </div>
 
       {/* BAND - Points forts (toujours affichée) */}
-      <div style={{ height: '11.4%', background: 'rgba(0,0,0,0.4)', borderTop: `1px solid ${accent}`, borderBottom: `1px solid ${accent}` }} className="px-[5%] py-[1.5%] flex flex-col justify-center">
+      <div style={{ height: '10.8%', background: 'rgba(0,0,0,0.4)', borderTop: `1px solid ${accent}`, borderBottom: `1px solid ${accent}` }} className="px-[5%] py-[1.2%] flex flex-col justify-center">
         <div className="text-[4.5px] tracking-[3px] mb-[1.5%]" style={{ color: secondary }}>POINTS FORTS</div>
         {rawStrengths.length > 0 ? (
           <div className="grid grid-cols-3 gap-x-[3%] gap-y-[1%]">
@@ -528,7 +644,7 @@ function StadiumPreview({ player, options, title, statCatalogue }: PresentationP
       </div>
 
       {/* BOTTOM - heatmap + clubs/links/quote */}
-      <div style={{ height: '36.4%' }} className="px-[5%] py-[3%]">
+      <div style={{ height: '46.8%' }} className="px-[5%] py-[2.5%]">
         <div className="flex gap-[3%] h-full">
           <div className="w-[55%] pr-[3%] flex flex-col">
             <div className="text-[4.5px] tracking-[3px] mb-[2%]" style={{ color: secondary }}>ZONES D'INFLUENCE</div>

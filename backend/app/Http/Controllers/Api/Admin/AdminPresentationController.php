@@ -156,6 +156,8 @@ class AdminPresentationController extends Controller
             'options.photo_zoom'            => ['nullable', 'integer', 'min:100', 'max:250'],
             'options.photo_position_x'      => ['nullable', 'integer', 'min:0', 'max:100'],
             'options.photo_position_y'      => ['nullable', 'integer', 'min:0', 'max:100'],
+            'options.font_family'               => ['nullable', 'string', 'in:editorial,sans,grotesque'],
+            'options.font_scale'                => ['nullable', 'string', 'in:small,normal,large'],
             'options.article_slug'              => ['nullable', 'string', 'max:200'],
             'options.youtube_url'               => ['nullable', 'string', 'max:500'],
             'options.previous_clubs'            => ['nullable', 'array', 'max:12'],

@@ -60,7 +60,7 @@ class MagazineTemplate extends PresentationTemplate
 
         $photo = $this->pickPhoto($player, $options);
         $stats = $this->statRows($player, $options);
-        $heatmap = $this->heatmapHtml($player, $options);
+        $heatmap = $this->heatmapHtml($player, array_merge($options, ['_heatmap_height_mm' => 48]));
 
         $statsHtml = '';
         foreach ($stats as $s) {
@@ -71,6 +71,9 @@ class MagazineTemplate extends PresentationTemplate
         }
 
         $photoHtml = $this->photoFrame($photo, $options, $secondary);
+        $fontFamily = $this->fontFamily($options);
+        $tracking   = $this->fontTracking($options);
+        $ptBody     = $this->pt(10, $options);
 
         $heatmapBlock = $heatmap !== ''
             ? '<div class="cell"><div class="cell-title">Zones d\'influence</div>'.$heatmap.'</div>'
@@ -86,20 +89,20 @@ class MagazineTemplate extends PresentationTemplate
 <!DOCTYPE html>
 <html lang="fr"><head><meta charset="utf-8"><style>
   @page { margin: 0; }
-  body { font-family: 'DejaVu Sans', sans-serif; color: {$text}; background: {$bg}; margin: 0; padding: 0; font-size: 10pt; }
-  .hero { position: relative; height: 145mm; overflow: hidden; background: {$secondary}; }
+  body { font-family: {$fontFamily}; color: {$text}; background: {$bg}; margin: 0; padding: 0; font-size: {$ptBody}; {$tracking} }
+  .hero { position: relative; height: 125mm; overflow: hidden; background: {$secondary}; }
   .hero-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(12,10,9,0.85) 90%); }
   .hero-text { position: absolute; left: 15mm; bottom: 14mm; right: 15mm; }
   .eyebrow { font-size: 8pt; letter-spacing: 3px; text-transform: uppercase; color: {$secondary}; }
   .name { font-size: 36pt; font-weight: 700; line-height: 0.95; margin-top: 2mm; }
   .club { font-size: 10pt; margin-top: 3mm; letter-spacing: 1.5px; text-transform: uppercase; opacity: 0.85; }
-  .strip { background: {$secondary}; padding: 6mm 15mm; }
+  .strip { background: {$secondary}; padding: 4mm 15mm; }
   .strip table { width: 100%; border-collapse: collapse; }
   .stat { text-align: left; vertical-align: top; padding-right: 4mm; }
   .stat-val { font-size: 24pt; font-weight: 700; line-height: 1; color: {$text}; }
   .stat-val span { font-size: 11pt; opacity: 0.7; margin-left: 1mm; }
   .stat-lbl { font-size: 7pt; text-transform: uppercase; letter-spacing: 1.5px; color: {$text}; opacity: 0.85; margin-top: 1mm; }
-  .body { padding: 8mm 15mm; }
+  .body { padding: 5mm 15mm; }
   .grid { display: table; width: 100%; border-spacing: 5mm 0; margin-left: -5mm; }
   .row { display: table-row; }
   .cell { display: table-cell; vertical-align: top; background: rgba(255,255,255,0.04); padding: 5mm; border-radius: 2mm; }
@@ -136,6 +139,7 @@ HTML
     .'</div></div></div>'
     .$bioBlock
     .'</div>
+  '.$this->extrasBlockHtml($options, ['bg' => 'rgba(255,255,255,0.04)', 'secondary' => $secondary, 'text' => $text]).'
   <div class="footer">Rene Football · '.now()->format('d/m/Y').'</div>
 </body></html>';
     }

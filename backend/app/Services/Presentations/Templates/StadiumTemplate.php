@@ -72,6 +72,9 @@ class StadiumTemplate extends PresentationTemplate
         $photo = $this->pickPhoto($player, $options);
         // The photo frame background matches the stage so contain-mode letterbox blends in.
         $photoBlock = $this->photoFrame($photo, $options, 'rgba(255,255,255,0.04)');
+        $fontFamily = $this->fontFamily($options);
+        $tracking   = $this->fontTracking($options);
+        $ptBody     = $this->pt(10, $options);
 
         // Identity (kept dense, up to 6 rows so the right column always looks filled).
         $identity = [
@@ -131,7 +134,9 @@ class StadiumTemplate extends PresentationTemplate
         }
 
         // Bottom-left: heatmap.
-        $heatmap = $this->heatmapHtml($player, $options);
+        // Bottom section is 127mm - reserve ~85mm for the heatmap so it feels
+        // like a real map rather than a thumbnail.
+        $heatmap = $this->heatmapHtml($player, array_merge($options, ['_heatmap_height_mm' => 85]));
 
         // Bottom-right: clubs list + QR links, stacked. Fallback to bio/quote when both
         // are empty so the block doesn't feel deserted.
@@ -187,7 +192,7 @@ class StadiumTemplate extends PresentationTemplate
 <!DOCTYPE html>
 <html lang="fr"><head><meta charset="utf-8"><style>
   @page { margin: 0; }
-  body { font-family: 'DejaVu Sans', sans-serif; color: {$text}; background: {$bg}; margin: 0; padding: 0; font-size: 10pt; }
+  body { font-family: {$fontFamily}; color: {$text}; background: {$bg}; margin: 0; padding: 0; font-size: {$ptBody}; {$tracking} }
   .stage { position: relative; width: 100%; height: 297mm; overflow: hidden;
            background:
              radial-gradient(ellipse at 20% 0%, rgba(255,255,255,0.16) 0%, transparent 35%),
@@ -197,11 +202,11 @@ class StadiumTemplate extends PresentationTemplate
              {$bg};
   }
 
-  /* HERO 135mm */
-  .hero { position: relative; height: 135mm; padding: 10mm 12mm 0 12mm; box-sizing: border-box; }
-  .hero-row { display: table; width: 100%; height: 95mm; table-layout: fixed; }
+  /* HERO ~120mm (DomPDF ignores box-sizing:border-box so padding stacks on top). */
+  .hero { position: relative; height: 108mm; padding: 8mm 12mm 0 12mm; }
+  .hero-row { display: table; width: 100%; height: 80mm; table-layout: fixed; }
   .hero-photo { display: table-cell; width: 44%; vertical-align: top; padding-right: 8mm; }
-  .hero-photo .frame { position: relative; width: 100%; height: 95mm; border-radius: 2mm; overflow: hidden; }
+  .hero-photo .frame { position: relative; width: 100%; height: 80mm; border-radius: 2mm; overflow: hidden; }
   .hero-text  { display: table-cell; vertical-align: top; }
   .name { font-size: 32pt; font-weight: 900; line-height: 0.95; letter-spacing: -1px; word-wrap: break-word; }
   .tagline { font-size: 9pt; letter-spacing: 4px; margin-top: 3mm; color: {$secondary}; }
@@ -218,8 +223,8 @@ class StadiumTemplate extends PresentationTemplate
   .kpi-val span { font-size: 8pt; opacity: 0.7; margin-left: 1mm; }
   .kpi-lbl { font-size: 5.5pt; letter-spacing: 1.5px; text-transform: uppercase; opacity: 0.75; margin-top: 2mm; }
 
-  /* BAND 34mm - strengths */
-  .band { position: relative; height: 34mm; padding: 4mm 12mm; box-sizing: border-box;
+  /* BAND ~30mm total - strengths */
+  .band { position: relative; height: 22mm; padding: 3mm 12mm;
           background: rgba(0,0,0,0.4);
           border-top: 2px solid {$accent}; border-bottom: 2px solid {$accent}; }
   .band-title { font-size: 6.5pt; letter-spacing: 4px; color: {$secondary}; margin-bottom: 2mm; }
@@ -229,8 +234,9 @@ class StadiumTemplate extends PresentationTemplate
   .strength-label { font-weight: 700; font-size: 8pt; letter-spacing: 1.2px; vertical-align: middle; }
   .strength-empty { color: rgba(255,255,255,0.5); font-style: italic; font-size: 8pt; text-align: center; padding-top: 6mm; }
 
-  /* BOTTOM row 108mm */
-  .bottom { position: relative; height: 108mm; padding: 6mm 12mm; box-sizing: border-box; }
+  /* BOTTOM row ~139mm total - contains the heatmap plus clubs/links column.
+     Grown to soak up the ~47mm buffer that used to sit empty. */
+  .bottom { position: relative; height: 127mm; padding: 6mm 12mm; }
   .bottom-row { display: table; width: 100%; table-layout: fixed; }
   .bottom-left { display: table-cell; width: 55%; vertical-align: top; padding-right: 6mm; }
   .bottom-right { display: table-cell; vertical-align: top; padding-left: 6mm; border-left: 1px solid rgba(255,255,255,0.1); }

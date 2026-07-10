@@ -53,7 +53,7 @@ class ClassicTemplate extends PresentationTemplate
 
         $photo = $this->pickPhoto($player, $options);
         $stats = $this->statRows($player, $options);
-        $heatmap = $this->heatmapHtml($player, $options);
+        $heatmap = $this->heatmapHtml($player, array_merge($options, ['_heatmap_height_mm' => 75]));
 
         $statsHtml = '';
         foreach ($stats as $s) {
@@ -79,6 +79,9 @@ class ClassicTemplate extends PresentationTemplate
         }
 
         $photoHtml = $this->photoFrame($photo, $options, $secondary);
+        $fontFamily = $this->fontFamily($options);
+        $tracking   = $this->fontTracking($options);
+        $ptBody     = $this->pt(10, $options);
 
         $heatmapBlock = $heatmap !== ''
             ? '<div class="block"><div class="block-title">Zones d\'influence</div>'.$heatmap.'</div>'
@@ -92,7 +95,7 @@ class ClassicTemplate extends PresentationTemplate
 <!DOCTYPE html>
 <html lang="fr"><head><meta charset="utf-8"><style>
   @page { margin: 12mm; }
-  body { font-family: 'DejaVu Sans', sans-serif; color: {$text}; background: {$bg}; margin: 0; padding: 0; font-size: 10pt; }
+  body { font-family: {$fontFamily}; color: {$text}; background: {$bg}; margin: 0; padding: 0; font-size: {$ptBody}; {$tracking} }
   .doc { display: table; width: 100%; }
   .col-left { display: table-cell; width: 38%; vertical-align: top; padding-right: 8mm; }
   .col-right { display: table-cell; vertical-align: top; }
@@ -108,11 +111,11 @@ class ClassicTemplate extends PresentationTemplate
   .header-doc { font-size: 14pt; font-weight: 700; margin-top: 1mm; }
   .kpi-grid { display: table; width: 100%; border-spacing: 3mm 3mm; }
   .kpi-row { display: table-row; }
-  .kpi { display: table-cell; width: 50%; background: white; border: 1px solid #e7e5e4; border-left: 3px solid {$accent}; padding: 4mm; }
+  .kpi { display: table-cell; width: 50%; background: {$bg}; border: 1px solid #e7e5e4; border-left: 3px solid {$accent}; padding: 4mm; }
   .kpi-value { font-size: 22pt; font-weight: 700; color: {$accent}; line-height: 1; }
   .kpi-value span { font-size: 11pt; color: #78716c; margin-left: 1mm; }
   .kpi-label { font-size: 8pt; color: #78716c; text-transform: uppercase; letter-spacing: 1px; margin-top: 1mm; }
-  .block { background: white; border: 1px solid #e7e5e4; border-radius: 3mm; padding: 4mm; margin-top: 4mm; }
+  .block { background: {$bg}; border: 1px solid #e7e5e4; border-radius: 3mm; padding: 4mm; margin-top: 4mm; }
   .block-title { font-size: 8pt; color: #78716c; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3mm; }
   .heatmap { width: 100%; border-collapse: separate; border-spacing: 1mm; }
   .heatmap td { height: 8mm; border-radius: 1mm; background: #f5f5f4; }
@@ -139,6 +142,7 @@ HTML
       .$bioBlock
       .'</div>
   </div>
+  '.$this->extrasBlockHtml($options, ['secondary' => '#78716c', 'text' => $text]).'
   <div class="footer">Rene Football · '.now()->format('d/m/Y').'</div>
 </body></html>';
     }
