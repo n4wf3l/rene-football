@@ -11,7 +11,7 @@ import {
   Trash,
   X as XIcon,
 } from '@phosphor-icons/react'
-import { api, ApiError } from '../../api/client'
+import { api, ApiError, getToken } from '../../api/client'
 import type { Player } from '../../types/player'
 import type {
   Presentation,
@@ -162,7 +162,7 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
       const current = f.options.selected_stats ?? []
       const next = current.includes(key)
         ? current.filter((s) => s !== key)
-        : (current.length >= 6 ? current : [...current, key])
+        : (current.length >= 4 ? current : [...current, key])
       return { ...f, options: { ...f.options, selected_stats: next } }
     })
   }
@@ -276,7 +276,20 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
         target = res.data
         setExisting(target)
       }
-      window.open(`/api/admin/presentations/${target.id}/preview`, '_blank', 'noopener,noreferrer')
+      // A raw window.open on /api/... would send no Authorization header, so
+      // Laravel's admin middleware would 302 to a non-existent `login` route
+      // and crash. Fetch the PDF as a blob with the Bearer token, then hand
+      // the object URL to a fresh tab.
+      const token = getToken()
+      const resp = await fetch(`/api/admin/presentations/${target.id}/preview`, {
+        headers: token ? { Authorization: `Bearer ${token}`, Accept: 'application/pdf' } : { Accept: 'application/pdf' },
+      })
+      if (!resp.ok) throw new Error(`Aperçu impossible (HTTP ${resp.status})`)
+      const blob = await resp.blob()
+      const url = URL.createObjectURL(blob)
+      window.open(url, '_blank', 'noopener,noreferrer')
+      // Release the blob URL after a short delay so the new tab has time to load it.
+      window.setTimeout(() => URL.revokeObjectURL(url), 60_000)
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Aperçu impossible.'
       showToast('error', msg)
@@ -554,11 +567,12 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
           <div className="pt-3 border-t border-stone-200/70 dark:border-stone-50/10 space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-[0.65rem] font-mono uppercase tracking-[0.16em] text-zinc-500 dark:text-stone-400">
-                Cadrage <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">- zoom et position dans le cadre</span>
+                Cadrage <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">- ajustement dans le cadre</span>
               </span>
               <button
                 type="button"
                 onClick={() => {
+                  setOpt('photo_fit', 'contain')
                   setOpt('photo_zoom', 100)
                   setOpt('photo_position_x', 50)
                   setOpt('photo_position_y', 50)
@@ -567,6 +581,39 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
               >
                 Réinitialiser
               </button>
+            </div>
+
+            {/* Mode d'affichage */}
+            <div>
+              <span className="block text-[0.65rem] font-mono uppercase tracking-[0.14em] text-zinc-500 dark:text-stone-400 mb-1.5">
+                Mode d'affichage
+              </span>
+              <div className="inline-flex items-center gap-0.5 rounded-full border border-stone-300 dark:border-stone-50/15 p-0.5 text-xs">
+                {([
+                  { value: 'contain' as const, label: 'Photo entière', hint: 'toute la photo visible' },
+                  { value: 'cover'   as const, label: 'Photo cadrée',  hint: 'remplit et coupe' },
+                ]).map((m) => {
+                  const active = (form.options.photo_fit ?? 'contain') === m.value
+                  return (
+                    <button
+                      key={m.value}
+                      type="button"
+                      onClick={() => setOpt('photo_fit', m.value)}
+                      title={m.hint}
+                      className={`px-3 py-1.5 rounded-full font-medium transition ${
+                        active
+                          ? 'bg-zinc-950 text-stone-50 dark:bg-stone-50 dark:text-zinc-950'
+                          : 'text-zinc-600 hover:text-zinc-900 dark:text-stone-400 dark:hover:text-stone-100'
+                      }`}
+                    >
+                      {m.label}
+                    </button>
+                  )
+                })}
+              </div>
+              <p className="mt-1.5 text-[0.65rem] text-zinc-500 dark:text-stone-500">
+                « Photo entière » = tout le joueur visible, letterbox si besoin. « Photo cadrée » = remplit le cadre en recadrant.
+              </p>
             </div>
             {(
               [
@@ -605,7 +652,7 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
         {/* STATS */}
         <section className="space-y-3">
           <h3 className="font-mono uppercase tracking-[0.18em] text-[0.7rem] text-zinc-500 dark:text-stone-400">
-            Statistiques mises en avant <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">- max 6</span>
+            Statistiques mises en avant <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">- max 4</span>
           </h3>
           {statCatalogue.length === 0 ? (
             <p className="text-xs text-zinc-500 dark:text-stone-500">Choisissez d'abord un joueur pour voir la liste des stats disponibles.</p>

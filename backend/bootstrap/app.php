@@ -1,9 +1,11 @@
 <?php
 
 use App\Http\Middleware\EnsureAdmin;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -18,5 +20,14 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        // API routes must return a JSON 401 on missing auth. Without this,
+        // Laravel's default handler tries to redirect to a `login` route
+        // that we don't expose (there's no server-rendered login page - it
+        // lives in the React SPA), which raises RouteNotFoundException 500.
+        $exceptions->render(function (AuthenticationException $e, Request $request) {
+            if ($request->is('api/*') || $request->expectsJson()) {
+                return response()->json(['message' => 'Unauthenticated.'], 401);
+            }
+            return null;
+        });
     })->create();

@@ -12,7 +12,9 @@ export interface PresentationOptions {
   show_heatmap?: boolean
   photo_source?: 'player' | 'custom'
   custom_photo_url?: string | null
-  /** Zoom percentage applied to the hero photo (100 = original cover fit, 200 = 2x). */
+  /** How the hero photo fits the frame: contain shows the full photo with letterboxing, cover fills and crops. */
+  photo_fit?: 'contain' | 'cover'
+  /** Zoom percentage applied to the hero photo (100 = base fit, 200 = 2x). */
   photo_zoom?: number
   /** Horizontal focal point in % (0 = left edge, 50 = center, 100 = right). */
   photo_position_x?: number

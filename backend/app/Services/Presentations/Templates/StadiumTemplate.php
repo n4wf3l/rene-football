@@ -8,10 +8,14 @@ use App\Services\Presentations\PresentationTemplate;
 
 /**
  * Stadium - dark hero with stadium lighting, large player name and
- * everything packed into one impactful A4 portrait page. Designed to look
- * like a club introduction card: photo cut-out left, identity block with
- * giant typography, strengths grid with icons, list of previous clubs and
- * QR codes for the article + the YouTube highlights reel.
+ * everything packed into one impactful A4 portrait page. Every horizontal
+ * band has a fixed height so the layout always fills the page whether or
+ * not the admin added clubs / QR links / strengths.
+ *
+ *   HERO (135mm)   : photo + identity table + KPI strip
+ *   BAND (34mm)    : strengths grid (or fallback bullets)
+ *   BOTTOM (108mm) : heatmap LEFT + clubs / links RIGHT
+ *   FOOTER (10mm)
  */
 class StadiumTemplate extends PresentationTemplate
 {
@@ -25,11 +29,12 @@ class StadiumTemplate extends PresentationTemplate
     public static function defaultOptions(): array
     {
         return array_merge(parent::defaultOptions(), [
-            'accent_color'     => '#3b82f6',  // bleu spot
-            'secondary_color'  => '#facc15',  // jaune projecteur
+            'accent_color'     => '#3b82f6',
+            'secondary_color'  => '#facc15',
             'text_color'       => '#fafaf9',
             'background_color' => '#0a1220',
             'previous_clubs'   => [],
+            'photo_fit'        => 'cover',
         ]);
     }
 
@@ -41,19 +46,18 @@ class StadiumTemplate extends PresentationTemplate
             .'<circle cx="14" cy="3" r="2" fill="#fafaf9" opacity="0.6"/>'
             .'<circle cx="30" cy="2" r="2" fill="#fafaf9" opacity="0.8"/>'
             .'<circle cx="46" cy="3" r="2" fill="#fafaf9" opacity="0.6"/>'
-            .'<rect x="4" y="14" width="18" height="34" fill="#3b82f6" opacity="0.7"/>'
-            .'<rect x="26" y="14" width="30" height="6" fill="#fafaf9"/>'
-            .'<rect x="26" y="22" width="22" height="3" fill="#fafaf9" opacity="0.5"/>'
-            .'<rect x="26" y="27" width="26" height="3" fill="#fafaf9" opacity="0.5"/>'
-            .'<rect x="26" y="32" width="20" height="3" fill="#fafaf9" opacity="0.5"/>'
-            .'<rect x="4" y="52" width="10" height="10" fill="#3b82f6"/>'
-            .'<rect x="18" y="52" width="10" height="10" fill="#3b82f6"/>'
-            .'<rect x="32" y="52" width="10" height="10" fill="#3b82f6"/>'
-            .'<rect x="46" y="52" width="10" height="10" fill="#3b82f6"/>'
-            .'<circle cx="14" cy="72" r="3" fill="#facc15"/>'
-            .'<circle cx="24" cy="72" r="3" fill="#facc15"/>'
-            .'<circle cx="34" cy="72" r="3" fill="#facc15"/>'
-            .'<circle cx="44" cy="72" r="3" fill="#facc15"/>'
+            .'<rect x="4" y="10" width="24" height="30" fill="#3b82f6" opacity="0.7"/>'
+            .'<rect x="32" y="10" width="24" height="4" fill="#fafaf9"/>'
+            .'<rect x="32" y="18" width="20" height="2" fill="#fafaf9" opacity="0.5"/>'
+            .'<rect x="32" y="22" width="22" height="2" fill="#fafaf9" opacity="0.5"/>'
+            .'<rect x="32" y="26" width="18" height="2" fill="#fafaf9" opacity="0.5"/>'
+            .'<rect x="4" y="44" width="52" height="8" fill="#facc15" opacity="0.9"/>'
+            .'<rect x="4" y="56" width="52" height="10" fill="#3b82f6" opacity="0.5"/>'
+            .'<circle cx="10" cy="61" r="1.5" fill="#facc15"/>'
+            .'<circle cx="24" cy="61" r="1.5" fill="#facc15"/>'
+            .'<circle cx="38" cy="61" r="1.5" fill="#facc15"/>'
+            .'<rect x="4" y="70" width="24" height="10" fill="#fafaf9" opacity="0.08"/>'
+            .'<rect x="32" y="70" width="24" height="10" fill="#fafaf9" opacity="0.08"/>'
             .'</svg>';
     }
 
@@ -66,13 +70,10 @@ class StadiumTemplate extends PresentationTemplate
         $tagline    = $options['tagline'] ?? null;
 
         $photo = $this->pickPhoto($player, $options);
-        $photoBlock = $this->photoFrame($photo, $options, 'transparent');
+        // The photo frame background matches the stage so contain-mode letterbox blends in.
+        $photoBlock = $this->photoFrame($photo, $options, 'rgba(255,255,255,0.04)');
 
-        // Identity rows (compact).
-        $birthday = '';
-        if (! empty($player->since)) {
-            // We don't have DOB on Player - use `since` (year) as a fallback marker.
-        }
+        // Identity (kept dense, up to 6 rows so the right column always looks filled).
         $identity = [
             ['NATIONALITÉ',  $player->nationality ?: '-'],
             ['ÂGE',          ((int) $player->age).' ans'],
@@ -87,66 +88,96 @@ class StadiumTemplate extends PresentationTemplate
             $identityHtml .= '<tr><td class="ikey">'.$this->esc($r[0]).'</td><td class="ival">'.$this->esc((string) $r[1]).'</td></tr>';
         }
 
-        // Strengths block (up to 6 icons + labels).
-        $strengthsHtml = '';
-        $strengths = is_array($player->strengths) ? array_slice($player->strengths, 0, 6) : [];
-        if (! empty($strengths)) {
-            $cells = '';
-            foreach ($strengths as $s) {
-                $label = is_array($s) && isset($s['label']) ? $s['label'] : (is_string($s) ? $s : '');
-                if ($label === '') continue;
-                $cells .= '<td class="strength"><span class="strength-dot" style="background:'.$secondary.';"></span><span class="strength-label">'.$this->esc(strtoupper($label)).'</span></td>';
-            }
-            $strengthsHtml = '<table class="strengths"><tr>'.$cells.'</tr></table>';
+        // KPI strip - always visible so the hero never trails off into empty space.
+        $stats = $this->statRows($player, $options);
+        // Pad to exactly 4 tiles so the row never collapses.
+        while (count($stats) < 4) {
+            $stats[] = ['label' => '-', 'value' => '-', 'suffix' => ''];
+        }
+        $stats = array_slice($stats, 0, 4);
+        $kpiHtml = '';
+        foreach ($stats as $s) {
+            $kpiHtml .= '<td class="kpi">'
+                .'<div class="kpi-val">'.$this->esc((string) $s['value']).'<span>'.$this->esc($s['suffix']).'</span></div>'
+                .'<div class="kpi-lbl">'.$this->esc($s['label']).'</div>'
+                .'</td>';
         }
 
-        // Previous clubs (logos if provided).
-        $clubsHtml = '';
+        // Strengths - 2x3 grid. When empty, fall back to a message so the band still
+        // has weight instead of vanishing.
+        $strengths = is_array($player->strengths) ? array_slice($player->strengths, 0, 6) : [];
+        $strengthsHtml = '';
+        if (! empty($strengths)) {
+            // Group into rows of 3 (matches the reference PDF layout).
+            $rows = array_chunk($strengths, 3);
+            foreach ($rows as $row) {
+                $strengthsHtml .= '<tr>';
+                foreach ($row as $s) {
+                    $label = is_array($s) && isset($s['label']) ? $s['label'] : (is_string($s) ? $s : '');
+                    if ($label === '') continue;
+                    $strengthsHtml .= '<td class="strength">'
+                        .'<span class="strength-dot" style="background:'.$secondary.';"></span>'
+                        .'<span class="strength-label">'.$this->esc(strtoupper($label)).'</span>'
+                        .'</td>';
+                }
+                // Pad to 3 columns.
+                for ($i = count($row); $i < 3; $i++) {
+                    $strengthsHtml .= '<td class="strength">&nbsp;</td>';
+                }
+                $strengthsHtml .= '</tr>';
+            }
+        } else {
+            $strengthsHtml = '<tr><td colspan="3" class="strength strength-empty">Aucun point fort renseigné sur la fiche joueur.</td></tr>';
+        }
+
+        // Bottom-left: heatmap.
+        $heatmap = $this->heatmapHtml($player, $options);
+
+        // Bottom-right: clubs list + QR links, stacked. Fallback to bio/quote when both
+        // are empty so the block doesn't feel deserted.
         $clubs = is_array($options['previous_clubs'] ?? null) ? $options['previous_clubs'] : [];
+        $clubsHtml = '';
         if (! empty($clubs)) {
             $cells = '';
             foreach ($clubs as $c) {
                 $name = $c['name'] ?? '';
                 $logo = $c['logo_url'] ?? null;
-                if ($name === '' && $logo === null) continue;
+                if ($name === '' && ! $logo) continue;
                 $img = $logo
-                    ? '<img src="'.$this->esc($this->absolutePath($logo)).'" alt="" style="height:14mm;max-width:24mm;object-fit:contain;">'
-                    : '<div style="height:14mm;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:8pt;letter-spacing:1px;">'.$this->esc(strtoupper($name)).'</div>';
-                $cells .= '<td style="text-align:center;padding:0 2mm;">'.$img.'</td>';
+                    ? '<img src="'.$this->esc($this->absolutePath($logo)).'" alt="" style="height:12mm;max-width:20mm;object-fit:contain;">'
+                    : '<div style="height:12mm;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:7pt;letter-spacing:1px;">'.$this->esc(strtoupper($name)).'</div>';
+                $cells .= '<td style="text-align:center;padding:0 2mm;vertical-align:middle;">'.$img.'</td>';
             }
-            $clubsHtml = '<div class="clubs-title">CLUBS PRÉCÉDENTS</div><table class="clubs"><tr>'.$cells.'</tr></table>';
+            $clubsHtml = '<div class="mini-title">CLUBS PRÉCÉDENTS</div><table class="clubs"><tr>'.$cells.'</tr></table>';
         }
 
-        // Links (article + YouTube) - render as QR codes via qrserver.com.
         $articleSlug = $options['article_slug'] ?? null;
         $youtubeUrl  = $options['youtube_url'] ?? null;
 
         $articleUrl = null;
         if ($articleSlug) {
             $article = Article::where('slug', $articleSlug)->first();
-            if ($article) {
-                $articleUrl = url('/actualites/'.$article->slug);
-            }
+            if ($article) $articleUrl = url('/actualites/'.$article->slug);
         }
 
         $linkBlocks = '';
         if ($articleUrl) {
-            $linkBlocks .= '<div class="link-block">'
-                .'<img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&margin=0&data='.urlencode($articleUrl).'" style="width:18mm;height:18mm;">'
-                .'<div class="link-meta">'
-                .'<div class="link-label" style="color:'.$secondary.';">ARTICLE</div>'
-                .'<div class="link-url">'.$this->esc($articleUrl).'</div>'
-                .'</div>'
-                .'</div>';
+            $linkBlocks .= '<div class="link-row"><img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&margin=0&data='.urlencode($articleUrl).'"><div class="link-meta"><div class="link-label" style="color:'.$secondary.';">ARTICLE</div><div class="link-url">'.$this->esc($articleUrl).'</div></div></div>';
         }
         if ($youtubeUrl) {
-            $linkBlocks .= '<div class="link-block">'
-                .'<img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&margin=0&data='.urlencode($youtubeUrl).'" style="width:18mm;height:18mm;">'
-                .'<div class="link-meta">'
-                .'<div class="link-label" style="color:'.$secondary.';">VIDÉO</div>'
-                .'<div class="link-url">'.$this->esc($youtubeUrl).'</div>'
-                .'</div>'
-                .'</div>';
+            $linkBlocks .= '<div class="link-row"><img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&margin=0&data='.urlencode($youtubeUrl).'"><div class="link-meta"><div class="link-label" style="color:'.$secondary.';">VIDÉO</div><div class="link-url">'.$this->esc($youtubeUrl).'</div></div></div>';
+        }
+
+        // Bottom-right fallback: bio quote when neither clubs nor links are provided.
+        $bottomRight = '';
+        if ($clubsHtml !== '' || $linkBlocks !== '') {
+            $bottomRight .= $clubsHtml;
+            if ($linkBlocks !== '') {
+                $bottomRight .= '<div class="mini-title" style="margin-top:5mm;">SCANNEZ POUR EN VOIR PLUS</div>'.$linkBlocks;
+            }
+        } else {
+            $bottomRight = '<div class="mini-title">PROFIL SCOUT</div>'
+                .'<p class="quote">'.$this->esc($player->bio ?: 'Ajoutez une bio dans la fiche joueur pour enrichir cette présentation, ou attachez un article et une vidéo YouTube depuis l\'éditeur.').'</p>';
         }
 
         $nameUpper = $this->esc(strtoupper($player->name));
@@ -157,48 +188,66 @@ class StadiumTemplate extends PresentationTemplate
 <html lang="fr"><head><meta charset="utf-8"><style>
   @page { margin: 0; }
   body { font-family: 'DejaVu Sans', sans-serif; color: {$text}; background: {$bg}; margin: 0; padding: 0; font-size: 10pt; }
-  /* Stadium lights effect via stacked radial gradients painted onto the body. */
   .stage { position: relative; width: 100%; height: 297mm; overflow: hidden;
            background:
-             radial-gradient(ellipse at 20% 0%, rgba(255,255,255,0.18) 0%, transparent 35%),
-             radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.22) 0%, transparent 40%),
-             radial-gradient(ellipse at 80% 0%, rgba(255,255,255,0.18) 0%, transparent 35%),
-             radial-gradient(ellipse at 50% 100%, rgba(15,81,50,0.45) 0%, transparent 55%),
+             radial-gradient(ellipse at 20% 0%, rgba(255,255,255,0.16) 0%, transparent 35%),
+             radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.22) 0%, transparent 45%),
+             radial-gradient(ellipse at 80% 0%, rgba(255,255,255,0.16) 0%, transparent 35%),
+             radial-gradient(ellipse at 50% 110%, rgba(15,81,50,0.55) 0%, transparent 60%),
              {$bg};
   }
-  .hero { position: relative; padding: 12mm 12mm 6mm 12mm; }
-  .hero-row { display: table; width: 100%; }
-  .hero-photo { display: table-cell; width: 35%; vertical-align: middle; }
-  .hero-photo .frame { position: relative; width: 100%; height: 110mm; }
-  .hero-text { display: table-cell; vertical-align: middle; padding-left: 8mm; }
-  .name { font-size: 38pt; font-weight: 900; line-height: 0.95; letter-spacing: -1px; }
+
+  /* HERO 135mm */
+  .hero { position: relative; height: 135mm; padding: 10mm 12mm 0 12mm; box-sizing: border-box; }
+  .hero-row { display: table; width: 100%; height: 95mm; table-layout: fixed; }
+  .hero-photo { display: table-cell; width: 44%; vertical-align: top; padding-right: 8mm; }
+  .hero-photo .frame { position: relative; width: 100%; height: 95mm; border-radius: 2mm; overflow: hidden; }
+  .hero-text  { display: table-cell; vertical-align: top; }
+  .name { font-size: 32pt; font-weight: 900; line-height: 0.95; letter-spacing: -1px; word-wrap: break-word; }
   .tagline { font-size: 9pt; letter-spacing: 4px; margin-top: 3mm; color: {$secondary}; }
-  .identity { width: 100%; border-collapse: collapse; margin-top: 6mm; font-size: 9pt; }
-  .identity td { padding: 2mm 0; border-bottom: 1px solid rgba(255,255,255,0.12); }
+  .identity { width: 100%; border-collapse: collapse; margin-top: 5mm; font-size: 9pt; }
+  .identity td { padding: 2mm 0; border-bottom: 1px solid rgba(255,255,255,0.14); }
   .ikey { color: rgba(255,255,255,0.55); width: 40%; letter-spacing: 1.5px; font-size: 7.5pt; font-weight: 600; }
   .ival { font-weight: 700; letter-spacing: 0.5px; }
 
-  .band { position: relative; padding: 5mm 12mm; background: rgba(0,0,0,0.35); border-top: 2px solid {$accent}; border-bottom: 2px solid {$accent}; }
-  .band-title { font-size: 7pt; letter-spacing: 4px; color: {$secondary}; margin-bottom: 3mm; }
-  .strengths { width: 100%; border-collapse: collapse; }
-  .strength { width: 33.33%; padding: 2mm 1mm; vertical-align: middle; }
-  .strength-dot { display: inline-block; width: 3mm; height: 3mm; border-radius: 1.5mm; margin-right: 2mm; vertical-align: middle; }
-  .strength-label { font-weight: 700; font-size: 9pt; letter-spacing: 1.5px; vertical-align: middle; }
+  /* KPI strip inside hero footer */
+  .kpi-strip { margin-top: 8mm; }
+  .kpi-strip table { width: 100%; border-collapse: separate; border-spacing: 3mm 0; }
+  .kpi { width: 25%; background: rgba(255,255,255,0.06); border-left: 2px solid {$accent}; padding: 3mm 3mm; }
+  .kpi-val { font-size: 16pt; font-weight: 800; line-height: 1; }
+  .kpi-val span { font-size: 8pt; opacity: 0.7; margin-left: 1mm; }
+  .kpi-lbl { font-size: 5.5pt; letter-spacing: 1.5px; text-transform: uppercase; opacity: 0.75; margin-top: 2mm; }
 
-  .clubs-section { padding: 5mm 12mm 4mm 12mm; }
-  .clubs-title { font-size: 7pt; letter-spacing: 4px; color: {$secondary}; margin-bottom: 3mm; }
+  /* BAND 34mm - strengths */
+  .band { position: relative; height: 34mm; padding: 4mm 12mm; box-sizing: border-box;
+          background: rgba(0,0,0,0.4);
+          border-top: 2px solid {$accent}; border-bottom: 2px solid {$accent}; }
+  .band-title { font-size: 6.5pt; letter-spacing: 4px; color: {$secondary}; margin-bottom: 2mm; }
+  .strengths { width: 100%; border-collapse: collapse; }
+  .strength { width: 33.33%; padding: 1.5mm 1mm; vertical-align: middle; }
+  .strength-dot { display: inline-block; width: 2.5mm; height: 2.5mm; border-radius: 1.25mm; margin-right: 2mm; vertical-align: middle; }
+  .strength-label { font-weight: 700; font-size: 8pt; letter-spacing: 1.2px; vertical-align: middle; }
+  .strength-empty { color: rgba(255,255,255,0.5); font-style: italic; font-size: 8pt; text-align: center; padding-top: 6mm; }
+
+  /* BOTTOM row 108mm */
+  .bottom { position: relative; height: 108mm; padding: 6mm 12mm; box-sizing: border-box; }
+  .bottom-row { display: table; width: 100%; table-layout: fixed; }
+  .bottom-left { display: table-cell; width: 55%; vertical-align: top; padding-right: 6mm; }
+  .bottom-right { display: table-cell; vertical-align: top; padding-left: 6mm; border-left: 1px solid rgba(255,255,255,0.1); }
+  .mini-title { font-size: 6.5pt; letter-spacing: 4px; color: {$secondary}; margin-bottom: 3mm; }
+  .heatmap { width: 100%; border-collapse: separate; border-spacing: 1.2mm; }
+  .heatmap td { height: 10mm; border-radius: 1mm; }
   .clubs { width: 100%; border-collapse: collapse; }
 
-  .links { padding: 4mm 12mm 6mm 12mm; }
-  .links-title { font-size: 7pt; letter-spacing: 4px; color: {$secondary}; margin-bottom: 3mm; }
-  .links-row { display: table; width: 100%; border-spacing: 4mm 0; }
-  .link-block { display: table-cell; vertical-align: middle; background: rgba(255,255,255,0.06); border-radius: 2mm; padding: 3mm; }
-  .link-block img { vertical-align: middle; background: #fff; padding: 1mm; border-radius: 1mm; }
-  .link-meta { display: inline-block; vertical-align: middle; margin-left: 3mm; }
+  .link-row { margin-bottom: 3mm; }
+  .qr { width: 16mm; height: 16mm; background: #fff; padding: 1mm; border-radius: 1mm; vertical-align: middle; }
+  .link-meta { display: inline-block; vertical-align: middle; margin-left: 3mm; width: calc(100% - 22mm); }
   .link-label { font-size: 6pt; letter-spacing: 3px; font-weight: 700; }
   .link-url { font-size: 7pt; opacity: 0.85; margin-top: 1mm; word-break: break-all; }
+  .quote { font-size: 8.5pt; line-height: 1.55; opacity: 0.9; margin: 0; }
 
-  .footer { position: absolute; bottom: 4mm; left: 12mm; right: 12mm; text-align: center; font-size: 6pt; letter-spacing: 3px; opacity: 0.45; }
+  /* FOOTER 10mm */
+  .footer { position: absolute; bottom: 0; left: 0; right: 0; height: 10mm; line-height: 10mm; text-align: center; font-size: 6pt; letter-spacing: 3px; opacity: 0.5; }
 </style></head><body>
   <div class="stage">
     <div class="hero">
@@ -211,11 +260,27 @@ HTML
         .'<table class="identity"><tbody>'.$identityHtml.'</tbody></table>
         </div>
       </div>
-    </div>'
-    .($strengthsHtml !== '' ? '<div class="band"><div class="band-title">POINTS FORTS</div>'.$strengthsHtml.'</div>' : '')
-    .($clubsHtml !== ''     ? '<div class="clubs-section">'.$clubsHtml.'</div>' : '')
-    .($linkBlocks !== ''    ? '<div class="links"><div class="links-title">SCANNEZ POUR EN VOIR PLUS</div><div class="links-row">'.$linkBlocks.'</div></div>' : '')
-    .'<div class="footer">RENE FOOTBALL · '.now()->format('d/m/Y').'</div>
+      <div class="kpi-strip"><table><tr>'.$kpiHtml.'</tr></table></div>
+    </div>
+
+    <div class="band">
+      <div class="band-title">POINTS FORTS</div>
+      <table class="strengths"><tbody>'.$strengthsHtml.'</tbody></table>
+    </div>
+
+    <div class="bottom">
+      <div class="bottom-row">
+        <div class="bottom-left">
+          <div class="mini-title">ZONES D\'INFLUENCE</div>
+          '.($heatmap !== '' ? $heatmap : '<p class="quote">Activez la heatmap dans l\'éditeur pour l\'afficher ici.</p>').'
+        </div>
+        <div class="bottom-right">
+          '.$bottomRight.'
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">RENE FOOTBALL · '.now()->format('d/m/Y').'</div>
   </div>
 </body></html>';
     }
