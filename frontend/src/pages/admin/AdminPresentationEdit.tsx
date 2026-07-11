@@ -152,13 +152,14 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
     return () => { cancelled = true }
   }, [id, creating])
 
-  // Re-fetch the catalogue (stats depend on player category).
+  // Re-fetch the catalogue (stats depend on player category + PDF language).
   useEffect(() => {
     const cat = selectedPlayer?.category || 'Milieu'
-    api.get<CatalogueResponse>(`/admin/presentations/catalogue?category=${encodeURIComponent(cat)}`, { auth: true })
+    const lang = form.options.language ?? 'fr'
+    api.get<CatalogueResponse>(`/admin/presentations/catalogue?category=${encodeURIComponent(cat)}&language=${lang}`, { auth: true })
       .then((res) => { setTemplates(res.templates); setStatCatalogue(res.stats); setArticles(res.articles ?? []) })
       .catch(() => { /* non-fatal */ })
-  }, [selectedPlayer?.category])
+  }, [selectedPlayer?.category, form.options.language])
 
   // --- helpers ------------------------------------------------------------
 
@@ -575,6 +576,37 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
                 )
               })}
             </div>
+          </div>
+        </section>
+
+        {/* LANGUE */}
+        <section className="space-y-3">
+          <h3 className="font-mono uppercase tracking-[0.18em] text-[0.7rem] text-zinc-500 dark:text-stone-400">
+            Langue du document <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">- titre, tagline et bio restent tels que saisis</span>
+          </h3>
+          <div className="inline-flex items-center gap-0.5 rounded-full border border-stone-300 dark:border-stone-50/15 p-0.5 text-xs">
+            {([
+              { value: 'fr' as const, label: 'Français' },
+              { value: 'en' as const, label: 'English' },
+              { value: 'de' as const, label: 'Deutsch' },
+              { value: 'nl' as const, label: 'Nederlands' },
+            ]).map((l) => {
+              const active = (form.options.language ?? 'fr') === l.value
+              return (
+                <button
+                  key={l.value}
+                  type="button"
+                  onClick={() => setOpt('language', l.value)}
+                  className={`px-3 py-1.5 rounded-full font-medium transition ${
+                    active
+                      ? 'bg-zinc-950 text-stone-50 dark:bg-stone-50 dark:text-zinc-950'
+                      : 'text-zinc-600 hover:text-zinc-900 dark:text-stone-400 dark:hover:text-stone-100'
+                  }`}
+                >
+                  {l.label}
+                </button>
+              )
+            })}
           </div>
         </section>
 

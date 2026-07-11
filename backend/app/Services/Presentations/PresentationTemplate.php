@@ -40,33 +40,52 @@ abstract class PresentationTemplate
     abstract public function render(Player $player, array $options, string $title): string;
 
     /** Curated stat catalogue, segmented by player category for the picker UI. */
-    public static function statCatalogue(string $category): array
+    public static function statCatalogue(string $category, string $lang = 'fr'): array
     {
+        $labels = [
+            'matches_played'     => self::T['st_matches_played'][$lang]     ?? self::T['st_matches_played']['fr'],
+            'minutes_played'     => self::T['st_minutes_played'][$lang]     ?? self::T['st_minutes_played']['fr'],
+            'clean_sheets'       => self::T['st_clean_sheets'][$lang]       ?? self::T['st_clean_sheets']['fr'],
+            'saves'              => self::T['st_saves'][$lang]              ?? self::T['st_saves']['fr'],
+            'pass_accuracy'      => self::T['st_pass_accuracy'][$lang]      ?? self::T['st_pass_accuracy']['fr'],
+            'yellow_cards'       => self::T['st_yellow_cards'][$lang]       ?? self::T['st_yellow_cards']['fr'],
+            'goals'              => self::T['st_goals'][$lang]              ?? self::T['st_goals']['fr'],
+            'assists'            => self::T['st_assists'][$lang]            ?? self::T['st_assists']['fr'],
+            'xg'                 => self::T['st_xg'][$lang]                 ?? self::T['st_xg']['fr'],
+            'xa'                 => self::T['st_xa'][$lang]                 ?? self::T['st_xa']['fr'],
+            'key_passes'         => self::T['st_key_passes'][$lang]         ?? self::T['st_key_passes']['fr'],
+            'shots_on_target'    => self::T['st_shots_on_target'][$lang]    ?? self::T['st_shots_on_target']['fr'],
+            'dribbles_completed' => self::T['st_dribbles_completed'][$lang] ?? self::T['st_dribbles_completed']['fr'],
+            'tackles'            => self::T['st_tackles'][$lang]            ?? self::T['st_tackles']['fr'],
+            'interceptions'      => self::T['st_interceptions'][$lang]      ?? self::T['st_interceptions']['fr'],
+            'duels_won'          => self::T['st_duels_won'][$lang]          ?? self::T['st_duels_won']['fr'],
+        ];
+
         if ($category === 'Gardien') {
             return [
-                ['key' => 'matches_played', 'label' => 'Matchs joués'],
-                ['key' => 'minutes_played', 'label' => 'Minutes'],
-                ['key' => 'clean_sheets',   'label' => 'Clean sheets'],
-                ['key' => 'saves',          'label' => 'Arrêts'],
-                ['key' => 'pass_accuracy',  'label' => '% passes', 'suffix' => '%'],
-                ['key' => 'yellow_cards',   'label' => 'Cartons jaunes'],
+                ['key' => 'matches_played', 'label' => $labels['matches_played']],
+                ['key' => 'minutes_played', 'label' => $labels['minutes_played']],
+                ['key' => 'clean_sheets',   'label' => $labels['clean_sheets']],
+                ['key' => 'saves',          'label' => $labels['saves']],
+                ['key' => 'pass_accuracy',  'label' => $labels['pass_accuracy'], 'suffix' => '%'],
+                ['key' => 'yellow_cards',   'label' => $labels['yellow_cards']],
             ];
         }
         return [
-            ['key' => 'matches_played',     'label' => 'Matchs joués'],
-            ['key' => 'minutes_played',     'label' => 'Minutes'],
-            ['key' => 'goals',              'label' => 'Buts'],
-            ['key' => 'assists',            'label' => 'Passes décisives'],
-            ['key' => 'xg',                 'label' => 'xG'],
-            ['key' => 'xa',                 'label' => 'xA'],
-            ['key' => 'key_passes',         'label' => 'Passes clés'],
-            ['key' => 'pass_accuracy',      'label' => '% passes', 'suffix' => '%'],
-            ['key' => 'shots_on_target',    'label' => 'Tirs cadrés'],
-            ['key' => 'dribbles_completed', 'label' => 'Dribbles réussis'],
-            ['key' => 'tackles',            'label' => 'Tacles'],
-            ['key' => 'interceptions',      'label' => 'Interceptions'],
-            ['key' => 'duels_won',          'label' => 'Duels gagnés'],
-            ['key' => 'yellow_cards',       'label' => 'Cartons jaunes'],
+            ['key' => 'matches_played',     'label' => $labels['matches_played']],
+            ['key' => 'minutes_played',     'label' => $labels['minutes_played']],
+            ['key' => 'goals',              'label' => $labels['goals']],
+            ['key' => 'assists',            'label' => $labels['assists']],
+            ['key' => 'xg',                 'label' => $labels['xg']],
+            ['key' => 'xa',                 'label' => $labels['xa']],
+            ['key' => 'key_passes',         'label' => $labels['key_passes']],
+            ['key' => 'pass_accuracy',      'label' => $labels['pass_accuracy'], 'suffix' => '%'],
+            ['key' => 'shots_on_target',    'label' => $labels['shots_on_target']],
+            ['key' => 'dribbles_completed', 'label' => $labels['dribbles_completed']],
+            ['key' => 'tackles',            'label' => $labels['tackles']],
+            ['key' => 'interceptions',      'label' => $labels['interceptions']],
+            ['key' => 'duels_won',          'label' => $labels['duels_won']],
+            ['key' => 'yellow_cards',       'label' => $labels['yellow_cards']],
         ];
     }
 
@@ -147,7 +166,7 @@ abstract class PresentationTemplate
     /** Pull the selected stat rows out of the player, in the order chosen. */
     protected function statRows(Player $player, array $options): array
     {
-        $catalogue = static::statCatalogue($player->category);
+        $catalogue = static::statCatalogue($player->category, $this->lang($options));
         $byKey = [];
         foreach ($catalogue as $row) {
             $byKey[$row['key']] = $row;
@@ -186,13 +205,13 @@ abstract class PresentationTemplate
         $grid = $player->heatmap_grid;
         if (! is_array($grid) || count($grid) !== 4) return '';
 
-        // DomPDF's SVG renderer silently drops radialGradient / linearGradient
-        // in several installs. Rasterising to a PNG via GD is the only fully
-        // reliable path. We render at 900x600 (3:2), embed as a data URI, and
-        // let DomPDF paint it inside the fixed-size wrapper.
+        // DomPDF ignores `object-fit` and stretches images when both width and
+        // height are set. Emit only a width (100% of parent) and let DomPDF
+        // preserve the source PNG's 3:2 aspect ratio automatically - the
+        // resulting on-page height ends up ~66% of whatever column width the
+        // template gives us, which is what we want anyway.
         $png = $this->buildHeatmapPng($grid);
-        $heightMm = isset($options['_heatmap_height_mm']) ? (int) $options['_heatmap_height_mm'] : 62;
-        return '<img src="data:image/png;base64,'.$png.'" alt="" style="width:100%;height:'.$heightMm.'mm;object-fit:cover;display:block;border-radius:2mm;">';
+        return '<img src="data:image/png;base64,'.$png.'" alt="" width="100%" style="display:block;border-radius:2mm;">';
     }
 
     /**
@@ -413,6 +432,100 @@ abstract class PresentationTemplate
     }
 
     /**
+     * Central translation table for the labels every template hard-codes.
+     * Only the fixed chrome is translated - free-form fields the admin types
+     * (title, tagline, bio) stay as they were entered.
+     */
+    private const T = [
+        'presentation_joueur' => ['fr' => 'Présentation joueur', 'en' => 'Player presentation', 'de' => 'Spielervorstellung', 'nl' => 'Spelerpresentatie'],
+        'age'                 => ['fr' => 'Âge',                  'en' => 'Age',                 'de' => 'Alter',                'nl' => 'Leeftijd'],
+        'position'            => ['fr' => 'Poste',                'en' => 'Position',            'de' => 'Position',             'nl' => 'Positie'],
+        'category'            => ['fr' => 'Catégorie',            'en' => 'Category',            'de' => 'Kategorie',            'nl' => 'Categorie'],
+        'height'              => ['fr' => 'Taille',               'en' => 'Height',              'de' => 'Größe',                'nl' => 'Lengte'],
+        'preferred_foot'      => ['fr' => 'Pied fort',            'en' => 'Preferred foot',      'de' => 'Starker Fuß',          'nl' => 'Voorkeurvoet'],
+        'club'                => ['fr' => 'Club',                 'en' => 'Club',                'de' => 'Verein',               'nl' => 'Club'],
+        'nationality'         => ['fr' => 'Nationalité',          'en' => 'Nationality',         'de' => 'Nationalität',         'nl' => 'Nationaliteit'],
+        'years_old'           => ['fr' => 'ans',                  'en' => 'yrs',                 'de' => 'Jahre',                'nl' => 'jaar'],
+        'zones_influence'     => ['fr' => "Zones d'influence",    'en' => 'Areas of influence',  'de' => 'Einflusszonen',        'nl' => 'Invloedszones'],
+        'scout_summary'       => ['fr' => 'Résumé scout',         'en' => 'Scout summary',       'de' => 'Scout-Zusammenfassung', 'nl' => 'Scout samenvatting'],
+        'scout_profile'       => ['fr' => 'Profil scout',         'en' => 'Scout profile',       'de' => 'Scout-Profil',         'nl' => 'Scout profiel'],
+        'strengths'           => ['fr' => 'Points forts',         'en' => 'Strengths',           'de' => 'Stärken',              'nl' => 'Sterke punten'],
+        'previous_clubs'      => ['fr' => 'Clubs précédents',     'en' => 'Previous clubs',      'de' => 'Frühere Vereine',      'nl' => 'Voormalige clubs'],
+        'identity'            => ['fr' => 'Identité',             'en' => 'Identity',            'de' => 'Identität',            'nl' => 'Identiteit'],
+        'article'             => ['fr' => 'ARTICLE',              'en' => 'ARTICLE',             'de' => 'ARTIKEL',              'nl' => 'ARTIKEL'],
+        'video'               => ['fr' => 'VIDÉO',                'en' => 'VIDEO',               'de' => 'VIDEO',                'nl' => 'VIDEO'],
+        'scan_more'           => ['fr' => 'Scannez pour en voir plus', 'en' => 'Scan for more', 'de' => 'Für mehr scannen', 'nl' => 'Scan voor meer'],
+        'internal_document'   => ['fr' => 'Document interne',     'en' => 'Internal document',   'de' => 'Internes Dokument',    'nl' => 'Intern document'],
+        'no_strengths'        => ['fr' => 'Aucun point fort renseigné sur la fiche joueur.', 'en' => 'No strengths listed on the player card.', 'de' => 'Keine Stärken auf der Spielerkarte hinterlegt.', 'nl' => 'Geen sterke punten opgegeven op de spelerskaart.'],
+        'no_bio'              => ['fr' => 'Ajoutez une bio dans la fiche joueur pour enrichir cette présentation.', 'en' => 'Add a bio to the player card to enrich this presentation.', 'de' => 'Fügen Sie der Spielerkarte eine Biografie hinzu, um diese Präsentation zu bereichern.', 'nl' => 'Voeg een bio toe aan de spelerskaart om deze presentatie te verrijken.'],
+        'no_bio_stadium'      => ['fr' => "Ajoutez une bio dans la fiche joueur pour enrichir cette présentation, ou attachez un article et une vidéo YouTube depuis l'éditeur.", 'en' => 'Add a bio on the player card, or attach an article and a YouTube video from the editor.', 'de' => 'Fügen Sie eine Biografie zur Spielerkarte hinzu oder verknüpfen Sie einen Artikel und ein YouTube-Video aus dem Editor.', 'nl' => 'Voeg een bio toe op de spelerskaart, of koppel een artikel en een YouTube-video vanuit de editor.'],
+        'no_heatmap'          => ['fr' => "Activez la heatmap dans l'éditeur pour l'afficher ici.", 'en' => 'Enable the heatmap in the editor to display it here.', 'de' => 'Aktivieren Sie die Heatmap im Editor, um sie hier anzuzeigen.', 'nl' => 'Activeer de heatmap in de editor om hem hier weer te geven.'],
+
+        // Positions catalogue
+        'cat_gardien'      => ['fr' => 'Gardien',      'en' => 'Goalkeeper', 'de' => 'Torwart',           'nl' => 'Doelman'],
+        'cat_defenseur'    => ['fr' => 'Défenseur',    'en' => 'Defender',   'de' => 'Verteidiger',       'nl' => 'Verdediger'],
+        'cat_milieu'       => ['fr' => 'Milieu',       'en' => 'Midfielder', 'de' => 'Mittelfeldspieler', 'nl' => 'Middenvelder'],
+        'cat_attaquant'    => ['fr' => 'Attaquant',    'en' => 'Forward',    'de' => 'Stürmer',           'nl' => 'Aanvaller'],
+        'foot_droit'       => ['fr' => 'Droit',        'en' => 'Right',      'de' => 'Rechts',            'nl' => 'Rechts'],
+        'foot_gauche'      => ['fr' => 'Gauche',       'en' => 'Left',       'de' => 'Links',             'nl' => 'Links'],
+        'foot_ambidextre'  => ['fr' => 'Ambidextre',   'en' => 'Both',       'de' => 'Beidfüßig',         'nl' => 'Beidbenig'],
+
+        // Stat labels
+        'st_matches_played'     => ['fr' => 'Matchs joués',      'en' => 'Matches',         'de' => 'Spiele',            'nl' => 'Wedstrijden'],
+        'st_minutes_played'     => ['fr' => 'Minutes',           'en' => 'Minutes',         'de' => 'Minuten',           'nl' => 'Minuten'],
+        'st_goals'              => ['fr' => 'Buts',              'en' => 'Goals',           'de' => 'Tore',              'nl' => 'Doelpunten'],
+        'st_assists'            => ['fr' => 'Passes décisives',  'en' => 'Assists',         'de' => 'Vorlagen',          'nl' => 'Assists'],
+        'st_xg'                 => ['fr' => 'xG',                'en' => 'xG',              'de' => 'xG',                'nl' => 'xG'],
+        'st_xa'                 => ['fr' => 'xA',                'en' => 'xA',              'de' => 'xA',                'nl' => 'xA'],
+        'st_key_passes'         => ['fr' => 'Passes clés',       'en' => 'Key passes',      'de' => 'Schlüsselpässe',    'nl' => 'Sleutelpasses'],
+        'st_pass_accuracy'      => ['fr' => '% passes',          'en' => 'Pass %',          'de' => 'Pass %',            'nl' => 'Pass %'],
+        'st_shots_on_target'    => ['fr' => 'Tirs cadrés',       'en' => 'Shots on target', 'de' => 'Schüsse aufs Tor',  'nl' => 'Schoten op doel'],
+        'st_dribbles_completed' => ['fr' => 'Dribbles réussis',  'en' => 'Dribbles',        'de' => 'Dribblings',        'nl' => 'Dribbels'],
+        'st_tackles'            => ['fr' => 'Tacles',            'en' => 'Tackles',         'de' => 'Tacklings',         'nl' => 'Tackles'],
+        'st_interceptions'      => ['fr' => 'Interceptions',     'en' => 'Interceptions',   'de' => 'Abfangungen',       'nl' => 'Onderscheppingen'],
+        'st_duels_won'          => ['fr' => 'Duels gagnés',      'en' => 'Duels won',       'de' => 'Gewonnene Duelle',  'nl' => 'Duels gewonnen'],
+        'st_yellow_cards'       => ['fr' => 'Cartons jaunes',    'en' => 'Yellow cards',    'de' => 'Gelbe Karten',      'nl' => 'Gele kaarten'],
+        'st_clean_sheets'       => ['fr' => 'Clean sheets',      'en' => 'Clean sheets',    'de' => 'Zu-Null-Spiele',    'nl' => 'Clean sheets'],
+        'st_saves'              => ['fr' => 'Arrêts',            'en' => 'Saves',           'de' => 'Paraden',           'nl' => 'Reddingen'],
+    ];
+
+    protected function lang(array $options): string
+    {
+        $lang = $options['language'] ?? 'fr';
+        return in_array($lang, ['fr', 'en', 'de', 'nl'], true) ? $lang : 'fr';
+    }
+
+    /** Translate a label into the presentation's chosen language. */
+    protected function t(string $key, array $options): string
+    {
+        $lang = $this->lang($options);
+        return self::T[$key][$lang] ?? self::T[$key]['fr'] ?? $key;
+    }
+
+    /** Player-category label localised. Falls back to the raw value when unknown. */
+    protected function tCategory(?string $rawCategory, array $options): string
+    {
+        return match ($rawCategory) {
+            'Gardien'    => $this->t('cat_gardien', $options),
+            'Defenseur', 'Défenseur' => $this->t('cat_defenseur', $options),
+            'Milieu'     => $this->t('cat_milieu', $options),
+            'Attaquant'  => $this->t('cat_attaquant', $options),
+            default      => (string) ($rawCategory ?? '-'),
+        };
+    }
+
+    /** Preferred-foot label localised. */
+    protected function tFoot(?string $rawFoot, array $options): string
+    {
+        return match ($rawFoot) {
+            'Droit'      => $this->t('foot_droit', $options),
+            'Gauche'     => $this->t('foot_gauche', $options),
+            'Ambidextre' => $this->t('foot_ambidextre', $options),
+            default      => (string) ($rawFoot ?? '-'),
+        };
+    }
+
+    /**
      * Compact "extras" band shared by Classic / Magazine / Minimal:
      * a row of previous-club chips + QR codes for the article and YouTube
      * links when set. Returns empty string when nothing is configured, so
@@ -462,7 +575,7 @@ abstract class PresentationTemplate
         $clubsCell = '';
         if ($clubsInnerCells !== '') {
             $clubsCell = '<td style="vertical-align:middle;padding:0;">'
-                .'<div style="font-size:6.5pt;letter-spacing:3px;text-transform:uppercase;color:'.$secondary.';margin-bottom:2mm;font-weight:700;">Clubs précédents</div>'
+                .'<div style="font-size:6.5pt;letter-spacing:3px;text-transform:uppercase;color:'.$secondary.';margin-bottom:2mm;font-weight:700;">'.$this->esc(strtoupper($this->t('previous_clubs', $options))).'</div>'
                 .'<table style="border-collapse:collapse;"><tr>'.$clubsInnerCells.'</tr></table>'
                 .'</td>';
         } else {
@@ -476,13 +589,13 @@ abstract class PresentationTemplate
         if ($articleUrl) {
             $qrCells .= '<td style="width:24mm;text-align:center;vertical-align:middle;padding-left:5mm;">'
                 .'<img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&margin=0&data='.urlencode($articleUrl).'" width="46" height="46" style="background:#fff;padding:1mm;">'
-                .'<div style="font-size:6pt;letter-spacing:2px;color:'.$secondary.';margin-top:1.5mm;font-weight:700;">ARTICLE</div>'
+                .'<div style="font-size:6pt;letter-spacing:2px;color:'.$secondary.';margin-top:1.5mm;font-weight:700;">'.$this->esc($this->t('article', $options)).'</div>'
                 .'</td>';
         }
         if ($youtubeUrl) {
             $qrCells .= '<td style="width:24mm;text-align:center;vertical-align:middle;padding-left:5mm;">'
                 .'<img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&margin=0&data='.urlencode($youtubeUrl).'" width="46" height="46" style="background:#fff;padding:1mm;">'
-                .'<div style="font-size:6pt;letter-spacing:2px;color:'.$secondary.';margin-top:1.5mm;font-weight:700;">VIDÉO</div>'
+                .'<div style="font-size:6pt;letter-spacing:2px;color:'.$secondary.';margin-top:1.5mm;font-weight:700;">'.$this->esc($this->t('video', $options)).'</div>'
                 .'</td>';
         }
 

@@ -71,14 +71,14 @@ class MinimalTemplate extends PresentationTemplate
         }
 
         $infoRows = [
-            ['Âge',         ((int) $player->age).' ans'],
-            ['Poste',       $player->position],
-            ['Catégorie',   $player->category],
+            [$this->t('age', $options),      ((int) $player->age).' '.$this->t('years_old', $options)],
+            [$this->t('position', $options), $player->position],
+            [$this->t('category', $options), $this->tCategory($player->category, $options)],
         ];
-        if ($player->height)         $infoRows[] = ['Taille', $player->height];
-        if ($player->preferred_foot) $infoRows[] = ['Pied fort', $player->preferred_foot];
-        if ($player->club)           $infoRows[] = ['Club',   $player->club];
-        if ($player->nationality)    $infoRows[] = ['Nationalité', $player->nationality];
+        if ($player->height)         $infoRows[] = [$this->t('height', $options),         $player->height];
+        if ($player->preferred_foot) $infoRows[] = [$this->t('preferred_foot', $options), $this->tFoot($player->preferred_foot, $options)];
+        if ($player->club)           $infoRows[] = [$this->t('club', $options),           $player->club];
+        if ($player->nationality)    $infoRows[] = [$this->t('nationality', $options),    $player->nationality];
 
         $infoHtml = '';
         foreach ($infoRows as $r) {
@@ -88,7 +88,7 @@ class MinimalTemplate extends PresentationTemplate
         $photoHtml = $this->photoFrame($photo, $options, $secondary);
 
         $heatmapBlock = $heatmap !== ''
-            ? '<div class="block"><div class="block-title">Zones d\'influence</div>'.$heatmap.'</div>'
+            ? '<div class="block"><div class="block-title">'.$this->esc($this->t('zones_influence', $options)).'</div>'.$heatmap.'</div>'
             : '';
 
         // NEW blocks that fill the previously empty bottom half. Kept side by
@@ -103,15 +103,15 @@ class MinimalTemplate extends PresentationTemplate
                 if ($label === '') continue;
                 $rows .= '<div class="strength"><span class="dot" style="background:'.$accent.';"></span>'.$this->esc($label).'</div>';
             }
-            $strengthsHtml = '<div class="mini-title">Points forts</div>'.$rows;
+            $strengthsHtml = '<div class="mini-title">'.$this->esc($this->t('strengths', $options)).'</div>'.$rows;
         } else {
-            $strengthsHtml = '<div class="mini-title">Points forts</div>'
-                .'<p class="dim">Aucun point fort renseigné sur la fiche joueur.</p>';
+            $strengthsHtml = '<div class="mini-title">'.$this->esc($this->t('strengths', $options)).'</div>'
+                .'<p class="dim">'.$this->esc($this->t('no_strengths', $options)).'</p>';
         }
 
         $quoteHtml = $player->bio
-            ? '<div class="mini-title">Résumé scout</div><div class="quote">'.nl2br($this->esc($player->bio)).'</div>'
-            : '<div class="mini-title">Résumé scout</div><p class="dim">Ajoutez une bio dans la fiche joueur pour enrichir cette présentation.</p>';
+            ? '<div class="mini-title">'.$this->esc($this->t('scout_summary', $options)).'</div><div class="quote">'.nl2br($this->esc($player->bio)).'</div>'
+            : '<div class="mini-title">'.$this->esc($this->t('scout_summary', $options)).'</div><p class="dim">'.$this->esc($this->t('no_bio', $options)).'</p>';
 
         // Resolve font/scale options and pre-compute the pt values that vary.
         $fontFamily = $this->fontFamily($options);
@@ -131,9 +131,10 @@ class MinimalTemplate extends PresentationTemplate
         $ptHeadTitle= $this->pt(7, $options);
         $ptFooter   = $this->pt(7, $options);
 
+        $lang = $this->lang($options);
         return <<<HTML
 <!DOCTYPE html>
-<html lang="fr"><head><meta charset="utf-8"><style>
+<html lang="{$lang}"><head><meta charset="utf-8"><style>
   @page { margin: 16mm 16mm; }
   body { font-family: {$fontFamily}; color: {$text}; background: {$bg}; margin: 0; padding: 0; font-size: {$ptBody}; {$tracking} }
   .header { border-top: 2px solid {$accent}; border-bottom: 0.5px solid {$secondary}; padding: 4mm 0 3mm 0; }
@@ -168,7 +169,7 @@ class MinimalTemplate extends PresentationTemplate
   .footer { border-top: 2px solid {$accent}; margin-top: 4mm; padding-top: 2mm; font-size: {$ptFooter}; color: {$secondary}; letter-spacing: 2px; text-transform: uppercase; }
 </style></head><body>
   <div class="header">
-    <div class="header-title">Rene Football · Présentation joueur</div>
+    <div class="header-title">Rene Football · {$this->esc($this->t('presentation_joueur', $options))}</div>
     <div class="header-doc">{$this->esc($title)}</div>
   </div>
   <div class="name">{$this->esc($player->name)}</div>
@@ -190,7 +191,7 @@ HTML
     <div class="bottom-col">'.$quoteHtml.'</div>
   </div>
   '.$this->extrasBlockHtml($options, ['secondary' => $secondary, 'text' => $text]).'
-  <div class="footer">Document interne · '.now()->format('d.m.Y').'</div>
+  <div class="footer">'.$this->esc($this->t('internal_document', $options)).' · '.now()->format('d.m.Y').'</div>
 </body></html>';
     }
 }

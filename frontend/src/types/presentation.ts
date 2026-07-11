@@ -30,6 +30,9 @@ export interface PresentationOptions {
   font_family?: 'editorial' | 'sans' | 'grotesque'
   /** Base font-size scale relative to the template default. */
   font_scale?: 'small' | 'normal' | 'large'
+  /** PDF output language. Only affects hard-coded labels; free-form
+   *  fields (title, tagline, bio) are shown as-typed. */
+  language?: 'fr' | 'en' | 'de' | 'nl'
 }
 
 export type PresentationTemplateKey = 'classic' | 'magazine' | 'minimal' | 'stadium'

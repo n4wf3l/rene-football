@@ -37,6 +37,7 @@ class AdminPresentationController extends Controller
     public function catalogue(Request $request): JsonResponse
     {
         $category = $request->query('category', 'Milieu');
+        $lang     = $request->query('language', 'fr');
         $articles = Article::query()
             ->orderByDesc('published_at')
             ->orderByDesc('id')
@@ -45,7 +46,7 @@ class AdminPresentationController extends Controller
 
         return response()->json([
             'templates' => PresentationTemplateRegistry::catalogue(),
-            'stats'     => PresentationTemplate::statCatalogue($category),
+            'stats'     => PresentationTemplate::statCatalogue($category, $lang),
             'articles'  => $articles,
         ]);
     }
@@ -158,6 +159,7 @@ class AdminPresentationController extends Controller
             'options.photo_position_y'      => ['nullable', 'integer', 'min:0', 'max:100'],
             'options.font_family'               => ['nullable', 'string', 'in:editorial,sans,grotesque'],
             'options.font_scale'                => ['nullable', 'string', 'in:small,normal,large'],
+            'options.language'                  => ['nullable', 'string', 'in:fr,en,de,nl'],
             'options.article_slug'              => ['nullable', 'string', 'max:200'],
             'options.youtube_url'               => ['nullable', 'string', 'max:500'],
             'options.previous_clubs'            => ['nullable', 'array', 'max:12'],

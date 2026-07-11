@@ -3,6 +3,75 @@ import type { Player } from '../types/player'
 import type { PresentationOptions, PresentationStatChoice, PresentationTemplateKey } from '../types/presentation'
 
 /**
+ * Translations for the fixed chrome labels that PHP renders. Mirrors the T
+ * table on the server so the preview matches the PDF word-for-word. Only
+ * covers the labels the preview actually paints — free-form fields (title,
+ * tagline, bio) stay as the admin typed them.
+ */
+type Lang = 'fr' | 'en' | 'de' | 'nl'
+const T: Record<string, Record<Lang, string>> = {
+  presentation_joueur: { fr: 'Présentation joueur', en: 'Player presentation', de: 'Spielervorstellung', nl: 'Spelerpresentatie' },
+  age:                 { fr: 'Âge',                 en: 'Age',                 de: 'Alter',                nl: 'Leeftijd' },
+  position:            { fr: 'Poste',               en: 'Position',            de: 'Position',             nl: 'Positie' },
+  category:            { fr: 'Catégorie',           en: 'Category',            de: 'Kategorie',            nl: 'Categorie' },
+  height:              { fr: 'Taille',              en: 'Height',              de: 'Größe',                nl: 'Lengte' },
+  preferred_foot:      { fr: 'Pied fort',           en: 'Preferred foot',      de: 'Starker Fuß',          nl: 'Voorkeurvoet' },
+  club:                { fr: 'Club',                en: 'Club',                de: 'Verein',               nl: 'Club' },
+  nationality:         { fr: 'Nationalité',         en: 'Nationality',         de: 'Nationalität',         nl: 'Nationaliteit' },
+  years_old:           { fr: 'ans',                 en: 'yrs',                 de: 'Jahre',                nl: 'jaar' },
+  zones_influence:     { fr: "Zones d'influence",   en: 'Areas of influence',  de: 'Einflusszonen',        nl: 'Invloedszones' },
+  scout_summary:       { fr: 'Résumé scout',        en: 'Scout summary',       de: 'Scout-Zusammenfassung', nl: 'Scout samenvatting' },
+  scout_profile:       { fr: 'Profil scout',        en: 'Scout profile',       de: 'Scout-Profil',         nl: 'Scout profiel' },
+  strengths:           { fr: 'Points forts',        en: 'Strengths',           de: 'Stärken',              nl: 'Sterke punten' },
+  previous_clubs:      { fr: 'Clubs précédents',    en: 'Previous clubs',      de: 'Frühere Vereine',      nl: 'Voormalige clubs' },
+  identity:            { fr: 'Identité',            en: 'Identity',            de: 'Identität',            nl: 'Identiteit' },
+  article:             { fr: 'ARTICLE',             en: 'ARTICLE',             de: 'ARTIKEL',              nl: 'ARTIKEL' },
+  video:               { fr: 'VIDÉO',               en: 'VIDEO',               de: 'VIDEO',                nl: 'VIDEO' },
+  scan_more:           { fr: 'Scannez pour en voir plus', en: 'Scan for more', de: 'Für mehr scannen',     nl: 'Scan voor meer' },
+  internal_document:   { fr: 'Document interne',    en: 'Internal document',   de: 'Internes Dokument',    nl: 'Intern document' },
+  no_strengths:        { fr: 'Aucun point fort renseigné sur la fiche joueur.', en: 'No strengths listed on the player card.', de: 'Keine Stärken auf der Spielerkarte hinterlegt.', nl: 'Geen sterke punten opgegeven op de spelerskaart.' },
+  no_bio:              { fr: 'Ajoutez une bio dans la fiche joueur pour enrichir cette présentation.', en: 'Add a bio to the player card to enrich this presentation.', de: 'Fügen Sie der Spielerkarte eine Biografie hinzu, um diese Präsentation zu bereichern.', nl: 'Voeg een bio toe aan de spelerskaart om deze presentatie te verrijken.' },
+  no_bio_stadium:      { fr: "Ajoutez une bio dans la fiche joueur pour enrichir cette présentation, ou attachez un article et une vidéo YouTube depuis l'éditeur.", en: 'Add a bio on the player card, or attach an article and a YouTube video from the editor.', de: 'Fügen Sie eine Biografie zur Spielerkarte hinzu oder verknüpfen Sie einen Artikel und ein YouTube-Video aus dem Editor.', nl: 'Voeg een bio toe op de spelerskaart, of koppel een artikel en een YouTube-video vanuit de editor.' },
+  no_heatmap_short:    { fr: "Activez la heatmap dans l'éditeur.", en: 'Enable the heatmap in the editor.', de: 'Aktivieren Sie die Heatmap im Editor.', nl: 'Activeer de heatmap in de editor.' },
+  foot_droit:          { fr: 'Droit',    en: 'Right', de: 'Rechts',    nl: 'Rechts' },
+  foot_gauche:         { fr: 'Gauche',   en: 'Left',  de: 'Links',     nl: 'Links' },
+  foot_ambidextre:     { fr: 'Ambidextre', en: 'Both', de: 'Beidfüßig', nl: 'Beidbenig' },
+  cat_gardien:         { fr: 'Gardien',   en: 'Goalkeeper', de: 'Torwart',           nl: 'Doelman' },
+  cat_defenseur:       { fr: 'Défenseur', en: 'Defender',   de: 'Verteidiger',       nl: 'Verdediger' },
+  cat_milieu:          { fr: 'Milieu',    en: 'Midfielder', de: 'Mittelfeldspieler', nl: 'Middenvelder' },
+  cat_attaquant:       { fr: 'Attaquant', en: 'Forward',    de: 'Stürmer',           nl: 'Aanvaller' },
+}
+
+function lang(options: PresentationOptions): Lang {
+  const l = options.language
+  return l === 'en' || l === 'de' || l === 'nl' ? l : 'fr'
+}
+
+function t(key: keyof typeof T, options: PresentationOptions): string {
+  return T[key][lang(options)] ?? T[key].fr
+}
+
+function tCategory(raw: string | null | undefined, options: PresentationOptions): string {
+  switch (raw) {
+    case 'Gardien':    return t('cat_gardien', options)
+    case 'Defenseur':
+    case 'Défenseur':  return t('cat_defenseur', options)
+    case 'Milieu':     return t('cat_milieu', options)
+    case 'Attaquant':  return t('cat_attaquant', options)
+    default:           return raw ?? '-'
+  }
+}
+
+function tFoot(raw: string | null | undefined, options: PresentationOptions): string {
+  switch (raw) {
+    case 'Droit':      return t('foot_droit', options)
+    case 'Gauche':     return t('foot_gauche', options)
+    case 'Ambidextre': return t('foot_ambidextre', options)
+    default:           return raw ?? '-'
+  }
+}
+
+/**
  * Live, A4-shaped preview of a PDF presentation. Mirrors the visual
  * decisions of the server-side DomPDF templates so the user can iterate on
  * colours, photo cropping and stat selection without round-tripping to the
@@ -88,7 +157,7 @@ function ExtrasBand({ options, secondary }: { options: PresentationOptions; seco
     >
       {clubs.length > 0 ? (
         <div className="flex-1 min-w-0">
-          <div className="text-[4.5px] tracking-[3px] uppercase font-bold mb-[1.5%]" style={{ color: secondary }}>Clubs précédents</div>
+          <div className="text-[4.5px] tracking-[3px] uppercase font-bold mb-[1.5%]" style={{ color: secondary }}>{t('previous_clubs', options)}</div>
           <div className="flex items-center gap-[3%] flex-wrap">
             {clubs.slice(0, 6).map((c, i) => (
               <div key={i} className="flex items-center" style={{ height: 18 }}>
@@ -106,13 +175,13 @@ function ExtrasBand({ options, secondary }: { options: PresentationOptions; seco
           {article && (
             <div className="text-center">
               <div className="bg-white grid place-items-center text-[4px] text-black" style={{ width: 24, height: 24 }}>QR</div>
-              <div className="text-[4.5px] tracking-[2px] font-bold mt-[3%]" style={{ color: secondary }}>ARTICLE</div>
+              <div className="text-[4.5px] tracking-[2px] font-bold mt-[3%]" style={{ color: secondary }}>{t('article', options)}</div>
             </div>
           )}
           {yt && (
             <div className="text-center">
               <div className="bg-white grid place-items-center text-[4px] text-black" style={{ width: 24, height: 24 }}>QR</div>
-              <div className="text-[4.5px] tracking-[2px] font-bold mt-[3%]" style={{ color: secondary }}>VIDÉO</div>
+              <div className="text-[4.5px] tracking-[2px] font-bold mt-[3%]" style={{ color: secondary }}>{t('video', options)}</div>
             </div>
           )}
         </div>
@@ -295,7 +364,7 @@ function ClassicPreview({ player, options, title, statCatalogue }: PresentationP
   return (
     <div className="absolute inset-0 flex flex-col p-[5%]" style={{ background: bg, color: text, ...typographyRootStyle(options) }}>
       <div className="pb-[2%] mb-[4%]" style={{ borderBottom: `2px solid ${accent}` }}>
-        <div className="text-[6px] tracking-[1.5px] uppercase opacity-60">Présentation joueur · Rene Football</div>
+        <div className="text-[6px] tracking-[1.5px] uppercase opacity-60">{t('presentation_joueur', options)} · Rene Football</div>
         <div className="text-[10px] font-semibold mt-[1%] truncate">{title || 'Titre du document'}</div>
       </div>
 
@@ -311,11 +380,11 @@ function ClassicPreview({ player, options, title, statCatalogue }: PresentationP
           )}
           <div className="mt-[5%] space-y-[3%] text-[6.5px]">
             {[
-              ['Âge', player ? `${player.age} ans` : '-'],
-              ['Poste', player?.position ?? '-'],
-              player?.height ? ['Taille', player.height] : null,
-              player?.preferred_foot ? ['Pied fort', player.preferred_foot] : null,
-              player?.club ? ['Club', player.club] : null,
+              [t('age', options), player ? `${player.age} ${t('years_old', options)}` : '-'],
+              [t('position', options), player?.position ?? '-'],
+              player?.height ? [t('height', options), player.height] : null,
+              player?.preferred_foot ? [t('preferred_foot', options), tFoot(player.preferred_foot, options)] : null,
+              player?.club ? [t('club', options), player.club] : null,
             ].filter(Boolean).slice(0, 5).map((row) => {
               const [k, v] = row as [string, string]
               return (
@@ -342,7 +411,7 @@ function ClassicPreview({ player, options, title, statCatalogue }: PresentationP
           </div>
           {options.show_heatmap && (
             <div className="rounded-[2px] p-[4%] border border-stone-200" style={{ background: bg }}>
-              <div className="text-[5px] uppercase tracking-[1px] opacity-50 mb-[3%]">Zones d'influence</div>
+              <div className="text-[5px] uppercase tracking-[1px] opacity-50 mb-[3%]">{t('zones_influence', options)}</div>
               <HeatmapGrid grid={player?.heatmap_grid ?? null} accent={accent} />
             </div>
           )}
@@ -408,17 +477,17 @@ function MagazinePreview({ player, options, title, statCatalogue }: Presentation
         <div className="flex gap-[3%]">
           {options.show_heatmap && (
             <div className="flex-1 p-[3%] rounded-[2px]" style={{ background: 'rgba(255,255,255,0.04)' }}>
-              <div className="text-[4px] uppercase tracking-[1.5px] mb-[3%]" style={{ color: secondary }}>Zones d'influence</div>
+              <div className="text-[4px] uppercase tracking-[1.5px] mb-[3%]" style={{ color: secondary }}>{t('zones_influence', options)}</div>
               <HeatmapGrid grid={player?.heatmap_grid ?? null} accent={secondary} />
             </div>
           )}
           <div className="flex-1 p-[3%] rounded-[2px]" style={{ background: 'rgba(255,255,255,0.04)' }}>
-            <div className="text-[4px] uppercase tracking-[1.5px] mb-[3%]" style={{ color: secondary }}>Identité</div>
+            <div className="text-[4px] uppercase tracking-[1.5px] mb-[3%]" style={{ color: secondary }}>{t('identity', options)}</div>
             <div className="text-[6px] leading-[1.7] space-y-[2%]">
-              <div><span className="font-semibold">Âge</span> · {player ? `${player.age} ans` : '-'}</div>
-              {player?.height && <div><span className="font-semibold">Taille</span> · {player.height}</div>}
-              {player?.preferred_foot && <div><span className="font-semibold">Pied</span> · {player.preferred_foot}</div>}
-              {player?.nationality && <div><span className="font-semibold">Nat.</span> · {player.nationality}</div>}
+              <div><span className="font-semibold">{t('age', options)}</span> · {player ? `${player.age} ${t('years_old', options)}` : '-'}</div>
+              {player?.height && <div><span className="font-semibold">{t('height', options)}</span> · {player.height}</div>}
+              {player?.preferred_foot && <div><span className="font-semibold">{t('preferred_foot', options)}</span> · {tFoot(player.preferred_foot, options)}</div>}
+              {player?.nationality && <div><span className="font-semibold">{t('nationality', options)}</span> · {player.nationality}</div>}
             </div>
           </div>
         </div>
@@ -450,7 +519,7 @@ function MinimalPreview({ player, options, title, statCatalogue }: PresentationP
   return (
     <div className="absolute inset-0 flex flex-col p-[5%]" style={{ background: bg, color: text, ...typoStyle }}>
       <div className="pt-[1%] pb-[2%]" style={{ borderTop: `1.5px solid ${accent}`, borderBottom: `0.5px solid ${secondary}` }}>
-        <div className="text-[5px] tracking-[3px] uppercase" style={{ color: secondary }}>Rene Football · Présentation joueur</div>
+        <div className="text-[5px] tracking-[3px] uppercase" style={{ color: secondary }}>Rene Football · {t('presentation_joueur', options)}</div>
         <div className="text-[8px] font-semibold mt-[1%] truncate">{title || 'Titre du document'}</div>
       </div>
 
@@ -469,10 +538,10 @@ function MinimalPreview({ player, options, title, statCatalogue }: PresentationP
           </div>
           <div className="mt-[4%] space-y-[2.5%] text-[6px]">
             {[
-              ['Âge', player ? `${player.age} ans` : '-'],
-              ['Poste', player?.position ?? '-'],
-              player?.height ? ['Taille', player.height] : null,
-              player?.preferred_foot ? ['Pied fort', player.preferred_foot] : null,
+              [t('age', options), player ? `${player.age} ${t('years_old', options)}` : '-'],
+              [t('position', options), player?.position ?? '-'],
+              player?.height ? [t('height', options), player.height] : null,
+              player?.preferred_foot ? [t('preferred_foot', options), tFoot(player.preferred_foot, options)] : null,
             ].filter(Boolean).slice(0, 4).map((row) => {
               const [k, v] = row as [string, string]
               return (
@@ -498,7 +567,7 @@ function MinimalPreview({ player, options, title, statCatalogue }: PresentationP
           </div>
           {options.show_heatmap && (
             <div className="mt-[4%]">
-              <div className="text-[4px] uppercase tracking-[1.5px] mb-[3%]" style={{ color: secondary }}>Zones d'influence</div>
+              <div className="text-[4px] uppercase tracking-[1.5px] mb-[3%]" style={{ color: secondary }}>{t('zones_influence', options)}</div>
               <HeatmapGrid grid={player?.heatmap_grid ?? null} accent={accent} />
             </div>
           )}
@@ -508,7 +577,7 @@ function MinimalPreview({ player, options, title, statCatalogue }: PresentationP
       {/* Bottom band that fills the previously-empty half: strengths + scout quote. */}
       <div className="mt-[4%] pt-[3%] flex gap-[6%]" style={{ borderTop: `0.5px solid ${secondary}` }}>
         <div className="w-1/2">
-          <div className="text-[4px] uppercase tracking-[1.5px] mb-[3%] font-bold" style={{ color: secondary }}>Points forts</div>
+          <div className="text-[4px] uppercase tracking-[1.5px] mb-[3%] font-bold" style={{ color: secondary }}>{t('strengths', options)}</div>
           {strengths.length > 0 ? (
             strengths.map((s) => (
               <div key={s.key} className="flex items-center gap-[3%] py-[1.5%] text-[6px] border-b" style={{ borderColor: secondary }}>
@@ -517,15 +586,15 @@ function MinimalPreview({ player, options, title, statCatalogue }: PresentationP
               </div>
             ))
           ) : (
-            <p className="text-[6px] italic" style={{ color: secondary }}>Aucun point fort renseigné sur la fiche joueur.</p>
+            <p className="text-[6px] italic" style={{ color: secondary }}>{t('no_strengths', options)}</p>
           )}
         </div>
         <div className="flex-1">
-          <div className="text-[4px] uppercase tracking-[1.5px] mb-[3%] font-bold" style={{ color: secondary }}>Résumé scout</div>
+          <div className="text-[4px] uppercase tracking-[1.5px] mb-[3%] font-bold" style={{ color: secondary }}>{t('scout_summary', options)}</div>
           {player?.bio ? (
             <p className="text-[7px] italic leading-[1.55] text-justify">{player.bio}</p>
           ) : (
-            <p className="text-[6px] italic" style={{ color: secondary }}>Ajoutez une bio dans la fiche joueur pour enrichir cette présentation.</p>
+            <p className="text-[6px] italic" style={{ color: secondary }}>{t('no_bio', options)}</p>
           )}
         </div>
       </div>
@@ -533,7 +602,7 @@ function MinimalPreview({ player, options, title, statCatalogue }: PresentationP
       <ExtrasBand options={options} secondary={secondary} />
 
       <div className="mt-auto pt-[2%] text-[4px] uppercase tracking-[2px]" style={{ borderTop: `1.5px solid ${accent}`, color: secondary }}>
-        Document interne
+        {t('internal_document', options)}
       </div>
     </div>
   )
@@ -573,12 +642,12 @@ function StadiumPreview({ player, options, title, statCatalogue }: PresentationP
   `
 
   const identityRows = [
-    ['NATIONALITÉ', player?.nationality ?? '-'],
-    ['ÂGE',         player ? `${player.age} ans` : '-'],
-    ['POSTE',       (player?.position ?? '-').toUpperCase()],
-    ['CATÉGORIE',   (player?.category ?? '-').toUpperCase()],
-    player?.height ? ['TAILLE', player.height] : null,
-    player?.preferred_foot ? ['PIED FORT', player.preferred_foot.toUpperCase()] : null,
+    [t('nationality', options).toUpperCase(), player?.nationality ?? '-'],
+    [t('age', options).toUpperCase(),         player ? `${player.age} ${t('years_old', options)}` : '-'],
+    [t('position', options).toUpperCase(),    (player?.position ?? '-').toUpperCase()],
+    [t('category', options).toUpperCase(),    tCategory(player?.category, options).toUpperCase()],
+    player?.height ? [t('height', options).toUpperCase(), player.height] : null,
+    player?.preferred_foot ? [t('preferred_foot', options).toUpperCase(), tFoot(player.preferred_foot, options).toUpperCase()] : null,
   ].filter(Boolean).slice(0, 6) as [string, string][]
 
   // Heights map roughly to the PHP layout (in % of 297mm):
@@ -626,7 +695,7 @@ function StadiumPreview({ player, options, title, statCatalogue }: PresentationP
 
       {/* BAND - Points forts (toujours affichée) */}
       <div style={{ height: '10.8%', background: 'rgba(0,0,0,0.4)', borderTop: `1px solid ${accent}`, borderBottom: `1px solid ${accent}` }} className="px-[5%] py-[1.2%] flex flex-col justify-center">
-        <div className="text-[4.5px] tracking-[3px] mb-[1.5%]" style={{ color: secondary }}>POINTS FORTS</div>
+        <div className="text-[4.5px] tracking-[3px] mb-[1.5%]" style={{ color: secondary }}>{t('strengths', options).toUpperCase()}</div>
         {rawStrengths.length > 0 ? (
           <div className="grid grid-cols-3 gap-x-[3%] gap-y-[1%]">
             {rawStrengths.map((s) => (
@@ -638,7 +707,7 @@ function StadiumPreview({ player, options, title, statCatalogue }: PresentationP
           </div>
         ) : (
           <div className="text-[5.5px] italic opacity-50 text-center pt-[2%]">
-            Aucun point fort renseigné sur la fiche joueur.
+            {t('no_strengths', options)}
           </div>
         )}
       </div>
@@ -647,10 +716,10 @@ function StadiumPreview({ player, options, title, statCatalogue }: PresentationP
       <div style={{ height: '46.8%' }} className="px-[5%] py-[2.5%]">
         <div className="flex gap-[3%] h-full">
           <div className="w-[55%] pr-[3%] flex flex-col">
-            <div className="text-[4.5px] tracking-[3px] mb-[2%]" style={{ color: secondary }}>ZONES D'INFLUENCE</div>
+            <div className="text-[4.5px] tracking-[3px] mb-[2%]" style={{ color: secondary }}>{t('zones_influence', options).toUpperCase()}</div>
             {options.show_heatmap
               ? <HeatmapGrid grid={player?.heatmap_grid ?? null} accent={accent} />
-              : <p className="text-[5.5px] opacity-70 italic mt-[2%]">Activez la heatmap dans l'éditeur.</p>
+              : <p className="text-[5.5px] opacity-70 italic mt-[2%]">{t('no_heatmap_short', options)}</p>
             }
           </div>
           <div className="flex-1 pl-[3%] flex flex-col" style={{ borderLeft: '1px solid rgba(255,255,255,0.1)' }}>
@@ -658,7 +727,7 @@ function StadiumPreview({ player, options, title, statCatalogue }: PresentationP
               <>
                 {clubs.length > 0 && (
                   <div className="mb-[4%]">
-                    <div className="text-[4.5px] tracking-[3px] mb-[2%]" style={{ color: secondary }}>CLUBS PRÉCÉDENTS</div>
+                    <div className="text-[4.5px] tracking-[3px] mb-[2%]" style={{ color: secondary }}>{t('previous_clubs', options).toUpperCase()}</div>
                     <div className="flex flex-wrap gap-[4%] items-center">
                       {clubs.map((c, i) => (
                         <div key={i} className="flex items-center" style={{ height: 20 }}>
@@ -672,12 +741,12 @@ function StadiumPreview({ player, options, title, statCatalogue }: PresentationP
                 )}
                 {(articleSlug || youtubeUrl) && (
                   <>
-                    <div className="text-[4.5px] tracking-[3px] mb-[2%]" style={{ color: secondary }}>SCANNEZ POUR EN VOIR PLUS</div>
+                    <div className="text-[4.5px] tracking-[3px] mb-[2%]" style={{ color: secondary }}>{t('scan_more', options).toUpperCase()}</div>
                     {articleSlug && (
                       <div className="flex items-center gap-[4%] mb-[2%]">
                         <div className="bg-white grid place-items-center text-[4px] text-black shrink-0" style={{ width: 22, height: 22 }}>QR</div>
                         <div className="min-w-0 flex-1">
-                          <div className="text-[5px] tracking-[2px] font-bold" style={{ color: secondary }}>ARTICLE</div>
+                          <div className="text-[5px] tracking-[2px] font-bold" style={{ color: secondary }}>{t('article', options)}</div>
                           <div className="text-[5px] opacity-80 truncate">/actualites/{articleSlug}</div>
                         </div>
                       </div>
@@ -686,7 +755,7 @@ function StadiumPreview({ player, options, title, statCatalogue }: PresentationP
                       <div className="flex items-center gap-[4%]">
                         <div className="bg-white grid place-items-center text-[4px] text-black shrink-0" style={{ width: 22, height: 22 }}>QR</div>
                         <div className="min-w-0 flex-1">
-                          <div className="text-[5px] tracking-[2px] font-bold" style={{ color: secondary }}>VIDÉO</div>
+                          <div className="text-[5px] tracking-[2px] font-bold" style={{ color: secondary }}>{t('video', options)}</div>
                           <div className="text-[5px] opacity-80 truncate">{youtubeUrl}</div>
                         </div>
                       </div>
@@ -696,9 +765,9 @@ function StadiumPreview({ player, options, title, statCatalogue }: PresentationP
               </>
             ) : (
               <>
-                <div className="text-[4.5px] tracking-[3px] mb-[2%]" style={{ color: secondary }}>PROFIL SCOUT</div>
+                <div className="text-[4.5px] tracking-[3px] mb-[2%]" style={{ color: secondary }}>{t('scout_profile', options).toUpperCase()}</div>
                 <p className="text-[5.5px] leading-[1.55] opacity-90">
-                  {player?.bio || 'Ajoutez une bio dans la fiche joueur pour enrichir cette présentation, ou attachez un article et une vidéo YouTube depuis l\'éditeur.'}
+                  {player?.bio || t('no_bio_stadium', options)}
                 </p>
               </>
             )}

@@ -78,13 +78,13 @@ class StadiumTemplate extends PresentationTemplate
 
         // Identity (kept dense, up to 6 rows so the right column always looks filled).
         $identity = [
-            ['NATIONALITÉ',  $player->nationality ?: '-'],
-            ['ÂGE',          ((int) $player->age).' ans'],
-            ['POSTE',        strtoupper($player->position ?: '-')],
-            ['CATÉGORIE',    strtoupper($player->category ?: '-')],
+            [mb_strtoupper($this->t('nationality', $options)), $player->nationality ?: '-'],
+            [mb_strtoupper($this->t('age', $options)),         ((int) $player->age).' '.$this->t('years_old', $options)],
+            [mb_strtoupper($this->t('position', $options)),    strtoupper($player->position ?: '-')],
+            [mb_strtoupper($this->t('category', $options)),    mb_strtoupper($this->tCategory($player->category, $options))],
         ];
-        if ($player->height)         $identity[] = ['TAILLE',    $player->height];
-        if ($player->preferred_foot) $identity[] = ['PIED FORT', strtoupper($player->preferred_foot)];
+        if ($player->height)         $identity[] = [mb_strtoupper($this->t('height', $options)),         $player->height];
+        if ($player->preferred_foot) $identity[] = [mb_strtoupper($this->t('preferred_foot', $options)), mb_strtoupper($this->tFoot($player->preferred_foot, $options))];
 
         $identityHtml = '';
         foreach ($identity as $r) {
@@ -130,7 +130,7 @@ class StadiumTemplate extends PresentationTemplate
                 $strengthsHtml .= '</tr>';
             }
         } else {
-            $strengthsHtml = '<tr><td colspan="3" class="strength strength-empty">Aucun point fort renseigné sur la fiche joueur.</td></tr>';
+            $strengthsHtml = '<tr><td colspan="3" class="strength strength-empty">'.$this->esc($this->t('no_strengths', $options)).'</td></tr>';
         }
 
         // Bottom-left: heatmap.
@@ -153,7 +153,7 @@ class StadiumTemplate extends PresentationTemplate
                     : '<div style="height:12mm;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:7pt;letter-spacing:1px;">'.$this->esc(strtoupper($name)).'</div>';
                 $cells .= '<td style="text-align:center;padding:0 2mm;vertical-align:middle;">'.$img.'</td>';
             }
-            $clubsHtml = '<div class="mini-title">CLUBS PRÉCÉDENTS</div><table class="clubs"><tr>'.$cells.'</tr></table>';
+            $clubsHtml = '<div class="mini-title">'.$this->esc(mb_strtoupper($this->t('previous_clubs', $options))).'</div><table class="clubs"><tr>'.$cells.'</tr></table>';
         }
 
         $articleSlug = $options['article_slug'] ?? null;
@@ -165,12 +165,20 @@ class StadiumTemplate extends PresentationTemplate
             if ($article) $articleUrl = url('/actualites/'.$article->slug);
         }
 
+        // Truncate the display URL - DomPDF doesn't break long unbroken
+        // strings and lets them overflow the page. The full URL still lives
+        // in the QR code, which is the point.
+        $shortUrl = static function (string $u): string {
+            $stripped = preg_replace('#^https?://(www\.)?#', '', $u) ?? $u;
+            return mb_strlen($stripped) > 32 ? mb_substr($stripped, 0, 30).'…' : $stripped;
+        };
+
         $linkBlocks = '';
         if ($articleUrl) {
-            $linkBlocks .= '<div class="link-row"><img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&margin=0&data='.urlencode($articleUrl).'"><div class="link-meta"><div class="link-label" style="color:'.$secondary.';">ARTICLE</div><div class="link-url">'.$this->esc($articleUrl).'</div></div></div>';
+            $linkBlocks .= '<div class="link-row"><img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&margin=0&data='.urlencode($articleUrl).'"><div class="link-meta"><div class="link-label" style="color:'.$secondary.';">'.$this->esc($this->t('article', $options)).'</div><div class="link-url">'.$this->esc($shortUrl($articleUrl)).'</div></div></div>';
         }
         if ($youtubeUrl) {
-            $linkBlocks .= '<div class="link-row"><img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&margin=0&data='.urlencode($youtubeUrl).'"><div class="link-meta"><div class="link-label" style="color:'.$secondary.';">VIDÉO</div><div class="link-url">'.$this->esc($youtubeUrl).'</div></div></div>';
+            $linkBlocks .= '<div class="link-row"><img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&margin=0&data='.urlencode($youtubeUrl).'"><div class="link-meta"><div class="link-label" style="color:'.$secondary.';">'.$this->esc($this->t('video', $options)).'</div><div class="link-url">'.$this->esc($shortUrl($youtubeUrl)).'</div></div></div>';
         }
 
         // Bottom-right fallback: bio quote when neither clubs nor links are provided.
@@ -178,19 +186,20 @@ class StadiumTemplate extends PresentationTemplate
         if ($clubsHtml !== '' || $linkBlocks !== '') {
             $bottomRight .= $clubsHtml;
             if ($linkBlocks !== '') {
-                $bottomRight .= '<div class="mini-title" style="margin-top:5mm;">SCANNEZ POUR EN VOIR PLUS</div>'.$linkBlocks;
+                $bottomRight .= '<div class="mini-title" style="margin-top:5mm;">'.$this->esc(mb_strtoupper($this->t('scan_more', $options))).'</div>'.$linkBlocks;
             }
         } else {
-            $bottomRight = '<div class="mini-title">PROFIL SCOUT</div>'
-                .'<p class="quote">'.$this->esc($player->bio ?: 'Ajoutez une bio dans la fiche joueur pour enrichir cette présentation, ou attachez un article et une vidéo YouTube depuis l\'éditeur.').'</p>';
+            $bottomRight = '<div class="mini-title">'.$this->esc(mb_strtoupper($this->t('scout_profile', $options))).'</div>'
+                .'<p class="quote">'.$this->esc($player->bio ?: $this->t('no_bio_stadium', $options)).'</p>';
         }
 
         $nameUpper = $this->esc(strtoupper($player->name));
         $taglineUpper = $tagline ? $this->esc(strtoupper($tagline)) : '';
 
+        $lang = $this->lang($options);
         return <<<HTML
 <!DOCTYPE html>
-<html lang="fr"><head><meta charset="utf-8"><style>
+<html lang="{$lang}"><head><meta charset="utf-8"><style>
   @page { margin: 0; }
   body { font-family: {$fontFamily}; color: {$text}; background: {$bg}; margin: 0; padding: 0; font-size: {$ptBody}; {$tracking} }
   .stage { position: relative; width: 100%; height: 297mm; overflow: hidden;
@@ -270,15 +279,15 @@ HTML
     </div>
 
     <div class="band">
-      <div class="band-title">POINTS FORTS</div>
+      <div class="band-title">'.$this->esc(mb_strtoupper($this->t('strengths', $options))).'</div>
       <table class="strengths"><tbody>'.$strengthsHtml.'</tbody></table>
     </div>
 
     <div class="bottom">
       <div class="bottom-row">
         <div class="bottom-left">
-          <div class="mini-title">ZONES D\'INFLUENCE</div>
-          '.($heatmap !== '' ? $heatmap : '<p class="quote">Activez la heatmap dans l\'éditeur pour l\'afficher ici.</p>').'
+          <div class="mini-title">'.$this->esc(mb_strtoupper($this->t('zones_influence', $options))).'</div>
+          '.($heatmap !== '' ? $heatmap : '<p class="quote">'.$this->esc($this->t('no_heatmap', $options)).'</p>').'
         </div>
         <div class="bottom-right">
           '.$bottomRight.'

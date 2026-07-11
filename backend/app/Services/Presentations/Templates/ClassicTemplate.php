@@ -64,14 +64,14 @@ class ClassicTemplate extends PresentationTemplate
         }
 
         $infoRows = [
-            ['Âge',         ((int) $player->age).' ans'],
-            ['Poste',       $player->position],
-            ['Catégorie',   $player->category],
+            [$this->t('age', $options),      ((int) $player->age).' '.$this->t('years_old', $options)],
+            [$this->t('position', $options), $player->position],
+            [$this->t('category', $options), $this->tCategory($player->category, $options)],
         ];
-        if ($player->height)        $infoRows[] = ['Taille', $player->height];
-        if ($player->preferred_foot) $infoRows[] = ['Pied fort', $player->preferred_foot];
-        if ($player->club)          $infoRows[] = ['Club',   $player->club];
-        if ($player->nationality)   $infoRows[] = ['Nationalité', $player->nationality];
+        if ($player->height)         $infoRows[] = [$this->t('height', $options),         $player->height];
+        if ($player->preferred_foot) $infoRows[] = [$this->t('preferred_foot', $options), $this->tFoot($player->preferred_foot, $options)];
+        if ($player->club)           $infoRows[] = [$this->t('club', $options),           $player->club];
+        if ($player->nationality)    $infoRows[] = [$this->t('nationality', $options),    $player->nationality];
 
         $infoHtml = '';
         foreach ($infoRows as $r) {
@@ -84,16 +84,17 @@ class ClassicTemplate extends PresentationTemplate
         $ptBody     = $this->pt(10, $options);
 
         $heatmapBlock = $heatmap !== ''
-            ? '<div class="block"><div class="block-title">Zones d\'influence</div>'.$heatmap.'</div>'
+            ? '<div class="block"><div class="block-title">'.$this->esc($this->t('zones_influence', $options)).'</div>'.$heatmap.'</div>'
             : '';
 
         $bioBlock = $player->bio
-            ? '<div class="block bio"><div class="block-title">Profil scout</div><p>'.nl2br($this->esc($player->bio)).'</p></div>'
+            ? '<div class="block bio"><div class="block-title">'.$this->esc($this->t('scout_profile', $options)).'</div><p>'.nl2br($this->esc($player->bio)).'</p></div>'
             : '';
 
+        $lang = $this->lang($options);
         return <<<HTML
 <!DOCTYPE html>
-<html lang="fr"><head><meta charset="utf-8"><style>
+<html lang="{$lang}"><head><meta charset="utf-8"><style>
   @page { margin: 12mm; }
   body { font-family: {$fontFamily}; color: {$text}; background: {$bg}; margin: 0; padding: 0; font-size: {$ptBody}; {$tracking} }
   .doc { display: table; width: 100%; }
@@ -123,7 +124,7 @@ class ClassicTemplate extends PresentationTemplate
   .footer { font-size: 7pt; color: #a8a29e; text-align: center; margin-top: 8mm; letter-spacing: 1px; }
 </style></head><body>
   <div class="header">
-    <div class="header-title">Présentation joueur · Rene Football</div>
+    <div class="header-title">{$this->esc($this->t('presentation_joueur', $options))} · Rene Football</div>
     <div class="header-doc">{$this->esc($title)}</div>
   </div>
   <div class="doc">

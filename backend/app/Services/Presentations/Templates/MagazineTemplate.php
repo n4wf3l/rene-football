@@ -76,18 +76,19 @@ class MagazineTemplate extends PresentationTemplate
         $ptBody     = $this->pt(10, $options);
 
         $heatmapBlock = $heatmap !== ''
-            ? '<div class="cell"><div class="cell-title">Zones d\'influence</div>'.$heatmap.'</div>'
+            ? '<div class="cell"><div class="cell-title">'.$this->esc($this->t('zones_influence', $options)).'</div>'.$heatmap.'</div>'
             : '';
 
         $bioBlock = $player->bio
-            ? '<div class="quote"><div class="cell-title">Profil scout</div>'.nl2br($this->esc($player->bio)).'</div>'
+            ? '<div class="quote"><div class="cell-title">'.$this->esc($this->t('scout_profile', $options)).'</div>'.nl2br($this->esc($player->bio)).'</div>'
             : '';
 
         $clubLine = trim(($player->position ?? '').($player->club ? ' · '.$player->club : ''));
 
+        $lang = $this->lang($options);
         return <<<HTML
 <!DOCTYPE html>
-<html lang="fr"><head><meta charset="utf-8"><style>
+<html lang="{$lang}"><head><meta charset="utf-8"><style>
   @page { margin: 0; }
   body { font-family: {$fontFamily}; color: {$text}; background: {$bg}; margin: 0; padding: 0; font-size: {$ptBody}; {$tracking} }
   .hero { position: relative; height: 125mm; overflow: hidden; background: {$secondary}; }
@@ -129,12 +130,12 @@ HTML
     <div class="grid"><div class="row">'
     .($heatmapBlock !== '' ? $heatmapBlock : '<div class="cell"></div>')
     .'<div class="cell">'
-    .'<div class="cell-title">Identité</div>'
+    .'<div class="cell-title">'.$this->esc($this->t('identity', $options)).'</div>'
     .'<div style="font-size:9pt;line-height:1.7;">'
-    .'<strong>Âge</strong> · '.((int) $player->age).' ans<br>'
-    .($player->height ? '<strong>Taille</strong> · '.$this->esc($player->height).'<br>' : '')
-    .($player->preferred_foot ? '<strong>Pied fort</strong> · '.$this->esc($player->preferred_foot).'<br>' : '')
-    .($player->nationality ? '<strong>Nationalité</strong> · '.$this->esc($player->nationality) : '')
+    .'<strong>'.$this->esc($this->t('age', $options)).'</strong> · '.((int) $player->age).' '.$this->esc($this->t('years_old', $options)).'<br>'
+    .($player->height ? '<strong>'.$this->esc($this->t('height', $options)).'</strong> · '.$this->esc($player->height).'<br>' : '')
+    .($player->preferred_foot ? '<strong>'.$this->esc($this->t('preferred_foot', $options)).'</strong> · '.$this->esc($this->tFoot($player->preferred_foot, $options)).'<br>' : '')
+    .($player->nationality ? '<strong>'.$this->esc($this->t('nationality', $options)).'</strong> · '.$this->esc($player->nationality) : '')
     .'</div>'
     .'</div></div></div>'
     .$bioBlock
