@@ -35,7 +35,7 @@ export interface PresentationOptions {
   language?: 'fr' | 'en' | 'de' | 'nl'
 }
 
-export type PresentationTemplateKey = 'classic' | 'magazine' | 'minimal' | 'stadium'
+export type PresentationTemplateKey = 'classic' | 'signature' | 'magazine' | 'minimal' | 'stadium'
 
 export interface PresentationTemplate {
   key: PresentationTemplateKey

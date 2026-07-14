@@ -5,6 +5,7 @@ namespace App\Services\Presentations;
 use App\Services\Presentations\Templates\ClassicTemplate;
 use App\Services\Presentations\Templates\MagazineTemplate;
 use App\Services\Presentations\Templates\MinimalTemplate;
+use App\Services\Presentations\Templates\SignatureTemplate;
 use App\Services\Presentations\Templates\StadiumTemplate;
 use RuntimeException;
 
@@ -13,9 +14,10 @@ class PresentationTemplateRegistry
     /** @var array<class-string<PresentationTemplate>> */
     private const TEMPLATES = [
         ClassicTemplate::class,
+        SignatureTemplate::class,
         MagazineTemplate::class,
-        MinimalTemplate::class,
         StadiumTemplate::class,
+        MinimalTemplate::class,
     ];
 
     /** @return array<int, array{key:string,label:string,description:string,defaults:array,thumbnail:string}> */

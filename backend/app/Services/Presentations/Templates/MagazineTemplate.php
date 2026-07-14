@@ -79,9 +79,60 @@ class MagazineTemplate extends PresentationTemplate
             ? '<div class="cell"><div class="cell-title">'.$this->esc($this->t('zones_influence', $options)).'</div>'.$heatmap.'</div>'
             : '';
 
-        $bioBlock = $player->bio
-            ? '<div class="quote"><div class="cell-title">'.$this->esc($this->t('scout_profile', $options)).'</div>'.nl2br($this->esc($player->bio)).'</div>'
+        // Bio → scout_quote fallback so the block never disappears entirely.
+        $bioText = trim((string) $player->bio) !== ''
+            ? nl2br($this->esc($player->bio))
+            : (trim((string) $player->scout_quote) !== '' ? '« '.$this->esc($player->scout_quote).' »' : '');
+        $bioBlock = $bioText !== ''
+            ? '<div class="quote"><div class="cell-title">'.$this->esc($this->t('scout_profile', $options)).'</div>'.$bioText.'</div>'
             : '';
+
+        // Identity rows - dense so the right cell of the grid doesn't sit half
+        // empty next to the taller heatmap on the left.
+        $identityLines = '<strong>'.$this->esc($this->t('age', $options)).'</strong> · '.((int) $player->age).' '.$this->esc($this->t('years_old', $options)).'<br>';
+        if ($player->height)         $identityLines .= '<strong>'.$this->esc($this->t('height', $options)).'</strong> · '.$this->esc($player->height).'<br>';
+        if ($player->preferred_foot) $identityLines .= '<strong>'.$this->esc($this->t('preferred_foot', $options)).'</strong> · '.$this->esc($this->tFoot($player->preferred_foot, $options)).'<br>';
+        if ($player->club)           $identityLines .= '<strong>'.$this->esc($this->t('club', $options)).'</strong> · '.$this->esc($player->club).'<br>';
+        if ($player->since)          $identityLines .= '<strong>'.$this->esc($this->t('since', $options)).'</strong> · '.$this->esc((string) $player->since).'<br>';
+        if ($player->nationality)    $identityLines .= '<strong>'.$this->esc($this->t('nationality', $options)).'</strong> · '.$this->esc($player->nationality).'<br>';
+        if ($player->potential_rating) {
+            $identityLines .= '<strong>'.$this->esc($this->t('potential', $options)).'</strong> · '
+                .$this->esc(number_format((float) $player->potential_rating, 1, ',', '').'/10')
+                .($player->potential_label ? ' · '.$this->esc($player->potential_label) : '').'<br>';
+        }
+
+        // Physique tiles (side band under the grid) - filled with data only.
+        $phyRows = $this->physiqueRows($player);
+        $physiqueHtml = '';
+        if (! empty($phyRows)) {
+            $tiles = '';
+            foreach ($phyRows as [$key, $value]) {
+                $tiles .= '<td style="text-align:center;padding:3mm 2mm;background:rgba(255,255,255,0.04);border-radius:2mm;">'
+                    .'<div style="font-size:14pt;font-weight:700;color:'.$text.';line-height:1;">'.$this->esc($value).'</div>'
+                    .'<div style="font-size:6.5pt;color:'.$secondary.';text-transform:uppercase;letter-spacing:1.5px;margin-top:1.5mm;">'.$this->esc($this->t($key, $options)).'</div>'
+                    .'</td>';
+            }
+            $physiqueHtml = '<div style="margin-top:5mm;">'
+                .'<div class="cell-title">'.$this->esc($this->t('physical', $options)).'</div>'
+                .'<table style="width:100%;border-collapse:separate;border-spacing:3mm 0;"><tr>'.$tiles.'</tr></table>'
+                .'</div>';
+        }
+
+        // Strengths ribbon (full-width chips row).
+        $strengthsList = $this->strengthsList($player, 6);
+        $strengthsHtml = '';
+        if (! empty($strengthsList)) {
+            $chips = '';
+            foreach ($strengthsList as $s) {
+                $chips .= '<td style="padding:3mm 4mm;background:rgba(255,255,255,0.06);border-left:3px solid '.$secondary.';">'
+                    .'<span style="font-size:8pt;font-weight:700;letter-spacing:1px;text-transform:uppercase;">'.$this->esc($s).'</span>'
+                    .'</td><td style="width:3mm;"></td>';
+            }
+            $strengthsHtml = '<div style="margin-top:5mm;">'
+                .'<div class="cell-title">'.$this->esc($this->t('strengths', $options)).'</div>'
+                .'<table style="width:100%;border-collapse:collapse;"><tr>'.$chips.'</tr></table>'
+                .'</div>';
+        }
 
         $clubLine = trim(($player->position ?? '').($player->club ? ' · '.$player->club : ''));
 
@@ -132,12 +183,11 @@ HTML
     .'<div class="cell">'
     .'<div class="cell-title">'.$this->esc($this->t('identity', $options)).'</div>'
     .'<div style="font-size:9pt;line-height:1.7;">'
-    .'<strong>'.$this->esc($this->t('age', $options)).'</strong> · '.((int) $player->age).' '.$this->esc($this->t('years_old', $options)).'<br>'
-    .($player->height ? '<strong>'.$this->esc($this->t('height', $options)).'</strong> · '.$this->esc($player->height).'<br>' : '')
-    .($player->preferred_foot ? '<strong>'.$this->esc($this->t('preferred_foot', $options)).'</strong> · '.$this->esc($this->tFoot($player->preferred_foot, $options)).'<br>' : '')
-    .($player->nationality ? '<strong>'.$this->esc($this->t('nationality', $options)).'</strong> · '.$this->esc($player->nationality) : '')
+    .$identityLines
     .'</div>'
     .'</div></div></div>'
+    .$strengthsHtml
+    .$physiqueHtml
     .$bioBlock
     .'</div>
   '.$this->extrasBlockHtml($options, ['bg' => 'rgba(255,255,255,0.04)', 'secondary' => $secondary, 'text' => $text]).'

@@ -40,10 +40,11 @@ interface CatalogueResponse {
  * why the option they filled in doesn't show up on the PDF.
  */
 const TEMPLATE_CAPABILITIES: Record<PresentationTemplateKey, { previousClubs: boolean; externalLinks: boolean }> = {
-  classic:  { previousClubs: true, externalLinks: true },
-  magazine: { previousClubs: true, externalLinks: true },
-  minimal:  { previousClubs: true, externalLinks: true },
-  stadium:  { previousClubs: true, externalLinks: true },
+  classic:   { previousClubs: true, externalLinks: true },
+  signature: { previousClubs: true, externalLinks: true },
+  magazine:  { previousClubs: true, externalLinks: true },
+  minimal:   { previousClubs: true, externalLinks: true },
+  stadium:   { previousClubs: true, externalLinks: true },
 }
 
 const INPUT_BASE =
@@ -395,7 +396,7 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
                     Aperçu live
                   </span>
                   <span className="text-[0.6rem] font-mono uppercase tracking-wider text-zinc-400 dark:text-stone-500">
-                    A4 · {{ classic: 'Carte d\'identité', magazine: 'Magazine', minimal: 'Minimal', stadium: 'Stadium' }[form.template_key]}
+                    A4 · {{ classic: 'Carte d\'identité', signature: 'Signature', magazine: 'Magazine', minimal: 'Minimal', stadium: 'Stadium' }[form.template_key]}
                   </span>
                 </div>
                 <PresentationPreview

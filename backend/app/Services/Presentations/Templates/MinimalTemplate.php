@@ -78,7 +78,11 @@ class MinimalTemplate extends PresentationTemplate
         if ($player->height)         $infoRows[] = [$this->t('height', $options),         $player->height];
         if ($player->preferred_foot) $infoRows[] = [$this->t('preferred_foot', $options), $this->tFoot($player->preferred_foot, $options)];
         if ($player->club)           $infoRows[] = [$this->t('club', $options),           $player->club];
+        if ($player->since)          $infoRows[] = [$this->t('since', $options),          (string) $player->since];
         if ($player->nationality)    $infoRows[] = [$this->t('nationality', $options),    $player->nationality];
+        if ($player->potential_rating) {
+            $infoRows[] = [$this->t('potential', $options), number_format((float) $player->potential_rating, 1, ',', '').'/10'];
+        }
 
         $infoHtml = '';
         foreach ($infoRows as $r) {
@@ -90,6 +94,26 @@ class MinimalTemplate extends PresentationTemplate
         $heatmapBlock = $heatmap !== ''
             ? '<div class="block"><div class="block-title">'.$this->esc($this->t('zones_influence', $options)).'</div>'.$heatmap.'</div>'
             : '';
+
+        // Physique tiles for the right column - only when telemetry exists.
+        // Uses the serif's understated look: thin border + tabular numbers.
+        $phyRows = $this->physiqueRows($player);
+        $physiqueBlock = '';
+        if (! empty($phyRows)) {
+            $tiles = '';
+            foreach ($phyRows as [$key, $value]) {
+                $tiles .= '<td style="text-align:center;padding:3mm 2mm;border-top:0.5px solid '.$accent.';border-bottom:0.5px solid '.$accent.';">'
+                    .'<div style="font-size:13pt;font-weight:700;color:'.$accent.';line-height:1;">'.$this->esc($value).'</div>'
+                    .'<div style="font-size:6pt;color:'.$secondary.';text-transform:uppercase;letter-spacing:1.5px;margin-top:1.5mm;">'.$this->esc($this->t($key, $options)).'</div>'
+                    .'</td>';
+            }
+            $physiqueBlock = '<div class="block">'
+                .'<div class="block-title">'.$this->esc($this->t('physical', $options)).'</div>'
+                .'<table style="width:100%;border-collapse:collapse;">'
+                .'<tr>'.$tiles.'</tr>'
+                .'</table>'
+                .'</div>';
+        }
 
         // NEW blocks that fill the previously empty bottom half. Kept side by
         // side as a 2-column band under the grid: strengths left, scout quote
@@ -183,6 +207,7 @@ HTML
     </div>
     <div class="col">
       <table class="stats"><tr>'.$statsHtml.'</tr></table>'
+      .$physiqueBlock
       .$heatmapBlock
       .'</div>
   </div>

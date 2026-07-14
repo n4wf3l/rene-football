@@ -76,15 +76,22 @@ class StadiumTemplate extends PresentationTemplate
         $tracking   = $this->fontTracking($options);
         $ptBody     = $this->pt(10, $options);
 
-        // Identity (kept dense, up to 6 rows so the right column always looks filled).
+        // Identity (kept dense, up to 8 rows so the right column always looks filled).
         $identity = [
             [mb_strtoupper($this->t('nationality', $options)), $player->nationality ?: '-'],
             [mb_strtoupper($this->t('age', $options)),         ((int) $player->age).' '.$this->t('years_old', $options)],
             [mb_strtoupper($this->t('position', $options)),    strtoupper($player->position ?: '-')],
             [mb_strtoupper($this->t('category', $options)),    mb_strtoupper($this->tCategory($player->category, $options))],
         ];
-        if ($player->height)         $identity[] = [mb_strtoupper($this->t('height', $options)),         $player->height];
-        if ($player->preferred_foot) $identity[] = [mb_strtoupper($this->t('preferred_foot', $options)), mb_strtoupper($this->tFoot($player->preferred_foot, $options))];
+        if ($player->height)          $identity[] = [mb_strtoupper($this->t('height', $options)),         $player->height];
+        if ($player->preferred_foot)  $identity[] = [mb_strtoupper($this->t('preferred_foot', $options)), mb_strtoupper($this->tFoot($player->preferred_foot, $options))];
+        if ($player->since)           $identity[] = [mb_strtoupper($this->t('since', $options)),          (string) $player->since];
+        if ($player->potential_rating) {
+            $identity[] = [
+                mb_strtoupper($this->t('potential', $options)),
+                number_format((float) $player->potential_rating, 1, ',', '').'/10'.($player->potential_label ? ' · '.strtoupper($player->potential_label) : ''),
+            ];
+        }
 
         $identityHtml = '';
         foreach ($identity as $r) {
@@ -181,17 +188,70 @@ class StadiumTemplate extends PresentationTemplate
             $linkBlocks .= '<div class="link-row"><img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&margin=0&data='.urlencode($youtubeUrl).'"><div class="link-meta"><div class="link-label" style="color:'.$secondary.';">'.$this->esc($this->t('video', $options)).'</div><div class="link-url">'.$this->esc($shortUrl($youtubeUrl)).'</div></div></div>';
         }
 
-        // Bottom-right fallback: bio quote when neither clubs nor links are provided.
-        $bottomRight = '';
-        if ($clubsHtml !== '' || $linkBlocks !== '') {
-            $bottomRight .= $clubsHtml;
-            if ($linkBlocks !== '') {
-                $bottomRight .= '<div class="mini-title" style="margin-top:5mm;">'.$this->esc(mb_strtoupper($this->t('scan_more', $options))).'</div>'.$linkBlocks;
+        // Compact physique tiles (used below the heatmap on the left so the
+        // bottom band never trails off into empty space).
+        $phyRows = $this->physiqueRows($player);
+        $physiqueHtml = '';
+        if (! empty($phyRows)) {
+            $tiles = '';
+            foreach ($phyRows as [$key, $value]) {
+                $tiles .= '<td style="text-align:center;padding:3mm 2mm;background:rgba(255,255,255,0.05);border-left:2px solid '.$accent.';">'
+                    .'<div style="font-size:13pt;font-weight:800;color:'.$text.';line-height:1;">'.$this->esc($value).'</div>'
+                    .'<div style="font-size:5.5pt;letter-spacing:1.5px;text-transform:uppercase;color:'.$secondary.';margin-top:1.5mm;">'.$this->esc($this->t($key, $options)).'</div>'
+                    .'</td><td style="width:2mm;"></td>';
             }
-        } else {
-            $bottomRight = '<div class="mini-title">'.$this->esc(mb_strtoupper($this->t('scout_profile', $options))).'</div>'
-                .'<p class="quote">'.$this->esc($player->bio ?: $this->t('no_bio_stadium', $options)).'</p>';
+            $physiqueHtml = '<div style="margin-top:4mm;">'
+                .'<div class="mini-title">'.$this->esc(mb_strtoupper($this->t('physical', $options))).'</div>'
+                .'<table style="width:100%;border-collapse:collapse;"><tr>'.$tiles.'</tr></table>'
+                .'</div>';
         }
+
+        // Right column blocks - each optional, always stacked in the same order
+        // so the layout stays predictable regardless of what data is present.
+        $comparisons = is_array($player->comparisons) ? array_slice($player->comparisons, 0, 3) : [];
+        $comparisonsHtml = '';
+        if (! empty($comparisons)) {
+            $rows = '';
+            foreach ($comparisons as $c) {
+                if (! is_array($c)) continue;
+                $cname = trim((string) ($c['name'] ?? ''));
+                if ($cname === '') continue;
+                $cclub = trim((string) ($c['club'] ?? ''));
+                $rows .= '<tr>'
+                    .'<td style="padding:2mm 0;border-bottom:0.5px solid rgba(255,255,255,0.12);font-size:8.5pt;font-weight:700;letter-spacing:0.5px;">'.$this->esc($cname).'</td>'
+                    .'<td style="padding:2mm 0;border-bottom:0.5px solid rgba(255,255,255,0.12);font-size:7pt;letter-spacing:1.5px;text-transform:uppercase;color:'.$secondary.';text-align:right;">'.$this->esc($cclub).'</td>'
+                    .'</tr>';
+            }
+            if ($rows !== '') {
+                $comparisonsHtml = '<div style="margin-top:5mm;">'
+                    .'<div class="mini-title">'.$this->esc(mb_strtoupper($this->t('comparisons', $options))).'</div>'
+                    .'<table style="width:100%;border-collapse:collapse;">'.$rows.'</table>'
+                    .'</div>';
+            }
+        }
+
+        // Scout profile - falls back to scout_quote, then to the no_bio message.
+        $scoutBody = trim((string) $player->bio) !== ''
+            ? $this->esc($player->bio)
+            : (trim((string) $player->scout_quote) !== ''
+                ? '« '.$this->esc($player->scout_quote).' »'
+                : $this->esc($this->t('no_bio_stadium', $options)));
+        $scoutHtml = '<div style="margin-top:5mm;">'
+            .'<div class="mini-title">'.$this->esc(mb_strtoupper($this->t('scout_profile', $options))).'</div>'
+            .'<p class="quote">'.$scoutBody.'</p>'
+            .'</div>';
+
+        // Compose the right column - always packed with meaningful blocks so
+        // the reader never sees dead space when there are no clubs or links.
+        $bottomRight = '';
+        if ($clubsHtml !== '') {
+            $bottomRight .= $clubsHtml;
+        }
+        if ($linkBlocks !== '') {
+            $bottomRight .= '<div class="mini-title" style="margin-top:5mm;">'.$this->esc(mb_strtoupper($this->t('scan_more', $options))).'</div>'.$linkBlocks;
+        }
+        $bottomRight .= $comparisonsHtml;
+        $bottomRight .= $scoutHtml;
 
         $nameUpper = $this->esc(strtoupper($player->name));
         $taglineUpper = $tagline ? $this->esc(strtoupper($tagline)) : '';
@@ -288,6 +348,7 @@ HTML
         <div class="bottom-left">
           <div class="mini-title">'.$this->esc(mb_strtoupper($this->t('zones_influence', $options))).'</div>
           '.($heatmap !== '' ? $heatmap : '<p class="quote">'.$this->esc($this->t('no_heatmap', $options)).'</p>').'
+          '.$physiqueHtml.'
         </div>
         <div class="bottom-right">
           '.$bottomRight.'

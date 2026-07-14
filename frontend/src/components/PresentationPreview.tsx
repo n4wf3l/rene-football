@@ -40,6 +40,13 @@ const T: Record<string, Record<Lang, string>> = {
   cat_defenseur:       { fr: 'Défenseur', en: 'Defender',   de: 'Verteidiger',       nl: 'Verdediger' },
   cat_milieu:          { fr: 'Milieu',    en: 'Midfielder', de: 'Mittelfeldspieler', nl: 'Middenvelder' },
   cat_attaquant:       { fr: 'Attaquant', en: 'Forward',    de: 'Stürmer',           nl: 'Aanvaller' },
+  physical:            { fr: 'Physique',          en: 'Physical',          de: 'Athletisch',      nl: 'Fysiek' },
+  potential:           { fr: 'Potentiel',         en: 'Potential',         de: 'Potenzial',       nl: 'Potentieel' },
+  since:               { fr: 'Depuis',            en: 'Since',             de: 'Seit',            nl: 'Sinds' },
+  phy_distance:        { fr: 'Km / match',        en: 'Km / match',        de: 'Km / Spiel',      nl: 'Km / wedstrijd' },
+  phy_top_speed:       { fr: 'Vitesse max',       en: 'Top speed',         de: 'Höchstgeschw.',   nl: 'Topsnelheid' },
+  phy_sprints:         { fr: 'Sprints / match',   en: 'Sprints / match',   de: 'Sprints / Spiel', nl: 'Sprints / match' },
+  phy_hir:             { fr: 'Courses intensives', en: 'High-intensity runs', de: 'Intensivläufe', nl: 'Intensieve loopjes' },
 }
 
 function lang(options: PresentationOptions): Lang {
@@ -69,6 +76,35 @@ function tFoot(raw: string | null | undefined, options: PresentationOptions): st
     case 'Ambidextre': return t('foot_ambidextre', options)
     default:           return raw ?? '-'
   }
+}
+
+/**
+ * Physical KPI rows (distance, top speed, sprints, HIRs) - only entries the
+ * player actually has GPS data for. Mirrors PresentationTemplate::physiqueRows.
+ * Values are pre-formatted with units so the caller just renders text.
+ */
+function physiqueRows(player: Player | null): Array<[keyof typeof T, string]> {
+  if (!player) return []
+  const out: Array<[keyof typeof T, string]> = []
+  const fmt1 = (n: number) => n.toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+  if (player.distance_avg_km != null)         out.push(['phy_distance',  `${fmt1(player.distance_avg_km)} km`])
+  if (player.top_speed_kmh != null)           out.push(['phy_top_speed', `${fmt1(player.top_speed_kmh)} km/h`])
+  if (player.sprints_avg != null)             out.push(['phy_sprints',   String(Math.round(player.sprints_avg))])
+  if (player.high_intensity_runs_avg != null) out.push(['phy_hir',       String(Math.round(player.high_intensity_runs_avg))])
+  return out
+}
+
+/** Flat list of strength labels, capped. Accepts the {key,label} shape only. */
+function strengthLabels(player: Player | null, max = 6): string[] {
+  if (!player?.strengths) return []
+  return player.strengths.slice(0, max).map((s) => s?.label ?? '').filter((s) => s.trim() !== '')
+}
+
+/** Pre-formatted potential value (e.g. "8,5/10 · Future star mondiale") or null. */
+function potentialValue(player: Player | null): string | null {
+  if (!player?.potential_rating) return null
+  const rating = player.potential_rating.toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+  return `${rating}/10${player.potential_label ? ' · ' + player.potential_label : ''}`
 }
 
 /**
@@ -360,6 +396,20 @@ function ClassicPreview({ player, options, title, statCatalogue }: PresentationP
   const photo      = pickPhoto(player, options)
   const stats      = computeStats(player, options, statCatalogue)
   const tagline    = options.tagline ?? ''
+  const strengths  = strengthLabels(player, 6)
+  const phy        = physiqueRows(player)
+  const potential  = potentialValue(player)
+  const scoutFallback = !player?.bio && (player?.scout_quote ?? '').trim() !== '' ? player!.scout_quote! : null
+
+  const infoRows: Array<[string, string]> = []
+  infoRows.push([t('age', options), player ? `${player.age} ${t('years_old', options)}` : '-'])
+  infoRows.push([t('position', options), player?.position ?? '-'])
+  if (player?.height)          infoRows.push([t('height', options), player.height])
+  if (player?.preferred_foot)  infoRows.push([t('preferred_foot', options), tFoot(player.preferred_foot, options)])
+  if (player?.club)            infoRows.push([t('club', options), player.club])
+  if (player?.since)           infoRows.push([t('since', options), String(player.since)])
+  if (player?.nationality)     infoRows.push([t('nationality', options), player.nationality])
+  if (potential)               infoRows.push([t('potential', options), potential])
 
   return (
     <div className="absolute inset-0 flex flex-col p-[5%]" style={{ background: bg, color: text, ...typographyRootStyle(options) }}>
@@ -378,23 +428,27 @@ function ClassicPreview({ player, options, title, statCatalogue }: PresentationP
           {tagline && (
             <div className="text-[6px] uppercase tracking-[1px] mt-[2%]" style={{ color: accent }}>{tagline}</div>
           )}
-          <div className="mt-[5%] space-y-[3%] text-[6.5px]">
-            {[
-              [t('age', options), player ? `${player.age} ${t('years_old', options)}` : '-'],
-              [t('position', options), player?.position ?? '-'],
-              player?.height ? [t('height', options), player.height] : null,
-              player?.preferred_foot ? [t('preferred_foot', options), tFoot(player.preferred_foot, options)] : null,
-              player?.club ? [t('club', options), player.club] : null,
-            ].filter(Boolean).slice(0, 5).map((row) => {
-              const [k, v] = row as [string, string]
-              return (
-                <div key={k} className="flex justify-between border-b border-stone-200/70 pb-[2%]">
-                  <span className="opacity-50">{k}</span>
-                  <span className="font-semibold truncate ml-2">{v}</span>
-                </div>
-              )
-            })}
+          <div className="mt-[5%] space-y-[2.5%] text-[6.5px]">
+            {infoRows.map(([k, v]) => (
+              <div key={k} className="flex justify-between border-b border-stone-200/70 pb-[2%]">
+                <span className="opacity-50">{k}</span>
+                <span className="font-semibold truncate ml-2">{v}</span>
+              </div>
+            ))}
           </div>
+          {strengths.length > 0 && (
+            <div className="mt-[6%]">
+              <div className="text-[5px] uppercase tracking-[1px] opacity-50 mb-[3%]">{t('strengths', options)}</div>
+              <ul className="list-none p-0 m-0">
+                {strengths.map((s) => (
+                  <li key={s} className="flex items-center gap-[3%] py-[2%] text-[6.5px] border-b border-stone-200/70">
+                    <span className="inline-block rounded-full shrink-0" style={{ background: accent, width: 5, height: 5 }} />
+                    <span>{s}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
 
         {/* RIGHT */}
@@ -409,10 +463,35 @@ function ClassicPreview({ player, options, title, statCatalogue }: PresentationP
               </div>
             ))}
           </div>
+          {phy.length > 0 && (
+            <div className="rounded-[2px] p-[4%] border border-stone-200" style={{ background: bg }}>
+              <div className="text-[5px] uppercase tracking-[1px] opacity-50 mb-[3%]">{t('physical', options)}</div>
+              <div className="grid gap-[3%]" style={{ gridTemplateColumns: `repeat(${phy.length}, 1fr)` }}>
+                {phy.map(([key, value]) => (
+                  <div key={key} className="text-center p-[6%] border border-stone-200" style={{ background: bg }}>
+                    <div className="text-[10px] font-bold leading-none" style={{ color: accent }}>{value}</div>
+                    <div className="text-[4.5px] uppercase tracking-[1px] opacity-50 mt-[8%]">{t(key, options)}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           {options.show_heatmap && (
             <div className="rounded-[2px] p-[4%] border border-stone-200" style={{ background: bg }}>
               <div className="text-[5px] uppercase tracking-[1px] opacity-50 mb-[3%]">{t('zones_influence', options)}</div>
               <HeatmapGrid grid={player?.heatmap_grid ?? null} accent={accent} />
+            </div>
+          )}
+          {player?.bio && (
+            <div className="rounded-[2px] p-[4%] border border-stone-200" style={{ background: bg }}>
+              <div className="text-[5px] uppercase tracking-[1px] opacity-50 mb-[3%]">{t('scout_profile', options)}</div>
+              <p className="text-[6px] leading-[1.5] m-0 text-stone-700">{player.bio}</p>
+            </div>
+          )}
+          {scoutFallback && (
+            <div className="rounded-[2px] p-[4%] border border-stone-200" style={{ background: bg }}>
+              <div className="text-[5px] uppercase tracking-[1px] opacity-50 mb-[3%]">{t('scout_profile', options)}</div>
+              <p className="text-[6px] italic leading-[1.5] m-0 text-stone-700">« {scoutFallback} »</p>
             </div>
           )}
         </div>
@@ -487,10 +566,47 @@ function MagazinePreview({ player, options, title, statCatalogue }: Presentation
               <div><span className="font-semibold">{t('age', options)}</span> · {player ? `${player.age} ${t('years_old', options)}` : '-'}</div>
               {player?.height && <div><span className="font-semibold">{t('height', options)}</span> · {player.height}</div>}
               {player?.preferred_foot && <div><span className="font-semibold">{t('preferred_foot', options)}</span> · {tFoot(player.preferred_foot, options)}</div>}
+              {player?.club && <div><span className="font-semibold">{t('club', options)}</span> · {player.club}</div>}
+              {player?.since && <div><span className="font-semibold">{t('since', options)}</span> · {player.since}</div>}
               {player?.nationality && <div><span className="font-semibold">{t('nationality', options)}</span> · {player.nationality}</div>}
+              {potentialValue(player) && <div><span className="font-semibold">{t('potential', options)}</span> · {potentialValue(player)}</div>}
             </div>
           </div>
         </div>
+
+        {strengthLabels(player, 6).length > 0 && (
+          <div>
+            <div className="text-[4px] uppercase tracking-[1.5px] mb-[2%]" style={{ color: secondary }}>{t('strengths', options)}</div>
+            <div className="flex gap-[2%] flex-wrap">
+              {strengthLabels(player, 6).map((s) => (
+                <div key={s} className="px-[3%] py-[2%] rounded-[1px] text-[5px] font-bold uppercase tracking-[1px]" style={{ background: 'rgba(255,255,255,0.06)', borderLeft: `2px solid ${secondary}` }}>
+                  {s}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {physiqueRows(player).length > 0 && (
+          <div>
+            <div className="text-[4px] uppercase tracking-[1.5px] mb-[2%]" style={{ color: secondary }}>{t('physical', options)}</div>
+            <div className="grid gap-[2%]" style={{ gridTemplateColumns: `repeat(${physiqueRows(player).length}, 1fr)` }}>
+              {physiqueRows(player).map(([key, value]) => (
+                <div key={key} className="text-center p-[3%] rounded-[2px]" style={{ background: 'rgba(255,255,255,0.04)' }}>
+                  <div className="text-[10px] font-bold leading-none">{value}</div>
+                  <div className="text-[4px] uppercase tracking-[1.5px] mt-[6%]" style={{ color: secondary }}>{t(key, options)}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {(player?.bio || player?.scout_quote) && (
+          <div className="italic text-[6px] leading-[1.55] p-[3%] rounded-[2px]" style={{ background: 'rgba(255,255,255,0.04)', borderLeft: `2px solid ${secondary}` }}>
+            <div className="text-[4px] not-italic uppercase tracking-[1.5px] mb-[2%]" style={{ color: secondary }}>{t('scout_profile', options)}</div>
+            {player.bio || `« ${player.scout_quote} »`}
+          </div>
+        )}
 
         <ExtrasBand options={options} secondary={secondary} />
       </div>
@@ -542,7 +658,11 @@ function MinimalPreview({ player, options, title, statCatalogue }: PresentationP
               [t('position', options), player?.position ?? '-'],
               player?.height ? [t('height', options), player.height] : null,
               player?.preferred_foot ? [t('preferred_foot', options), tFoot(player.preferred_foot, options)] : null,
-            ].filter(Boolean).slice(0, 4).map((row) => {
+              player?.club ? [t('club', options), player.club] : null,
+              player?.since ? [t('since', options), String(player.since)] : null,
+              player?.nationality ? [t('nationality', options), player.nationality] : null,
+              potentialValue(player) ? [t('potential', options), potentialValue(player) as string] : null,
+            ].filter(Boolean).map((row) => {
               const [k, v] = row as [string, string]
               return (
                 <div key={k} className="flex justify-between border-b pb-[1.5%]" style={{ borderColor: secondary }}>
@@ -565,6 +685,19 @@ function MinimalPreview({ player, options, title, statCatalogue }: PresentationP
               </div>
             ))}
           </div>
+          {physiqueRows(player).length > 0 && (
+            <div className="mt-[4%]">
+              <div className="text-[4px] uppercase tracking-[1.5px] mb-[3%] font-bold" style={{ color: secondary }}>{t('physical', options)}</div>
+              <div className="grid gap-[3%]" style={{ gridTemplateColumns: `repeat(${physiqueRows(player).length}, 1fr)` }}>
+                {physiqueRows(player).map(([key, value]) => (
+                  <div key={key} className="text-center py-[4%]" style={{ borderTop: `0.5px solid ${accent}`, borderBottom: `0.5px solid ${accent}` }}>
+                    <div className="text-[10px] font-bold leading-none" style={{ color: accent }}>{value}</div>
+                    <div className="text-[3.5px] uppercase tracking-[1.5px] mt-[6%]" style={{ color: secondary }}>{t(key, options)}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           {options.show_heatmap && (
             <div className="mt-[4%]">
               <div className="text-[4px] uppercase tracking-[1.5px] mb-[3%]" style={{ color: secondary }}>{t('zones_influence', options)}</div>
@@ -648,7 +781,9 @@ function StadiumPreview({ player, options, title, statCatalogue }: PresentationP
     [t('category', options).toUpperCase(),    tCategory(player?.category, options).toUpperCase()],
     player?.height ? [t('height', options).toUpperCase(), player.height] : null,
     player?.preferred_foot ? [t('preferred_foot', options).toUpperCase(), tFoot(player.preferred_foot, options).toUpperCase()] : null,
-  ].filter(Boolean).slice(0, 6) as [string, string][]
+    player?.since ? [t('since', options).toUpperCase(), String(player.since)] : null,
+    potentialValue(player) ? [t('potential', options).toUpperCase(), (potentialValue(player) as string).toUpperCase()] : null,
+  ].filter(Boolean).slice(0, 8) as [string, string][]
 
   // Heights map roughly to the PHP layout (in % of 297mm):
   //   hero 135mm ≈ 45.5%, band 34mm ≈ 11.4%, bottom 108mm ≈ 36.4%, footer 10mm ≈ 3.4%
@@ -661,7 +796,7 @@ function StadiumPreview({ player, options, title, statCatalogue }: PresentationP
             <PhotoOrPlaceholder src={photo} fallbackBg="rgba(255,255,255,0.04)" fit={options.photo_fit ?? 'contain'} zoom={options.photo_zoom ?? 100} posX={options.photo_position_x ?? 50} posY={options.photo_position_y ?? 50} />
           </div>
           <div className="flex-1 min-w-0 flex flex-col">
-            <div className="text-[19px] font-black leading-[0.95] tracking-tight uppercase truncate">
+            <div className="text-[19px] font-black leading-[0.95] tracking-tight uppercase break-words">
               {player?.name ?? 'NOM JOUEUR'}
             </div>
             {tagline && (
@@ -712,7 +847,7 @@ function StadiumPreview({ player, options, title, statCatalogue }: PresentationP
         )}
       </div>
 
-      {/* BOTTOM - heatmap + clubs/links/quote */}
+      {/* BOTTOM - heatmap + physique on left; clubs/links/comparisons/scout stacked on right */}
       <div style={{ height: '46.8%' }} className="px-[5%] py-[2.5%]">
         <div className="flex gap-[3%] h-full">
           <div className="w-[55%] pr-[3%] flex flex-col">
@@ -721,56 +856,75 @@ function StadiumPreview({ player, options, title, statCatalogue }: PresentationP
               ? <HeatmapGrid grid={player?.heatmap_grid ?? null} accent={accent} />
               : <p className="text-[5.5px] opacity-70 italic mt-[2%]">{t('no_heatmap_short', options)}</p>
             }
+            {physiqueRows(player).length > 0 && (
+              <div className="mt-[4%]">
+                <div className="text-[4.5px] tracking-[3px] mb-[2%]" style={{ color: secondary }}>{t('physical', options).toUpperCase()}</div>
+                <div className="grid gap-[2%]" style={{ gridTemplateColumns: `repeat(${physiqueRows(player).length}, 1fr)` }}>
+                  {physiqueRows(player).map(([key, value]) => (
+                    <div key={key} className="text-center py-[6%]" style={{ background: 'rgba(255,255,255,0.05)', borderLeft: `2px solid ${accent}` }}>
+                      <div className="text-[10px] font-extrabold leading-none">{value}</div>
+                      <div className="text-[3.5px] tracking-[1.5px] uppercase mt-[6%]" style={{ color: secondary }}>{t(key, options)}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
-          <div className="flex-1 pl-[3%] flex flex-col" style={{ borderLeft: '1px solid rgba(255,255,255,0.1)' }}>
-            {(clubs.length > 0 || articleSlug || youtubeUrl) ? (
-              <>
-                {clubs.length > 0 && (
-                  <div className="mb-[4%]">
-                    <div className="text-[4.5px] tracking-[3px] mb-[2%]" style={{ color: secondary }}>{t('previous_clubs', options).toUpperCase()}</div>
-                    <div className="flex flex-wrap gap-[4%] items-center">
-                      {clubs.map((c, i) => (
-                        <div key={i} className="flex items-center" style={{ height: 20 }}>
-                          {c.logo_url
-                            ? <img src={c.logo_url} alt="" style={{ height: 18, maxWidth: 36, objectFit: 'contain' }} />
-                            : <span className="font-bold uppercase text-[5.5px] tracking-[1px]">{c.name}</span>}
-                        </div>
-                      ))}
+          <div className="flex-1 pl-[3%] flex flex-col gap-[3%] overflow-hidden" style={{ borderLeft: '1px solid rgba(255,255,255,0.1)' }}>
+            {clubs.length > 0 && (
+              <div>
+                <div className="text-[4.5px] tracking-[3px] mb-[2%]" style={{ color: secondary }}>{t('previous_clubs', options).toUpperCase()}</div>
+                <div className="flex flex-wrap gap-[4%] items-center">
+                  {clubs.map((c, i) => (
+                    <div key={i} className="flex items-center" style={{ height: 20 }}>
+                      {c.logo_url
+                        ? <img src={c.logo_url} alt="" style={{ height: 18, maxWidth: 36, objectFit: 'contain' }} />
+                        : <span className="font-bold uppercase text-[5.5px] tracking-[1px]">{c.name}</span>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {(articleSlug || youtubeUrl) && (
+              <div>
+                <div className="text-[4.5px] tracking-[3px] mb-[2%]" style={{ color: secondary }}>{t('scan_more', options).toUpperCase()}</div>
+                {articleSlug && (
+                  <div className="flex items-center gap-[4%] mb-[2%]">
+                    <div className="bg-white grid place-items-center text-[4px] text-black shrink-0" style={{ width: 22, height: 22 }}>QR</div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[5px] tracking-[2px] font-bold" style={{ color: secondary }}>{t('article', options)}</div>
+                      <div className="text-[5px] opacity-80 truncate">/actualites/{articleSlug}</div>
                     </div>
                   </div>
                 )}
-                {(articleSlug || youtubeUrl) && (
-                  <>
-                    <div className="text-[4.5px] tracking-[3px] mb-[2%]" style={{ color: secondary }}>{t('scan_more', options).toUpperCase()}</div>
-                    {articleSlug && (
-                      <div className="flex items-center gap-[4%] mb-[2%]">
-                        <div className="bg-white grid place-items-center text-[4px] text-black shrink-0" style={{ width: 22, height: 22 }}>QR</div>
-                        <div className="min-w-0 flex-1">
-                          <div className="text-[5px] tracking-[2px] font-bold" style={{ color: secondary }}>{t('article', options)}</div>
-                          <div className="text-[5px] opacity-80 truncate">/actualites/{articleSlug}</div>
-                        </div>
-                      </div>
-                    )}
-                    {youtubeUrl && (
-                      <div className="flex items-center gap-[4%]">
-                        <div className="bg-white grid place-items-center text-[4px] text-black shrink-0" style={{ width: 22, height: 22 }}>QR</div>
-                        <div className="min-w-0 flex-1">
-                          <div className="text-[5px] tracking-[2px] font-bold" style={{ color: secondary }}>{t('video', options)}</div>
-                          <div className="text-[5px] opacity-80 truncate">{youtubeUrl}</div>
-                        </div>
-                      </div>
-                    )}
-                  </>
+                {youtubeUrl && (
+                  <div className="flex items-center gap-[4%]">
+                    <div className="bg-white grid place-items-center text-[4px] text-black shrink-0" style={{ width: 22, height: 22 }}>QR</div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[5px] tracking-[2px] font-bold" style={{ color: secondary }}>{t('video', options)}</div>
+                      <div className="text-[5px] opacity-80 truncate">{youtubeUrl}</div>
+                    </div>
+                  </div>
                 )}
-              </>
-            ) : (
-              <>
-                <div className="text-[4.5px] tracking-[3px] mb-[2%]" style={{ color: secondary }}>{t('scout_profile', options).toUpperCase()}</div>
-                <p className="text-[5.5px] leading-[1.55] opacity-90">
-                  {player?.bio || t('no_bio_stadium', options)}
-                </p>
-              </>
+              </div>
             )}
+            {(player?.comparisons ?? []).slice(0, 3).length > 0 && (
+              <div>
+                <div className="text-[4.5px] tracking-[3px] mb-[2%]" style={{ color: secondary }}>COMPARAISONS</div>
+                {(player!.comparisons ?? []).slice(0, 3).map((c, i) => (
+                  <div key={i} className="flex justify-between py-[2%]" style={{ borderBottom: '0.5px solid rgba(255,255,255,0.12)' }}>
+                    <span className="text-[6px] font-bold">{c.name}</span>
+                    <span className="text-[5px] uppercase tracking-[1.5px] font-bold" style={{ color: secondary }}>{c.club ?? ''}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div>
+              <div className="text-[4.5px] tracking-[3px] mb-[2%]" style={{ color: secondary }}>{t('scout_profile', options).toUpperCase()}</div>
+              <p className="text-[5.5px] leading-[1.55] opacity-90">
+                {player?.bio || (player?.scout_quote ? `« ${player.scout_quote} »` : t('no_bio_stadium', options))}
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -784,15 +938,169 @@ function StadiumPreview({ player, options, title, statCatalogue }: PresentationP
 }
 
 // --------------------------------------------------------------------------
+// Signature - full-bleed hero photo, one giant hero stat, scout pull-quote
+// --------------------------------------------------------------------------
+
+function SignaturePreview({ player, options, title, statCatalogue }: PresentationPreviewProps) {
+  const accent    = options.accent_color ?? '#dc2626'
+  const secondary = options.secondary_color ?? '#facc15'
+  const text      = options.text_color ?? '#fafaf9'
+  const bg        = options.background_color ?? '#0a0a0a'
+  const photo     = pickPhoto(player, options)
+  const tagline   = options.tagline ?? ''
+
+  const stats      = computeStats(player, options, statCatalogue)
+  const signature  = stats[0] ?? null
+  const supporting = stats.slice(1, 4)
+
+  const chips = [
+    player ? `${player.age} ${t('years_old', options)}` : null,
+    player?.position ?? null,
+    player?.category ? tCategory(player.category, options) : null,
+    player?.height ?? null,
+    player?.preferred_foot ? tFoot(player.preferred_foot, options) : null,
+    player?.nationality ?? null,
+  ].filter(Boolean) as string[]
+
+  const eyebrow = `${t('presentation_joueur', options)}${player?.category ? ' · ' + tCategory(player.category, options) : ''}`.toUpperCase()
+  const subline = tagline || `${player?.position ?? ''}${player?.club ? ' · ' + player.club : ''}`
+
+  const heroOverlay = `linear-gradient(180deg,
+    rgba(0,0,0,0.4) 0%,
+    rgba(0,0,0,0) 22%,
+    rgba(0,0,0,0) 42%,
+    rgba(10,10,10,0.85) 78%,
+    ${bg} 100%)`
+
+  return (
+    <div className="absolute inset-0 flex flex-col" style={{ background: bg, color: text, ...typographyRootStyle(options) }}>
+      {/* HERO ~46.5% (138mm / 297mm) */}
+      <div className="relative overflow-hidden" style={{ height: '46.5%', background: bg }}>
+        <PhotoOrPlaceholder src={photo} fallbackBg="rgba(255,255,255,0.04)" fit={options.photo_fit ?? 'cover'} zoom={options.photo_zoom ?? 100} posX={options.photo_position_x ?? 50} posY={options.photo_position_y ?? 50} />
+        <div className="absolute inset-0" style={{ background: heroOverlay }} />
+        <div className="absolute top-[3%] left-[5%] text-[4.5px] tracking-[3px] uppercase font-bold" style={{ color: secondary }}>{title || 'Titre du document'}</div>
+        <div className="absolute top-[3%] right-[5%] text-[4.5px] tracking-[3px] uppercase font-bold opacity-75">Rene Football</div>
+        <div className="absolute left-[5%] right-[5%] bottom-[4%]">
+          <span className="inline-block text-[4.5px] tracking-[3px] uppercase font-bold px-[2%] py-[1%]" style={{ background: secondary, color: '#0a0a0a' }}>{eyebrow}</span>
+          <div className="text-[26px] font-black uppercase tracking-[-1px] leading-[0.95] mt-[2%] break-words">
+            {player?.name ?? 'Nom du joueur'}
+          </div>
+          {subline && (
+            <div className="text-[6px] tracking-[2px] uppercase mt-[2%] opacity-85">{subline}</div>
+          )}
+        </div>
+      </div>
+
+      {/* BAND: sig stat + quote ~31% (93mm / 297mm) */}
+      <div className="px-[5%] pt-[3%] pb-[2%]" style={{ height: '31.3%' }}>
+        <div className="flex h-full gap-[4%]">
+          {/* Stat cell */}
+          <div className="w-[42%] flex flex-col">
+            {signature && (
+              <>
+                <div className="font-black leading-[0.9]" style={{ color: accent, fontSize: 46, letterSpacing: '-2px' }}>
+                  {String(signature.value)}<span className="font-bold ml-[3%]" style={{ fontSize: 14, opacity: 0.7 }}>{signature.suffix}</span>
+                </div>
+                <div className="text-[5px] tracking-[3px] uppercase font-bold mt-[2%]" style={{ color: secondary }}>{signature.label}</div>
+              </>
+            )}
+            {(() => {
+              const hasHeat = !!options.show_heatmap
+              const hasSupport = supporting.length > 0
+              if (hasHeat && hasSupport) {
+                // 2-col: heatmap left, stacked KPIs right — mirrors the PHP layout.
+                return (
+                  <div className="mt-auto pt-[4%] flex gap-[6%]">
+                    <div style={{ width: '55%' }}>
+                      <div className="text-[3.5px] tracking-[1.5px] uppercase font-bold mb-[3%]" style={{ color: secondary }}>
+                        {t('zones_influence', options)}
+                      </div>
+                      <HeatmapGrid grid={player?.heatmap_grid ?? null} accent={accent} />
+                    </div>
+                    <div className="flex-1 flex flex-col justify-start">
+                      {supporting.map((s) => (
+                        <div key={s.label} className="py-[3%] border-b border-white/10">
+                          <div className="text-[9px] font-extrabold leading-none">
+                            {String(s.value)}<span className="text-[4.5px] opacity-70 ml-[6%] font-normal">{s.suffix}</span>
+                          </div>
+                          <div className="text-[3.5px] tracking-[1.5px] uppercase opacity-60 mt-[8%]">{s.label}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )
+              }
+              if (hasHeat) {
+                return (
+                  <div className="mt-auto pt-[4%]">
+                    <div className="text-[4px] tracking-[2px] uppercase font-bold mb-[3%]" style={{ color: secondary }}>
+                      {t('zones_influence', options)}
+                    </div>
+                    <div style={{ width: '80%' }}>
+                      <HeatmapGrid grid={player?.heatmap_grid ?? null} accent={accent} />
+                    </div>
+                  </div>
+                )
+              }
+              if (hasSupport) {
+                return (
+                  <div className="flex mt-auto pt-[4%] gap-[5%]">
+                    {supporting.map((s) => (
+                      <div key={s.label}>
+                        <div className="text-[11px] font-extrabold leading-none">
+                          {String(s.value)}<span className="text-[5px] opacity-70 ml-[6%] font-normal">{s.suffix}</span>
+                        </div>
+                        <div className="text-[4px] tracking-[2px] uppercase opacity-60 mt-[10%]">{s.label}</div>
+                      </div>
+                    ))}
+                  </div>
+                )
+              }
+              return null
+            })()}
+          </div>
+          {/* Quote cell */}
+          <div className="flex-1 pl-[3%]" style={{ borderLeft: `2px solid ${accent}` }}>
+            <div style={{ fontFamily: 'Georgia, serif', fontSize: 18, color: accent, lineHeight: 0.4, fontWeight: 700 }}>&ldquo;</div>
+            <p className="italic text-[6.5px] leading-[1.55] mt-[3%] opacity-95 line-clamp-8">
+              {player?.bio || t('no_bio', options)}
+            </p>
+            <div className="text-[4px] tracking-[2px] uppercase font-bold mt-[3%]" style={{ color: secondary }}>— {t('scout_summary', options)}</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Chips band */}
+      <div className="flex items-center justify-around text-[5.5px] tracking-[1.5px] uppercase font-bold px-[3%] py-[2%]"
+           style={{ background: 'rgba(255,255,255,0.04)', borderTop: '1px solid rgba(255,255,255,0.08)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+        {chips.map((c, i) => (
+          <span key={i} className="px-[1%]" style={{ borderRight: i === chips.length - 1 ? 'none' : '1px solid rgba(255,255,255,0.15)' }}>
+            {c}
+          </span>
+        ))}
+      </div>
+
+      <ExtrasBand options={options} secondary={secondary} />
+
+      {/* Footer */}
+      <div className="mt-auto text-center py-[1.5%] text-[4px] tracking-[3px] uppercase font-bold" style={{ color: secondary }}>
+        {t('presentation_joueur', options)}
+      </div>
+    </div>
+  )
+}
+
+// --------------------------------------------------------------------------
 
 export default function PresentationPreview(props: PresentationPreviewProps) {
   return (
     <div className="relative w-full rounded-lg overflow-hidden shadow-2xl border border-stone-300/70 dark:border-stone-50/15"
          style={{ aspectRatio: '210 / 297' }}>
-      {props.template === 'magazine' && <MagazinePreview {...props} />}
-      {props.template === 'minimal'  && <MinimalPreview  {...props} />}
-      {props.template === 'classic'  && <ClassicPreview  {...props} />}
-      {props.template === 'stadium'  && <StadiumPreview  {...props} />}
+      {props.template === 'magazine'  && <MagazinePreview  {...props} />}
+      {props.template === 'minimal'   && <MinimalPreview   {...props} />}
+      {props.template === 'classic'   && <ClassicPreview   {...props} />}
+      {props.template === 'stadium'   && <StadiumPreview   {...props} />}
+      {props.template === 'signature' && <SignaturePreview {...props} />}
     </div>
   )
 }

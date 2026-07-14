@@ -71,11 +71,60 @@ class ClassicTemplate extends PresentationTemplate
         if ($player->height)         $infoRows[] = [$this->t('height', $options),         $player->height];
         if ($player->preferred_foot) $infoRows[] = [$this->t('preferred_foot', $options), $this->tFoot($player->preferred_foot, $options)];
         if ($player->club)           $infoRows[] = [$this->t('club', $options),           $player->club];
+        if ($player->since)          $infoRows[] = [$this->t('since', $options),          (string) $player->since];
         if ($player->nationality)    $infoRows[] = [$this->t('nationality', $options),    $player->nationality];
+        if ($player->potential_rating) {
+            $potVal = number_format((float) $player->potential_rating, 1, ',', '').'/10'
+                .($player->potential_label ? ' · '.$player->potential_label : '');
+            $infoRows[] = [$this->t('potential', $options), $potVal];
+        }
 
         $infoHtml = '';
         foreach ($infoRows as $r) {
             $infoHtml .= '<tr><td>'.$this->esc($r[0]).'</td><td>'.$this->esc($r[1]).'</td></tr>';
+        }
+
+        // Strengths block (left column) - only when there's data to render.
+        $strengthsList = $this->strengthsList($player, 6);
+        $strengthsHtml = '';
+        if (! empty($strengthsList)) {
+            $items = '';
+            foreach ($strengthsList as $s) {
+                $items .= '<li style="padding:2mm 0;border-bottom:1px solid #e7e5e4;font-size:9pt;">'
+                    .'<span style="display:inline-block;width:2.5mm;height:2.5mm;border-radius:1.25mm;background:'.$accent.';vertical-align:middle;margin-right:2.5mm;"></span>'
+                    .$this->esc($s).'</li>';
+            }
+            $strengthsHtml = '<div class="left-block">'
+                .'<div class="block-title">'.$this->esc($this->t('strengths', $options)).'</div>'
+                .'<ul style="list-style:none;padding:0;margin:0;">'.$items.'</ul>'
+                .'</div>';
+        }
+
+        // Physique tiles (right column) - only when at least one metric exists.
+        $phyRows = $this->physiqueRows($player);
+        $physiqueHtml = '';
+        if (! empty($phyRows)) {
+            $tiles = '';
+            foreach ($phyRows as [$key, $value]) {
+                $tiles .= '<td style="text-align:center;background:'.$bg.';border:1px solid #e7e5e4;padding:3mm 2mm;">'
+                    .'<div style="font-size:13pt;font-weight:700;color:'.$accent.';line-height:1;">'.$this->esc($value).'</div>'
+                    .'<div style="font-size:6.5pt;color:#78716c;text-transform:uppercase;letter-spacing:1px;margin-top:1.5mm;">'.$this->esc($this->t($key, $options)).'</div>'
+                    .'</td>';
+            }
+            $physiqueHtml = '<div class="block">'
+                .'<div class="block-title">'.$this->esc($this->t('physical', $options)).'</div>'
+                .'<table style="width:100%;border-collapse:separate;border-spacing:2mm 0;"><tr>'.$tiles.'</tr></table>'
+                .'</div>';
+        }
+
+        // Scout quote fallback (right column) - only when bio is missing but a
+        // dedicated scout_quote is available; keeps the right col grounded.
+        $scoutQuoteHtml = '';
+        if (! $player->bio && trim((string) $player->scout_quote) !== '') {
+            $scoutQuoteHtml = '<div class="block">'
+                .'<div class="block-title">'.$this->esc($this->t('scout_profile', $options)).'</div>'
+                .'<p style="font-style:italic;font-size:9pt;line-height:1.5;color:#44403c;margin:0;">« '.$this->esc($player->scout_quote).' »</p>'
+                .'</div>';
         }
 
         $photoHtml = $this->photoFrame($photo, $options, $secondary);
@@ -117,6 +166,7 @@ class ClassicTemplate extends PresentationTemplate
   .kpi-value span { font-size: 11pt; color: #78716c; margin-left: 1mm; }
   .kpi-label { font-size: 8pt; color: #78716c; text-transform: uppercase; letter-spacing: 1px; margin-top: 1mm; }
   .block { background: {$bg}; border: 1px solid #e7e5e4; border-radius: 3mm; padding: 4mm; margin-top: 4mm; }
+  .left-block { margin-top: 6mm; }
   .block-title { font-size: 8pt; color: #78716c; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3mm; }
   .heatmap { width: 100%; border-collapse: separate; border-spacing: 1mm; }
   .heatmap td { height: 8mm; border-radius: 1mm; background: #f5f5f4; }
@@ -133,14 +183,17 @@ class ClassicTemplate extends PresentationTemplate
       <div class="name">{$this->esc($player->name)}</div>
 HTML
       .($tagline ? '<div class="tagline">'.$this->esc($tagline).'</div>' : '')
-      .'<table class="info"><tbody>'.$infoHtml.'</tbody></table>
-    </div>
+      .'<table class="info"><tbody>'.$infoHtml.'</tbody></table>'
+      .$strengthsHtml
+      .'</div>
     <div class="col-right">
       <div class="kpi-grid"><div class="kpi-row">'
       .$statsHtml
       .'</div></div>'
+      .$physiqueHtml
       .$heatmapBlock
       .$bioBlock
+      .$scoutQuoteHtml
       .'</div>
   </div>
   '.$this->extrasBlockHtml($options, ['secondary' => '#78716c', 'text' => $text]).'

@@ -461,6 +461,16 @@ abstract class PresentationTemplate
         'no_bio_stadium'      => ['fr' => "Ajoutez une bio dans la fiche joueur pour enrichir cette présentation, ou attachez un article et une vidéo YouTube depuis l'éditeur.", 'en' => 'Add a bio on the player card, or attach an article and a YouTube video from the editor.', 'de' => 'Fügen Sie eine Biografie zur Spielerkarte hinzu oder verknüpfen Sie einen Artikel und ein YouTube-Video aus dem Editor.', 'nl' => 'Voeg een bio toe op de spelerskaart, of koppel een artikel en een YouTube-video vanuit de editor.'],
         'no_heatmap'          => ['fr' => "Activez la heatmap dans l'éditeur pour l'afficher ici.", 'en' => 'Enable the heatmap in the editor to display it here.', 'de' => 'Aktivieren Sie die Heatmap im Editor, um sie hier anzuzeigen.', 'nl' => 'Activeer de heatmap in de editor om hem hier weer te geven.'],
 
+        // Physical KPIs + potential (used to fill space on the sober templates)
+        'physical'          => ['fr' => 'Physique',          'en' => 'Physical',          'de' => 'Athletisch',      'nl' => 'Fysiek'],
+        'potential'         => ['fr' => 'Potentiel',         'en' => 'Potential',         'de' => 'Potenzial',       'nl' => 'Potentieel'],
+        'since'             => ['fr' => 'Depuis',            'en' => 'Since',             'de' => 'Seit',            'nl' => 'Sinds'],
+        'comparisons'       => ['fr' => 'Comparaisons',      'en' => 'Comparisons',       'de' => 'Vergleiche',      'nl' => 'Vergelijkingen'],
+        'phy_distance'      => ['fr' => 'Km / match',        'en' => 'Km / match',        'de' => 'Km / Spiel',      'nl' => 'Km / wedstrijd'],
+        'phy_top_speed'     => ['fr' => 'Vitesse max',       'en' => 'Top speed',         'de' => 'Höchstgeschw.',   'nl' => 'Topsnelheid'],
+        'phy_sprints'       => ['fr' => 'Sprints / match',   'en' => 'Sprints / match',   'de' => 'Sprints / Spiel', 'nl' => 'Sprints / match'],
+        'phy_hir'           => ['fr' => 'Courses intensives', 'en' => 'High-intensity runs', 'de' => 'Intensivläufe', 'nl' => 'Intensieve loopjes'],
+
         // Positions catalogue
         'cat_gardien'      => ['fr' => 'Gardien',      'en' => 'Goalkeeper', 'de' => 'Torwart',           'nl' => 'Doelman'],
         'cat_defenseur'    => ['fr' => 'Défenseur',    'en' => 'Defender',   'de' => 'Verteidiger',       'nl' => 'Verdediger'],
@@ -523,6 +533,40 @@ abstract class PresentationTemplate
             'Ambidextre' => $this->t('foot_ambidextre', $options),
             default      => (string) ($rawFoot ?? '-'),
         };
+    }
+
+    /**
+     * Physical KPIs to display when the template has room. Each row is a
+     * [translation_key, pre-formatted value string] tuple. Empty when the
+     * player has no telemetry attached, so callers can skip the block.
+     */
+    protected function physiqueRows(Player $player): array
+    {
+        $rows = [];
+        if ($player->distance_avg_km !== null)         $rows[] = ['phy_distance',  number_format((float) $player->distance_avg_km, 1, ',', '').' km'];
+        if ($player->top_speed_kmh !== null)           $rows[] = ['phy_top_speed', number_format((float) $player->top_speed_kmh, 1, ',', '').' km/h'];
+        if ($player->sprints_avg !== null)             $rows[] = ['phy_sprints',   (string) (int) $player->sprints_avg];
+        if ($player->high_intensity_runs_avg !== null) $rows[] = ['phy_hir',       (string) (int) $player->high_intensity_runs_avg];
+        return $rows;
+    }
+
+    /**
+     * Player strengths flattened to a capped list of labels. Accepts either
+     * strings or objects with a `label` key (both shapes exist in the seeder
+     * / editor UI).
+     */
+    protected function strengthsList(Player $player, int $max = 5): array
+    {
+        $raw = is_array($player->strengths) ? $player->strengths : [];
+        $out = [];
+        foreach ($raw as $s) {
+            $label = is_array($s) && isset($s['label']) ? $s['label'] : (is_string($s) ? $s : '');
+            $label = trim((string) $label);
+            if ($label === '') continue;
+            $out[] = $label;
+            if (count($out) >= $max) break;
+        }
+        return $out;
     }
 
     /**
