@@ -38,10 +38,21 @@ function Toast({ kind, message, onDismiss }: ToastState & { onDismiss: () => voi
 }
 
 const TEMPLATE_LABEL: Record<string, string> = {
-  classic:  'Carte d\'identité',
-  magazine: 'Magazine',
-  minimal:  'Minimal',
-  stadium:  'Stadium',
+  classic:   'Carte d\'identité',
+  signature: 'Signature',
+  magazine:  'Magazine',
+  minimal:   'Minimal',
+  stadium:   'Stadium',
+}
+
+/** Accent tint per template so cards get a colored spine that matches the
+ *  aesthetic of the PDF they'll produce. */
+const TEMPLATE_ACCENT: Record<string, string> = {
+  classic:   'from-turf-700/85 to-turf-800/85',
+  signature: 'from-rose-600/85 to-zinc-950/85',
+  magazine:  'from-red-500/85 to-zinc-950/85',
+  minimal:   'from-stone-700/85 to-stone-900/85',
+  stadium:   'from-blue-700/85 to-blue-950/85',
 }
 
 function fmtDate(value: string | null | undefined): string {
@@ -112,78 +123,110 @@ export default function AdminPresentations() {
         </button>
       </div>
 
-      <div className="overflow-x-auto rounded-2xl border border-stone-200 bg-white dark:bg-zinc-900 dark:border-stone-50/10">
-        <table className="w-full text-sm">
-          <thead className="bg-stone-100 dark:bg-zinc-950">
-            <tr className="text-left text-[0.65rem] font-mono uppercase tracking-[0.16em] text-zinc-600 dark:text-stone-400">
-              <th className="px-4 py-2.5">Présentation</th>
-              <th className="px-4 py-2.5">Joueur</th>
-              <th className="px-4 py-2.5">Template</th>
-              <th className="px-4 py-2.5">Générée le</th>
-              <th className="px-4 py-2.5 text-right">Statut</th>
-              <th className="px-4 py-2.5 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-stone-200 dark:divide-stone-50/10">
-            {loading && [0, 1, 2].map((i) => (
-              <tr key={i}><td colSpan={6} className="px-4 py-3"><Skeleton className="h-10 w-full" /></td></tr>
-            ))}
-            {!loading && rows.length === 0 && (
-              <tr>
-                <td colSpan={6} className="px-4 py-12 text-center text-sm text-zinc-500 dark:text-stone-500">
-                  Aucune présentation. Cliquez sur « Nouvelle présentation » pour en générer une.
-                </td>
-              </tr>
-            )}
-            {!loading && rows.map((p) => (
-              <tr key={p.id} className="hover:bg-stone-50 dark:hover:bg-stone-50/5 transition-colors">
-                <td className="px-4 py-3">
-                  <button
-                    type="button"
-                    onClick={() => navigate(`/admin/presentations/${p.id}/edit`)}
-                    className="text-left font-medium text-zinc-950 dark:text-stone-50 hover:text-turf-700 dark:hover:text-turf-300 transition"
-                  >
-                    {p.title}
-                  </button>
-                </td>
-                <td className="px-4 py-3">
-                  {p.player ? (
-                    <span className="inline-flex items-center gap-2">
-                      <img
-                        src={p.player.photo_url || `https://picsum.photos/seed/${p.player.slug}/40`}
-                        alt=""
-                        className="w-6 h-6 rounded-full object-cover"
-                      />
-                      <span className="text-xs text-zinc-700 dark:text-stone-300 truncate">{p.player.name}</span>
-                    </span>
+      {loading && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          {[0, 1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="rounded-2xl border border-stone-200 dark:border-stone-50/10 bg-white dark:bg-zinc-900 overflow-hidden">
+              <Skeleton className="h-40 w-full rounded-none" />
+              <div className="p-4 space-y-3">
+                <Skeleton className="h-3 w-24" />
+                <Skeleton className="h-5 w-full" />
+                <Skeleton className="h-4 w-32" />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {!loading && rows.length === 0 && (
+        <div className="rounded-2xl border border-dashed border-stone-300 dark:border-stone-50/15 bg-white/60 dark:bg-zinc-900/40 py-16 text-center">
+          <FilePdf size={32} weight="regular" className="mx-auto text-zinc-400 dark:text-stone-500 mb-3" />
+          <p className="text-sm text-zinc-600 dark:text-stone-400">
+            Aucune présentation. Cliquez sur « Nouvelle présentation » pour en générer une.
+          </p>
+        </div>
+      )}
+
+      {!loading && rows.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          {rows.map((p) => {
+            const accent = TEMPLATE_ACCENT[p.template_key] ?? 'from-turf-700/85 to-turf-800/85'
+            const photo = p.player?.photo_url || (p.player ? `https://picsum.photos/seed/${p.player.slug}/400` : null)
+            return (
+              <motion.article
+                key={p.id}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="group relative rounded-2xl border border-stone-200 dark:border-stone-50/10 bg-white dark:bg-zinc-900 overflow-hidden hover:shadow-diffusion hover:-translate-y-0.5 transition-all"
+              >
+                {/* Hero photo */}
+                <button
+                  type="button"
+                  onClick={() => navigate(`/admin/presentations/${p.id}/edit`)}
+                  className="block w-full text-left relative h-40 overflow-hidden"
+                  aria-label={`Éditer ${p.title}`}
+                >
+                  {photo ? (
+                    <img
+                      src={photo}
+                      alt=""
+                      className="absolute inset-0 w-full h-full object-cover"
+                      loading="lazy"
+                    />
                   ) : (
-                    <span className="text-xs text-zinc-400 dark:text-stone-500">-</span>
+                    <div className={`absolute inset-0 bg-gradient-to-br ${accent}`} />
                   )}
-                </td>
-                <td className="px-4 py-3 text-xs text-zinc-700 dark:text-stone-300">
-                  {TEMPLATE_LABEL[p.template_key] ?? p.template_key}
-                </td>
-                <td className="px-4 py-3 text-xs text-zinc-600 dark:text-stone-400 tabular-nums">
-                  {fmtDate(p.generated_at)}
-                </td>
-                <td className="px-4 py-3 text-right">
-                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[0.65rem] font-mono uppercase tracking-wider ${
-                    p.is_published
-                      ? 'bg-turf-100 text-turf-800 dark:bg-turf-300/15 dark:text-turf-300'
-                      : 'bg-stone-200/80 text-zinc-700 dark:bg-stone-50/10 dark:text-stone-300'
-                  }`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${p.is_published ? 'bg-turf-700 dark:bg-turf-300' : 'bg-stone-400 dark:bg-stone-500'}`} />
-                    {p.is_published ? 'Publique' : 'Privée'}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-right">
-                  <div className="inline-flex items-center gap-1">
+                  <div className={`absolute inset-0 bg-gradient-to-b ${accent} opacity-70 mix-blend-multiply`} />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                  {/* Top row: template + status pills */}
+                  <div className="absolute top-3 left-3 right-3 flex items-start justify-between gap-2">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[0.6rem] font-mono uppercase tracking-[0.18em] bg-white/90 text-zinc-900 backdrop-blur">
+                      {TEMPLATE_LABEL[p.template_key] ?? p.template_key}
+                    </span>
+                    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[0.6rem] font-mono uppercase tracking-[0.14em] backdrop-blur ${
+                      p.is_published
+                        ? 'bg-turf-500/90 text-white'
+                        : 'bg-black/40 text-white/90'
+                    }`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${p.is_published ? 'bg-white' : 'bg-white/70'}`} />
+                      {p.is_published ? 'Publique' : 'Privée'}
+                    </span>
+                  </div>
+                  {/* Bottom row: title */}
+                  <div className="absolute bottom-3 left-3 right-3">
+                    <h3 className="font-display font-bold text-white text-base leading-tight line-clamp-2 drop-shadow-md">
+                      {p.title}
+                    </h3>
+                  </div>
+                </button>
+
+                {/* Meta + actions */}
+                <div className="p-4 flex items-center justify-between gap-3">
+                  <div className="min-w-0 flex items-center gap-2">
+                    {p.player?.photo_url && (
+                      <img
+                        src={p.player.photo_url}
+                        alt=""
+                        className="w-8 h-8 rounded-full object-cover shrink-0 ring-1 ring-stone-200 dark:ring-stone-50/10"
+                      />
+                    )}
+                    <div className="min-w-0">
+                      <div className="text-xs font-medium text-zinc-900 dark:text-stone-100 truncate">
+                        {p.player?.name ?? '—'}
+                      </div>
+                      <div className="text-[0.65rem] text-zinc-500 dark:text-stone-500 tabular-nums">
+                        {fmtDate(p.generated_at)}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="shrink-0 inline-flex items-center gap-0.5">
                     {p.file_path && (
                       <a
                         href={p.file_path}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="grid place-items-center w-8 h-8 rounded-lg text-zinc-500 hover:bg-stone-200/60 hover:text-zinc-900 dark:text-stone-400 dark:hover:bg-stone-50/10 dark:hover:text-stone-50 transition"
+                        className="grid place-items-center w-8 h-8 rounded-lg text-zinc-500 hover:bg-stone-100 hover:text-zinc-900 dark:text-stone-400 dark:hover:bg-stone-50/10 dark:hover:text-stone-50 transition"
                         title="Télécharger le PDF"
                       >
                         <FilePdf size={14} weight="bold" />
@@ -194,7 +237,7 @@ export default function AdminPresentations() {
                         href={`/api/presentations/${p.public_token}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="grid place-items-center w-8 h-8 rounded-lg text-zinc-500 hover:bg-stone-200/60 hover:text-zinc-900 dark:text-stone-400 dark:hover:bg-stone-50/10 dark:hover:text-stone-50 transition"
+                        className="grid place-items-center w-8 h-8 rounded-lg text-zinc-500 hover:bg-stone-100 hover:text-zinc-900 dark:text-stone-400 dark:hover:bg-stone-50/10 dark:hover:text-stone-50 transition"
                         title="Lien public"
                       >
                         <Eye size={14} weight="bold" />
@@ -203,7 +246,7 @@ export default function AdminPresentations() {
                     <button
                       type="button"
                       onClick={() => navigate(`/admin/presentations/${p.id}/edit`)}
-                      className="grid place-items-center w-8 h-8 rounded-lg text-zinc-500 hover:bg-stone-200/60 hover:text-zinc-900 dark:text-stone-400 dark:hover:bg-stone-50/10 dark:hover:text-stone-50 transition"
+                      className="grid place-items-center w-8 h-8 rounded-lg text-zinc-500 hover:bg-stone-100 hover:text-zinc-900 dark:text-stone-400 dark:hover:bg-stone-50/10 dark:hover:text-stone-50 transition"
                       title="Éditer"
                     >
                       <PencilSimpleLine size={14} weight="bold" />
@@ -217,12 +260,12 @@ export default function AdminPresentations() {
                       <Trash size={14} weight="bold" />
                     </button>
                   </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                </div>
+              </motion.article>
+            )
+          })}
+        </div>
+      )}
 
       {toast && <Toast {...toast} onDismiss={() => setToast(null)} />}
     </div>
