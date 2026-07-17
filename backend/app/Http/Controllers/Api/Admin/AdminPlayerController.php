@@ -114,14 +114,20 @@ class AdminPlayerController extends Controller
             }
         }
 
+        // On update we accept partial payloads (e.g. the presentation editor
+        // only sends `bio`), so the fields that would otherwise be `required`
+        // become `sometimes`. `sometimes` skips the rule when the field is
+        // absent from the request but still enforces the remaining rules when
+        // it *is* present, which is exactly PATCH semantics.
+        $req = $player ? 'sometimes' : 'required';
         $rules = [
-            'name' => ['required', 'string', 'max:255'],
+            'name' => [$req, 'string', 'max:255'],
             // Lowered to 8 to allow young academy players (e.g. U13 representés
             // par l'agence). The frontend mirrors this bound.
-            'age' => ['required', 'integer', 'min:8', 'max:60'],
+            'age' => [$req, 'integer', 'min:8', 'max:60'],
             'height' => ['nullable', 'string', 'max:20'],
-            'position' => ['required', 'string', 'max:120'],
-            'category' => ['required', 'string', 'in:Gardien,Defenseur,Milieu,Attaquant'],
+            'position' => [$req, 'string', 'max:120'],
+            'category' => [$req, 'string', 'in:Gardien,Defenseur,Milieu,Attaquant'],
             'club' => ['nullable', 'string', 'max:255'],
             'nationality' => ['nullable', 'string', 'max:120'],
             'preferred_foot' => ['nullable', 'string', 'max:20'],

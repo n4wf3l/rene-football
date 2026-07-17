@@ -90,6 +90,9 @@ interface FormState {
   title: string
   is_published: boolean
   options: PresentationOptions
+  /** Editable scout bio - lives on the Player, edited here for convenience.
+   *  Synced back to the player's `bio` field on save / preview. */
+  player_bio: string
 }
 
 export default function AdminPresentationEdit({ creating = false }: { creating?: boolean }) {
@@ -102,6 +105,7 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
     title: '',
     is_published: false,
     options: { ...DEFAULT_OPTIONS },
+    player_bio: '',
   })
   const [loading, setLoading] = useState(!creating)
   const [saving, setSaving] = useState(false)
@@ -120,6 +124,22 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
   const selectedPlayer = useMemo(
     () => players.find((p) => p.id === form.player_id) ?? null,
     [players, form.player_id],
+  )
+
+  // When the admin switches player, load that player's saved bio into the
+  // editable textarea. We only reset when the *player* changes (not on every
+  // players array update) so keystrokes in the textarea don't get clobbered
+  // by a refetch.
+  useEffect(() => {
+    setForm((f) => ({ ...f, player_bio: selectedPlayer?.bio ?? '' }))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedPlayer?.id])
+
+  // Preview mirror of the player with the *in-flight* bio applied so the
+  // live A4 reflects textarea edits without a save round-trip.
+  const previewPlayer = useMemo<Player | null>(
+    () => (selectedPlayer ? { ...selectedPlayer, bio: form.player_bio || null } : null),
+    [selectedPlayer, form.player_bio],
   )
 
   // --- bootstrap ----------------------------------------------------------
@@ -146,6 +166,9 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
           title: p.title,
           is_published: p.is_published,
           options: { ...DEFAULT_OPTIONS, ...(p.options ?? {}) },
+          // Populated by the selectedPlayer effect once the players list loads;
+          // stays "" until then so the textarea has a defined string value.
+          player_bio: '',
         })
       })
       .catch(() => { if (!cancelled) setErrors({ _global: 'Présentation introuvable.' }) })
@@ -200,6 +223,26 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
     })
   }
 
+  /** PATCH the player's `bio` unconditionally when a player is selected.
+   *  We used to short-circuit on string equality, but React state timing
+   *  (setPlayers → new selectedPlayer reference) sometimes made the guard
+   *  return early even when the DB was stale, so the PDF re-rendered with
+   *  the previous bio. The PATCH is idempotent server-side, so re-sending
+   *  the same value is safe and guarantees the DB reflects the textarea.
+   *  Errors are surfaced but non-fatal so the presentation save still runs. */
+  const syncPlayerBio = async (): Promise<void> => {
+    if (!selectedPlayer) return
+    const next = form.player_bio.trim()
+    try {
+      await api.patch(`/admin/players/${selectedPlayer.slug}`, { bio: next || null }, { auth: true })
+      // Keep the in-memory list in sync so subsequent renders and preview
+      // fetches see the updated bio.
+      setPlayers((ps) => ps.map((p) => (p.id === selectedPlayer.id ? { ...p, bio: next || null } : p)))
+    } catch (err: unknown) {
+      showToast('error', err instanceof Error ? err.message : 'Bio du joueur : échec de la synchronisation.')
+    }
+  }
+
   const onUploadPhoto = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null
     if (!file) return
@@ -227,6 +270,7 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
     setSaving(true)
     setErrors({})
     try {
+      await syncPlayerBio()
       const payload = {
         player_id: form.player_id,
         template_key: form.template_key,
@@ -273,6 +317,7 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
     setSaving(true)
     setGeneratingPdf(true)
     try {
+      await syncPlayerBio()
       const payload = {
         player_id: form.player_id,
         template_key: form.template_key,
@@ -401,7 +446,7 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
                 </div>
                 <PresentationPreview
                   template={form.template_key}
-                  player={selectedPlayer}
+                  player={previewPlayer}
                   options={form.options}
                   title={form.title}
                   statCatalogue={statCatalogue}
@@ -452,6 +497,81 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
             </label>
           </div>
         </section>
+
+        {/* BIO SCOUT (synced to Player.bio) */}
+        {(() => {
+          // Length tiers: DomPDF has no auto-shrink so long bios overflow the
+          // Profil scout blocks on Minimal / Stadium first. Guard the admin
+          // with a visible traffic-light signaler + hard cap. Cap chosen so
+          // even at 9.5pt italic the block stays under ~35mm on Minimal, the
+          // template with the tightest scout column.
+          const bioLen  = form.player_bio.length
+          const bioMax  = 350
+          const bioTier: 'ok' | 'warn' | 'danger' =
+            bioLen <= 180 ? 'ok' : bioLen <= 260 ? 'warn' : 'danger'
+          const tierText = {
+            ok:     'Longueur idéale - rentre dans tous les templates sans risque.',
+            warn:   'Long - vérifiez Minimal / Stadium, le bloc scout se remplit.',
+            danger: 'Limite atteinte - le rendu peut pousser sur une 2e page.',
+          }[bioTier]
+          const tierTextClass = {
+            ok:     'text-emerald-700 dark:text-emerald-400',
+            warn:   'text-amber-700 dark:text-amber-400',
+            danger: 'text-rose-700 dark:text-rose-400',
+          }[bioTier]
+          const barClass = {
+            ok:     'bg-emerald-500',
+            warn:   'bg-amber-500',
+            danger: 'bg-rose-500',
+          }[bioTier]
+          const ringClass = {
+            ok:     '',
+            warn:   'ring-1 ring-amber-400/50 dark:ring-amber-500/40 border-amber-400 dark:border-amber-500',
+            danger: 'ring-1 ring-rose-500/60 dark:ring-rose-500/40 border-rose-500 dark:border-rose-500',
+          }[bioTier]
+          const dirty = selectedPlayer && (selectedPlayer.bio ?? '').trim() !== form.player_bio.trim()
+          const pct = Math.min(100, Math.round((bioLen / bioMax) * 100))
+
+          return (
+            <section className="space-y-3">
+              <h3 className="font-mono uppercase tracking-[0.18em] text-[0.7rem] text-zinc-500 dark:text-stone-400">
+                Bio scout <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">- également enregistrée sur la fiche joueur</span>
+              </h3>
+              <textarea
+                value={form.player_bio}
+                onChange={(e) => setForm((f) => ({ ...f, player_bio: e.target.value.slice(0, bioMax) }))}
+                placeholder={selectedPlayer
+                  ? 'Résumé scout du joueur - style, forces, projection. Ce texte alimente le bloc «Profil scout» du template.'
+                  : "Choisissez d'abord un joueur pour éditer sa bio."}
+                disabled={!selectedPlayer}
+                rows={6}
+                className={`${INPUT_BASE} resize-y leading-relaxed disabled:opacity-60 disabled:cursor-not-allowed ${ringClass}`}
+                maxLength={bioMax}
+              />
+
+              {/* Traffic-light meter */}
+              <div className="space-y-1.5">
+                <div className="h-1.5 w-full rounded-full bg-stone-200 dark:bg-stone-50/10 overflow-hidden">
+                  <div className={`h-full ${barClass} transition-[width,background-color] duration-200`} style={{ width: `${pct}%` }} />
+                </div>
+                <div className="flex items-center justify-between gap-3 text-[0.65rem]">
+                  <span className={`inline-flex items-center gap-1.5 font-medium ${tierTextClass}`}>
+                    <span className={`inline-block w-1.5 h-1.5 rounded-full ${barClass}`} />
+                    {tierText}
+                  </span>
+                  <span className={`tabular-nums font-mono ${tierTextClass}`}>
+                    {bioLen}/{bioMax}
+                  </span>
+                </div>
+                <p className="text-[0.65rem] text-zinc-500 dark:text-stone-500">
+                  {dirty
+                    ? 'Modification en attente - sera enregistrée sur la fiche joueur au prochain « Enregistrer » ou « Aperçu PDF ».'
+                    : 'En phase avec la fiche joueur.'}
+                </p>
+              </div>
+            </section>
+          )
+        })()}
 
         {/* TEMPLATE */}
         <section className="space-y-4">

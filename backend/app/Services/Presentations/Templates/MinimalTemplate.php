@@ -91,28 +91,61 @@ class MinimalTemplate extends PresentationTemplate
 
         $photoHtml = $this->photoFrame($photo, $options, $secondary);
 
+        // Cap the heatmap width to 72mm (~48mm tall at 3:2). Anything larger
+        // and the right column, combined with physique + comparisons, forces
+        // the bottom band + extras + footer onto a second page.
+        // Note: uses `.mini-title` (defined in the CSS below); `.block-title`
+        // is Classic's class and would silently fall back to default styling.
         $heatmapBlock = $heatmap !== ''
-            ? '<div class="block"><div class="block-title">'.$this->esc($this->t('zones_influence', $options)).'</div>'.$heatmap.'</div>'
+            ? '<div class="block">'
+                .'<div class="mini-title">'.$this->esc($this->t('zones_influence', $options)).'</div>'
+                .'<div style="width:72mm;">'.$heatmap.'</div>'
+              .'</div>'
             : '';
 
         // Physique tiles for the right column - only when telemetry exists.
-        // Uses the serif's understated look: thin border + tabular numbers.
+        // Compact numbers so the whole right column stays under ~110mm and the
+        // bottom band (strengths + scout) still fits on page 1.
         $phyRows = $this->physiqueRows($player);
         $physiqueBlock = '';
         if (! empty($phyRows)) {
             $tiles = '';
             foreach ($phyRows as [$key, $value]) {
-                $tiles .= '<td style="text-align:center;padding:3mm 2mm;border-top:0.5px solid '.$accent.';border-bottom:0.5px solid '.$accent.';">'
-                    .'<div style="font-size:13pt;font-weight:700;color:'.$accent.';line-height:1;">'.$this->esc($value).'</div>'
-                    .'<div style="font-size:6pt;color:'.$secondary.';text-transform:uppercase;letter-spacing:1.5px;margin-top:1.5mm;">'.$this->esc($this->t($key, $options)).'</div>'
+                $tiles .= '<td style="text-align:center;padding:2mm 2mm;border-top:0.5px solid '.$accent.';border-bottom:0.5px solid '.$accent.';">'
+                    .'<div style="font-size:11pt;font-weight:700;color:'.$accent.';line-height:1;">'.$this->esc($value).'</div>'
+                    .'<div style="font-size:5.5pt;color:'.$secondary.';text-transform:uppercase;letter-spacing:1.5px;margin-top:1mm;">'.$this->esc($this->t($key, $options)).'</div>'
                     .'</td>';
             }
             $physiqueBlock = '<div class="block">'
-                .'<div class="block-title">'.$this->esc($this->t('physical', $options)).'</div>'
+                .'<div class="mini-title">'.$this->esc($this->t('physical', $options)).'</div>'
                 .'<table style="width:100%;border-collapse:collapse;">'
                 .'<tr>'.$tiles.'</tr>'
                 .'</table>'
                 .'</div>';
+        }
+
+        // Comparisons block for the right column - closes the vertical gap
+        // between the heatmap (short) and the taller left column (photo + info).
+        $comparisonsList = is_array($player->comparisons) ? array_slice($player->comparisons, 0, 3) : [];
+        $comparisonsBlock = '';
+        if (! empty($comparisonsList)) {
+            $rows = '';
+            foreach ($comparisonsList as $c) {
+                if (! is_array($c)) continue;
+                $cname = trim((string) ($c['name'] ?? ''));
+                if ($cname === '') continue;
+                $cclub = trim((string) ($c['club'] ?? ''));
+                $rows .= '<tr>'
+                    .'<td style="padding:1.5mm 0;border-bottom:0.5px solid '.$secondary.';font-size:8.5pt;font-weight:600;">'.$this->esc($cname).'</td>'
+                    .'<td style="padding:1.5mm 0;border-bottom:0.5px solid '.$secondary.';font-size:7pt;letter-spacing:1.2px;text-transform:uppercase;color:'.$secondary.';text-align:right;">'.$this->esc($cclub).'</td>'
+                    .'</tr>';
+            }
+            if ($rows !== '') {
+                $comparisonsBlock = '<div class="block">'
+                    .'<div class="mini-title">'.$this->esc($this->t('comparisons', $options)).'</div>'
+                    .'<table style="width:100%;border-collapse:collapse;">'.$rows.'</table>'
+                    .'</div>';
+            }
         }
 
         // NEW blocks that fill the previously empty bottom half. Kept side by
@@ -148,7 +181,7 @@ class MinimalTemplate extends PresentationTemplate
         $ptStatSub  = $this->pt(11, $options);
         $ptStatLbl  = $this->pt(7.5, $options);
         $ptInfo     = $this->pt(9, $options);
-        $ptQuote    = $this->pt(11, $options);
+        $ptQuote    = $this->pt(9.5, $options);
         $ptMini     = $this->pt(7, $options);
         $ptStrong   = $this->pt(10, $options);
         $ptHead     = $this->pt(11, $options);
@@ -170,27 +203,27 @@ class MinimalTemplate extends PresentationTemplate
   .grid { display: table; width: 100%; margin-top: 6mm; }
   .col { display: table-cell; vertical-align: top; }
   .col-photo { width: 38%; padding-right: 8mm; }
-  .photo { position: relative; width: 100%; height: 78mm; overflow: hidden; }
-  .info { width: 100%; border-collapse: collapse; margin-top: 5mm; font-size: {$ptInfo}; }
-  .info td { padding: 2mm 0; border-bottom: 0.5px solid {$secondary}; }
+  .photo { position: relative; width: 100%; height: 55mm; overflow: hidden; }
+  .info { width: 100%; border-collapse: collapse; margin-top: 4mm; font-size: {$ptInfo}; }
+  .info td { padding: 1.3mm 0; border-bottom: 0.5px solid {$secondary}; }
   .info .k { color: {$secondary}; width: 45%; }
   .info .v { text-align: right; font-weight: 600; }
-  .stats { width: 100%; border-collapse: collapse; }
-  .stats td { border-top: 0.5px solid {$accent}; border-bottom: 0.5px solid {$accent}; padding: 3mm 4mm 3mm 0; }
+  .stats { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  .stats td { width: 25%; text-align: center; vertical-align: top; border-top: 0.5px solid {$accent}; border-bottom: 0.5px solid {$accent}; padding: 3mm 2mm; }
   .stat-val { font-size: {$ptStatVal}; font-weight: 700; line-height: 1; color: {$accent}; }
   .stat-val span { font-size: {$ptStatSub}; color: {$secondary}; margin-left: 1mm; font-weight: 400; }
   .stat-lbl { font-size: {$ptStatLbl}; color: {$secondary}; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 2mm; }
-  .block { margin-top: 5mm; }
+  .block { margin-top: 3mm; }
   .mini-title { font-size: {$ptMini}; color: {$secondary}; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 3mm; font-weight: 700; }
   /* Bottom band: 2 columns for strengths / scout quote so nothing is empty. */
-  .bottom { display: table; width: 100%; margin-top: 4mm; padding-top: 3mm; border-top: 0.5px solid {$secondary}; }
+  .bottom { display: table; width: 100%; margin-top: 2.5mm; padding-top: 2mm; border-top: 0.5px solid {$secondary}; }
   .bottom-col { display: table-cell; vertical-align: top; width: 50%; }
   .bottom-col + .bottom-col { padding-left: 8mm; }
   .strength { font-size: {$ptStrong}; padding: 1.5mm 0; border-bottom: 0.5px solid {$secondary}; font-weight: 500; }
   .strength .dot { display: inline-block; width: 3mm; height: 3mm; border-radius: 1.5mm; vertical-align: middle; margin-right: 2.5mm; }
-  .quote { font-size: {$ptQuote}; line-height: 1.6; font-style: italic; text-align: justify; }
+  .quote { font-size: {$ptQuote}; line-height: 1.5; font-style: italic; text-align: left; }
   .dim { font-size: {$ptStrong}; color: {$secondary}; font-style: italic; }
-  .footer { border-top: 2px solid {$accent}; margin-top: 4mm; padding-top: 2mm; font-size: {$ptFooter}; color: {$secondary}; letter-spacing: 2px; text-transform: uppercase; }
+  .footer { border-top: 2px solid {$accent}; margin-top: 2.5mm; padding-top: 1.5mm; font-size: {$ptFooter}; color: {$secondary}; letter-spacing: 2px; text-transform: uppercase; }
 </style></head><body>
   <div class="header">
     <div class="header-title">Rene Football · {$this->esc($this->t('presentation_joueur', $options))}</div>
@@ -209,6 +242,7 @@ HTML
       <table class="stats"><tr>'.$statsHtml.'</tr></table>'
       .$physiqueBlock
       .$heatmapBlock
+      .$comparisonsBlock
       .'</div>
   </div>
   <div class="bottom">
