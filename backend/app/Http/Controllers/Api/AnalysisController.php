@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Player;
+use App\Services\Analysis\Benchmarks;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class AnalysisController extends Controller
 {
@@ -83,6 +85,51 @@ class AnalysisController extends Controller
                 'percentiles'   => $out,
             ],
         ]);
+    }
+
+    /**
+     * Position × age-tier benchmark report for a single player. Returns each
+     * benchmarked metric with the player value, avg / elite anchors and
+     * comparative scores (vs_avg %, vs_elite index). Combined with the
+     * intra-category percentile above, the frontend can render "top 15% of
+     * peers AND 82% of the elite CB profile" — the kind of contextual read a
+     * DS actually needs.
+     */
+    public function benchmark(string $slug): JsonResponse
+    {
+        $player = Player::where('slug', $slug)->firstOrFail();
+        $tier   = Benchmarks::tierForAge($player->age);
+        return response()->json([
+            'data' => [
+                'player_slug' => $player->slug,
+                'category'    => $player->category,
+                'age_tier'    => $tier,
+                'metrics'     => Benchmarks::playerReport($player),
+            ],
+        ]);
+    }
+
+    /**
+     * Bulk benchmark report keyed by slug - kept behind the analysis
+     * endpoint namespace so the frontend can prime a table of players in
+     * one round-trip. Optional ?slugs=a,b,c query filter.
+     */
+    public function benchmarks(Request $request): JsonResponse
+    {
+        $q = Player::query()->where('is_published', true);
+        $slugsParam = trim((string) $request->query('slugs', ''));
+        if ($slugsParam !== '') {
+            $slugs = array_filter(array_map('trim', explode(',', $slugsParam)));
+            if (! empty($slugs)) $q->whereIn('slug', $slugs);
+        }
+        $out = [];
+        foreach ($q->get() as $player) {
+            $out[$player->slug] = [
+                'age_tier' => Benchmarks::tierForAge($player->age),
+                'metrics'  => Benchmarks::playerReport($player),
+            ];
+        }
+        return response()->json(['data' => $out]);
     }
 
     public function metrics(): JsonResponse

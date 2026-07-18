@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\Admin\AdminAppearanceController;
 use App\Http\Controllers\Api\Admin\AdminArticleController;
 use App\Http\Controllers\Api\Admin\AdminClipController;
+use App\Http\Controllers\Api\Admin\AdminBenchmarkController;
 use App\Http\Controllers\Api\Admin\AdminPlayerController;
 use App\Http\Controllers\Api\Admin\AdminPresentationController;
 use App\Http\Controllers\Api\Admin\AdminStaffController;
@@ -16,6 +17,8 @@ use App\Http\Controllers\Api\Admin\Scouting\RecruitmentNeedController;
 use App\Http\Controllers\Api\Admin\Scouting\ScoutAssignmentController;
 use App\Http\Controllers\Api\Admin\Scouting\ScoutingDashboardController;
 use App\Http\Controllers\Api\Admin\Scouting\ScoutingInboxController;
+use App\Http\Controllers\Api\Admin\Scouting\ScoutProspectController;
+use App\Http\Controllers\Api\Admin\Scouting\ScoutWorkspaceController;
 use App\Http\Controllers\Api\Admin\Scouting\ScoutingIntelligenceController;
 use App\Http\Controllers\Api\Admin\Scouting\ScoutingPlayerController;
 use App\Http\Controllers\Api\Admin\Scouting\ScoutingReportController;
@@ -56,6 +59,11 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
 
     Route::get('/players', [AdminPlayerController::class, 'index']);
     Route::post('/players', [AdminPlayerController::class, 'store']);
+    Route::post('/players/import', [AdminPlayerController::class, 'importStats']);
+    Route::get('/players/import/template', [AdminPlayerController::class, 'statsTemplate']);
+    Route::post('/players/appearances/import', [AdminPlayerController::class, 'importAppearances']);
+    Route::get('/players/appearances/template', [AdminPlayerController::class, 'appearancesTemplate']);
+    Route::get('/players/{player:slug}/analysis-report', [AdminPlayerController::class, 'analysisReport']);
     Route::get('/players/{player:slug}', [AdminPlayerController::class, 'show']);
     Route::put('/players/{player:slug}', [AdminPlayerController::class, 'update']);
     Route::patch('/players/{player:slug}', [AdminPlayerController::class, 'update']);
@@ -79,8 +87,16 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::put('/players/{player:slug}/clips/{clip}',         [AdminClipController::class, 'update']);
     Route::delete('/players/{player:slug}/clips/{clip}',      [AdminClipController::class, 'destroy']);
 
-    Route::get('/analysis/metrics',     [AnalysisController::class, 'metrics']);
-    Route::get('/analysis/percentiles', [AnalysisController::class, 'percentiles']);
+    Route::get('/analysis/metrics',              [AnalysisController::class, 'metrics']);
+    Route::get('/analysis/percentiles',          [AnalysisController::class, 'percentiles']);
+    Route::get('/analysis/benchmarks',           [AnalysisController::class, 'benchmarks']);
+    Route::get('/analysis/benchmark/{slug}',     [AnalysisController::class, 'benchmark']);
+
+    // Editable benchmark table (position × age tier × metric).
+    Route::get('/benchmarks',                    [AdminBenchmarkController::class, 'index']);
+    Route::post('/benchmarks',                   [AdminBenchmarkController::class, 'upsert']);
+    Route::delete('/benchmarks/{benchmark}',     [AdminBenchmarkController::class, 'destroy']);
+    Route::post('/benchmarks/reset',             [AdminBenchmarkController::class, 'reset']);
 
     // Articles (news CMS) - multipart-friendly POST aliases for updates so the
     // browser can send cover/gallery files without _method spoofing dance.
@@ -121,6 +137,17 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
         Route::get('/dashboard',    [ScoutingDashboardController::class, 'show']);
         Route::get('/intelligence', [ScoutingIntelligenceController::class, 'index']);
         Route::get('/inbox',        [ScoutingInboxController::class, 'show']);
+
+        /* Personal (per-scout) workspace — Option B "boîte perso".
+         * Isolated from Rene's shared scouting data. See ScoutWorkspace
+         * for the ownership model. */
+        Route::get('/workspace',                     [ScoutWorkspaceController::class, 'show']);
+        Route::patch('/workspace',                   [ScoutWorkspaceController::class, 'update']);
+        Route::get('/prospects',                     [ScoutProspectController::class, 'index']);
+        Route::post('/prospects',                    [ScoutProspectController::class, 'store']);
+        Route::get('/prospects/{prospect}',          [ScoutProspectController::class, 'show']);
+        Route::patch('/prospects/{prospect}',        [ScoutProspectController::class, 'update']);
+        Route::delete('/prospects/{prospect}',       [ScoutProspectController::class, 'destroy']);
 
         // Scouting-flavoured player workflow (status, scores, completeness).
         Route::get('/players',                                  [ScoutingPlayerController::class, 'index']);

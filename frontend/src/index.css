@@ -111,3 +111,12 @@
     @apply inline-block uppercase tracking-[0.18em] text-xs font-medium text-turf-700 dark:text-turf-300;
   }
 }
+
+/* Tutorial overlay: hide floating admin re-open handles / triggers so
+   they don't peek through the darkened backdrop and distract the user
+   while a tour is running. Any element that must survive the tour can
+   opt in via `data-tour-persist`. */
+body.tutorial-active [aria-label="Rouvrir la sidebar"],
+body.tutorial-active .admin-reopen-handle {
+  display: none !important;
+}

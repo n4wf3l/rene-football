@@ -13,10 +13,13 @@ import {
   PencilSimpleLine,
   Plus,
   Trash,
+  UploadSimple,
   Users,
   WarningCircle,
   X as XIcon,
 } from '@phosphor-icons/react'
+import StatsImportModal from '../../components/StatsImportModal'
+import StatsProvenanceBadge from '../../components/StatsProvenanceBadge'
 import { api, ApiError } from '../../api/client'
 import type { Player } from '../../types/player'
 import Pitch from '../../components/Pitch'
@@ -891,6 +894,7 @@ function AdminPlayers() {
 
   // Editor preference: persisted in localStorage so the choice sticks across sessions.
   const navigate = useNavigate()
+  const [importOpen, setImportOpen] = useState(false)
   const [editorMode, setEditorMode] = useState<'modal' | 'page'>(() => {
     if (typeof window === 'undefined') return 'modal'
     const saved = window.localStorage.getItem('rene_admin_editor_mode')
@@ -1125,11 +1129,25 @@ function AdminPlayers() {
               </button>
             ))}
           </div>
+          <button
+            type="button"
+            onClick={() => setImportOpen(true)}
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium border border-stone-300 dark:border-stone-50/15 bg-white dark:bg-zinc-900 hover:bg-stone-100 dark:hover:bg-stone-50/5 transition"
+            title="Importer les stats du roster depuis un CSV"
+          >
+            <UploadSimple size={14} weight="bold" /> Importer CSV
+          </button>
           <button type="button" onClick={openCreator} className="btn btn-primary text-sm">
             <Plus size={14} weight="bold" /> Nouveau joueur
           </button>
         </div>
       </div>
+
+      <StatsImportModal
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        onSuccess={() => { void reload() }}
+      />
 
       {/* ───── Mini-KPI strip ───── */}
       <div className="flex flex-wrap items-center gap-2 mb-5">
@@ -1290,6 +1308,9 @@ function AdminPlayers() {
                           {p.position}
                           <span className="mx-1.5 opacity-50">·</span>
                           <span className={`font-mono ${freshTone}`}>maj {fresh.label}</span>
+                        </div>
+                        <div className="mt-1">
+                          <StatsProvenanceBadge player={p} />
                         </div>
                       </div>
                     </div>

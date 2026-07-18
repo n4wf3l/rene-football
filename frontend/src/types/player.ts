@@ -64,6 +64,13 @@ export interface Player {
   is_published?: boolean
   created_at?: string
   updated_at?: string
+
+  /** Provenance for the numeric stats block (set by the CSV import or by
+   *  a manual edit). Used to display source/freshness badges on the roster
+   *  and analysis views so users know how much to trust the numbers. */
+  stats_source?: 'manual' | 'csv' | 'wyscout' | 'instat' | 'club_official' | 'observed' | 'seed' | string | null
+  stats_updated_at?: string | null
+  stats_reliability?: number | null
 }
 
 /** Curated palette suggested in the admin UI. Free-form additions allowed. */

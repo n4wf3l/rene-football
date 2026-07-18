@@ -120,6 +120,10 @@ class Player extends Model
         'scout_summary',
         'source_label',
         'reliability_score',
+        // Data provenance - who / what / when populated the numeric stats.
+        'stats_source',
+        'stats_updated_at',
+        'stats_reliability',
     ];
 
     protected function casts(): array
@@ -165,6 +169,8 @@ class Player extends Model
             'score_global'      => 'float',
             'completeness_pct'  => 'integer',
             'reliability_score' => 'integer',
+            'stats_updated_at'  => 'datetime',
+            'stats_reliability' => 'integer',
         ];
     }
 

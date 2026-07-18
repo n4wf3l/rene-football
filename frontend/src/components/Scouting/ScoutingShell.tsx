@@ -1,8 +1,9 @@
-import { lazy, Suspense, useMemo } from 'react'
+import { lazy, Suspense, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import type { Icon as PhosphorIcon } from '@phosphor-icons/react'
 import {
   Binoculars,
+  Briefcase,
   ChartLineUp,
   ChartPie,
   Clipboard,
@@ -15,6 +16,8 @@ import {
   VideoCamera,
 } from '@phosphor-icons/react'
 import Skeleton from '../Skeleton'
+import TutorialModal, { TutorialTrigger } from '../TutorialModal'
+import { scoutingTutorialSteps } from '../tutorials/scoutingTutorial'
 import { SCOUTING_VIEWS, type ScoutingView } from '../../types/scouting'
 
 /* Each view is lazily imported so the initial /admin/scouting payload stays small. */
@@ -27,6 +30,7 @@ const ShortlistsView  = lazy(() => import('./views/ShortlistsView'))
 const NeedsView       = lazy(() => import('./views/NeedsView'))
 const VideosView      = lazy(() => import('./views/VideosView'))
 const IntelligenceView= lazy(() => import('./views/IntelligenceView'))
+const PersoView       = lazy(() => import('./views/PersoView'))
 
 /* Lazy drawers - only loaded when the matching query param is present. */
 const PlayerDrawer    = lazy(() => import('./drawers/PlayerDrawer'))
@@ -50,6 +54,9 @@ const SIDEBAR: SidebarItem[] = [
   { view: 'needs',        label: 'Besoins',             icon: Target },
   { view: 'videos',       label: 'Vidéos',              icon: VideoCamera },
   { view: 'intelligence', label: 'Intelligence',        icon: ChartLineUp },
+  // "Boîte perso" - scout's private workspace, separated from the shared
+  // Rene items above by the small heading in the sidebar. See PersoView.
+  { view: 'perso',        label: 'Boîte perso',         icon: Briefcase },
 ]
 
 const VIEW_LABELS: Record<ScoutingView, { title: string; subtitle: string }> = {
@@ -62,6 +69,7 @@ const VIEW_LABELS: Record<ScoutingView, { title: string; subtitle: string }> = {
   needs:        { title: 'Besoins de recrutement',     subtitle: 'Postes ouverts, budgets et couverture des profils.' },
   videos:       { title: 'Vidéos & clips',             subtitle: 'Annotations et preuves vidéo des joueurs.' },
   intelligence: { title: 'Intelligence',               subtitle: 'Alertes proactives : dossiers à risque, opportunités, retards.' },
+  perso:        { title: 'Boîte perso',                subtitle: 'Votre espace scout privé — pour votre travail en parallèle chez un client externe. Invisible pour Rene Football.' },
 }
 
 function isValidView(v: string | null | undefined): v is ScoutingView {
@@ -75,6 +83,8 @@ function ScoutingShell() {
   const reportId = params.get('report')
   const missionId = params.get('mission')
   const needSlug = params.get('need')
+  // Undefined = auto (respect localStorage). true/false = manual open/close.
+  const [tutorialOpen, setTutorialOpen] = useState<boolean | undefined>(undefined)
 
   const goTo = (next: ScoutingView) => {
     const sp = new URLSearchParams(params)
@@ -103,6 +113,7 @@ function ScoutingShell() {
       case 'needs':        return <NeedsView />
       case 'videos':       return <VideosView />
       case 'intelligence': return <IntelligenceView />
+      case 'perso':        return <PersoView />
     }
   }, [view])
 
@@ -125,21 +136,34 @@ function ScoutingShell() {
           </div>
           {SIDEBAR.map((item) => {
             const active = view === item.view
+            // Small divider + heading before the "Boîte perso" entry to
+            // visually separate the shared Rene items from the scout's own
+            // private workspace.
+            const isPersoBoundary = item.view === 'perso'
             return (
-              <button
-                key={item.view}
-                type="button"
-                onClick={() => goTo(item.view)}
-                className={`group relative flex items-center gap-3 w-full px-3 py-2 rounded-xl text-sm transition-colors duration-200 ${
-                  active
-                    ? 'bg-stone-200/70 text-zinc-950 dark:bg-stone-50/10 dark:text-stone-50'
-                    : 'text-zinc-600 hover:bg-stone-200/40 hover:text-zinc-950 dark:text-stone-400 dark:hover:bg-stone-50/5 dark:hover:text-stone-100'
-                }`}
-              >
-                {active && <span className="absolute inset-y-2 left-0 w-0.5 rounded-full bg-turf-700 dark:bg-turf-300" />}
-                <item.icon size={16} weight={active ? 'duotone' : 'regular'} className={active ? 'text-turf-700 dark:text-turf-300' : ''} />
-                <span>{item.label}</span>
-              </button>
+              <div key={item.view}>
+                {isPersoBoundary && (
+                  <div className="mt-4 mb-2 pt-3 border-t border-stone-200 dark:border-stone-50/10">
+                    <div className="px-3 text-[0.6rem] font-mono uppercase tracking-[0.2em] text-zinc-400 dark:text-stone-500">
+                      Espace privé
+                    </div>
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={() => goTo(item.view)}
+                  data-tour={`scout-tab-${item.view}`}
+                  className={`group relative flex items-center gap-3 w-full px-3 py-2 rounded-xl text-sm transition-colors duration-200 ${
+                    active
+                      ? 'bg-stone-200/70 text-zinc-950 dark:bg-stone-50/10 dark:text-stone-50'
+                      : 'text-zinc-600 hover:bg-stone-200/40 hover:text-zinc-950 dark:text-stone-400 dark:hover:bg-stone-50/5 dark:hover:text-stone-100'
+                  }`}
+                >
+                  {active && <span className="absolute inset-y-2 left-0 w-0.5 rounded-full bg-turf-700 dark:bg-turf-300" />}
+                  <item.icon size={16} weight={active ? 'duotone' : 'regular'} className={active ? 'text-turf-700 dark:text-turf-300' : ''} />
+                  <span>{item.label}</span>
+                </button>
+              </div>
             )
           })}
         </nav>
@@ -156,6 +180,7 @@ function ScoutingShell() {
                   key={item.view}
                   type="button"
                   onClick={() => goTo(item.view)}
+                  data-tour={`scout-tab-mobile-${item.view}`}
                   className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap ${
                     active
                       ? 'bg-zinc-950 text-stone-50 dark:bg-stone-50 dark:text-zinc-950'
@@ -171,11 +196,16 @@ function ScoutingShell() {
         </div>
 
         <header className="px-6 lg:px-10 pt-8 pb-5 border-b border-stone-200 dark:border-stone-50/10 bg-white/70 dark:bg-zinc-950">
-          <span className="eyebrow">Scouting</span>
-          <h1 className="mt-1 font-display font-semibold text-2xl lg:text-3xl tracking-tight text-zinc-950 dark:text-stone-50">
-            {labels.title}
-          </h1>
-          <p className="mt-1 text-sm text-zinc-600 dark:text-stone-400 max-w-2xl">{labels.subtitle}</p>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0">
+              <span className="eyebrow">Scouting</span>
+              <h1 className="mt-1 font-display font-semibold text-2xl lg:text-3xl tracking-tight text-zinc-950 dark:text-stone-50">
+                {labels.title}
+              </h1>
+              <p className="mt-1 text-sm text-zinc-600 dark:text-stone-400 max-w-2xl">{labels.subtitle}</p>
+            </div>
+            <TutorialTrigger onClick={() => setTutorialOpen(true)} />
+          </div>
         </header>
 
         <section className="flex-1 px-6 lg:px-10 py-8">
@@ -192,6 +222,15 @@ function ScoutingShell() {
         {missionId && <MissionDrawer id={Number(missionId)} onClose={closeDrawer} />}
         {needSlug && <NeedDrawer slug={needSlug} onClose={closeDrawer} />}
       </Suspense>
+
+      <TutorialModal
+        storageKey="scouting"
+        eyebrow="Scouting"
+        title="Prise en main du cockpit"
+        steps={scoutingTutorialSteps(goTo)}
+        open={tutorialOpen}
+        onClose={() => setTutorialOpen(false)}
+      />
     </div>
   )
 }

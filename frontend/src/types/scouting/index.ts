@@ -359,5 +359,55 @@ export const REPORT_RECOMMENDATION_LABEL: Record<ReportRecommendation, string> =
 export const SCOUTING_VIEWS = [
   'dashboard', 'players', 'matches', 'reports', 'missions',
   'shortlists', 'needs', 'videos', 'intelligence',
+  // Personal workspace ("boîte perso") - Option B. Isolated from
+  // Rene's shared data; the scout uses it for their own external
+  // client (FC X etc.).
+  'perso',
 ] as const
 export type ScoutingView = typeof SCOUTING_VIEWS[number]
+
+/** Personal (per-scout) workspace payload. `name` is null by default; the
+ *  UI substitutes the "Ma boîte perso" label. The scout can rename it to
+ *  their external client's name at any time. */
+export interface ScoutWorkspace {
+  id: number
+  owner_user_id: number
+  name: string | null
+  prospect_count: number
+  created_at: string
+  updated_at: string
+}
+
+/** One prospect tracked by a scout in their personal workspace. Deliberately
+ *  a *different* shape from Player so the two datasets stay separate — a
+ *  prospect never ends up in Rene's shared roster unless explicitly promoted. */
+export interface ScoutProspect {
+  id: number
+  workspace_id: number
+  name: string
+  age: number | null
+  position: string | null
+  category: string | null
+  club: string | null
+  nationality: string | null
+  preferred_foot: string | null
+  height: string | null
+  since: number | null
+  photo_url: string | null
+  notes: string | null
+  strengths: string | null
+  weaknesses: string | null
+  rating: number | null
+  potential_rating: number | null
+  recommendation: string | null
+  status: string | null
+  next_action: string | null
+  matches_played: number | null
+  goals: number | null
+  assists: number | null
+  xg: number | null
+  xa: number | null
+  minutes_played: number | null
+  created_at: string
+  updated_at: string
+}

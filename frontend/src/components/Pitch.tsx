@@ -10,11 +10,37 @@ const FH = VH - 2 * PAD
 const CW = FW / COLS
 const CH = FH / ROWS
 
-/** Continuous green fill - opacity scales with intensity. Stays in the turf family. */
+/**
+ * Standard football heatmap ramp (yellow → orange → red → deep red).
+ * Uses a warm palette on top of the green pitch so intensity levels are
+ * legible at a glance instead of being lost in turf-on-turf tints. Mirrors
+ * the ramp used server-side in the PDF renderer so the on-screen preview
+ * and the exported document look consistent.
+ */
 function intensityFill(v: number): string {
   if (v <= 0) return 'transparent'
-  const opacity = 0.10 + (v / 100) * 0.78
-  return `rgba(15, 81, 50, ${opacity.toFixed(3)})`
+  const stops: Array<[number, number, number, number]> = [
+    [0,   250, 204,  21],   // #facc15  yellow
+    [33,  249, 115,  22],   // #f97316  orange
+    [66,  239,  68,  68],   // #ef4444  red
+    [100, 190,  18,  60],   // #be123c  deep red
+  ]
+  const clamped = Math.max(0, Math.min(100, v))
+  let [r, g, b] = [stops[stops.length - 1][1], stops[stops.length - 1][2], stops[stops.length - 1][3]]
+  for (let i = 0; i < stops.length - 1; i++) {
+    const [t0, r0, g0, b0] = stops[i]
+    const [t1, r1, g1, b1] = stops[i + 1]
+    if (clamped >= t0 && clamped <= t1) {
+      const k = t1 === t0 ? 0 : (clamped - t0) / (t1 - t0)
+      r = Math.round(r0 + (r1 - r0) * k)
+      g = Math.round(g0 + (g1 - g0) * k)
+      b = Math.round(b0 + (b1 - b0) * k)
+      break
+    }
+  }
+  // Opacity ramps too so low-intensity cells stay subtle even when warm.
+  const opacity = 0.30 + (clamped / 100) * 0.60
+  return `rgba(${r}, ${g}, ${b}, ${opacity.toFixed(3)})`
 }
 
 /* ---- Pitch lines (own + opponent halves identical, mirrored). ---- */
@@ -158,7 +184,7 @@ function Pitch({ grid, mode = 'view', position, slug, onChange, hideToolbar = fa
                 <span
                   aria-hidden
                   className="w-2.5 h-2.5 rounded-sm"
-                  style={{ background: intensityFill(lvl.value), border: '1px solid rgba(15,81,50,0.3)' }}
+                  style={{ background: intensityFill(lvl.value), border: '1px solid rgba(0,0,0,0.2)' }}
                 />
               )}
               {lvl.label}
@@ -287,7 +313,7 @@ function Pitch({ grid, mode = 'view', position, slug, onChange, hideToolbar = fa
             className="flex-1 h-1.5 rounded-full"
             style={{
               background:
-                'linear-gradient(90deg, rgba(15,81,50,0.10), rgba(15,81,50,0.40), rgba(15,81,50,0.70), rgba(15,81,50,0.95))',
+                'linear-gradient(90deg, rgba(250,204,21,0.9), rgba(249,115,22,0.9), rgba(239,68,68,0.95), rgba(190,18,60,1))',
             }}
           />
           <span>Élevée</span>

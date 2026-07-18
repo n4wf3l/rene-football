@@ -17,6 +17,11 @@ export interface PlayerRadarProps {
   size?: number
   /** Show a faint comparison label (default true when 2+ players). */
   showLegend?: boolean
+  /** Optional benchmark overlay. Keys must match axis.key. Values are the
+   *  reference (e.g. elite) value for that axis, normalised the same way
+   *  as the player polygons - drawn as a dashed silhouette so the reader
+   *  can eyeball "elite = the dashed shape". */
+  benchmark?: { label?: string; values: Partial<Record<keyof Player, number>> } | null
 }
 
 /* ---- Per-category axes - six dimensions that matter for the position. ---- */
@@ -85,6 +90,7 @@ export default function PlayerRadar({
   axes,
   size = 320,
   showLegend = true,
+  benchmark = null,
 }: PlayerRadarProps) {
   if (!players.length) return null
 
@@ -115,6 +121,21 @@ export default function PlayerRadar({
         return `${x.toFixed(2)},${y.toFixed(2)}`
       })
       .join(' ')
+
+  // Same normalization for the benchmark overlay. Values missing from the
+  // benchmark map default to 0 so the silhouette contracts on that axis
+  // instead of vanishing.
+  const benchmarkPolygon = benchmark
+    ? effectiveAxes
+        .map((axis, i) => {
+          const raw  = benchmark.values[axis.key]
+          const val  = typeof raw === 'number' ? raw : 0
+          const norm = Math.max(0, Math.min(1, val / axis.max))
+          const [x, y] = pointFor(norm, i)
+          return `${x.toFixed(2)},${y.toFixed(2)}`
+        })
+        .join(' ')
+    : null
 
   const playersToRender = players.slice(0, 4)
 
@@ -160,6 +181,20 @@ export default function PlayerRadar({
             />
           )
         })}
+
+        {/* Benchmark silhouette (drawn under the player polygons so it reads
+            as a subtle reference target). Uses a stroke-dash so it's clearly
+            differentiated from a "real" player polygon in the same view. */}
+        {benchmarkPolygon && (
+          <polygon
+            points={benchmarkPolygon}
+            fill="rgba(148,163,184,0.10)"
+            stroke="rgba(148,163,184,0.85)"
+            strokeWidth={1.5}
+            strokeDasharray="4 3"
+            strokeLinejoin="round"
+          />
+        )}
 
         {/* Player polygons (back-to-front so the first player sits on top) */}
         {[...playersToRender].reverse().map((player, idxRev) => {
@@ -212,6 +247,14 @@ export default function PlayerRadar({
               <span className="font-medium">{p.name}</span>
             </li>
           ))}
+          {benchmark && (
+            <li className="inline-flex items-center gap-2 text-zinc-500 dark:text-stone-400">
+              <svg width="14" height="8" aria-hidden="true">
+                <line x1="0" y1="4" x2="14" y2="4" stroke="currentColor" strokeWidth="1.5" strokeDasharray="4 3" />
+              </svg>
+              <span className="font-medium italic">{benchmark.label ?? 'Référence elite'}</span>
+            </li>
+          )}
         </ul>
       )}
     </div>

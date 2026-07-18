@@ -4,10 +4,16 @@ namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Player;
+use App\Services\Analysis\AppearancesImport;
+use App\Services\Analysis\PlayerAnalysisReport;
+use App\Services\Analysis\PlayersStatsImport;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class AdminPlayerController extends Controller
 {
@@ -15,6 +21,110 @@ class AdminPlayerController extends Controller
     {
         return response()->json([
             'data' => Player::query()->orderBy('name')->get(),
+        ]);
+    }
+
+    /**
+     * Bulk-import numeric stats from a CSV. See PlayersStatsImport::WRITABLE
+     * for the accepted columns. Header row must include `slug` (preferred)
+     * or `name`. Blank cells leave existing values untouched.
+     *
+     * Body:
+     *   file          (required) CSV upload, up to 2 MB
+     *   source        (optional) provenance label, default 'csv'
+     *   reliability   (optional) 1-5 self-declared reliability, default 4
+     */
+    public function importStats(Request $request, PlayersStatsImport $importer): JsonResponse
+    {
+        $request->validate([
+            'file'        => ['required', 'file', 'mimes:csv,txt,xlsx,xls,ods', 'max:4096'],
+            'source'      => ['nullable', 'string', 'max:40'],
+            'reliability' => ['nullable', 'integer', 'min:1', 'max:5'],
+        ]);
+
+        $file = $request->file('file');
+        $ext  = strtolower((string) ($file->getClientOriginalExtension() ?: $file->guessExtension() ?: 'csv'));
+        $source      = (string) $request->input('source', 'csv');
+        $reliability = (int) $request->input('reliability', 4);
+
+        // Spreadsheet formats go through PhpSpreadsheet, everything else is
+        // treated as CSV (which handles our template + generic exports).
+        if (in_array($ext, ['xlsx', 'xls', 'ods'], true)) {
+            $result = $importer->applyXlsx($file->getRealPath(), $source, $reliability);
+        } else {
+            $csv = (string) file_get_contents($file->getRealPath());
+            $result = $importer->apply($csv, $source, $reliability);
+        }
+
+        return response()->json(['data' => $result]);
+    }
+
+    /**
+     * Bulk-import match appearances. Same UX contract as importStats but
+     * writes into the `appearances` table so the Évolution tab has data to
+     * plot. Payload validation intentionally lax: the service does the
+     * heavy per-row checks and returns a diff the UI can render.
+     */
+    public function importAppearances(Request $request, AppearancesImport $importer): JsonResponse
+    {
+        $request->validate([
+            'file' => ['required', 'file', 'mimes:csv,txt,xlsx,xls,ods', 'max:8192'],
+        ]);
+        $file = $request->file('file');
+        $ext  = strtolower((string) ($file->getClientOriginalExtension() ?: $file->guessExtension() ?: 'csv'));
+        $result = in_array($ext, ['xlsx', 'xls', 'ods'], true)
+            ? $importer->applyXlsx($file->getRealPath())
+            : $importer->applyCsv((string) file_get_contents($file->getRealPath()));
+        return response()->json(['data' => $result]);
+    }
+
+    /**
+     * Blank appearances CSV template with the roster's slug + name pre-filled
+     * so the admin can copy their Wyscout/club export column by column.
+     */
+    public function appearancesTemplate(): Response
+    {
+        $cols = ['slug', 'name', 'date', 'competition', 'opponent', 'home', 'score_team', 'score_opponent',
+            'minutes', 'goals', 'assists', 'shots', 'shots_on_target', 'yellow_card', 'red_card', 'rating', 'notes'];
+        $csv = implode(',', $cols)."\n";
+        foreach (Player::query()->orderBy('name')->get(['slug', 'name']) as $p) {
+            $csv .= '"'.str_replace('"', '""', $p->slug).'","'.str_replace('"', '""', $p->name).'"'
+                .str_repeat(',', count($cols) - 2)."\n";
+        }
+        return response($csv, 200, [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="rene-football-appearances-template.csv"',
+        ]);
+    }
+
+    /**
+     * Internal analysis dossier PDF for a single player. Dense, sober,
+     * data-first — meant for staff meetings / archives, not to be sent to
+     * clubs (use the marketing Presentation PDF for that).
+     */
+    public function analysisReport(Player $player, PlayerAnalysisReport $report): SymfonyResponse
+    {
+        $html = $report->render($player);
+        $pdf  = Pdf::loadHTML($html)->setPaper('a4', 'portrait');
+        return $pdf->stream('analyse-'.$player->slug.'.pdf');
+    }
+
+    /**
+     * Empty CSV template with all supported columns + the current roster
+     * pre-filled (slug + name) so the admin can just fill in the numbers
+     * from an Excel export.
+     */
+    public function statsTemplate(): Response
+    {
+        $cols = array_merge(['slug', 'name'], PlayersStatsImport::WRITABLE);
+        $csv  = implode(',', $cols)."\n";
+        foreach (Player::query()->orderBy('name')->get(['slug', 'name']) as $p) {
+            $csv .= '"'.str_replace('"', '""', $p->slug).'","'.str_replace('"', '""', $p->name).'"'
+                .str_repeat(',', count(PlayersStatsImport::WRITABLE))."\n";
+        }
+        return response($csv, 200, [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="rene-football-stats-template.csv"',
         ]);
     }
 

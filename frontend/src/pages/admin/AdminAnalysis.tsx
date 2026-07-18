@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { Icon as PhosphorIcon } from '@phosphor-icons/react'
 import {
@@ -23,9 +23,12 @@ import {
   ChartLine,
   ChartScatter,
   CheckCircle,
+  Copy,
   DownloadSimple,
   Eye,
   FilmSlate,
+  Gauge,
+  Image as ImageIcon,
   PencilSimpleLine,
   SoccerBall as PitchIcon,
   UsersThree,
@@ -41,6 +44,9 @@ import Skeleton from '../../components/Skeleton'
 import PlayerRadar from '../../components/PlayerRadar'
 import PlayerComparisonTable from '../../components/PlayerComparisonTable'
 import PlayerMultiSelect from '../../components/PlayerMultiSelect'
+import BenchmarkView from '../../components/BenchmarkView'
+import TutorialModal, { TutorialTrigger } from '../../components/TutorialModal'
+import { analysisTutorialSteps } from '../../components/tutorials/analysisTutorial'
 import PlayerSingleSelect from '../../components/PlayerSingleSelect'
 import ClipsGalleryAdmin from '../../components/ClipsGalleryAdmin'
 import { type HeatmapGrid, heatmapFromPosition, isValidGrid } from '../../lib/heatmap'
@@ -200,7 +206,7 @@ interface ChartRow {
   outlier?: boolean
 }
 
-type ViewKind = 'chart' | 'pitch' | 'compare' | 'clips' | 'evolution'
+type ViewKind = 'chart' | 'pitch' | 'compare' | 'clips' | 'evolution' | 'benchmark'
 
 /** Format a numeric value applying the per-90 transformation when applicable.
  *  Returns 0 (rather than NaN) for players without minutes - avoids ugly chart points. */
@@ -242,6 +248,9 @@ function AdminAnalysis() {
   const [comparisonSlugs, setComparisonSlugs] = useState<string[]>([])
   const [clipsTargetSlug, setClipsTargetSlug] = useState<string | null>(null)
   const [evolutionSlug, setEvolutionSlug] = useState<string | null>(null)
+  const [benchmarkSlug, setBenchmarkSlug] = useState<string | null>(null)
+  // Undefined = auto (respect localStorage). true/false = manual open/close.
+  const [tutorialOpen, setTutorialOpen] = useState<boolean | undefined>(undefined)
   const [chartType, setChartType] = useState<ChartTypeKey>('scatter')
   const [xKey, setXKey] = useState<string>('age')
   const [yKey, setYKey] = useState<string>('goals')
@@ -467,6 +476,7 @@ function AdminAnalysis() {
           <h1 className="mt-2 font-display font-semibold text-3xl lg:text-4xl tracking-tight text-zinc-950 dark:text-stone-50">
             {view === 'chart' ? 'Builder de graphiques'
               : view === 'evolution' ? 'Évolution match par match'
+              : view === 'benchmark' ? 'Benchmark position × âge'
               : view === 'pitch' ? 'Heatmap terrain'
               : view === 'compare' ? 'Comparaison de joueurs'
               : 'Moments clés annotés'}
@@ -476,6 +486,8 @@ function AdminAnalysis() {
               ? "Croisez n'importe quelles métriques de votre roster. Bascule par 90 minutes, métriques scouting et étiquetage automatique des outliers."
               : view === 'evolution'
               ? 'Visualisez la dynamique d’un joueur match par match : note, buts, xG, minutes - avec moyenne glissante 5 matchs.'
+              : view === 'benchmark'
+              ? "Comparez le joueur au profil de référence de son poste et de sa tranche d'âge : moyenne européenne + jalon elite. Utile pour savoir si un chiffre est réellement bon."
               : view === 'pitch'
               ? 'Visualisez et comparez les zones d’activité des joueurs sur un terrain. Activez l’édition pour peindre la carte cellule par cellule, ou régénérez-la depuis le poste.'
               : view === 'compare'
@@ -483,23 +495,36 @@ function AdminAnalysis() {
               : 'Importez une vidéo locale, mettez-la en pause sur un instant clé, dessinez vos annotations et stockez uniquement la frame finale. Les vidéos sources ne sont jamais envoyées au serveur.'}
           </p>
         </div>
-        {view === 'chart' && (
-          <button
-            type="button"
-            onClick={exportCsv}
-            disabled={!chartData.length}
-            className="btn btn-outline text-sm disabled:opacity-50"
-          >
-            <DownloadSimple size={14} weight="bold" /> Exporter CSV
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          <TutorialTrigger onClick={() => setTutorialOpen(true)} />
+          {view === 'chart' && (
+            <button
+              type="button"
+              onClick={exportCsv}
+              disabled={!chartData.length}
+              className="btn btn-outline text-sm disabled:opacity-50"
+            >
+              <DownloadSimple size={14} weight="bold" /> Exporter CSV
+            </button>
+          )}
+        </div>
       </div>
+
+      <TutorialModal
+        storageKey="analysis"
+        eyebrow="Data Analyse"
+        title="Prise en main de la page"
+        steps={analysisTutorialSteps(setView)}
+        open={tutorialOpen}
+        onClose={() => setTutorialOpen(false)}
+      />
 
       {/* View switch - graphiques vs terrain. */}
       <div className="inline-flex items-center gap-1 mb-8 rounded-full border border-stone-300 dark:border-stone-50/15 bg-white dark:bg-zinc-900 p-1 shadow-diffusion">
         {([
           { key: 'chart' as const,     label: 'Graphiques',   Icon: ChartBar },
           { key: 'evolution' as const, label: 'Évolution',    Icon: ChartLine },
+          { key: 'benchmark' as const, label: 'Benchmark',    Icon: Gauge },
           { key: 'pitch' as const,     label: 'Terrain',      Icon: PitchIcon },
           { key: 'compare' as const,   label: 'Comparaison',  Icon: UsersThree },
           { key: 'clips' as const,     label: 'Moments clés', Icon: FilmSlate },
@@ -510,6 +535,7 @@ function AdminAnalysis() {
               key={key}
               type="button"
               onClick={() => setView(key)}
+              data-tour={`analysis-tab-${key}`}
               className={`relative inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium transition-colors duration-200 ease-premium ${
                 active
                   ? 'text-stone-50 dark:text-zinc-950'
@@ -567,6 +593,12 @@ function AdminAnalysis() {
           players={players}
           selectedSlug={evolutionSlug}
           onChangeSlug={setEvolutionSlug}
+        />
+      ) : view === 'benchmark' ? (
+        <BenchmarkView
+          players={players}
+          selectedSlug={benchmarkSlug}
+          onChangeSlug={setBenchmarkSlug}
         />
       ) : view === 'pitch' ? (
         <HeatmapView players={players} onPlayerSaved={updatePlayerLocal} />
@@ -1246,6 +1278,126 @@ function ComparisonView({ players, selectedSlugs, onChangeSlugs }: ComparisonVie
     [selectedSlugs, players],
   )
 
+  /* Wrap radar in a div ref so we can grab the SVG and rasterize it for
+     the PNG export (copy-to-clipboard + download). */
+  const radarWrapRef = useRef<HTMLDivElement>(null)
+  const [pngToast, setPngToast] = useState<string | null>(null)
+
+  /* Benchmark silhouette for the radar: pulled from the first selected
+     player's (category × age tier) profile. Non-blocking - the radar renders
+     without the overlay while the fetch is in flight or fails. */
+  const anchor = selectedPlayers[0] ?? null
+  const [benchmark, setBenchmark] = useState<{ label: string; values: Record<string, number> } | null>(null)
+  useEffect(() => {
+    if (!anchor) { setBenchmark(null); return }
+    let cancelled = false
+    const TIER_LABEL: Record<string, string> = {
+      u18: 'Elite U18', u21: 'Elite U21', young: 'Elite jeune (21-25)', prime: 'Elite prime (26-30)', vet: 'Elite vétéran',
+    }
+    api.get<{ data: { age_tier: string; metrics: Record<string, { elite: number }> } }>(
+      `/admin/analysis/benchmark/${anchor.slug}`, { auth: true },
+    )
+      .then((res) => {
+        if (cancelled) return
+        const values: Record<string, number> = {}
+        for (const [k, v] of Object.entries(res.data.metrics)) values[k] = v.elite
+        setBenchmark({
+          label: `${TIER_LABEL[res.data.age_tier] ?? res.data.age_tier} · ${anchor.category ?? ''}`.trim(),
+          values,
+        })
+      })
+      .catch(() => { if (!cancelled) setBenchmark(null) })
+    return () => { cancelled = true }
+  }, [anchor?.slug])
+
+  /**
+   * Rasterize the radar SVG to PNG. We clone the DOM element, hardcode
+   * `color` (so currentColor-based grid lines / axis labels resolve to a
+   * visible tone off-DOM), draw onto a canvas at 2× density, then either
+   * copy the PNG to the clipboard (preferred) or trigger a download.
+   *
+   * `action` controls the final step so we can bind both buttons to the
+   * same pipeline without duplicating the render code.
+   */
+  const rasterizeRadar = async (action: 'copy' | 'download'): Promise<void> => {
+    const svg = radarWrapRef.current?.querySelector('svg')
+    if (!svg) return
+    const cw = svg.clientWidth  || svg.viewBox.baseVal.width  || 420
+    const ch = svg.clientHeight || svg.viewBox.baseVal.height || 420
+
+    const clone = svg.cloneNode(true) as SVGSVGElement
+    clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    // Anchor currentColor on a mid-dark tone that reads on either a light
+    // or dark exported background.
+    clone.style.color = '#1f2937'
+
+    const xml = new XMLSerializer().serializeToString(clone)
+    const svgBlob = new Blob([xml], { type: 'image/svg+xml;charset=utf-8' })
+    const url = URL.createObjectURL(svgBlob)
+
+    await new Promise<void>((resolve, reject) => {
+      const img = new Image()
+      img.onload = async () => {
+        try {
+          const scale = 2
+          const canvas = document.createElement('canvas')
+          canvas.width  = cw * scale
+          canvas.height = ch * scale
+          const ctx = canvas.getContext('2d')
+          if (!ctx) throw new Error('no canvas ctx')
+          ctx.fillStyle = '#ffffff'
+          ctx.fillRect(0, 0, canvas.width, canvas.height)
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+
+          const blob: Blob = await new Promise((res, rej) =>
+            canvas.toBlob((b) => b ? res(b) : rej(new Error('no blob')), 'image/png'),
+          )
+          const filename = 'radar-' + selectedPlayers.map((p) => p.slug).join('-') + '.png'
+
+          if (action === 'copy') {
+            try {
+              // Feature-detect the async Clipboard write path; older browsers
+              // (or non-HTTPS local IPs) drop straight to the download branch.
+              const ClipboardItemCtor = (window as unknown as { ClipboardItem?: typeof ClipboardItem }).ClipboardItem
+              if (ClipboardItemCtor && navigator.clipboard?.write) {
+                await navigator.clipboard.write([new ClipboardItemCtor({ 'image/png': blob })])
+                setPngToast('Radar copié dans le presse-papiers.')
+              } else {
+                throw new Error('clipboard unavailable')
+              }
+            } catch {
+              // Fallback to download so the user still gets the image.
+              const dlUrl = URL.createObjectURL(blob)
+              const a = document.createElement('a')
+              a.href = dlUrl; a.download = filename
+              document.body.appendChild(a); a.click(); document.body.removeChild(a)
+              setTimeout(() => URL.revokeObjectURL(dlUrl), 10_000)
+              setPngToast('Radar téléchargé (presse-papiers indisponible).')
+            }
+          } else {
+            const dlUrl = URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = dlUrl; a.download = filename
+            document.body.appendChild(a); a.click(); document.body.removeChild(a)
+            setTimeout(() => URL.revokeObjectURL(dlUrl), 10_000)
+            setPngToast('Radar téléchargé.')
+          }
+          setTimeout(() => setPngToast(null), 3200)
+          resolve()
+        } catch (e) {
+          reject(e)
+        } finally {
+          URL.revokeObjectURL(url)
+        }
+      }
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('svg load failed')) }
+      img.src = url
+    }).catch(() => {
+      setPngToast('Export du radar impossible.')
+      setTimeout(() => setPngToast(null), 3200)
+    })
+  }
+
   /* Exports the selected players' headline metrics as CSV.
      Mirrors the columns shown in the comparison table so the file is a 1:1
      printable version of the on-screen view. */
@@ -1318,18 +1470,50 @@ function ComparisonView({ players, selectedSlugs, onChangeSlugs }: ComparisonVie
           {/* Radar + headline metrics side-by-side */}
           <section className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_360px] gap-6">
             <div className="rounded-2xl bg-white border border-stone-200 dark:bg-zinc-900 dark:border-stone-50/10 p-6">
-              <div className="font-mono uppercase tracking-[0.18em] text-[0.65rem] text-zinc-500 dark:text-stone-400 mb-2">
-                Radar
+              <div className="flex items-start justify-between gap-3 mb-2">
+                <div>
+                  <div className="font-mono uppercase tracking-[0.18em] text-[0.65rem] text-zinc-500 dark:text-stone-400">
+                    Radar
+                  </div>
+                  <h3 className="font-display font-medium text-lg text-zinc-950 dark:text-stone-50 mt-0.5">
+                    Empreinte statistique
+                  </h3>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => rasterizeRadar('copy')}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[0.7rem] font-medium border border-stone-300 dark:border-stone-50/15 bg-white dark:bg-zinc-900 hover:bg-stone-100 dark:hover:bg-stone-50/5 transition"
+                    title="Copier le radar en PNG dans le presse-papiers"
+                  >
+                    <Copy size={12} weight="bold" /> Copier
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => rasterizeRadar('download')}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[0.7rem] font-medium border border-stone-300 dark:border-stone-50/15 bg-white dark:bg-zinc-900 hover:bg-stone-100 dark:hover:bg-stone-50/5 transition"
+                    title="Télécharger le radar en PNG"
+                  >
+                    <ImageIcon size={12} weight="bold" /> PNG
+                  </button>
+                </div>
               </div>
-              <h3 className="font-display font-medium text-lg text-zinc-950 dark:text-stone-50 mb-4">
-                Empreinte statistique
-              </h3>
-              <div className="flex justify-center">
-                <PlayerRadar players={selectedPlayers} size={420} />
+              <div ref={radarWrapRef} className="flex justify-center">
+                <PlayerRadar
+                  players={selectedPlayers}
+                  size={420}
+                  benchmark={benchmark ? { label: benchmark.label, values: benchmark.values as never } : null}
+                />
               </div>
               <p className="mt-4 text-[0.7rem] text-zinc-500 dark:text-stone-500 text-center">
                 Axes choisis selon le poste de <span className="font-medium">{selectedPlayers[0].name}</span> ({selectedPlayers[0].category}).
+                {benchmark && ' La silhouette pointillée représente le profil elite de référence.'}
               </p>
+              {pngToast && (
+                <div className="mt-3 text-center text-[0.7rem] font-medium text-turf-700 dark:text-turf-300">
+                  {pngToast}
+                </div>
+              )}
             </div>
 
             {/* Quick KPIs */}
