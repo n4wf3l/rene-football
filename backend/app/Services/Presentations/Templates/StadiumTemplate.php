@@ -262,7 +262,12 @@ class StadiumTemplate extends PresentationTemplate
 <html lang="{$lang}"><head><meta charset="utf-8"><style>
   @page { margin: 0; }
   body { font-family: {$fontFamily}; color: {$text}; background: {$bg}; margin: 0; padding: 0; font-size: {$ptBody}; {$tracking} }
-  .stage { position: relative; width: 100%; height: 297mm; overflow: hidden;
+  /* .stage was `height: 297mm; overflow: hidden;` which SILENTLY CLIPPED any
+     section that grew beyond its fixed height (long identity table, many
+     comparisons, large font_scale). Switched to `min-height` so the stage
+     still fills the page when data is sparse but grows visibly rather than
+     losing content when full. */
+  .stage { position: relative; width: 100%; min-height: 297mm;
            background:
              radial-gradient(ellipse at 20% 0%, rgba(255,255,255,0.16) 0%, transparent 35%),
              radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.22) 0%, transparent 45%),
@@ -271,9 +276,11 @@ class StadiumTemplate extends PresentationTemplate
              {$bg};
   }
 
-  /* HERO ~120mm (DomPDF ignores box-sizing:border-box so padding stacks on top). */
-  .hero { position: relative; height: 108mm; padding: 8mm 12mm 0 12mm; }
-  .hero-row { display: table; width: 100%; height: 80mm; table-layout: fixed; }
+  /* HERO ~120mm (DomPDF ignores box-sizing:border-box so padding stacks on top).
+     Same min-height swap as .stage: keeps the visual weight of a full hero
+     but avoids clipping when identity rows push past 80mm. */
+  .hero { position: relative; min-height: 108mm; padding: 8mm 12mm 0 12mm; }
+  .hero-row { display: table; width: 100%; min-height: 80mm; table-layout: fixed; }
   .hero-photo { display: table-cell; width: 44%; vertical-align: top; padding-right: 8mm; }
   .hero-photo .frame { position: relative; width: 100%; height: 80mm; border-radius: 2mm; overflow: hidden; }
   .hero-text  { display: table-cell; vertical-align: top; }
@@ -292,8 +299,9 @@ class StadiumTemplate extends PresentationTemplate
   .kpi-val span { font-size: 8pt; opacity: 0.7; margin-left: 1mm; }
   .kpi-lbl { font-size: 5.5pt; letter-spacing: 1.5px; text-transform: uppercase; opacity: 0.75; margin-top: 2mm; }
 
-  /* BAND ~30mm total - strengths */
-  .band { position: relative; height: 22mm; padding: 3mm 12mm;
+  /* BAND ~30mm total - strengths. min-height so extra rows / larger fonts
+     grow the band instead of getting clipped. */
+  .band { position: relative; min-height: 22mm; padding: 3mm 12mm;
           background: rgba(0,0,0,0.4);
           border-top: 2px solid {$accent}; border-bottom: 2px solid {$accent}; }
   .band-title { font-size: 6.5pt; letter-spacing: 4px; color: {$secondary}; margin-bottom: 2mm; }
@@ -304,8 +312,9 @@ class StadiumTemplate extends PresentationTemplate
   .strength-empty { color: rgba(255,255,255,0.5); font-style: italic; font-size: 8pt; text-align: center; padding-top: 6mm; }
 
   /* BOTTOM row ~139mm total - contains the heatmap plus clubs/links column.
-     Grown to soak up the ~47mm buffer that used to sit empty. */
-  .bottom { position: relative; height: 127mm; padding: 6mm 12mm; }
+     min-height so a rich right column (clubs + QR + comparisons + scout) can
+     grow instead of being clipped. */
+  .bottom { position: relative; min-height: 127mm; padding: 6mm 12mm; }
   .bottom-row { display: table; width: 100%; table-layout: fixed; }
   .bottom-left { display: table-cell; width: 55%; vertical-align: top; padding-right: 6mm; }
   .bottom-right { display: table-cell; vertical-align: top; padding-left: 6mm; border-left: 1px solid rgba(255,255,255,0.1); }
@@ -322,7 +331,9 @@ class StadiumTemplate extends PresentationTemplate
   .quote { font-size: 8.5pt; line-height: 1.55; opacity: 0.9; margin: 0; }
 
   /* FOOTER 10mm */
-  .footer { position: absolute; bottom: 0; left: 0; right: 0; height: 10mm; line-height: 10mm; text-align: center; font-size: 6pt; letter-spacing: 3px; opacity: 0.5; }
+  /* Footer flows naturally at the end of .stage now that sections are
+     min-height'd. Absolute positioning would collide with grown sections. */
+  .footer { padding: 4mm 0; text-align: center; font-size: 6pt; letter-spacing: 3px; opacity: 0.5; }
 </style></head><body>
   <div class="stage">
     <div class="hero">

@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
   CheckCircle,
+  Copy,
   Eye,
   FilePdf,
   PencilSimpleLine,
@@ -90,6 +91,28 @@ export default function AdminPresentations() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.state])
+
+  /** Copy the public landing-page URL to the clipboard. Falls back to a
+   *  textarea select-and-copy on environments without navigator.clipboard
+   *  (older browsers, non-HTTPS local IP access). */
+  const copyPublicLink = async (token: string) => {
+    const url = `${window.location.origin}/p/${token}`
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url)
+      } else {
+        const ta = document.createElement('textarea')
+        ta.value = url
+        ta.style.position = 'fixed'; ta.style.opacity = '0'
+        document.body.appendChild(ta); ta.select()
+        document.execCommand('copy')
+        document.body.removeChild(ta)
+      }
+      showToast('success', 'Lien public copié dans le presse-papiers.')
+    } catch {
+      showToast('error', "Impossible de copier le lien.")
+    }
+  }
 
   const onDelete = async (p: Presentation) => {
     if (!confirm(`Supprimer définitivement la présentation « ${p.title} » ?`)) return
@@ -233,15 +256,25 @@ export default function AdminPresentations() {
                       </a>
                     )}
                     {p.is_published && p.public_token && (
-                      <a
-                        href={`/api/presentations/${p.public_token}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="grid place-items-center w-8 h-8 rounded-lg text-zinc-500 hover:bg-stone-100 hover:text-zinc-900 dark:text-stone-400 dark:hover:bg-stone-50/10 dark:hover:text-stone-50 transition"
-                        title="Lien public"
-                      >
-                        <Eye size={14} weight="bold" />
-                      </a>
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => copyPublicLink(p.public_token!)}
+                          className="grid place-items-center w-8 h-8 rounded-lg text-zinc-500 hover:bg-turf-100 hover:text-turf-800 dark:text-stone-400 dark:hover:bg-turf-300/15 dark:hover:text-turf-300 transition"
+                          title="Copier le lien à envoyer au club"
+                        >
+                          <Copy size={14} weight="bold" />
+                        </button>
+                        <a
+                          href={`/p/${p.public_token}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="grid place-items-center w-8 h-8 rounded-lg text-zinc-500 hover:bg-stone-100 hover:text-zinc-900 dark:text-stone-400 dark:hover:bg-stone-50/10 dark:hover:text-stone-50 transition"
+                          title="Aperçu de ce que le club verra"
+                        >
+                          <Eye size={14} weight="bold" />
+                        </a>
+                      </>
                     )}
                     <button
                       type="button"

@@ -161,7 +161,9 @@ class MagazineTemplate extends PresentationTemplate
   .cell-title { font-size: 7pt; color: {$secondary}; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 3mm; }
   .heatmap { width: 100%; border-collapse: separate; border-spacing: 1mm; }
   .heatmap td { height: 7mm; border-radius: 1mm; background: rgba(255,255,255,0.06); }
-  .quote { font-style: italic; font-size: 10pt; line-height: 1.55; color: {$text}; opacity: 0.92; background: rgba(255,255,255,0.04); padding: 5mm; border-left: 3px solid {$secondary}; border-radius: 0 2mm 2mm 0; margin-top: 5mm; }
+  /* Compressed 10pt->9pt + tighter padding so a full-length bio doesn't
+     stack the body / extras / footer past the page bottom. */
+  .quote { font-style: italic; font-size: 9pt; line-height: 1.45; color: {$text}; opacity: 0.92; background: rgba(255,255,255,0.04); padding: 4mm 5mm; border-left: 3px solid {$secondary}; border-radius: 0 2mm 2mm 0; margin-top: 4mm; }
   .footer { text-align: center; padding: 4mm; font-size: 7pt; letter-spacing: 2px; color: {$text}; opacity: 0.55; }
 </style></head><body>
   <div class="hero">

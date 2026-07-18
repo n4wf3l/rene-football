@@ -44,6 +44,7 @@ Route::get('/staff', [StaffController::class, 'index']);
 
 Route::get('/players/{player:slug}/presentations', [PresentationController::class, 'indexForPlayer']);
 Route::get('/presentations/{token}',               [PresentationController::class, 'show']);
+Route::get('/presentations/{token}/meta',          [PresentationController::class, 'meta']);
 
 Route::post('/contact', [ContactController::class, 'store'])
     ->middleware('throttle:5,1');

@@ -27,8 +27,9 @@ class PresentationController extends Controller
     }
 
     /**
-     * Public PDF download. Uses an unguessable token rather than the primary
-     * key so the URL can be shared without leaking sequence information.
+     * Public PDF stream. Kept lightweight (no HTML wrapper) so the React
+     * landing page at /p/{token} can embed it via <iframe> or trigger a
+     * direct download. The unguessable 40-char token stands in for the id.
      */
     public function show(string $token): StreamedResponse|BinaryFileResponse
     {
@@ -43,6 +44,35 @@ class PresentationController extends Controller
         return Storage::disk('public')->response($relative, 'presentation.pdf', [
             'Content-Type'        => 'application/pdf',
             'Content-Disposition' => 'inline; filename="presentation.pdf"',
+        ]);
+    }
+
+    /**
+     * Public JSON meta for the landing page: player name / club, agent name,
+     * template, generated date. Same visibility rules as the PDF endpoint
+     * (published only). No auth, unguessable token guards enumeration.
+     */
+    public function meta(string $token): JsonResponse
+    {
+        $presentation = Presentation::where('public_token', $token)
+            ->where('is_published', true)
+            ->with(['player:id,slug,name,photo_url,position,club', 'author:id,name'])
+            ->firstOrFail();
+
+        return response()->json([
+            'data' => [
+                'title'         => $presentation->title,
+                'template_key'  => $presentation->template_key,
+                'generated_at'  => $presentation->generated_at,
+                'pdf_url'       => '/api/presentations/'.$presentation->public_token,
+                'player'        => $presentation->player ? [
+                    'name'      => $presentation->player->name,
+                    'position'  => $presentation->player->position,
+                    'club'      => $presentation->player->club,
+                    'photo_url' => $presentation->player->photo_url,
+                ] : null,
+                'agent'         => $presentation->author?->name,
+            ],
         ]);
     }
 }

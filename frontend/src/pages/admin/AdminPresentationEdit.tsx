@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
   CheckCircle,
+  Copy,
   Eye,
   Image as ImageIcon,
   Person,
@@ -1048,14 +1049,58 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
               Publier sur la fiche publique du joueur (sinon, conservé en interne uniquement)
             </span>
           </label>
-          {existing?.is_published && existing.public_token && (
-            <p className="text-xs text-zinc-500 dark:text-stone-400">
-              Lien public actuel :{' '}
-              <a href={`/api/presentations/${existing.public_token}`} target="_blank" rel="noopener noreferrer" className="underline">
-                /api/presentations/{existing.public_token.slice(0, 8)}…
-              </a>
-            </p>
-          )}
+          {existing?.is_published && existing.public_token && (() => {
+            const publicUrl = `${window.location.origin}/p/${existing.public_token}`
+            const copyLink = async () => {
+              try {
+                if (navigator.clipboard?.writeText) {
+                  await navigator.clipboard.writeText(publicUrl)
+                } else {
+                  const ta = document.createElement('textarea')
+                  ta.value = publicUrl
+                  ta.style.position = 'fixed'; ta.style.opacity = '0'
+                  document.body.appendChild(ta); ta.select()
+                  document.execCommand('copy')
+                  document.body.removeChild(ta)
+                }
+                showToast('success', 'Lien public copié.')
+              } catch {
+                showToast('error', 'Impossible de copier le lien.')
+              }
+            }
+            return (
+              <div className="space-y-2">
+                <div className="text-[0.65rem] font-mono uppercase tracking-[0.14em] text-zinc-500 dark:text-stone-400">
+                  Lien à envoyer au club
+                </div>
+                <div className="flex items-center gap-2 rounded-lg border border-stone-300 dark:border-stone-50/15 bg-white dark:bg-zinc-900 px-3 py-2">
+                  <span className="flex-1 text-xs font-mono truncate text-zinc-700 dark:text-stone-300" title={publicUrl}>
+                    {publicUrl}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={copyLink}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-turf-700 text-white hover:bg-turf-800 transition"
+                    title="Copier le lien"
+                  >
+                    <Copy size={12} weight="bold" /> Copier
+                  </button>
+                  <a
+                    href={`/p/${existing.public_token}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border border-stone-300 dark:border-stone-50/15 hover:bg-stone-100 dark:hover:bg-stone-50/5 transition"
+                    title="Ouvrir dans un nouvel onglet"
+                  >
+                    <Eye size={12} weight="bold" /> Voir
+                  </a>
+                </div>
+                <p className="text-[0.65rem] text-zinc-500 dark:text-stone-500">
+                  Le club atterrit sur une page brandée Rene Football avec le PDF intégré + bouton de téléchargement.
+                </p>
+              </div>
+            )
+          })()}
         </section>
 
         {/* SAVE BAR */}

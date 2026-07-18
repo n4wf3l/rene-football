@@ -242,7 +242,9 @@ class SignatureTemplate extends PresentationTemplate
 
   .quote-cell { vertical-align: top; border-left: 3px solid {$accent}; padding-left: 6mm; }
   .quote-mark { font-size: 36pt; line-height: 0.3; color: {$accent}; font-family: 'Times', 'DejaVu Serif', serif; font-weight: 700; }
-  .quote-body { font-size: 11pt; line-height: 1.55; font-style: italic; margin-top: 4mm; color: {$text}; opacity: 0.94; }
+  /* Font compressed 11pt->10pt so a full 350-char bio stays inside the 77mm
+     band without pushing chips + extras + footer off the page. */
+  .quote-body { font-size: 10pt; line-height: 1.5; font-style: italic; margin-top: 4mm; color: {$text}; opacity: 0.94; }
   .quote-src { font-size: 6.5pt; letter-spacing: 2px; text-transform: uppercase; color: {$secondary}; margin-top: 4mm; font-weight: 700; }
 
   /* IDENTITY chips */

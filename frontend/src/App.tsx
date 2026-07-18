@@ -19,6 +19,7 @@ const ContactPage        = lazy(() => import('./pages/ContactPage'))
 const ActualitesPage     = lazy(() => import('./pages/ActualitesPage'))
 const ArticleDetailPage  = lazy(() => import('./pages/ArticleDetailPage'))
 const AProposPage        = lazy(() => import('./pages/AProposPage'))
+const PublicPresentationPage = lazy(() => import('./pages/PublicPresentationPage'))
 
 /* Admin shell + pages: never loaded for public visitors. */
 const AdminLayout    = lazy(() => import('./layouts/AdminLayout'))
@@ -73,6 +74,9 @@ function App() {
                 />
                 <Route path="*" element={<NotFoundPage />} />
               </Route>
+
+              {/* Public presentation landing (no site layout - shareable link for clubs) */}
+              <Route path="/p/:token" element={<PublicPresentationPage />} />
 
               {/* Admin login (no layout) */}
               <Route path="/admin/login" element={<AdminLogin />} />
