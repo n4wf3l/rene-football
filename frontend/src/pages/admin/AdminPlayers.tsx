@@ -1151,11 +1151,21 @@ function AdminPlayers() {
 
       {/* ───── Mini-KPI strip ───── */}
       <div className="flex flex-wrap items-center gap-2 mb-5">
-        <MiniKpi icon={Users}         label="Joueurs"        value={kpi.total} />
-        <MiniKpi icon={Binoculars}    label="Clubs"          value={kpi.clubs} />
-        <MiniKpi icon={CheckCircle}   label="Stats à jour"   value={kpi.statsAJour} tone="turf" />
-        <MiniKpi icon={WarningCircle} label="À compléter"    value={kpi.aCompleter} tone="amber" />
-        <MiniKpi icon={WarningCircle} label="À vérifier"     value={kpi.aVerifier}  tone="amber" />
+        {/* Roster totals always shown — they set the scale for the rest. */}
+        <MiniKpi icon={Users}      label="Joueurs" value={kpi.total} />
+        <MiniKpi icon={Binoculars} label="Clubs"   value={kpi.clubs} />
+        {/* Status chips only appear when they have a signal to carry.
+            A zero-value amber "À compléter 0" was reading like a broken
+            widget instead of a healthy state. */}
+        {kpi.statsAJour > 0 && (
+          <MiniKpi icon={CheckCircle}   label="Stats à jour" value={kpi.statsAJour} tone="turf" />
+        )}
+        {kpi.aCompleter > 0 && (
+          <MiniKpi icon={WarningCircle} label="À compléter"  value={kpi.aCompleter} tone="amber" />
+        )}
+        {kpi.aVerifier > 0 && (
+          <MiniKpi icon={WarningCircle} label="À vérifier"   value={kpi.aVerifier}  tone="amber" />
+        )}
       </div>
 
       {/* ───── Filter bar (search + filters + reset + count) ───── */}
@@ -1221,18 +1231,18 @@ function AdminPlayers() {
       <div className="overflow-x-auto rounded-2xl border border-stone-200/70 dark:border-stone-50/[0.06] bg-white dark:bg-zinc-900/60">
         <table className="w-full text-sm">
           <thead className="bg-stone-50/80 dark:bg-stone-50/[0.02]">
+            {/* Compact header — xG / Précision / Complétude vivent dans la
+                fiche joueur ; ici on garde le strict essentiel pour scanner
+                le roster d'un coup d'œil. */}
             <tr className="border-b border-stone-200/60 dark:border-stone-50/[0.05]">
-              <HeadCell column="name"          label="Joueur"           currentColumn={sortColumn} currentDir={sortDir} onSort={onSort} />
-              <HeadCell column="category"      label="Catégorie"        currentColumn={sortColumn} currentDir={sortDir} onSort={onSort} />
-              <HeadCell column="club"          label="Club"             currentColumn={sortColumn} currentDir={sortDir} onSort={onSort} />
-              <HeadCell column="age"           label="Âge"     align="right" currentColumn={sortColumn} currentDir={sortDir} onSort={onSort} />
-              <HeadCell column="matches"       label="Matchs"  align="right" currentColumn={sortColumn} currentDir={sortDir} onSort={onSort} />
-              <HeadCell column="goals"         label="Buts"    align="right" currentColumn={sortColumn} currentDir={sortDir} onSort={onSort} />
-              <HeadCell column="assists"       label="Passes D." align="right" currentColumn={sortColumn} currentDir={sortDir} onSort={onSort} />
-              <HeadCell column="xg"            label="xG"      align="right" hint="Buts attendus" currentColumn={sortColumn} currentDir={sortDir} onSort={onSort} />
-              <HeadCell column="pass_accuracy" label="Précision" align="right" hint="Précision des passes (%)" currentColumn={sortColumn} currentDir={sortDir} onSort={onSort} />
-              <HeadCell                        label="Statut" />
-              <HeadCell column="completeness"  label="Complét." hint="Complétude du dossier" align="right" currentColumn={sortColumn} currentDir={sortDir} onSort={onSort} />
+              <HeadCell column="name"     label="Joueur"                currentColumn={sortColumn} currentDir={sortDir} onSort={onSort} />
+              <HeadCell column="category" label="Catégorie"             currentColumn={sortColumn} currentDir={sortDir} onSort={onSort} />
+              <HeadCell column="club"     label="Club"                  currentColumn={sortColumn} currentDir={sortDir} onSort={onSort} />
+              <HeadCell column="age"      label="Âge"     align="right" currentColumn={sortColumn} currentDir={sortDir} onSort={onSort} />
+              <HeadCell column="matches"  label="Matchs"  align="right" currentColumn={sortColumn} currentDir={sortDir} onSort={onSort} />
+              <HeadCell column="goals"    label="Buts"    align="right" currentColumn={sortColumn} currentDir={sortDir} onSort={onSort} />
+              <HeadCell column="assists"  label="Passes D." align="right" currentColumn={sortColumn} currentDir={sortDir} onSort={onSort} />
+              <HeadCell                   label="Statut" />
               <th className="px-3 py-3 text-right">
                 <span className="text-[0.62rem] font-mono uppercase tracking-[0.12em] text-zinc-600 dark:text-stone-400">Actions</span>
               </th>
@@ -1256,16 +1266,13 @@ function AdminPlayers() {
                 <td className="px-4 py-3 text-right"><Skeleton className="h-3 w-8 ml-auto" /></td>
                 <td className="px-4 py-3 text-right"><Skeleton className="h-3 w-8 ml-auto" /></td>
                 <td className="px-4 py-3 text-right"><Skeleton className="h-3 w-8 ml-auto" /></td>
-                <td className="px-4 py-3 text-right"><Skeleton className="h-3 w-10 ml-auto" /></td>
-                <td className="px-4 py-3 text-right"><Skeleton className="h-3 w-10 ml-auto" /></td>
                 <td className="px-4 py-3"><Skeleton className="h-5 w-20" rounded="full" /></td>
-                <td className="px-4 py-3 text-right"><Skeleton className="h-4 w-10 ml-auto" /></td>
                 <td className="px-3 py-3"><Skeleton className="h-6 w-12 ml-auto" /></td>
               </tr>
             ))}
             {!loading && filtered.length === 0 && (
               <tr>
-                <td colSpan={12} className="px-4 py-12 text-center">
+                <td colSpan={9} className="px-4 py-12 text-center">
                   <div className="inline-flex flex-col items-center gap-2 text-sm">
                     <WarningCircle size={20} weight="duotone" className="text-zinc-400 dark:text-stone-500" />
                     <div className="text-zinc-700 dark:text-stone-200 font-medium">Aucun joueur trouvé</div>
@@ -1321,16 +1328,18 @@ function AdminPlayers() {
                   <td className="px-4 py-3 text-right tabular-nums text-zinc-900 dark:text-stone-100">{p.matches_played}</td>
                   <td className="px-4 py-3 text-right tabular-nums text-zinc-900 dark:text-stone-100">{p.goals}</td>
                   <td className="px-4 py-3 text-right tabular-nums text-zinc-900 dark:text-stone-100">{p.assists}</td>
-                  <td className="px-4 py-3 text-right tabular-nums text-zinc-700 dark:text-stone-300">{Number(p.xg).toFixed(1)}</td>
-                  <td className="px-4 py-3 text-right tabular-nums text-zinc-700 dark:text-stone-300">{Number(p.pass_accuracy).toFixed(1)}%</td>
                   <td className="px-4 py-3">
                     <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[0.65rem] font-mono tracking-[0.04em] ${meta.pill}`}>
                       <span className={`w-1.5 h-1.5 rounded-full ${meta.dot}`} />
                       {meta.label}
                     </span>
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <CompletenessPill pct={pct} />
+                    {/* Completude bubble moved next to the status - keeps the
+                        signal but removes a whole column from the grid. */}
+                    {pct < 100 && (
+                      <span className="ml-2 text-[0.65rem] font-mono text-zinc-500 dark:text-stone-500 tabular-nums" title={`Complétude du dossier : ${pct}%`}>
+                        {pct}%
+                      </span>
+                    )}
                   </td>
                   <td className="px-3 py-3 text-right">
                     <div className="inline-flex items-center gap-0.5 opacity-50 group-hover:opacity-100 transition-opacity">
