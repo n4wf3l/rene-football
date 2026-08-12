@@ -120,3 +120,20 @@ body.tutorial-active [aria-label="Rouvrir la sidebar"],
 body.tutorial-active .admin-reopen-handle {
   display: none !important;
 }
+
+/* Data Analyse — Compact density.
+   Trims section spacing and headline sizes so a DS gets more on screen
+   without touching every child component. Applied via the analysis-density-compact
+   class on the page root; the confort default keeps existing styles. */
+.analysis-density-compact section + section,
+.analysis-density-compact .space-y-8 > * + * { margin-top: 1rem; }
+.analysis-density-compact .space-y-6 > * + * { margin-top: 0.75rem; }
+.analysis-density-compact h1 { font-size: 1.5rem; line-height: 1.15; }
+.analysis-density-compact h2 { font-size: 1.05rem; line-height: 1.2; }
+.analysis-density-compact h3 { font-size: 0.9rem; line-height: 1.2; }
+.analysis-density-compact .p-5 { padding: 0.75rem; }
+.analysis-density-compact .p-6 { padding: 0.875rem; }
+.analysis-density-compact .py-3 { padding-top: 0.375rem; padding-bottom: 0.375rem; }
+.analysis-density-compact .py-4 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+.analysis-density-compact .gap-4 { gap: 0.5rem; }
+.analysis-density-compact .gap-6 { gap: 0.75rem; }
