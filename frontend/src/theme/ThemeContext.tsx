@@ -14,13 +14,16 @@ const STORAGE_KEY = 'rene_theme'
 const ThemeContext = createContext<ThemeContextValue | null>(null)
 
 function readInitial(): Theme {
-  if (typeof window === 'undefined') return 'light'
+  // Dark is the brand default. We still honour an explicit choice the user
+  // made previously (persisted under STORAGE_KEY) but we no longer defer
+  // to the OS preference — the platform ships dark unless the visitor
+  // toggled to light.
+  if (typeof window === 'undefined') return 'dark'
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
     if (stored === 'light' || stored === 'dark') return stored
   } catch { /* ignore */ }
-  if (window.matchMedia?.('(prefers-color-scheme: dark)').matches) return 'dark'
-  return 'light'
+  return 'dark'
 }
 
 function applyTheme(theme: Theme): void {

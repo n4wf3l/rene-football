@@ -54,9 +54,9 @@ interface FieldLabelProps {
 
 function FieldLabel({ htmlFor, children, optional }: FieldLabelProps) {
   return (
-    <label htmlFor={htmlFor} className="block text-sm font-medium text-zinc-900 mb-2">
+    <label htmlFor={htmlFor} className="block text-sm font-medium text-zinc-900 dark:text-stone-100 mb-2">
       {children}
-      {optional && <span className="ml-2 font-normal text-zinc-400 text-xs">(facultatif)</span>}
+      {optional && <span className="ml-2 font-normal text-zinc-400 dark:text-stone-500 text-xs">(facultatif)</span>}
     </label>
   )
 }
@@ -67,11 +67,11 @@ interface FieldErrorProps {
 
 function FieldError({ message }: FieldErrorProps) {
   if (!message) return null
-  return <p className="mt-1.5 text-xs text-rose-700">{message}</p>
+  return <p className="mt-1.5 text-xs text-rose-700 dark:text-rose-400">{message}</p>
 }
 
 const inputBase =
-  'w-full rounded-xl border bg-white text-zinc-900 placeholder:text-zinc-400 px-4 py-3 text-sm transition focus:outline-none focus:ring-2 focus:ring-turf-700/20'
+  'w-full rounded-xl border bg-white text-zinc-900 placeholder:text-zinc-400 dark:bg-zinc-900 dark:text-stone-100 dark:placeholder:text-stone-500 dark:border-stone-50/15 dark:focus:border-turf-300 px-4 py-3 text-sm transition focus:outline-none focus:ring-2 focus:ring-turf-700/20 dark:focus:ring-turf-300/20'
 
 function ContactPage() {
   const [form, setForm] = useState<ContactForm>(initialForm)
@@ -137,7 +137,7 @@ function ContactPage() {
 
   if (status === 'success') {
     return (
-      <section className="bg-stone-50 min-h-[80vh] py-24 lg:py-32">
+      <section className="bg-stone-50 dark:bg-zinc-950 min-h-[80vh] py-24 lg:py-32">
         <div className="container-page">
           <motion.div
             initial={{ opacity: 0, y: 14 }}
@@ -145,16 +145,16 @@ function ContactPage() {
             transition={{ type: 'spring', stiffness: 110, damping: 20 }}
             className="max-w-[60ch]"
           >
-            <div className="grid place-items-center w-14 h-14 rounded-2xl bg-turf-50 border border-turf-100 text-turf-800">
+            <div className="grid place-items-center w-14 h-14 rounded-2xl bg-turf-50 border border-turf-100 text-turf-800 dark:bg-turf-500/15 dark:border-turf-300/30 dark:text-turf-300">
               <CheckCircle size={26} weight="regular" />
             </div>
-            <span className="font-mono uppercase tracking-[0.2em] text-xs text-turf-700 mt-8 inline-block">
+            <span className="font-mono uppercase tracking-[0.2em] text-xs text-turf-700 dark:text-turf-300 mt-8 inline-block">
               Demande envoyée
             </span>
-            <h1 className="mt-3 font-display font-semibold text-4xl lg:text-6xl tracking-tightest text-zinc-950 leading-[1.05]">
+            <h1 className="mt-3 font-display font-semibold text-4xl lg:text-6xl tracking-tightest text-zinc-950 dark:text-stone-50 leading-[1.05]">
               Nous reviendrons vers vous sous 48 heures.
             </h1>
-            <p className="mt-6 text-base lg:text-lg text-zinc-600 leading-relaxed">
+            <p className="mt-6 text-base lg:text-lg text-zinc-600 dark:text-stone-400 leading-relaxed">
               Votre message a bien été reçu. Notre équipe traite chaque
               demande personnellement - nous priorisons les sujets selon
               leur urgence et votre profil.
@@ -198,25 +198,25 @@ function ContactPage() {
         </div>
       </section>
 
-      <section className="bg-stone-50 py-16 lg:py-24">
+      <section className="bg-stone-50 dark:bg-zinc-950 py-16 lg:py-24">
         <div className="container-page grid lg:grid-cols-12 gap-10 lg:gap-16 items-start">
           {/* FORM */}
           <form
             noValidate
             onSubmit={handleSubmit}
-            className="lg:col-span-7 rounded-3xl bg-white border border-stone-200/80 p-6 sm:p-8 lg:p-10 shadow-diffusion"
+            className="lg:col-span-7 rounded-3xl bg-white border border-stone-200/80 dark:bg-zinc-900 dark:border-stone-50/10 p-6 sm:p-8 lg:p-10 shadow-diffusion"
           >
             {status === 'error' && (
               <motion.div
                 initial={{ opacity: 0, y: -6 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mb-6 flex items-start gap-3 rounded-xl border border-rose-200 bg-rose-50/60 p-4 text-sm text-rose-900"
+                className="mb-6 flex items-start gap-3 rounded-xl border border-rose-200 bg-rose-50/60 text-rose-900 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200 p-4 text-sm"
                 role="alert"
               >
-                <Warning size={18} weight="regular" className="text-rose-700 mt-0.5 shrink-0" />
+                <Warning size={18} weight="regular" className="text-rose-700 dark:text-rose-300 mt-0.5 shrink-0" />
                 <div>
                   <div className="font-medium">L'envoi a échoué.</div>
-                  <div className="text-rose-800/80 mt-0.5">
+                  <div className="text-rose-800/80 dark:text-rose-300/80 mt-0.5">
                     Réessayez dans un instant ou écrivez-nous directement à{' '}
                     <a href="mailto:contact@renefootball.com" className="underline">
                       contact@renefootball.com
@@ -231,13 +231,13 @@ function ContactPage() {
               <motion.div
                 initial={{ opacity: 0, y: -6 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mb-6 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50/60 p-4 text-sm text-amber-900"
+                className="mb-6 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50/60 text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200 p-4 text-sm"
                 role="alert"
               >
-                <Warning size={18} weight="regular" className="text-amber-700 mt-0.5 shrink-0" />
+                <Warning size={18} weight="regular" className="text-amber-700 dark:text-amber-300 mt-0.5 shrink-0" />
                 <div>
                   <div className="font-medium">Trop de demandes envoyées.</div>
-                  <div className="text-amber-800/80 mt-0.5">
+                  <div className="text-amber-800/80 dark:text-amber-300/80 mt-0.5">
                     Patientez une minute avant de réessayer, ou écrivez-nous à{' '}
                     <a href="mailto:contact@renefootball.com" className="underline">
                       contact@renefootball.com
@@ -250,7 +250,7 @@ function ContactPage() {
 
             {/* Reason */}
             <fieldset>
-              <legend className="block text-sm font-medium text-zinc-900 mb-3">
+              <legend className="block text-sm font-medium text-zinc-900 dark:text-stone-100 mb-3">
                 Vous nous écrivez en tant que
               </legend>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -261,8 +261,8 @@ function ContactPage() {
                       key={r.value}
                       className={`relative flex items-center justify-center px-3 py-2.5 rounded-xl text-sm cursor-pointer transition-colors border ${
                         active
-                          ? 'bg-zinc-950 border-zinc-950 text-stone-50'
-                          : 'bg-white border-stone-300 text-zinc-700 hover:border-zinc-500 hover:text-zinc-950'
+                          ? 'bg-zinc-950 border-zinc-950 text-stone-50 dark:bg-stone-50 dark:border-stone-50 dark:text-zinc-950'
+                          : 'bg-white border-stone-300 text-zinc-700 hover:border-zinc-500 hover:text-zinc-950 dark:bg-zinc-900 dark:border-stone-50/15 dark:text-stone-300 dark:hover:border-stone-50/40 dark:hover:text-stone-50'
                       }`}
                     >
                       <input
@@ -278,7 +278,7 @@ function ContactPage() {
                   )
                 })}
               </div>
-              <p className="mt-2 text-xs text-zinc-500">
+              <p className="mt-2 text-xs text-zinc-500 dark:text-stone-500">
                 {REASONS.find((r) => r.value === form.reason)?.hint}
               </p>
             </fieldset>
@@ -358,8 +358,8 @@ function ContactPage() {
             <label
               className={`mt-6 flex gap-3 items-start cursor-pointer rounded-xl border p-4 transition ${
                 errors.consent
-                  ? 'border-rose-300 bg-rose-50/40'
-                  : 'border-stone-200 hover:border-stone-300'
+                  ? 'border-rose-300 bg-rose-50/40 dark:border-rose-500/40 dark:bg-rose-500/10'
+                  : 'border-stone-200 hover:border-stone-300 dark:border-stone-50/10 dark:hover:border-stone-50/25'
               }`}
             >
               <input
@@ -367,19 +367,19 @@ function ContactPage() {
                 type="checkbox"
                 checked={form.consent}
                 onChange={update('consent')}
-                className="mt-0.5 w-4 h-4 rounded border-stone-300 text-turf-800 focus:ring-turf-700/30 accent-turf-800"
+                className="mt-0.5 w-4 h-4 rounded border-stone-300 text-turf-800 focus:ring-turf-700/30 accent-turf-800 dark:accent-turf-300"
               />
-              <span className="text-sm text-zinc-700 leading-relaxed">
+              <span className="text-sm text-zinc-700 dark:text-stone-300 leading-relaxed">
                 J'accepte que mes données personnelles soient utilisées par
                 Rene Football pour traiter ma demande.
                 <br />
                 <Link
                   to="/confidentialite"
-                  className="text-turf-800 underline underline-offset-2 hover:text-turf-700"
+                  className="text-turf-800 dark:text-turf-300 underline underline-offset-2 hover:text-turf-700 dark:hover:text-turf-200"
                 >
                   Politique de confidentialité
                 </Link>
-                <span className="text-zinc-500"> · Vos données ne sont jamais transmises à des tiers.</span>
+                <span className="text-zinc-500 dark:text-stone-500"> · Vos données ne sont jamais transmises à des tiers.</span>
               </span>
             </label>
             <FieldError message={errors.consent} />
@@ -407,8 +407,8 @@ function ContactPage() {
                   </>
                 )}
               </button>
-              <p className="text-xs text-zinc-500">
-                Réponse sous <span className="font-mono text-zinc-700">48h</span> ouvrées.
+              <p className="text-xs text-zinc-500 dark:text-stone-500">
+                Réponse sous <span className="font-mono text-zinc-700 dark:text-stone-200">48h</span> ouvrées.
               </p>
             </div>
           </form>
@@ -488,12 +488,12 @@ function ContactPage() {
               </div>
             </div>
 
-            <div className="mt-5 rounded-2xl border border-stone-200/80 bg-white p-5 text-sm text-zinc-600 leading-relaxed">
+            <div className="mt-5 rounded-2xl border border-stone-200/80 bg-white text-zinc-600 dark:bg-zinc-900 dark:border-stone-50/10 dark:text-stone-400 p-5 text-sm leading-relaxed">
               Vos données sont stockées sur des serveurs européens et
-              conservées <span className="font-mono text-zinc-900">12 mois</span> maximum
+              conservées <span className="font-mono text-zinc-900 dark:text-stone-100">12 mois</span> maximum
               après le dernier échange. Vous pouvez à tout moment demander
               leur suppression depuis{' '}
-              <Link to="/confidentialite" className="text-turf-800 underline underline-offset-2">
+              <Link to="/confidentialite" className="text-turf-800 dark:text-turf-300 underline underline-offset-2">
                 cette page
               </Link>
               .
