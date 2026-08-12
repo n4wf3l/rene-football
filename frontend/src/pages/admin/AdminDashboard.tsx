@@ -10,9 +10,11 @@ import {
   CheckCircle,
   ClipboardText,
   ClockClockwise,
+  FilePdf,
   FilePlus,
   HandWaving,
   Newspaper,
+  PaperPlaneTilt,
   PencilSimpleLine,
   Plus,
   Pulse,
@@ -20,10 +22,12 @@ import {
   SoccerBall,
   Sparkle,
   Trophy,
+  UploadSimple,
   UserCirclePlus,
   Users,
   Warning,
   WarningCircle,
+  X as XIcon,
 } from '@phosphor-icons/react'
 import { api } from '../../api/client'
 import { useAuth } from '../../auth/AuthContext'
@@ -116,6 +120,88 @@ function StatTile({ icon: Icon, label, value, hint, sub, badge }: StatTileProps)
         </div>
       )}
     </div>
+  )
+}
+
+/* ───────────────────── "Par où commencer" onboarding band ─────────────────────
+ * 4 numbered steps guiding a fresh admin through the standard flow. Dismissed
+ * via localStorage so returning admins don't see it every time; the entry stays
+ * discoverable through the "?" question we hint at.
+ */
+const GETSTARTED_STORAGE_KEY = 'rene_admin_getstarted_dismissed'
+
+interface GetStartedStep {
+  n: number
+  icon: PhosphorIcon
+  title: string
+  hint: string
+  to: string
+}
+
+const GETSTARTED_STEPS: GetStartedStep[] = [
+  { n: 1, icon: UserCirclePlus, title: 'Ajoutez / vérifiez vos joueurs', hint: 'Fiche, photo, stats de base',            to: '/admin/joueurs' },
+  { n: 2, icon: UploadSimple,   title: 'Importez les stats en masse',    hint: 'CSV ou XLSX Wyscout, Excel club…',       to: '/admin/joueurs' },
+  { n: 3, icon: FilePdf,        title: 'Créez une présentation PDF',     hint: 'Choisissez un template, personnalisez',   to: '/admin/presentations/nouvelle' },
+  { n: 4, icon: PaperPlaneTilt, title: 'Partagez le lien au club',       hint: 'Landing brandée avec le PDF intégré',    to: '/admin/presentations' },
+]
+
+function GetStartedBand({ onDismiss }: { onDismiss: () => void }) {
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35 }}
+      className="relative rounded-2xl border border-turf-500/30 bg-gradient-to-r from-turf-500/10 via-turf-500/5 to-transparent dark:from-turf-500/15 dark:via-turf-500/8 dark:to-transparent p-5 overflow-hidden"
+    >
+      <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
+        <div>
+          <div className="inline-flex items-center gap-1.5 text-[0.6rem] font-mono uppercase tracking-[0.18em] text-turf-700 dark:text-turf-300">
+            <Sparkle size={11} weight="fill" /> Par où commencer
+          </div>
+          <h2 className="mt-1 font-display font-semibold text-lg text-zinc-950 dark:text-stone-50">
+            Le workflow standard, en 4 étapes
+          </h2>
+          <p className="mt-0.5 text-xs text-zinc-600 dark:text-stone-400 max-w-prose leading-relaxed">
+            Cliquez sur une étape pour y aller. Chaque étape est indépendante — vous pouvez sauter dans le désordre.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={onDismiss}
+          className="grid place-items-center w-8 h-8 rounded-full text-zinc-500 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-50/5 transition"
+          title="Ne plus afficher ce guide"
+          aria-label="Fermer ce guide"
+        >
+          <XIcon size={14} weight="bold" />
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+        {GETSTARTED_STEPS.map((s) => (
+          <Link
+            key={s.n}
+            to={s.to}
+            className="group relative flex items-start gap-3 rounded-xl border border-stone-200/70 dark:border-stone-50/10 bg-white/80 dark:bg-zinc-900/60 hover:border-turf-500/60 dark:hover:border-turf-300/40 hover:bg-white dark:hover:bg-zinc-900/90 p-3.5 transition-all"
+          >
+            <span className="shrink-0 grid place-items-center w-8 h-8 rounded-lg bg-turf-500/15 text-turf-800 dark:text-turf-300 font-mono font-bold text-sm">
+              {s.n}
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1.5">
+                <s.icon size={13} weight="duotone" className="text-turf-700 dark:text-turf-300 shrink-0" />
+                <div className="text-sm font-medium text-zinc-950 dark:text-stone-50 truncate">
+                  {s.title}
+                </div>
+              </div>
+              <div className="mt-0.5 text-[0.7rem] text-zinc-500 dark:text-stone-500 leading-snug">
+                {s.hint}
+              </div>
+            </div>
+            <ArrowRight size={13} weight="bold" className="text-zinc-400 dark:text-stone-500 group-hover:text-turf-700 dark:group-hover:text-turf-300 shrink-0 mt-1 transition-transform group-hover:translate-x-0.5" />
+          </Link>
+        ))}
+      </div>
+    </motion.section>
   )
 }
 
@@ -300,6 +386,16 @@ function AdminDashboard() {
   const [players, setPlayers] = useState<Player[]>([])
   const [scouting, setScouting] = useState<ScoutingDashboardSnapshot | null>(null)
   const [loading, setLoading] = useState(true)
+  // "Par où commencer" band — hidden after the admin dismisses it (localStorage).
+  const [showGetStarted, setShowGetStarted] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return true
+    try { return window.localStorage.getItem(GETSTARTED_STORAGE_KEY) !== '1' }
+    catch { return true }
+  })
+  const dismissGetStarted = () => {
+    setShowGetStarted(false)
+    try { window.localStorage.setItem(GETSTARTED_STORAGE_KEY, '1') } catch { /* no-op */ }
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -357,9 +453,9 @@ function AdminDashboard() {
     if (missingProfile.length > 0) {
       list.push({
         tone: 'neutral',
-        label: 'Profils à compléter',
-        target: `${missingProfile.length} fiche${missingProfile.length > 1 ? 's' : ''} sans bio ou photo`,
-        status: 'Détails manquants',
+        label: `Complétez ${missingProfile.length} fiche${missingProfile.length > 1 ? 's' : ''} joueur`,
+        target: 'Bio ou photo manquante',
+        status: 'Bloquant pour les présentations',
         to: '/admin/joueurs',
         cta: 'Compléter',
       })
@@ -369,9 +465,9 @@ function AdminDashboard() {
     if (oldUpdates.length > 0) {
       list.push({
         tone: 'neutral',
-        label: 'Données à vérifier',
-        target: `${oldUpdates.length} fiche${oldUpdates.length > 1 ? 's' : ''} non mises à jour depuis 30 j.`,
-        status: 'À revoir',
+        label: `Rafraîchissez ${oldUpdates.length} fiche${oldUpdates.length > 1 ? 's' : ''} joueur`,
+        target: 'Non mises à jour depuis 30 jours',
+        status: 'Les stats vieillissent',
         to: '/admin/joueurs',
         cta: 'Vérifier',
       })
@@ -381,19 +477,19 @@ function AdminDashboard() {
       if (scouting.kpi.reports_to_validate > 0) {
         list.push({
           tone: 'rose',
-          label: 'Rapports scouting à valider',
-          target: `${scouting.kpi.reports_to_validate} rapport${scouting.kpi.reports_to_validate > 1 ? 's' : ''} soumis`,
-          status: 'En attente',
+          label: `Validez ${scouting.kpi.reports_to_validate} rapport${scouting.kpi.reports_to_validate > 1 ? 's' : ''} scout`,
+          target: 'Soumis, en attente de votre feu vert',
+          status: 'Débloque les scouts',
           to: '/admin/scouting?view=reports',
-          cta: 'Ouvrir scouting',
+          cta: 'Valider',
         })
       }
       if (scouting.kpi.players_no_next_action > 0) {
         list.push({
           tone: 'amber',
-          label: 'Joueurs sans prochaine action',
-          target: `${scouting.kpi.players_no_next_action} profil${scouting.kpi.players_no_next_action > 1 ? 's' : ''} sans étape suivante`,
-          status: 'Action à définir',
+          label: `Assignez une prochaine action à ${scouting.kpi.players_no_next_action} joueur${scouting.kpi.players_no_next_action > 1 ? 's' : ''}`,
+          target: 'Profils sans étape suivante planifiée',
+          status: 'Dossiers en stand-by',
           to: '/admin/scouting?view=players',
           cta: 'Assigner',
         })
@@ -401,11 +497,11 @@ function AdminDashboard() {
       if (scouting.kpi.files_incomplete > 0) {
         list.push({
           tone: 'neutral',
-          label: 'Dossiers incomplets',
-          target: `${scouting.kpi.files_incomplete} fiche${scouting.kpi.files_incomplete > 1 ? 's' : ''} sous le seuil de complétude`,
-          status: 'À enrichir',
+          label: `Enrichissez ${scouting.kpi.files_incomplete} dossier${scouting.kpi.files_incomplete > 1 ? 's' : ''} scouting`,
+          target: 'Complétude sous le seuil recommandé',
+          status: 'Risque de biais analyse',
           to: '/admin/scouting?view=intelligence',
-          cta: 'Voir alertes',
+          cta: 'Enrichir',
         })
       }
     }
@@ -575,8 +671,23 @@ function AdminDashboard() {
           <span><span className="tabular-nums">{stats.clubs}</span> clubs représentés</span>
           <span className="text-stone-300 dark:text-stone-700">·</span>
           <span>Dernière mise à jour {lastUpdateLabel}</span>
+          {!showGetStarted && (
+            <>
+              <span className="text-stone-300 dark:text-stone-700">·</span>
+              <button
+                type="button"
+                onClick={() => setShowGetStarted(true)}
+                className="inline-flex items-center gap-1 text-turf-700 dark:text-turf-300 hover:underline underline-offset-2"
+              >
+                <Sparkle size={10} weight="fill" /> Guide de démarrage
+              </button>
+            </>
+          )}
         </div>
       </motion.div>
+
+      {/* ─────────── "Par où commencer" onboarding band ─────────── */}
+      {showGetStarted && <GetStartedBand onDismiss={dismissGetStarted} />}
 
       {/* ─────────── KPI grid ─────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -617,17 +728,17 @@ function AdminDashboard() {
       <div className="grid lg:grid-cols-2 gap-4 lg:items-stretch">
         {/* Left column */}
         <div className="flex flex-col gap-4 min-w-0">
-          {/* Priorités du jour */}
+          {/* Actions du jour — verbes d'action explicites, un tap = un job réglé */}
           <section className="rounded-2xl bg-white dark:bg-zinc-900/60 border border-stone-200/70 dark:border-stone-50/[0.06] overflow-hidden flex-1 flex flex-col">
             <header className="flex items-center justify-between px-4 py-3 border-b border-stone-200/60 dark:border-stone-50/[0.06]">
               <div className="flex items-center gap-2">
                 <Warning size={14} weight="duotone" className="text-amber-600 dark:text-amber-300" />
                 <span className="font-mono uppercase tracking-[0.12em] text-[0.62rem] text-zinc-700 dark:text-stone-200">
-                  Priorités du jour
+                  Actions du jour
                 </span>
               </div>
               <span className="text-[0.65rem] font-mono text-zinc-500 dark:text-stone-400 tabular-nums">
-                {priorities.length} élément{priorities.length > 1 ? 's' : ''}
+                {priorities.length} à traiter
               </span>
             </header>
             {priorities.length === 0 ? (

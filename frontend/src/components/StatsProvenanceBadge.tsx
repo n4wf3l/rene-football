@@ -70,10 +70,13 @@ export default function StatsProvenanceBadge({ player, staleAfterDays = 60, size
   const txt = size === 'xs' ? 'text-[0.6rem]' : 'text-[0.68rem]'
 
   if (!source && !time && rel == null) {
+    // Neutral chip instead of red — when *every* player is source-less
+    // (fresh install, no imports yet) a red badge on every row becomes
+    // alarm fatigue. Tooltip still explains, but nothing screams.
     return (
-      <span className={`inline-flex items-center gap-1 rounded-full ${px} ${txt} font-mono uppercase tracking-[0.14em] bg-rose-500/10 text-rose-700 dark:text-rose-400`}
-            title="Aucune source enregistrée pour ces stats. Passez par « Importer CSV » ou l'édition manuelle pour tracer l'origine.">
-        <WarningCircle size={11} weight="bold" /> Source inconnue
+      <span className={`inline-flex items-center gap-1 rounded-full ${px} ${txt} font-mono uppercase tracking-[0.14em] bg-stone-100 text-zinc-500 dark:bg-stone-50/[0.06] dark:text-stone-500`}
+            title="Aucune source tracée pour ces stats. Utilisez « Importer CSV » ou éditez la fiche pour renseigner l'origine.">
+        <Database size={11} weight="bold" /> Source à tracer
       </span>
     )
   }
