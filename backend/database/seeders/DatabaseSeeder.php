@@ -75,6 +75,7 @@ class DatabaseSeeder extends Seeder
             PlayerSeeder::class,
             AppearanceSeeder::class,
             StaffSeeder::class,
+            ArticleSeeder::class,
         ]);
 
         // Scouting cockpit demo data - order matters (DNA + needs first, then
