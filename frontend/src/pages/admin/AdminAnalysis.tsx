@@ -45,7 +45,9 @@ import PlayerRadar from '../../components/PlayerRadar'
 import PlayerComparisonTable from '../../components/PlayerComparisonTable'
 import PlayerMultiSelect from '../../components/PlayerMultiSelect'
 import BenchmarkView from '../../components/BenchmarkView'
+import RosterOverview from '../../components/RosterOverview'
 import TutorialModal, { TutorialTrigger } from '../../components/TutorialModal'
+import { useLocalStorageState } from '../../hooks/useLocalStorageState'
 import { analysisTutorialSteps } from '../../components/tutorials/analysisTutorial'
 import PlayerSingleSelect from '../../components/PlayerSingleSelect'
 import ClipsGalleryAdmin from '../../components/ClipsGalleryAdmin'
@@ -251,6 +253,9 @@ function AdminAnalysis() {
   const [benchmarkSlug, setBenchmarkSlug] = useState<string | null>(null)
   // Undefined = auto (respect localStorage). true/false = manual open/close.
   const [tutorialOpen, setTutorialOpen] = useState<boolean | undefined>(undefined)
+  // Page-wide density: 'confort' = current spacing, 'compact' = tighter
+  // paddings + smaller titles for a data-dense screen. Persisted per user.
+  const [density, setDensity] = useLocalStorageState<'confort' | 'compact'>('rene_analysis_density', 'confort')
   const [chartType, setChartType] = useState<ChartTypeKey>('scatter')
   const [xKey, setXKey] = useState<string>('age')
   const [yKey, setYKey] = useState<string>('goals')
@@ -469,7 +474,7 @@ function AdminAnalysis() {
   }
 
   return (
-    <div className="px-6 lg:px-10 py-10">
+    <div className={`${density === 'compact' ? 'px-4 lg:px-6 py-6' : 'px-6 lg:px-10 py-10'} analysis-density-${density}`}>
       <div className="flex flex-wrap items-end justify-between gap-4 mb-6">
         <div>
           <span className="eyebrow">Data analyse</span>
@@ -496,6 +501,25 @@ function AdminAnalysis() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {/* Density switch — Compact reduces page padding, section titles
+              and inter-block gaps so a DS gets more on screen at once. */}
+          <div className="inline-flex items-center gap-0.5 rounded-full border border-stone-300 dark:border-stone-50/15 p-0.5 text-[0.7rem]">
+            {(['confort', 'compact'] as const).map((d) => (
+              <button
+                key={d}
+                type="button"
+                onClick={() => setDensity(d)}
+                className={`px-2.5 py-1 rounded-full font-medium capitalize transition ${
+                  density === d
+                    ? 'bg-zinc-950 text-stone-50 dark:bg-stone-50 dark:text-zinc-950'
+                    : 'text-zinc-600 hover:text-zinc-900 dark:text-stone-400 dark:hover:text-stone-100'
+                }`}
+                title={d === 'compact' ? 'Vue dense - plus de contenu à l\'écran' : 'Vue aérée - défaut'}
+              >
+                {d}
+              </button>
+            ))}
+          </div>
           <TutorialTrigger onClick={() => setTutorialOpen(true)} />
           {view === 'chart' && (
             <button
@@ -615,6 +639,12 @@ function AdminAnalysis() {
           onChangeSlug={setClipsTargetSlug}
         />
       ) : (
+        <div className="space-y-8">
+          {/* Landing overview above the custom chart builder — one glance at
+              leaderboards + distributions before diving into cross-metric
+              exploration. Computed client-side from the players array. */}
+          <RosterOverview players={players} />
+
         <div className="grid grid-cols-1 xl:grid-cols-[280px_1fr] gap-6">
           <aside className="rounded-2xl bg-white border border-stone-200 dark:bg-zinc-900 dark:border-stone-50/10 p-5 space-y-5 self-start sticky top-6">
             <div>
@@ -815,9 +845,13 @@ function AdminAnalysis() {
                   </button>
                 ))}
               </div>
-              <div className="text-[0.65rem] mt-2 text-zinc-500 font-mono tabular-nums">
-                {filteredPlayers.length} joueurs · {chartData.length} points
-              </div>
+              {/* Only show the count when it diverges from the roster total
+                  — otherwise it's just repeating the KPI band above. */}
+              {chartData.length !== filteredPlayers.length && (
+                <div className="text-[0.65rem] mt-2 text-zinc-500 font-mono tabular-nums">
+                  {chartData.length} sur {filteredPlayers.length} joueur{filteredPlayers.length > 1 ? 's' : ''} affiché{chartData.length > 1 ? 's' : ''}
+                </div>
+              )}
             </div>
           </aside>
 
@@ -964,21 +998,30 @@ function AdminAnalysis() {
               )}
             </div>
 
-            {(chartType === 'scatter' || chartType === 'line' || (chartType === 'bar' && xKey === '__player')) && (
+            {/* Legend + hint only when there's actually data + colors + a
+                clickable target. When the filter narrows to one category
+                the whole palette is redundant (1 color visible), so the
+                legend is skipped there too. */}
+            {chartData.length > 0 && (chartType === 'scatter' || chartType === 'line' || (chartType === 'bar' && xKey === '__player')) && (
               <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1.5 items-center text-[0.7rem] text-zinc-600 dark:text-stone-300">
-                <span className="font-mono uppercase tracking-[0.12em] text-zinc-500 dark:text-stone-400">Légende</span>
-                {Object.entries(CATEGORY_PALETTE).filter(([k]) => k !== 'Autre').map(([k, v]) => (
-                  <span key={k} className="inline-flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full" style={{ background: v }} />
-                    {k}
-                  </span>
-                ))}
+                {categoryFilter === 'Tous' && (
+                  <>
+                    <span className="font-mono uppercase tracking-[0.12em] text-zinc-500 dark:text-stone-400">Légende</span>
+                    {Object.entries(CATEGORY_PALETTE).filter(([k]) => k !== 'Autre').map(([k, v]) => (
+                      <span key={k} className="inline-flex items-center gap-1.5">
+                        <span className="w-2.5 h-2.5 rounded-full" style={{ background: v }} />
+                        {k}
+                      </span>
+                    ))}
+                  </>
+                )}
                 <span className="ml-auto text-[0.65rem] font-mono uppercase tracking-[0.1em] text-turf-700 dark:text-turf-300">
                   Cliquez sur un point pour ouvrir la fiche →
                 </span>
               </div>
             )}
           </motion.div>
+        </div>
         </div>
       )}
     </div>
@@ -1516,41 +1559,25 @@ function ComparisonView({ players, selectedSlugs, onChangeSlugs }: ComparisonVie
               )}
             </div>
 
-            {/* Quick KPIs */}
-            <div className="space-y-3 self-start">
-              {selectedPlayers.map((p, i) => {
-                const isKeeper = p.category === 'Gardien'
-                return (
-                  <article
-                    key={p.slug}
-                    className="rounded-2xl bg-white border border-stone-200 dark:bg-zinc-900 dark:border-stone-50/10 p-5"
-                  >
-                    <div className="flex items-center gap-3 mb-3">
-                      <span className={`w-2.5 h-2.5 rounded-full ${['bg-turf-500','bg-rose-600','bg-amber-600','bg-sky-600'][i]}`} />
-                      <div className="min-w-0 flex-1">
-                        <div className="font-display font-medium text-zinc-950 dark:text-stone-50 truncate">{p.name}</div>
-                        <div className="text-[0.65rem] font-mono uppercase tracking-wider text-zinc-500 dark:text-stone-500 truncate">
-                          {p.position} · {p.club ?? '-'}
-                        </div>
-                      </div>
+            {/* Legend cards - lient chaque couleur du radar à son joueur.
+                Volontairement épurées : le tableau "Toutes les métriques"
+                juste en dessous couvre déjà les chiffres, dupliquer
+                Matchs / Buts / P.déc. ici doublonnait. */}
+            <div className="space-y-2 self-start">
+              {selectedPlayers.map((p, i) => (
+                <article
+                  key={p.slug}
+                  className="rounded-xl bg-white border border-stone-200 dark:bg-zinc-900 dark:border-stone-50/10 p-3 flex items-center gap-3"
+                >
+                  <span className={`w-3 h-3 rounded-full shrink-0 ${['bg-turf-500','bg-rose-600','bg-amber-600','bg-sky-600'][i]}`} />
+                  <div className="min-w-0 flex-1">
+                    <div className="font-display font-medium text-sm text-zinc-950 dark:text-stone-50 truncate">{p.name}</div>
+                    <div className="text-[0.65rem] font-mono uppercase tracking-wider text-zinc-500 dark:text-stone-500 truncate">
+                      {p.position} · {p.club ?? '-'}
                     </div>
-                    <dl className="grid grid-cols-3 gap-3 border-t border-stone-200 dark:border-stone-50/10 pt-3">
-                      <div>
-                        <dt className="text-[0.6rem] uppercase tracking-wider font-mono text-zinc-500 dark:text-stone-500">Matchs</dt>
-                        <dd className="font-mono text-base tabular-nums text-zinc-950 dark:text-stone-50">{p.matches_played}</dd>
-                      </div>
-                      <div>
-                        <dt className="text-[0.6rem] uppercase tracking-wider font-mono text-zinc-500 dark:text-stone-500">{isKeeper ? 'Cl. sh.' : 'Buts'}</dt>
-                        <dd className="font-mono text-base tabular-nums text-zinc-950 dark:text-stone-50">{isKeeper ? p.clean_sheets : p.goals}</dd>
-                      </div>
-                      <div>
-                        <dt className="text-[0.6rem] uppercase tracking-wider font-mono text-zinc-500 dark:text-stone-500">{isKeeper ? 'Arrêts' : 'P. déc.'}</dt>
-                        <dd className="font-mono text-base tabular-nums text-zinc-950 dark:text-stone-50">{isKeeper ? p.saves : p.assists}</dd>
-                      </div>
-                    </dl>
-                  </article>
-                )
-              })}
+                  </div>
+                </article>
+              ))}
             </div>
           </section>
 
