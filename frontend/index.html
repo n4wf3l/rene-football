@@ -9,6 +9,23 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
     <title>Rene Football - Agence de football</title>
+    <script>
+      // Apply the dark class BEFORE React mounts so the very first paint
+      // is already dark — avoids the white flash while ThemeProvider boots.
+      // Mirrors ThemeContext.readInitial(): honour the stored choice,
+      // otherwise default to dark.
+      (function () {
+        try {
+          var stored = localStorage.getItem('rene_theme');
+          var theme = (stored === 'light' || stored === 'dark') ? stored : 'dark';
+          if (theme === 'dark') document.documentElement.classList.add('dark');
+          document.documentElement.style.colorScheme = theme;
+        } catch (_) {
+          document.documentElement.classList.add('dark');
+          document.documentElement.style.colorScheme = 'dark';
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
