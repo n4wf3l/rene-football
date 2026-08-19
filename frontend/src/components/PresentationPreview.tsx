@@ -389,8 +389,8 @@ function PhotoOrPlaceholder({
 // --------------------------------------------------------------------------
 
 function ClassicPreview({ player, options, title, statCatalogue }: PresentationPreviewProps) {
-  const accent     = options.accent_color ?? '#0f5132'
-  const secondary  = options.secondary_color ?? '#84b896'
+  const accent     = options.accent_color ?? '#1e40af'
+  const secondary  = options.secondary_color ?? '#93c5fd'
   const text       = options.text_color ?? '#0c0a09'
   const bg         = options.background_color ?? '#fafaf9'
   const photo      = pickPhoto(player, options)
@@ -770,7 +770,7 @@ function StadiumPreview({ player, options, title, statCatalogue }: PresentationP
     radial-gradient(ellipse at 20% 0%, rgba(255,255,255,0.16) 0%, transparent 35%),
     radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.22) 0%, transparent 45%),
     radial-gradient(ellipse at 80% 0%, rgba(255,255,255,0.16) 0%, transparent 35%),
-    radial-gradient(ellipse at 50% 110%, rgba(15,81,50,0.55) 0%, transparent 60%),
+    radial-gradient(ellipse at 50% 110%, rgba(30, 64, 175,0.55) 0%, transparent 60%),
     ${bg}
   `
 

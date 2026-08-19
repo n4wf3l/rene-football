@@ -274,7 +274,7 @@ function AdminLogin() {
             <button
               type="submit"
               disabled={submitting}
-              className="btn w-full text-[0.95rem] py-3.5 bg-turf-700 hover:bg-turf-600 text-stone-50 shadow-[0_10px_30px_-12px_rgba(15,81,50,0.7),inset_0_1px_0_rgba(255,255,255,0.14)] hover:shadow-[0_14px_36px_-10px_rgba(15,81,50,0.85),inset_0_1px_0_rgba(255,255,255,0.18)] disabled:opacity-60 disabled:cursor-not-allowed transition-all"
+              className="btn w-full text-[0.95rem] py-3.5 bg-turf-700 hover:bg-turf-600 text-stone-50 shadow-[0_10px_30px_-12px_rgba(30, 64, 175,0.7),inset_0_1px_0_rgba(255,255,255,0.14)] hover:shadow-[0_14px_36px_-10px_rgba(30, 64, 175,0.85),inset_0_1px_0_rgba(255,255,255,0.18)] disabled:opacity-60 disabled:cursor-not-allowed transition-all"
             >
               {submitting ? (
                 <>

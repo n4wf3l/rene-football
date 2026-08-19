@@ -68,7 +68,7 @@ function MeshGradientBase({ intensity = 'medium', tone = 'dark', className = '' 
         className={`absolute -bottom-32 -right-20 w-[38rem] h-[38rem] rounded-full ${blobOpacityClass}`}
         style={{
           ...blobOpacityStyle,
-          background: `radial-gradient(circle, rgba(15,81,50,${a.deep}) 0%, rgba(15,81,50,${a.deep * 0.2}) 40%, transparent 70%)`,
+          background: `radial-gradient(circle, rgba(30, 64, 175,${a.deep}) 0%, rgba(30, 64, 175,${a.deep * 0.2}) 40%, transparent 70%)`,
         }}
         animate={{ x: [0, -40, 25, 0], y: [0, -30, 20, 0], scale: [1, 0.92, 1.06, 1] }}
         transition={{ duration: 26, ease: 'easeInOut', repeat: Infinity, delay: 3 }}
@@ -77,7 +77,7 @@ function MeshGradientBase({ intensity = 'medium', tone = 'dark', className = '' 
         className={`absolute top-1/3 left-1/2 -translate-x-1/2 w-[28rem] h-[28rem] rounded-full ${blobOpacityClass}`}
         style={{
           ...blobOpacityStyle,
-          background: `radial-gradient(circle, rgba(82,153,109,${a.mid}) 0%, transparent 60%)`,
+          background: `radial-gradient(circle, rgba(96, 165, 250,${a.mid}) 0%, transparent 60%)`,
         }}
         animate={{ x: [0, 30, -20, 0], y: [0, -20, 15, 0], opacity: [0.5, 0.85, 0.6, 0.5] }}
         transition={{ duration: 18, ease: 'easeInOut', repeat: Infinity, delay: 1.5 }}

@@ -188,23 +188,18 @@ class StadiumTemplate extends PresentationTemplate
             $linkBlocks .= '<div class="link-row"><img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&margin=0&data='.urlencode($youtubeUrl).'"><div class="link-meta"><div class="link-label" style="color:'.$secondary.';">'.$this->esc($this->t('video', $options)).'</div><div class="link-url">'.$this->esc($shortUrl($youtubeUrl)).'</div></div></div>';
         }
 
-        // Compact physique tiles (used below the heatmap on the left so the
-        // bottom band never trails off into empty space).
-        $phyRows = $this->physiqueRows($player);
-        $physiqueHtml = '';
-        if (! empty($phyRows)) {
-            $tiles = '';
-            foreach ($phyRows as [$key, $value]) {
-                $tiles .= '<td style="text-align:center;padding:3mm 2mm;background:rgba(255,255,255,0.05);border-left:2px solid '.$accent.';">'
-                    .'<div style="font-size:13pt;font-weight:800;color:'.$text.';line-height:1;">'.$this->esc($value).'</div>'
-                    .'<div style="font-size:5.5pt;letter-spacing:1.5px;text-transform:uppercase;color:'.$secondary.';margin-top:1.5mm;">'.$this->esc($this->t($key, $options)).'</div>'
-                    .'</td><td style="width:2mm;"></td>';
-            }
-            $physiqueHtml = '<div style="margin-top:4mm;">'
-                .'<div class="mini-title">'.$this->esc(mb_strtoupper($this->t('physical', $options))).'</div>'
-                .'<table style="width:100%;border-collapse:collapse;"><tr>'.$tiles.'</tr></table>'
-                .'</div>';
-        }
+        // Adaptive physique block — sits under the heatmap on the left.
+        // Variant chosen from layout hints so a sparse dossier expands to a
+        // 2x2 grid (fills the vertical gap), a packed dossier stays row.
+        $hints = $this->layoutHints($player);
+        $blockStyle = [
+            'accent' => $accent,
+            'text'   => $text,
+            'muted'  => $secondary,
+            'bg'     => 'rgba(255,255,255,0.05)',
+        ];
+        $physiqueInner = $this->physiqueBlockHtml($player, $hints['physique_variant'], $blockStyle, $options, mb_strtoupper($this->t('physical', $options)));
+        $physiqueHtml  = $physiqueInner !== '' ? '<div style="margin-top:4mm;">'.$physiqueInner.'</div>' : '';
 
         // Right column blocks - each optional, always stacked in the same order
         // so the layout stays predictable regardless of what data is present.

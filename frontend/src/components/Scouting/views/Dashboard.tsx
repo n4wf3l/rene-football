@@ -247,7 +247,7 @@ function Dashboard() {
         <div
           aria-hidden="true"
           className="absolute inset-0 opacity-60"
-          style={{ background: 'radial-gradient(ellipse 60% 50% at 20% 20%, rgba(15,81,50,0.25), transparent 60%)' }}
+          style={{ background: 'radial-gradient(ellipse 60% 50% at 20% 20%, rgba(30, 64, 175,0.25), transparent 60%)' }}
         />
         <header className="relative flex items-center gap-2 mb-4">
           <Bell size={16} weight="duotone" className="text-turf-300" />

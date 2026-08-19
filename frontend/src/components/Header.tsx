@@ -39,7 +39,7 @@ const NAV: NavItem[] = [
    editorial-sport identity), so a single tint per item is enough. */
 const HOVER_SHAPES: Record<string, { borderRadius: number; tint: string }> = {
   '/':           { borderRadius: 999, tint: 'rgba(250,250,249,0.08)' },
-  '/joueurs':    { borderRadius: 14,  tint: 'rgba(15,81,50,0.20)'    },
+  '/joueurs':    { borderRadius: 14,  tint: 'rgba(30, 64, 175,0.20)'    },
   '/actualites': { borderRadius: 6,   tint: 'rgba(250,250,249,0.07)' },
   '/a-propos':   { borderRadius: 999, tint: 'rgba(250,250,249,0.08)' },
   '/contact':    { borderRadius: 999, tint: 'rgba(132,184,150,0.18)' },
@@ -49,9 +49,9 @@ const HOVER_SHAPES: Record<string, { borderRadius: number; tint: string }> = {
 const ScrollProgress = memo(function ScrollProgress() {
   const { scrollYProgress } = useScroll()
   const scaleX = useSpring(scrollYProgress, { stiffness: 180, damping: 30, mass: 0.4 })
-  const c1 = useTransform(scrollYProgress, [0, 0.5, 1], ['#84b896', '#2d7d4f', '#175133'])
-  const c2 = useTransform(scrollYProgress, [0, 0.5, 1], ['#52996d', '#0f5132', '#06251a'])
-  const glow = useTransform(scrollYProgress, [0, 0.5, 1], ['#84b89655', '#0f513288', '#175133aa'])
+  const c1 = useTransform(scrollYProgress, [0, 0.5, 1], ['#93c5fd', '#3b82f6', '#1d4ed8'])
+  const c2 = useTransform(scrollYProgress, [0, 0.5, 1], ['#60a5fa', '#1e40af', '#0f2664'])
+  const glow = useTransform(scrollYProgress, [0, 0.5, 1], ['#93c5fd55', '#1e40af88', '#1d4ed8aa'])
   const background = useMotionTemplate`linear-gradient(90deg, ${c1} 0%, ${c2} 100%)`
   const boxShadow = useMotionTemplate`0 0 12px ${glow}`
 
@@ -132,13 +132,13 @@ const StadiumLights = memo(function StadiumLights() {
       />
       <motion.span
         className="absolute -bottom-12 -right-10 w-64 h-64 rounded-full"
-        style={{ background: 'radial-gradient(circle, rgba(15,81,50,0.45) 0%, rgba(15,81,50,0.08) 45%, transparent 75%)' }}
+        style={{ background: 'radial-gradient(circle, rgba(30, 64, 175,0.45) 0%, rgba(30, 64, 175,0.08) 45%, transparent 75%)' }}
         animate={{ x: [0, -22, 14, 0], y: [0, -14, 8, 0], opacity: [0.5, 0.9, 0.65, 0.5] }}
         transition={{ duration: 14, ease: 'easeInOut', repeat: Infinity, delay: 1.5 }}
       />
       <motion.span
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 rounded-full"
-        style={{ background: 'radial-gradient(circle, rgba(82,153,109,0.18) 0%, transparent 65%)' }}
+        style={{ background: 'radial-gradient(circle, rgba(96, 165, 250,0.18) 0%, transparent 65%)' }}
         animate={{ scale: [0.9, 1.1, 0.95, 0.9], opacity: [0.4, 0.7, 0.5, 0.4] }}
         transition={{ duration: 9, ease: 'easeInOut', repeat: Infinity, delay: 0.8 }}
       />

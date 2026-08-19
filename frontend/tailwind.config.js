@@ -5,18 +5,23 @@ export default {
   theme: {
     extend: {
       colors: {
+        /* Brand palette. Named `turf` for historical reasons (the site
+           started on green) — kept as-is so we don't rename thousands of
+           call sites when the palette shifts. Values now anchor on a
+           deep, editorial blue: soft tints for backgrounds, high-contrast
+           mids for accents, near-navy at the deep end. */
         turf: {
-          50:  '#f1f8f4',
-          100: '#dcecdf',
-          200: '#b5d7c0',
-          300: '#84b896',
-          400: '#52996d',
-          500: '#2d7d4f',
-          600: '#1f6840',
-          700: '#175133',
-          800: '#0f5132',
-          900: '#0c3d27',
-          950: '#06251a',
+          50:  '#eff6ff',
+          100: '#dbeafe',
+          200: '#bfdbfe',
+          300: '#93c5fd',
+          400: '#60a5fa',
+          500: '#3b82f6',
+          600: '#2563eb',
+          700: '#1d4ed8',
+          800: '#1e40af',
+          900: '#1e3a8a',
+          950: '#0f2664',
         },
       },
       fontFamily: {

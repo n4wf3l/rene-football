@@ -243,7 +243,7 @@ export default function TutorialModal({ storageKey, eyebrow, title, steps, open,
                   width: rect.width + PAD * 2,
                   height: rect.height + PAD * 2,
                   boxShadow: '0 0 0 100vmax rgba(2, 6, 23, 0.78)',
-                  outline: '2px solid rgba(82, 153, 109, 0.9)',
+                  outline: '2px solid rgba(96, 165, 250, 0.9)',
                   outlineOffset: 0,
                 }}
               />

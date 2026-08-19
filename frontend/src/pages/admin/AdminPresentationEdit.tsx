@@ -74,8 +74,8 @@ function Toast({ kind, message, onDismiss }: ToastState & { onDismiss: () => voi
 }
 
 const DEFAULT_OPTIONS: PresentationOptions = {
-  accent_color: '#0f5132',
-  secondary_color: '#84b896',
+  accent_color: '#1e40af',
+  secondary_color: '#93c5fd',
   text_color: '#0c0a09',
   background_color: '#fafaf9',
   tagline: '',

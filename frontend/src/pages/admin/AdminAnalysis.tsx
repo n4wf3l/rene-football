@@ -60,7 +60,7 @@ type AggregationKind = 'sum' | 'mean' | 'per_match'
 const CATEGORY_PALETTE: Record<string, string> = {
   Gardien: '#a16207',
   Defenseur: '#1d4ed8',
-  Milieu: '#0f5132',
+  Milieu: '#1e40af',
   Attaquant: '#b91c1c',
   Autre: '#52525b',
 }
@@ -144,7 +144,7 @@ function CustomTooltip({ active, payload, xLabel, yLabel }: CustomTooltipProps) 
   const p = payload[0].payload
   const name = String(p.__name || p.name || '')
   const photo = p.photo_url ? String(p.photo_url) : null
-  const accent = String(p.color || '#0f5132')
+  const accent = String(p.color || '#1e40af')
   const subtitle = [p.position, p.club].filter(Boolean).join(' · ')
 
   return (
@@ -917,7 +917,7 @@ function AdminAnalysis() {
                     />
                     <Scatter
                       data={chartData}
-                      fill="#0f5132"
+                      fill="#1e40af"
                       style={{ cursor: 'pointer' }}
                       onClick={(point: { payload?: ChartRow } | ChartRow) => {
                         // Recharts may pass either the raw row or { payload: row }; handle both.
@@ -961,7 +961,7 @@ function AdminAnalysis() {
                     <XAxis dataKey="x" tick={{ fill: '#52525b', fontSize: 11 }} label={{ value: xLabel, position: 'insideBottom', offset: -16, fill: '#52525b', fontSize: 11 }} />
                     <YAxis tick={{ fill: '#52525b', fontSize: 11 }} label={{ value: yLabel, angle: -90, position: 'insideLeft', fill: '#52525b', fontSize: 11 }} />
                     <Tooltip content={<CustomTooltip xLabel={xLabel} yLabel={yLabel} />} />
-                    <Line type="monotone" dataKey="y" name={yLabel} stroke="#0f5132" strokeWidth={2} dot={{ r: 3, fill: '#0f5132' }} />
+                    <Line type="monotone" dataKey="y" name={yLabel} stroke="#1e40af" strokeWidth={2} dot={{ r: 3, fill: '#1e40af' }} />
                   </LineChart>
                 </ResponsiveContainer>
               ) : (
@@ -977,7 +977,7 @@ function AdminAnalysis() {
                       height={70}
                     />
                     <YAxis tick={{ fill: '#52525b', fontSize: 11 }} label={{ value: yLabel, angle: -90, position: 'insideLeft', fill: '#52525b', fontSize: 11 }} />
-                    <Tooltip content={<CustomTooltip xLabel={xLabel} yLabel={yLabel} />} cursor={{ fill: 'rgba(15,81,50,0.06)' }} />
+                    <Tooltip content={<CustomTooltip xLabel={xLabel} yLabel={yLabel} />} cursor={{ fill: 'rgba(30, 64, 175,0.06)' }} />
                     <Bar
                       dataKey="y"
                       name={yLabel}
@@ -990,7 +990,7 @@ function AdminAnalysis() {
                       }}
                     >
                       {chartData.map((entry, i) => (
-                        <Cell key={i} fill={entry.color || '#0f5132'} />
+                        <Cell key={i} fill={entry.color || '#1e40af'} />
                       ))}
                     </Bar>
                   </BarChart>
@@ -1910,7 +1910,7 @@ function EvolutionView({ players, selectedSlug, onChangeSlug }: EvolutionViewPro
                     type="monotone"
                     dataKey="value"
                     name={metric.label}
-                    stroke="#0f5132"
+                    stroke="#1e40af"
                     strokeWidth={2}
                     connectNulls={false}
                     dot={(dotProps: { cx?: number; cy?: number; payload?: EvolutionRow; index?: number }) => {
@@ -1933,7 +1933,7 @@ function EvolutionView({ players, selectedSlug, onChangeSlug }: EvolutionViewPro
                         )
                       }
                       return (
-                        <circle key={index ?? 'pt'} cx={cx ?? 0} cy={cy ?? 0} r={3} fill="#0f5132" />
+                        <circle key={index ?? 'pt'} cx={cx ?? 0} cy={cy ?? 0} r={3} fill="#1e40af" />
                       )
                     }}
                   />

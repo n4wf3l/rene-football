@@ -19,8 +19,8 @@ abstract class PresentationTemplate
     public static function defaultOptions(): array
     {
         return [
-            'accent_color'    => '#0f5132',
-            'secondary_color' => '#84b896',
+            'accent_color'    => '#1e40af',
+            'secondary_color' => '#93c5fd',
             'text_color'      => '#0c0a09',
             'background_color'=> '#fafaf9',
             'selected_stats'  => [],
@@ -570,6 +570,288 @@ abstract class PresentationTemplate
     }
 
     /**
+     * Adaptive layout hints for the current player. Delegates to
+     * AdaptiveLayout; kept as a template method so subclasses call it
+     * without an extra import.
+     *
+     * @return array{
+     *   richness:int,
+     *   bio_variant:string,
+     *   strengths_variant:string,
+     *   physique_variant:string,
+     *   comparisons_variant:string,
+     * }
+     */
+    protected function layoutHints(Player $player): array
+    {
+        return AdaptiveLayout::hintsFor($player);
+    }
+
+    /**
+     * Render Points forts in the requested variant. Variants:
+     *   row   — inline chips (small footprint)
+     *   grid  — 2-col grid of chips
+     *   stack — vertical bulleted list (fills empty column)
+     *   skip  — empty string
+     *
+     * `$style` lets each template pass its accent + text colours so the
+     * output matches the surrounding chrome.
+     *
+     * @param array{accent:string, text:string, muted?:string, bg?:string} $style
+     */
+    protected function strengthsBlockHtml(Player $player, string $variant, array $style, string $title = 'Points forts'): string
+    {
+        if ($variant === 'skip') return '';
+        $list = $this->strengthsList($player, $variant === 'stack' ? 8 : ($variant === 'grid' ? 6 : 4));
+        if (empty($list)) return '';
+
+        $accent = $style['accent'] ?? '#1e40af';
+        $text   = $style['text']   ?? '#0c0a09';
+        $muted  = $style['muted']  ?? '#78716c';
+
+        $titleHtml = '<div style="font-size:6.5pt;letter-spacing:2px;text-transform:uppercase;color:'.$muted.';font-weight:700;margin-bottom:2mm;">'.$this->esc($title).'</div>';
+
+        if ($variant === 'row') {
+            $chips = '';
+            foreach ($list as $s) {
+                $chips .= '<td style="padding:2mm 4mm;background:rgba(0,0,0,0.04);border-left:2px solid '.$accent.';font-size:8pt;font-weight:700;color:'.$text.';letter-spacing:0.5px;">'
+                    .$this->esc($s).'</td><td style="width:2mm;"></td>';
+            }
+            return $titleHtml.'<table style="border-collapse:collapse;"><tr>'.$chips.'</tr></table>';
+        }
+
+        if ($variant === 'grid') {
+            $rows = '';
+            $chunks = array_chunk($list, 2);
+            foreach ($chunks as $pair) {
+                $rows .= '<tr>';
+                foreach ($pair as $s) {
+                    $rows .= '<td style="width:50%;padding:1.5mm 3mm 1.5mm 0;">'
+                        .'<span style="display:inline-block;width:2.5mm;height:2.5mm;border-radius:1.25mm;background:'.$accent.';margin-right:2.5mm;vertical-align:middle;"></span>'
+                        .'<span style="font-size:9pt;font-weight:600;color:'.$text.';">'.$this->esc($s).'</span>'
+                        .'</td>';
+                }
+                if (count($pair) < 2) $rows .= '<td style="width:50%;"></td>';
+                $rows .= '</tr>';
+            }
+            return $titleHtml.'<table style="width:100%;border-collapse:collapse;">'.$rows.'</table>';
+        }
+
+        // stack — vertical list, fills a column
+        $items = '';
+        foreach ($list as $s) {
+            $items .= '<li style="padding:2.5mm 0;border-bottom:0.5px solid rgba(0,0,0,0.08);list-style:none;">'
+                .'<span style="display:inline-block;width:2.5mm;height:2.5mm;border-radius:1.25mm;background:'.$accent.';margin-right:3mm;vertical-align:middle;"></span>'
+                .'<span style="font-size:9.5pt;font-weight:600;color:'.$text.';">'.$this->esc($s).'</span>'
+                .'</li>';
+        }
+        return $titleHtml.'<ul style="list-style:none;padding:0;margin:0;">'.$items.'</ul>';
+    }
+
+    /**
+     * Render Physique in the requested variant. Variants:
+     *   row   — 1x4 tuiles rangée
+     *   grid2 — 2x2 tuiles carré (fills vertical space)
+     *   stack — vertical stack with progress bars
+     *   skip  — empty string
+     *
+     * @param array{accent:string, text:string, muted?:string, bg?:string} $style
+     */
+    protected function physiqueBlockHtml(Player $player, string $variant, array $style, array $options, string $title = 'Physique'): string
+    {
+        if ($variant === 'skip') return '';
+        $rows = $this->physiqueRows($player);
+        if (empty($rows)) return '';
+
+        $accent = $style['accent'] ?? '#1e40af';
+        $text   = $style['text']   ?? '#0c0a09';
+        $muted  = $style['muted']  ?? '#78716c';
+        $bg     = $style['bg']     ?? 'rgba(0,0,0,0.03)';
+
+        $titleHtml = '<div style="font-size:6.5pt;letter-spacing:2px;text-transform:uppercase;color:'.$muted.';font-weight:700;margin-bottom:2mm;">'.$this->esc($title).'</div>';
+
+        if ($variant === 'row' || $variant === 'grid2') {
+            $columns = $variant === 'grid2' ? 2 : count($rows);
+            $chunks  = array_chunk($rows, $columns);
+            $body = '';
+            foreach ($chunks as $chunk) {
+                $body .= '<tr>';
+                foreach ($chunk as [$key, $value]) {
+                    $body .= '<td style="text-align:center;padding:3mm 2mm;background:'.$bg.';border-left:2px solid '.$accent.';">'
+                        .'<div style="font-size:14pt;font-weight:800;color:'.$text.';line-height:1;">'.$this->esc($value).'</div>'
+                        .'<div style="font-size:6.5pt;color:'.$muted.';text-transform:uppercase;letter-spacing:1.5px;margin-top:1.5mm;">'.$this->esc($this->t($key, $options)).'</div>'
+                        .'</td><td style="width:2mm;"></td>';
+                }
+                // Pad missing columns for square 2x2 alignment.
+                for ($i = count($chunk); $i < $columns; $i++) $body .= '<td></td><td style="width:2mm;"></td>';
+                $body .= '</tr>';
+                if ($variant === 'grid2') $body .= '<tr><td colspan="'.($columns * 2).'" style="height:2mm;"></td></tr>';
+            }
+            return $titleHtml.'<table style="width:100%;border-collapse:collapse;">'.$body.'</table>';
+        }
+
+        // stack — vertical, one row per metric with a label and big value
+        $items = '';
+        foreach ($rows as [$key, $value]) {
+            $items .= '<div style="display:table;width:100%;padding:2mm 0;border-bottom:0.5px solid rgba(0,0,0,0.08);">'
+                .'<div style="display:table-cell;font-size:8pt;letter-spacing:1.5px;text-transform:uppercase;color:'.$muted.';vertical-align:middle;">'.$this->esc($this->t($key, $options)).'</div>'
+                .'<div style="display:table-cell;text-align:right;font-size:14pt;font-weight:800;color:'.$accent.';vertical-align:middle;">'.$this->esc($value).'</div>'
+                .'</div>';
+        }
+        return $titleHtml.$items;
+    }
+
+    /**
+     * Render Comparaisons in the requested variant. Variants:
+     *   row   — inline "Nom · Club" pairs (small footprint)
+     *   stack — vertical rows with divider (fills column)
+     *   skip  — empty
+     *
+     * @param array{accent:string, text:string, muted?:string} $style
+     */
+    protected function comparisonsBlockHtml(Player $player, string $variant, array $style, string $title = 'Comparaisons'): string
+    {
+        if ($variant === 'skip') return '';
+        $raw = is_array($player->comparisons) ? $player->comparisons : [];
+        $list = [];
+        foreach ($raw as $c) {
+            if (! is_array($c)) continue;
+            $name = trim((string) ($c['name'] ?? ''));
+            if ($name === '') continue;
+            $list[] = ['name' => $name, 'club' => trim((string) ($c['club'] ?? ''))];
+            if (count($list) >= ($variant === 'stack' ? 4 : 3)) break;
+        }
+        if (empty($list)) return '';
+
+        $accent = $style['accent'] ?? '#1e40af';
+        $text   = $style['text']   ?? '#0c0a09';
+        $muted  = $style['muted']  ?? '#78716c';
+
+        $titleHtml = '<div style="font-size:6.5pt;letter-spacing:2px;text-transform:uppercase;color:'.$muted.';font-weight:700;margin-bottom:2mm;">'.$this->esc($title).'</div>';
+
+        if ($variant === 'row') {
+            $cells = [];
+            foreach ($list as $c) {
+                $cells[] = '<span style="font-size:9pt;font-weight:700;color:'.$text.';">'.$this->esc($c['name']).'</span>'
+                    . ($c['club'] !== '' ? ' <span style="font-size:7pt;color:'.$muted.';">· '.$this->esc($c['club']).'</span>' : '');
+            }
+            return $titleHtml.'<div style="font-size:9pt;line-height:1.6;">'.implode(' &nbsp;·&nbsp; ', $cells).'</div>';
+        }
+
+        // stack — one row per comparison
+        $rows = '';
+        foreach ($list as $c) {
+            $rows .= '<tr>'
+                .'<td style="padding:2.5mm 0;border-bottom:0.5px solid rgba(0,0,0,0.08);font-size:9.5pt;font-weight:700;color:'.$text.';">'.$this->esc($c['name']).'</td>'
+                .'<td style="padding:2.5mm 0;border-bottom:0.5px solid rgba(0,0,0,0.08);text-align:right;font-size:7.5pt;letter-spacing:1.5px;text-transform:uppercase;color:'.$muted.';">'.$this->esc($c['club']).'</td>'
+                .'</tr>';
+        }
+        return $titleHtml.'<table style="width:100%;border-collapse:collapse;">'.$rows.'</table>';
+    }
+
+    /**
+     * Column-friendly extras (Previous clubs + Article/Video QRs) rendered
+     * as a compact VERTICAL block — meant to sit inside a template column
+     * (typically the shorter one) so the content fills whitespace instead
+     * of pushing to a second page.
+     *
+     * Returns empty string when no clubs / article / video are configured.
+     * Used by ClassicTemplate today; other templates that have a taller
+     * "leftover" column can adopt it too.
+     *
+     * @param array{accent?:string, text?:string, muted?:string, bg?:string} $style
+     */
+    protected function columnExtrasHtml(array $options, array $style = []): string
+    {
+        $clubs       = is_array($options['previous_clubs'] ?? null) ? $options['previous_clubs'] : [];
+        $articleSlug = $options['article_slug'] ?? null;
+        $youtubeUrl  = $options['youtube_url'] ?? null;
+
+        $clubs = array_values(array_filter($clubs, static fn ($c) =>
+            (isset($c['name']) && trim((string) $c['name']) !== '')
+            || (isset($c['logo_url']) && trim((string) $c['logo_url']) !== '')
+        ));
+
+        $articleUrl = null;
+        if ($articleSlug) {
+            $article = \App\Models\Article::where('slug', $articleSlug)->first();
+            if ($article) $articleUrl = url('/actualites/'.$article->slug);
+        }
+        if (empty($clubs) && ! $articleUrl && ! $youtubeUrl) return '';
+
+        $accent = $style['accent'] ?? '#1e40af';
+        $text   = $style['text']   ?? '#0c0a09';
+        $muted  = $style['muted']  ?? '#78716c';
+
+        $sectionTitle = fn (string $label) =>
+            '<div style="font-size:6.5pt;letter-spacing:2px;text-transform:uppercase;color:'.$muted.';font-weight:700;margin-bottom:2mm;">'.$this->esc($label).'</div>';
+
+        $out = '';
+
+        // Clubs list — vertical, cap 3 to keep the block short enough to
+        // fit inside a column without pushing the whole doc row past the
+        // page break.
+        if (! empty($clubs)) {
+            $rows = '';
+            foreach (array_slice($clubs, 0, 3) as $c) {
+                $name = trim((string) ($c['name'] ?? ''));
+                $logo = $c['logo_url'] ?? null;
+                $rows .= '<tr>'
+                    .'<td style="width:10mm;padding:1.5mm 2mm 1.5mm 0;border-bottom:0.5px solid rgba(0,0,0,0.08);vertical-align:middle;">'
+                    .($logo ? '<img src="'.$this->esc($this->absolutePath($logo)).'" alt="" style="height:7mm;max-width:10mm;object-fit:contain;">' : '')
+                    .'</td>'
+                    .'<td style="padding:1.5mm 0;border-bottom:0.5px solid rgba(0,0,0,0.08);font-size:8.5pt;font-weight:700;color:'.$text.';">'.$this->esc($name).'</td>'
+                    .'</tr>';
+            }
+            $out .= $sectionTitle(mb_strtoupper($this->t('previous_clubs', $options)))
+                .'<table style="width:100%;border-collapse:collapse;margin-bottom:3mm;">'.$rows.'</table>';
+        }
+
+        // Article + Video QRs — compact (40×40) so the whole extras block
+        // stays under ~35mm even when both links are present.
+        $linkRows = '';
+        if ($articleUrl) {
+            $linkRows .= '<tr>'
+                .'<td style="width:14mm;padding:1.5mm 2mm 1.5mm 0;vertical-align:middle;">'
+                .'<img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&margin=0&data='.urlencode($articleUrl).'" width="40" height="40" style="background:#fff;padding:0.5mm;">'
+                .'</td>'
+                .'<td style="padding:1.5mm 0;font-size:7pt;letter-spacing:1.5px;color:'.$muted.';text-transform:uppercase;font-weight:700;vertical-align:middle;">'.$this->esc($this->t('article', $options)).'</td>'
+                .'</tr>';
+        }
+        if ($youtubeUrl) {
+            $linkRows .= '<tr>'
+                .'<td style="width:14mm;padding:1.5mm 2mm 1.5mm 0;vertical-align:middle;">'
+                .'<img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&margin=0&data='.urlencode($youtubeUrl).'" width="40" height="40" style="background:#fff;padding:0.5mm;">'
+                .'</td>'
+                .'<td style="padding:1.5mm 0;font-size:7pt;letter-spacing:1.5px;color:'.$muted.';text-transform:uppercase;font-weight:700;vertical-align:middle;">'.$this->esc($this->t('video', $options)).'</td>'
+                .'</tr>';
+        }
+        if ($linkRows !== '') {
+            $out .= $sectionTitle(mb_strtoupper($this->t('scan_more', $options)))
+                .'<table style="width:100%;border-collapse:collapse;">'.$linkRows.'</table>';
+        }
+
+        // No border-top / heavy padding here — a thin separator was pushing
+        // the column past the doc-row height budget. Just a small margin
+        // to keep the block visually distinct from the strengths list above.
+        return $out !== '' ? '<div style="margin-top:4mm;">'.$out.'</div>' : '';
+    }
+
+    /**
+     * Truncate a free-form text at a max character count, appending "…" when
+     * cut. Used to cap bios / scout notes that were saved before the frontend
+     * character limit existed. Prevents a runaway string from silently
+     * overflowing the target block.
+     */
+    protected function safeText(?string $raw, int $max): string
+    {
+        $s = trim((string) ($raw ?? ''));
+        if ($s === '') return '';
+        if (mb_strlen($s) <= $max) return $s;
+        return rtrim(mb_substr($s, 0, $max - 1)).'…';
+    }
+
+    /**
      * Compact "extras" band shared by Classic / Magazine / Minimal:
      * a row of previous-club chips + QR codes for the article and YouTube
      * links when set. Returns empty string when nothing is configured, so
@@ -601,7 +883,7 @@ abstract class PresentationTemplate
 
         if (empty($clubs) && ! $articleUrl && ! $youtubeUrl) return '';
 
-        $accent    = $style['accent']    ?? ($options['accent_color']    ?? '#0f5132');
+        $accent    = $style['accent']    ?? ($options['accent_color']    ?? '#1e40af');
         $secondary = $style['secondary'] ?? ($options['secondary_color'] ?? '#a8a29e');
         $bg        = $style['bg']        ?? 'transparent';
         $textColor = $style['text']      ?? ($options['text_color'] ?? '#0c0a09');

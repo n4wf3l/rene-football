@@ -23,30 +23,30 @@ class ClassicTemplate extends PresentationTemplate
     {
         return '<svg viewBox="0 0 60 84" xmlns="http://www.w3.org/2000/svg">'
             .'<rect width="60" height="84" fill="#fafaf9"/>'
-            .'<rect x="3" y="3" width="22" height="40" fill="#0f5132"/>'
-            .'<rect x="3" y="45" width="22" height="3" fill="#0f5132" opacity="0.4"/>'
+            .'<rect x="3" y="3" width="22" height="40" fill="#1e40af"/>'
+            .'<rect x="3" y="45" width="22" height="3" fill="#1e40af" opacity="0.4"/>'
             .'<rect x="3" y="50" width="14" height="2" fill="#666"/>'
             .'<rect x="3" y="54" width="18" height="2" fill="#666"/>'
             .'<rect x="3" y="58" width="14" height="2" fill="#666"/>'
             .'<rect x="28" y="3" width="29" height="10" fill="#0c0a09"/>'
-            .'<rect x="28" y="16" width="13" height="13" fill="#0f5132" opacity="0.15"/>'
-            .'<rect x="44" y="16" width="13" height="13" fill="#0f5132" opacity="0.15"/>'
-            .'<rect x="28" y="32" width="13" height="13" fill="#0f5132" opacity="0.15"/>'
-            .'<rect x="44" y="32" width="13" height="13" fill="#0f5132" opacity="0.15"/>'
+            .'<rect x="28" y="16" width="13" height="13" fill="#1e40af" opacity="0.15"/>'
+            .'<rect x="44" y="16" width="13" height="13" fill="#1e40af" opacity="0.15"/>'
+            .'<rect x="28" y="32" width="13" height="13" fill="#1e40af" opacity="0.15"/>'
+            .'<rect x="44" y="32" width="13" height="13" fill="#1e40af" opacity="0.15"/>'
             .'<g transform="translate(28,50)">'
-            .'<rect width="6" height="5" fill="#0f5132" opacity="0.2"/>'
-            .'<rect x="6" width="6" height="5" fill="#0f5132" opacity="0.4"/>'
-            .'<rect x="12" width="6" height="5" fill="#0f5132" opacity="0.7"/>'
-            .'<rect x="18" width="6" height="5" fill="#0f5132" opacity="0.5"/>'
-            .'<rect x="24" width="6" height="5" fill="#0f5132" opacity="0.3"/>'
+            .'<rect width="6" height="5" fill="#1e40af" opacity="0.2"/>'
+            .'<rect x="6" width="6" height="5" fill="#1e40af" opacity="0.4"/>'
+            .'<rect x="12" width="6" height="5" fill="#1e40af" opacity="0.7"/>'
+            .'<rect x="18" width="6" height="5" fill="#1e40af" opacity="0.5"/>'
+            .'<rect x="24" width="6" height="5" fill="#1e40af" opacity="0.3"/>'
             .'</g>'
             .'</svg>';
     }
 
     public function render(Player $player, array $options, string $title): string
     {
-        $accent    = $options['accent_color']     ?? '#0f5132';
-        $secondary = $options['secondary_color']  ?? '#84b896';
+        $accent    = $options['accent_color']     ?? '#1e40af';
+        $secondary = $options['secondary_color']  ?? '#93c5fd';
         $text      = $options['text_color']       ?? '#0c0a09';
         $bg        = $options['background_color'] ?? '#fafaf9';
         $tagline   = $options['tagline'] ?? null;
@@ -84,38 +84,22 @@ class ClassicTemplate extends PresentationTemplate
             $infoHtml .= '<tr><td>'.$this->esc($r[0]).'</td><td>'.$this->esc($r[1]).'</td></tr>';
         }
 
-        // Strengths block (left column) - only when there's data to render.
-        $strengthsList = $this->strengthsList($player, 6);
-        $strengthsHtml = '';
-        if (! empty($strengthsList)) {
-            $items = '';
-            foreach ($strengthsList as $s) {
-                $items .= '<li style="padding:2mm 0;border-bottom:1px solid #e7e5e4;font-size:9pt;">'
-                    .'<span style="display:inline-block;width:2.5mm;height:2.5mm;border-radius:1.25mm;background:'.$accent.';vertical-align:middle;margin-right:2.5mm;"></span>'
-                    .$this->esc($s).'</li>';
-            }
-            $strengthsHtml = '<div class="left-block">'
-                .'<div class="block-title">'.$this->esc($this->t('strengths', $options)).'</div>'
-                .'<ul style="list-style:none;padding:0;margin:0;">'.$items.'</ul>'
-                .'</div>';
-        }
+        // Adaptive block rendering — variants are chosen from the layout hints
+        // so a sparse player expands blocks vertically to fill empty space
+        // and a packed player collapses them to fit a single page.
+        $hints = $this->layoutHints($player);
+        $blockStyle = ['accent' => $accent, 'text' => $text, 'muted' => '#78716c', 'bg' => $bg];
 
-        // Physique tiles (right column) - only when at least one metric exists.
-        $phyRows = $this->physiqueRows($player);
-        $physiqueHtml = '';
-        if (! empty($phyRows)) {
-            $tiles = '';
-            foreach ($phyRows as [$key, $value]) {
-                $tiles .= '<td style="text-align:center;background:'.$bg.';border:1px solid #e7e5e4;padding:3mm 2mm;">'
-                    .'<div style="font-size:13pt;font-weight:700;color:'.$accent.';line-height:1;">'.$this->esc($value).'</div>'
-                    .'<div style="font-size:6.5pt;color:#78716c;text-transform:uppercase;letter-spacing:1px;margin-top:1.5mm;">'.$this->esc($this->t($key, $options)).'</div>'
-                    .'</td>';
-            }
-            $physiqueHtml = '<div class="block">'
-                .'<div class="block-title">'.$this->esc($this->t('physical', $options)).'</div>'
-                .'<table style="width:100%;border-collapse:separate;border-spacing:2mm 0;"><tr>'.$tiles.'</tr></table>'
-                .'</div>';
-        }
+        $strengthsInner  = $this->strengthsBlockHtml($player, $hints['strengths_variant'], $blockStyle, $this->t('strengths', $options));
+        $strengthsHtml   = $strengthsInner !== '' ? '<div class="left-block">'.$strengthsInner.'</div>' : '';
+
+        $physiqueInner   = $this->physiqueBlockHtml($player, $hints['physique_variant'], $blockStyle, $options, $this->t('physical', $options));
+        $physiqueHtml    = $physiqueInner !== '' ? '<div class="block">'.$physiqueInner.'</div>' : '';
+
+        // Comparaisons adaptive block — only rendered when data exists;
+        // sparse players push it into stack mode to fill the right column.
+        $comparisonsInner = $this->comparisonsBlockHtml($player, $hints['comparisons_variant'], $blockStyle, $this->t('comparisons', $options));
+        $comparisonsHtml  = $comparisonsInner !== '' ? '<div class="block">'.$comparisonsInner.'</div>' : '';
 
         // Scout quote fallback (right column) - only when bio is missing but a
         // dedicated scout_quote is available; keeps the right col grounded.
@@ -136,8 +120,12 @@ class ClassicTemplate extends PresentationTemplate
             ? '<div class="block"><div class="block-title">'.$this->esc($this->t('zones_influence', $options)).'</div>'.$heatmap.'</div>'
             : '';
 
-        $bioBlock = $player->bio
-            ? '<div class="block bio"><div class="block-title">'.$this->esc($this->t('scout_profile', $options)).'</div><p>'.nl2br($this->esc($player->bio)).'</p></div>'
+        // Safety cap on the bio so a legacy record saved before the
+        // 350-char frontend limit can't blow up the right column and push
+        // extras onto a second page.
+        $bioText = $this->safeText($player->bio, 400);
+        $bioBlock = $bioText !== ''
+            ? '<div class="block bio"><div class="block-title">'.$this->esc($this->t('scout_profile', $options)).'</div><p>'.nl2br($this->esc($bioText)).'</p></div>'
             : '';
 
         $lang = $this->lang($options);
@@ -149,7 +137,12 @@ class ClassicTemplate extends PresentationTemplate
   .doc { display: table; width: 100%; }
   .col-left { display: table-cell; width: 38%; vertical-align: top; padding-right: 8mm; }
   .col-right { display: table-cell; vertical-align: top; }
-  .photo { position: relative; width: 100%; height: 90mm; overflow: hidden; background: {$secondary}; border-radius: 4mm; }
+  /* Photo shrunk from 90mm → 68mm so the left column + extras (clubs +
+     QR) fits in the page-1 remaining height. Because .doc is a display:
+     table row that DomPDF won't split, the whole doc jumps to page 2 as
+     soon as max(left, right) > available space. Tighter photo keeps the
+     column under budget. */
+  .photo { position: relative; width: 100%; height: 68mm; overflow: hidden; background: {$secondary}; border-radius: 4mm; }
   .name { font-size: 24pt; font-weight: 700; margin: 6mm 0 1mm 0; line-height: 1.05; }
   .tagline { font-size: 9pt; color: {$accent}; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4mm; }
   .info { width: 100%; border-collapse: collapse; font-size: 9pt; margin-top: 4mm; }
@@ -185,18 +178,24 @@ HTML
       .($tagline ? '<div class="tagline">'.$this->esc($tagline).'</div>' : '')
       .'<table class="info"><tbody>'.$infoHtml.'</tbody></table>'
       .$strengthsHtml
+      // Extras (Clubs précédents + QR ARTICLE/VIDÉO) sit at the bottom of
+      // the LEFT column instead of a full-width band underneath the doc.
+      // The right column carries the tall content (bio, heatmap, KPIs) so
+      // the left has vertical whitespace to reclaim — this fills it and
+      // keeps the whole dossier on page 1.
+      .$this->columnExtrasHtml($options, ['accent' => $accent, 'text' => $text, 'muted' => '#78716c'])
       .'</div>
     <div class="col-right">
       <div class="kpi-grid"><div class="kpi-row">'
       .$statsHtml
       .'</div></div>'
       .$physiqueHtml
+      .$comparisonsHtml
       .$heatmapBlock
       .$bioBlock
       .$scoutQuoteHtml
       .'</div>
   </div>
-  '.$this->extrasBlockHtml($options, ['secondary' => '#78716c', 'text' => $text]).'
   <div class="footer">Rene Football · '.now()->format('d/m/Y').'</div>
 </body></html>';
     }

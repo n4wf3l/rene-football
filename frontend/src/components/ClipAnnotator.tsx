@@ -21,7 +21,7 @@ export interface ClipAnnotatorProps {
 }
 
 const STROKE_PALETTE: { key: string; rgb: string }[] = [
-  { key: 'turf',   rgb: '#84b896' },
+  { key: 'turf',   rgb: '#93c5fd' },
   { key: 'rose',   rgb: '#fb7185' },
   { key: 'amber',  rgb: '#f59e0b' },
   { key: 'white',  rgb: '#fafaf9' },
@@ -81,7 +81,7 @@ export default function ClipAnnotator({ onSave, onCancel }: ClipAnnotatorProps) 
   const [videoUrl, setVideoUrl] = useState<string | null>(null)
   const [paused, setPaused] = useState(false)
   const [arrows, setArrows] = useState<ClipAnnotation[]>([])
-  const [strokeColor, setStrokeColor] = useState('#84b896')
+  const [strokeColor, setStrokeColor] = useState('#93c5fd')
   const [strokeWidth, setStrokeWidth] = useState(4)
   const [drag, setDrag] = useState<{ x1: number; y1: number; x2: number; y2: number } | null>(null)
   const [title, setTitle] = useState('')
