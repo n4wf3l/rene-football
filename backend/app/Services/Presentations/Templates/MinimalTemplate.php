@@ -103,26 +103,13 @@ class MinimalTemplate extends PresentationTemplate
               .'</div>'
             : '';
 
-        // Physique tiles for the right column - only when telemetry exists.
-        // Compact numbers so the whole right column stays under ~110mm and the
-        // bottom band (strengths + scout) still fits on page 1.
-        $phyRows = $this->physiqueRows($player);
-        $physiqueBlock = '';
-        if (! empty($phyRows)) {
-            $tiles = '';
-            foreach ($phyRows as [$key, $value]) {
-                $tiles .= '<td style="text-align:center;padding:2mm 2mm;border-top:0.5px solid '.$accent.';border-bottom:0.5px solid '.$accent.';">'
-                    .'<div style="font-size:11pt;font-weight:700;color:'.$accent.';line-height:1;">'.$this->esc($value).'</div>'
-                    .'<div style="font-size:5.5pt;color:'.$secondary.';text-transform:uppercase;letter-spacing:1.5px;margin-top:1mm;">'.$this->esc($this->t($key, $options)).'</div>'
-                    .'</td>';
-            }
-            $physiqueBlock = '<div class="block">'
-                .'<div class="mini-title">'.$this->esc($this->t('physical', $options)).'</div>'
-                .'<table style="width:100%;border-collapse:collapse;">'
-                .'<tr>'.$tiles.'</tr>'
-                .'</table>'
-                .'</div>';
-        }
+        // Adaptive physique + strengths blocks — variants picked from the
+        // layout hints so a sparse player expands into vertical/grid2 (fills
+        // the right column) while a rich player stays compact for page 1 fit.
+        $hints = $this->layoutHints($player);
+        $blockStyle = ['accent' => $accent, 'text' => $text, 'muted' => $secondary, 'bg' => 'transparent'];
+        $physiqueInner = $this->physiqueBlockHtml($player, $hints['physique_variant'], $blockStyle, $options, $this->t('physical', $options));
+        $physiqueBlock = $physiqueInner !== '' ? '<div class="block">'.$physiqueInner.'</div>' : '';
 
         // Comparisons block for the right column - closes the vertical gap
         // between the heatmap (short) and the taller left column (photo + info).

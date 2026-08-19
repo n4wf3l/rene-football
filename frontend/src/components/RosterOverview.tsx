@@ -132,7 +132,7 @@ export default function RosterOverview({ players }: Props) {
           </span>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <HistogramCard id="ages"      title="Répartition des âges" data={histograms.ages}      color="#52996d" />
+          <HistogramCard id="ages"      title="Répartition des âges" data={histograms.ages}      color="#60a5fa" />
           <HistogramCard id="xgP90"     title="xG / 90 (actifs)"     data={histograms.xgP90}     color="#e11d48" />
           <HistogramCard id="potential" title="Potentiel scout"      data={histograms.potential} color="#d97706" />
         </div>
@@ -264,7 +264,7 @@ interface HistogramCardProps {
   color?: string
 }
 
-function HistogramCard({ id, title, data, color = '#52996d' }: HistogramCardProps) {
+function HistogramCard({ id, title, data, color = '#60a5fa' }: HistogramCardProps) {
   const [mode, setMode] = useLocalStorageState<HistogramMode>(`rene_widget_histogram_${id}`, 'bars')
   const nonEmpty = data.some((b) => b.count > 0)
   const total = data.reduce((s, b) => s + b.count, 0)

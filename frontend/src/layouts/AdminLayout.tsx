@@ -72,7 +72,7 @@ function SidebarLink({ to, label, icon: Icon, end, badge }: SidebarLinkProps) {
           {isActive && (
             <motion.span
               layoutId="admin-nav-active"
-              className="absolute inset-y-1.5 left-0 w-[3px] rounded-r-full bg-turf-600 dark:bg-turf-300 shadow-[0_0_12px_-2px_rgba(15,81,50,0.45)] dark:shadow-[0_0_12px_-2px_rgba(134,239,172,0.4)]"
+              className="absolute inset-y-1.5 left-0 w-[3px] rounded-r-full bg-turf-600 dark:bg-turf-300 shadow-[0_0_12px_-2px_rgba(30, 64, 175,0.45)] dark:shadow-[0_0_12px_-2px_rgba(134,239,172,0.4)]"
               transition={{ type: 'spring', stiffness: 380, damping: 32 }}
             />
           )}

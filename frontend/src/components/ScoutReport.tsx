@@ -102,9 +102,9 @@ function PotentialGauge({ rating, label }: PotentialGaugeProps) {
         />
         <defs>
           <linearGradient id="potential-gradient" x1="0" x2="1" y1="0" y2="0">
-            <stop offset="0%"   stopColor="#84b896" />
-            <stop offset="60%"  stopColor="#2d7d4f" />
-            <stop offset="100%" stopColor="#0f5132" />
+            <stop offset="0%"   stopColor="#93c5fd" />
+            <stop offset="60%"  stopColor="#3b82f6" />
+            <stop offset="100%" stopColor="#1e40af" />
           </linearGradient>
         </defs>
       </svg>
@@ -203,7 +203,7 @@ function ScoutReport({
             <div
               aria-hidden="true"
               className="pointer-events-none absolute -bottom-20 -right-12 w-72 h-72 rounded-full"
-              style={{ background: 'radial-gradient(circle, rgba(15,81,50,0.45), transparent 70%)' }}
+              style={{ background: 'radial-gradient(circle, rgba(30, 64, 175,0.45), transparent 70%)' }}
             />
             <span className="absolute top-5 left-5 font-display text-5xl text-turf-300/40 leading-none select-none">
               “

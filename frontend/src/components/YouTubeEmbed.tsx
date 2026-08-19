@@ -49,7 +49,7 @@ function YouTubeEmbed({ videoId, title, poster }: YouTubeEmbedProps) {
               whileHover={{ scale: 1.06 }}
               whileTap={{ scale: 0.96 }}
               transition={{ type: 'spring', stiffness: 320, damping: 22 }}
-              className="relative grid place-items-center w-20 h-20 lg:w-24 lg:h-24 rounded-full bg-stone-50/95 text-zinc-950 shadow-[0_20px_50px_-15px_rgba(15,81,50,0.6)] backdrop-blur"
+              className="relative grid place-items-center w-20 h-20 lg:w-24 lg:h-24 rounded-full bg-stone-50/95 text-zinc-950 shadow-[0_20px_50px_-15px_rgba(30, 64, 175,0.6)] backdrop-blur"
             >
               <span
                 aria-hidden="true"

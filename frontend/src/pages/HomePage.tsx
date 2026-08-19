@@ -316,8 +316,8 @@ function HomePage() {
           className="absolute inset-0 -z-10"
           style={{
             background:
-              'radial-gradient(ellipse 50% 50% at 15% 30%, rgba(15,81,50,0.30), transparent 60%),' +
-              'radial-gradient(ellipse 50% 50% at 85% 80%, rgba(15,81,50,0.18), transparent 55%),' +
+              'radial-gradient(ellipse 50% 50% at 15% 30%, rgba(30, 64, 175,0.30), transparent 60%),' +
+              'radial-gradient(ellipse 50% 50% at 85% 80%, rgba(30, 64, 175,0.18), transparent 55%),' +
               'linear-gradient(180deg, #0a0a0a 0%, #050505 100%)',
           }}
         />
@@ -422,7 +422,7 @@ function HomePage() {
                   <div
                     aria-hidden="true"
                     className="pointer-events-none absolute -bottom-24 -right-24 w-72 h-72 rounded-full"
-                    style={{ background: 'radial-gradient(circle, rgba(15,81,50,0.55), transparent 70%)' }}
+                    style={{ background: 'radial-gradient(circle, rgba(30, 64, 175,0.55), transparent 70%)' }}
                   />
                 )}
               </motion.article>

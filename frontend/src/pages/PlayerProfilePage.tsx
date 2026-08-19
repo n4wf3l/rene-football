@@ -647,7 +647,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
                 <div
                   aria-hidden="true"
                   className="pointer-events-none absolute -bottom-16 -right-12 w-56 h-56 rounded-full"
-                  style={{ background: 'radial-gradient(circle, rgba(15,81,50,0.55), transparent 70%)' }}
+                  style={{ background: 'radial-gradient(circle, rgba(30, 64, 175,0.55), transparent 70%)' }}
                 />
                 <div className="font-mono uppercase tracking-[0.18em] text-[0.65rem] text-turf-300">
                   Volume de jeu
@@ -822,7 +822,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
                 <div
                   aria-hidden="true"
                   className="pointer-events-none absolute -bottom-12 -right-10 w-48 h-48 rounded-full"
-                  style={{ background: 'radial-gradient(circle, rgba(15,81,50,0.55), transparent 70%)' }}
+                  style={{ background: 'radial-gradient(circle, rgba(30, 64, 175,0.55), transparent 70%)' }}
                 />
                 <Person size={22} weight="regular" className="text-turf-300" />
                 <div className="mt-5 font-mono text-4xl tabular-nums text-stone-50">{player.duels_won}</div>

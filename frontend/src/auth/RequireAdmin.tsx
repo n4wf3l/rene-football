@@ -20,7 +20,7 @@ function FullScreenLoader() {
         style={{
           background:
             'radial-gradient(ellipse at 30% 0%, rgba(45,125,79,0.10) 0%, transparent 50%),' +
-            'radial-gradient(ellipse at 70% 100%, rgba(15,81,50,0.10) 0%, transparent 55%)',
+            'radial-gradient(ellipse at 70% 100%, rgba(30, 64, 175,0.10) 0%, transparent 55%)',
         }}
       />
 

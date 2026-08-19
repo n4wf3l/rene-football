@@ -127,7 +127,7 @@ class PdfController extends Controller
             letter-spacing: 1.5px;
             text-transform: uppercase;
         }
-        .brand .accent { color: #0f5132; }
+        .brand .accent { color: #1e40af; }
         .header-meta {
             display: table-cell;
             vertical-align: middle;
@@ -159,7 +159,7 @@ class PdfController extends Controller
             font-size: 9px;
             text-transform: uppercase;
             letter-spacing: 2.5px;
-            color: #0f5132;
+            color: #1e40af;
             margin-bottom: 6px;
         }
         h1 {

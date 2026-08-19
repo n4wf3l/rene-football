@@ -419,7 +419,7 @@ function ContactPage() {
               <div
                 aria-hidden="true"
                 className="pointer-events-none absolute -bottom-20 -right-12 w-72 h-72 rounded-full"
-                style={{ background: 'radial-gradient(circle, rgba(15,81,50,0.4), transparent 70%)' }}
+                style={{ background: 'radial-gradient(circle, rgba(30, 64, 175,0.4), transparent 70%)' }}
               />
               <div className="font-mono uppercase tracking-[0.18em] text-[0.65rem] text-turf-300">
                 Coordonnées directes

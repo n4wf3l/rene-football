@@ -47,7 +47,7 @@ Route::get('/', function (Request $request) {
             body { color: #f5f5f4; background: #0a0a0a; }
             .card { background: #18181b; border-color: rgba(245,245,244,0.08); }
             code { background: rgba(245,245,244,0.08); }
-            a { color: #84b896; }
+            a { color: #93c5fd; }
         }
         .card {
             max-width: 560px;
@@ -63,7 +63,7 @@ Route::get('/', function (Request $request) {
             font: 11px ui-monospace, SFMono-Regular, Menlo, monospace;
             text-transform: uppercase;
             letter-spacing: 0.18em;
-            color: #0f5132;
+            color: #1e40af;
             margin-bottom: 12px;
         }
         h1 { font-size: 28px; margin: 0 0 12px; letter-spacing: -0.02em; }
@@ -76,7 +76,7 @@ Route::get('/', function (Request $request) {
             font-size: 13px;
         }
         code { background: #f5f5f4; padding: 2px 6px; border-radius: 4px; }
-        a { color: #0f5132; text-decoration: none; }
+        a { color: #1e40af; text-decoration: none; }
         a:hover { text-decoration: underline; }
     </style>
 </head>

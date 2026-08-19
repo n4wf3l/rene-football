@@ -101,38 +101,19 @@ class MagazineTemplate extends PresentationTemplate
                 .($player->potential_label ? ' · '.$this->esc($player->potential_label) : '').'<br>';
         }
 
-        // Physique tiles (side band under the grid) - filled with data only.
-        $phyRows = $this->physiqueRows($player);
-        $physiqueHtml = '';
-        if (! empty($phyRows)) {
-            $tiles = '';
-            foreach ($phyRows as [$key, $value]) {
-                $tiles .= '<td style="text-align:center;padding:3mm 2mm;background:rgba(255,255,255,0.04);border-radius:2mm;">'
-                    .'<div style="font-size:14pt;font-weight:700;color:'.$text.';line-height:1;">'.$this->esc($value).'</div>'
-                    .'<div style="font-size:6.5pt;color:'.$secondary.';text-transform:uppercase;letter-spacing:1.5px;margin-top:1.5mm;">'.$this->esc($this->t($key, $options)).'</div>'
-                    .'</td>';
-            }
-            $physiqueHtml = '<div style="margin-top:5mm;">'
-                .'<div class="cell-title">'.$this->esc($this->t('physical', $options)).'</div>'
-                .'<table style="width:100%;border-collapse:separate;border-spacing:3mm 0;"><tr>'.$tiles.'</tr></table>'
-                .'</div>';
-        }
-
-        // Strengths ribbon (full-width chips row).
-        $strengthsList = $this->strengthsList($player, 6);
-        $strengthsHtml = '';
-        if (! empty($strengthsList)) {
-            $chips = '';
-            foreach ($strengthsList as $s) {
-                $chips .= '<td style="padding:3mm 4mm;background:rgba(255,255,255,0.06);border-left:3px solid '.$secondary.';">'
-                    .'<span style="font-size:8pt;font-weight:700;letter-spacing:1px;text-transform:uppercase;">'.$this->esc($s).'</span>'
-                    .'</td><td style="width:3mm;"></td>';
-            }
-            $strengthsHtml = '<div style="margin-top:5mm;">'
-                .'<div class="cell-title">'.$this->esc($this->t('strengths', $options)).'</div>'
-                .'<table style="width:100%;border-collapse:collapse;"><tr>'.$chips.'</tr></table>'
-                .'</div>';
-        }
+        // Adaptive block rendering — dark-palette style overrides so the
+        // shared helpers blend with Magazine's editorial look.
+        $hints = $this->layoutHints($player);
+        $blockStyle = [
+            'accent' => $secondary,
+            'text'   => $text,
+            'muted'  => $secondary,
+            'bg'     => 'rgba(255,255,255,0.04)',
+        ];
+        $physiqueInner  = $this->physiqueBlockHtml($player, $hints['physique_variant'], $blockStyle, $options, $this->t('physical', $options));
+        $physiqueHtml   = $physiqueInner !== '' ? '<div style="margin-top:5mm;">'.$physiqueInner.'</div>' : '';
+        $strengthsInner = $this->strengthsBlockHtml($player, $hints['strengths_variant'], $blockStyle, $this->t('strengths', $options));
+        $strengthsHtml  = $strengthsInner !== '' ? '<div style="margin-top:5mm;">'.$strengthsInner.'</div>' : '';
 
         $clubLine = trim(($player->position ?? '').($player->club ? ' · '.$player->club : ''));
 

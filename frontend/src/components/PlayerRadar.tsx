@@ -74,7 +74,7 @@ function axesFor(category: string | undefined): RadarAxis[] {
 /* Up to 4 superimposed polygons. Each player gets a distinct hue, fill at low alpha
    for overlap readability, stroke at higher alpha. */
 const PLAYER_COLORS = [
-  { stroke: '#52996d', fill: 'rgba(82,153,109,0.20)',  legend: 'bg-turf-500' },   // turf
+  { stroke: '#60a5fa', fill: 'rgba(96, 165, 250,0.20)',  legend: 'bg-turf-500' },   // turf
   { stroke: '#e11d48', fill: 'rgba(225,29,72,0.18)',   legend: 'bg-rose-600' },   // rose
   { stroke: '#d97706', fill: 'rgba(217,119,6,0.18)',   legend: 'bg-amber-600' },  // amber
   { stroke: '#0284c7', fill: 'rgba(2,132,199,0.18)',   legend: 'bg-sky-600' },    // sky

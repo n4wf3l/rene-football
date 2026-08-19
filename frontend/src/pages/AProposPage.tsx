@@ -62,8 +62,8 @@ interface TimelineRailProps {
 function TimelineRail({ targetRef }: TimelineRailProps) {
   const { scrollYProgress } = useScroll({ target: targetRef, offset: ['start 0.5' as const, 'end 0.5' as const] })
   const scaleY = useSpring(scrollYProgress, { stiffness: 120, damping: 26, mass: 0.4 })
-  const c1 = useTransform(scrollYProgress, [0, 0.5, 1], ['#84b896', '#2d7d4f', '#175133'])
-  const c2 = useTransform(scrollYProgress, [0, 0.5, 1], ['#52996d', '#0f5132', '#06251a'])
+  const c1 = useTransform(scrollYProgress, [0, 0.5, 1], ['#93c5fd', '#3b82f6', '#1d4ed8'])
+  const c2 = useTransform(scrollYProgress, [0, 0.5, 1], ['#60a5fa', '#1e40af', '#0f2664'])
   const background = useMotionTemplate`linear-gradient(180deg, ${c1} 0%, ${c2} 100%)`
 
   return (
@@ -270,7 +270,7 @@ function AProposPage() {
               >
                 <span
                   aria-hidden="true"
-                  className="absolute -left-[34px] sm:-left-[42px] top-1.5 grid place-items-center w-6 h-6 rounded-full bg-turf-700 border-2 border-stone-50 dark:border-zinc-950 shadow-[0_0_8px_rgba(15,81,50,0.6)]"
+                  className="absolute -left-[34px] sm:-left-[42px] top-1.5 grid place-items-center w-6 h-6 rounded-full bg-turf-700 border-2 border-stone-50 dark:border-zinc-950 shadow-[0_0_8px_rgba(30, 64, 175,0.6)]"
                 >
                   <Compass size={11} weight="bold" className="text-stone-50" />
                 </span>

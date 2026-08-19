@@ -30,7 +30,7 @@ class PlayerAnalysisReport extends PresentationTemplate
 
     public function render(Player $player, array $options = [], string $title = ''): string
     {
-        $accent    = '#0f5132';
+        $accent    = '#1e40af';
         $secondary = '#78716c';
         $text      = '#0c0a09';
         $bg        = '#fafaf9';
