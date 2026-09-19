@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ChangeEvent, FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
@@ -6,6 +6,7 @@ import {
   CheckCircle,
   Copy,
   Eye,
+  FileArrowUp,
   Image as ImageIcon,
   Person,
   Plus,
@@ -120,7 +121,18 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
   const [existing, setExisting] = useState<Presentation | null>(null)
   const [photoFile, setPhotoFile] = useState<File | null>(null)
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
+  const [uploadingAsset, setUploadingAsset] = useState(false)
   const [generatingPdf, setGeneratingPdf] = useState(false)
+  const assetInputRef = useRef<HTMLInputElement | null>(null)
+
+  const hasExternalAsset = !!existing?.external_asset_path
+  const externalAssetForPreview = hasExternalAsset && existing
+    ? {
+        url: existing.external_asset_path as string,
+        type: (existing.external_asset_type ?? 'image') as 'image' | 'pdf',
+        name: existing.external_asset_original_name ?? null,
+      }
+    : null
 
   const selectedPlayer = useMemo(
     () => players.find((p) => p.id === form.player_id) ?? null,
@@ -241,6 +253,66 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
       setPlayers((ps) => ps.map((p) => (p.id === selectedPlayer.id ? { ...p, bio: next || null } : p)))
     } catch (err: unknown) {
       showToast('error', err instanceof Error ? err.message : 'Bio du joueur : échec de la synchronisation.')
+    }
+  }
+
+  /** Ensures a draft row exists on the server so we have an id to attach an
+   *  asset to. Returns the presentation id or null if the pre-conditions
+   *  (player + title) aren't met. Mirrors the auto-save trick used by onPreview. */
+  const ensureDraft = async (): Promise<number | null> => {
+    if (!form.player_id) { showToast('error', 'Choisissez un joueur avant d\'attacher une fiche.'); return null }
+    if (!form.title.trim()) { showToast('error', 'Donnez un titre avant d\'attacher une fiche.'); return null }
+    if (existing?.id) return existing.id
+    // Creating mode - persist the draft first.
+    try {
+      await syncPlayerBio()
+      const payload = {
+        player_id: form.player_id,
+        template_key: form.template_key,
+        title: form.title,
+        is_published: form.is_published,
+        options: form.options,
+      }
+      const res = await api.post<PresentationResponse>('/admin/presentations', payload, { auth: true })
+      setExisting(res.data)
+      navigate(`/admin/presentations/${res.data.id}/edit`, { replace: true })
+      return res.data.id
+    } catch (err: unknown) {
+      showToast('error', err instanceof Error ? err.message : 'Impossible d\'enregistrer le brouillon.')
+      return null
+    }
+  }
+
+  const onUploadAsset = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] ?? null
+    // Reset the input immediately so the same file can be re-selected after error.
+    if (assetInputRef.current) assetInputRef.current.value = ''
+    if (!file) return
+    const targetId = await ensureDraft()
+    if (!targetId) return
+    setUploadingAsset(true)
+    try {
+      const fd = new FormData()
+      fd.append('asset', file)
+      const res = await api.post<PresentationResponse>(`/admin/presentations/${targetId}/upload-asset`, fd, { auth: true })
+      setExisting(res.data)
+      showToast('success', 'Fiche externe attachée. Le PDF téléchargeable a été mis à jour.')
+    } catch (err: unknown) {
+      showToast('error', err instanceof Error ? err.message : 'Upload de la fiche impossible.')
+    } finally {
+      setUploadingAsset(false)
+    }
+  }
+
+  const onClearAsset = async () => {
+    if (!existing?.id) return
+    if (!confirm('Retirer la fiche externe ? Le PDF sera à nouveau généré depuis le template.')) return
+    try {
+      const res = await api.delete<PresentationResponse>(`/admin/presentations/${existing.id}/asset`, { auth: true })
+      setExisting(res.data)
+      showToast('success', 'Fiche externe retirée.')
+    } catch (err: unknown) {
+      showToast('error', err instanceof Error ? err.message : 'Suppression impossible.')
     }
   }
 
@@ -451,6 +523,7 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
                   options={form.options}
                   title={form.title}
                   statCatalogue={statCatalogue}
+                  externalAsset={externalAssetForPreview}
                 />
                 <p className="mt-3 text-[0.65rem] text-zinc-500 dark:text-stone-500 leading-relaxed">
                   Reflète le recadrage de la photo, la palette et les stats sélectionnées. Le rendu PDF final
@@ -499,6 +572,65 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
           </div>
         </section>
 
+        {/* FICHE EXTERNE (PNG/JPG/PDF) - bypass the generator when set */}
+        <section className="space-y-3">
+          <div className="flex items-baseline justify-between gap-3">
+            <h3 className="font-mono uppercase tracking-[0.18em] text-[0.7rem] text-zinc-500 dark:text-stone-400">
+              Fiche externe <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">- image ou PDF prêt à l'emploi</span>
+            </h3>
+            {hasExternalAsset && (
+              <button
+                type="button"
+                onClick={onClearAsset}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[0.7rem] font-medium text-rose-700 hover:bg-rose-100 dark:text-rose-400 dark:hover:bg-rose-500/15 transition"
+              >
+                <Trash size={12} weight="bold" /> Retirer la fiche
+              </button>
+            )}
+          </div>
+
+          {hasExternalAsset ? (
+            <div className="rounded-xl border border-turf-700/40 dark:border-turf-300/30 bg-turf-50/60 dark:bg-turf-950/20 px-4 py-3 text-sm">
+              <div className="flex items-center gap-3">
+                <div className="grid place-items-center w-9 h-9 rounded-lg bg-turf-700 text-white">
+                  {existing?.external_asset_type === 'pdf' ? <FileArrowUp size={16} weight="bold" /> : <ImageIcon size={16} weight="bold" />}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="font-medium text-zinc-900 dark:text-stone-100 truncate">
+                    {existing?.external_asset_original_name ?? 'Fiche attachée'}
+                  </div>
+                  <div className="text-[0.7rem] text-zinc-600 dark:text-stone-400">
+                    Cette fiche remplace le rendu automatique. Le générateur (template, couleurs, stats…) est masqué.
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="rounded-xl border border-dashed border-stone-300 dark:border-stone-50/15 bg-white/60 dark:bg-zinc-900/40 px-4 py-4 text-sm">
+              <p className="text-zinc-600 dark:text-stone-400 leading-relaxed mb-3">
+                Uploadez une fiche déjà conçue (PNG, JPG ou PDF) pour la servir telle quelle aux guests.
+                Utile quand la fiche est produite dans Photoshop / Canva.
+              </p>
+              <label className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-turf-700 text-white text-sm font-medium hover:bg-turf-800 transition cursor-pointer">
+                <FileArrowUp size={14} weight="bold" />
+                {uploadingAsset ? 'Upload en cours…' : 'Choisir un fichier'}
+                <input
+                  ref={assetInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,application/pdf"
+                  onChange={onUploadAsset}
+                  disabled={uploadingAsset}
+                  className="hidden"
+                />
+              </label>
+              <div className="mt-2 text-[0.65rem] text-zinc-500 dark:text-stone-500">
+                Max 12 Mo. PNG/JPG seront enveloppés dans un PDF A4 1 page (image centrée, ratio préservé).
+              </div>
+            </div>
+          )}
+        </section>
+
+        {!hasExternalAsset && (<>
         {/* BIO SCOUT (synced to Player.bio) */}
         {(() => {
           // Length tiers: DomPDF has no auto-shrink so long bios overflow the
@@ -1034,6 +1166,7 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
           </label>
         </section>
         )}
+        </>)}
 
         {/* PUBLICATION */}
         <section className="space-y-3">
