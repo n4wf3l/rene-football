@@ -124,6 +124,13 @@ export interface PresentationPreviewProps {
   options: PresentationOptions
   title: string
   statCatalogue: PresentationStatChoice[]
+  /** When set, bypass the template preview and show the uploaded fiche instead
+   *  (image URL or the fallback PDF chip). */
+  externalAsset?: {
+    url: string
+    type: 'image' | 'pdf'
+    name?: string | null
+  } | null
 }
 
 interface StatRow { label: string; value: string | number; suffix: string }
@@ -1093,14 +1100,41 @@ function SignaturePreview({ player, options, title, statCatalogue }: Presentatio
 // --------------------------------------------------------------------------
 
 export default function PresentationPreview(props: PresentationPreviewProps) {
+  const ext = props.externalAsset
   return (
-    <div className="relative w-full rounded-lg overflow-hidden shadow-2xl border border-stone-300/70 dark:border-stone-50/15"
+    <div className="relative w-full rounded-lg overflow-hidden shadow-2xl border border-stone-300/70 dark:border-stone-50/15 bg-white dark:bg-zinc-950"
          style={{ aspectRatio: '210 / 297' }}>
-      {props.template === 'magazine'  && <MagazinePreview  {...props} />}
-      {props.template === 'minimal'   && <MinimalPreview   {...props} />}
-      {props.template === 'classic'   && <ClassicPreview   {...props} />}
-      {props.template === 'stadium'   && <StadiumPreview   {...props} />}
-      {props.template === 'signature' && <SignaturePreview {...props} />}
+      {ext ? (
+        ext.type === 'image' ? (
+          <img
+            src={ext.url}
+            alt={ext.name ?? 'Fiche externe'}
+            className="absolute inset-0 w-full h-full object-contain"
+          />
+        ) : (
+          <object data={ext.url} type="application/pdf" className="absolute inset-0 w-full h-full">
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center px-6">
+              <div className="text-xs font-mono uppercase tracking-[0.18em] text-zinc-500 dark:text-stone-400">
+                Fiche PDF attachée
+              </div>
+              <div className="text-sm text-zinc-700 dark:text-stone-200 break-all">
+                {ext.name ?? 'presentation.pdf'}
+              </div>
+              <a href={ext.url} target="_blank" rel="noopener noreferrer" className="mt-2 text-xs underline text-turf-700 dark:text-turf-300">
+                Ouvrir le PDF
+              </a>
+            </div>
+          </object>
+        )
+      ) : (
+        <>
+          {props.template === 'magazine'  && <MagazinePreview  {...props} />}
+          {props.template === 'minimal'   && <MinimalPreview   {...props} />}
+          {props.template === 'classic'   && <ClassicPreview   {...props} />}
+          {props.template === 'stadium'   && <StadiumPreview   {...props} />}
+          {props.template === 'signature' && <SignaturePreview {...props} />}
+        </>
+      )}
     </div>
   )
 }

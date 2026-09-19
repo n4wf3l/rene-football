@@ -113,10 +113,12 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::get('/presentations/catalogue',                [AdminPresentationController::class, 'catalogue']);
     Route::post('/presentations',                         [AdminPresentationController::class, 'store']);
     Route::post('/presentations/upload-photo',            [AdminPresentationController::class, 'uploadPhoto']);
-    Route::get('/presentations/{presentation}',           [AdminPresentationController::class, 'show']);
-    Route::get('/presentations/{presentation}/preview',   [AdminPresentationController::class, 'preview']);
-    Route::patch('/presentations/{presentation}',         [AdminPresentationController::class, 'update']);
-    Route::delete('/presentations/{presentation}',        [AdminPresentationController::class, 'destroy']);
+    Route::get('/presentations/{presentation}',              [AdminPresentationController::class, 'show']);
+    Route::get('/presentations/{presentation}/preview',      [AdminPresentationController::class, 'preview']);
+    Route::patch('/presentations/{presentation}',            [AdminPresentationController::class, 'update']);
+    Route::delete('/presentations/{presentation}',           [AdminPresentationController::class, 'destroy']);
+    Route::post('/presentations/{presentation}/upload-asset',[AdminPresentationController::class, 'uploadAsset']);
+    Route::delete('/presentations/{presentation}/asset',     [AdminPresentationController::class, 'clearAsset']);
 
     // Staff (À propos / L'équipe) - photo via multipart, _method=PUT spoofing.
     Route::get('/staff',                       [AdminStaffController::class, 'index']);

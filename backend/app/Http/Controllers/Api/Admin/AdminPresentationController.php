@@ -105,6 +105,7 @@ class AdminPresentationController extends Controller
     public function destroy(Presentation $presentation): JsonResponse
     {
         $this->deleteLocal($presentation->file_path);
+        $this->deleteLocal($presentation->external_asset_path);
         $presentation->delete();
         return response()->json(['ok' => true]);
     }
@@ -114,9 +115,11 @@ class AdminPresentationController extends Controller
     {
         $player = $presentation->player;
         if (! $player) abort(404);
-        $html = $this->renderHtml($presentation, $player);
-        $pdf  = Pdf::loadHTML($html)->setPaper('a4', 'portrait');
-        return $pdf->stream('presentation-'.$player->slug.'-'.$presentation->id.'.pdf');
+        $bytes = $this->renderPdfBytes($presentation, $player);
+        return response($bytes, 200, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="presentation-'.$player->slug.'-'.$presentation->id.'.pdf"',
+        ]);
     }
 
     /** Allows the admin to upload a custom hero photo separately from the player photo. */
@@ -131,6 +134,57 @@ class AdminPresentationController extends Controller
         $path = $file->storeAs('presentations', $name, 'public');
 
         return response()->json(['url' => Storage::url($path)]);
+    }
+
+    /**
+     * Uploads a ready-made fiche (PNG/JPG/WebP/PDF) that bypasses the template
+     * generator entirely. The served PDF is either a 1-page A4 wrapper (for
+     * images) or a direct copy (for PDFs) so guests always download a `.pdf`.
+     */
+    public function uploadAsset(Request $request, Presentation $presentation): JsonResponse
+    {
+        $request->validate([
+            'asset' => ['required', 'file', 'mimes:jpeg,jpg,png,webp,pdf', 'max:12288'],
+        ]);
+        $player = $presentation->player;
+        if (! $player) abort(404);
+
+        $file = $request->file('asset');
+        $ext  = strtolower($file->guessExtension() ?: $file->getClientOriginalExtension() ?: 'bin');
+        $type = $ext === 'pdf' ? 'pdf' : 'image';
+        $stored = 'presentations/assets/'.$player->slug.'-'.$presentation->id.'-'.substr(bin2hex(random_bytes(3)), 0, 6).'.'.$ext;
+
+        // Wipe the previous asset before storing the new one.
+        $this->deleteLocal($presentation->external_asset_path);
+        Storage::disk('public')->put($stored, file_get_contents($file->getRealPath()));
+
+        $presentation->update([
+            'external_asset_path'          => Storage::url($stored),
+            'external_asset_type'          => $type,
+            'external_asset_original_name' => mb_substr($file->getClientOriginalName() ?: ('fiche.'.$ext), 0, 200),
+        ]);
+
+        $this->renderAndStorePdf($presentation->fresh(), $player);
+
+        return response()->json(['data' => $presentation->fresh(['player', 'author'])]);
+    }
+
+    /** Clears the external asset and falls back to the auto-generated PDF. */
+    public function clearAsset(Presentation $presentation): JsonResponse
+    {
+        $player = $presentation->player;
+        if (! $player) abort(404);
+
+        $this->deleteLocal($presentation->external_asset_path);
+        $presentation->update([
+            'external_asset_path'          => null,
+            'external_asset_type'          => null,
+            'external_asset_original_name' => null,
+        ]);
+
+        $this->renderAndStorePdf($presentation->fresh(), $player);
+
+        return response()->json(['data' => $presentation->fresh(['player', 'author'])]);
     }
 
     // -------------------- helpers --------------------
@@ -214,16 +268,60 @@ class AdminPresentationController extends Controller
     {
         $this->deleteLocal($presentation->file_path);
 
-        $html = $this->renderHtml($presentation, $player);
-        $pdf  = Pdf::loadHTML($html)->setPaper('a4', 'portrait');
-
         $filename = 'presentations/'.$player->slug.'-'.$presentation->id.'-'.substr(bin2hex(random_bytes(3)), 0, 6).'.pdf';
-        Storage::disk('public')->put($filename, $pdf->output());
+        $pdfBytes = $this->renderPdfBytes($presentation, $player);
+        Storage::disk('public')->put($filename, $pdfBytes);
 
         $presentation->update([
             'file_path'    => Storage::url($filename),
             'generated_at' => now(),
         ]);
+    }
+
+    /**
+     * Produces the served PDF. Three paths:
+     *  - external image → wrap as a single A4 page centred image
+     *  - external PDF   → return the uploaded bytes verbatim
+     *  - no asset       → render the template like before
+     */
+    private function renderPdfBytes(Presentation $presentation, Player $player): string
+    {
+        if ($presentation->external_asset_path) {
+            $relative = Str::after($presentation->external_asset_path, '/storage/');
+            if (Storage::disk('public')->exists($relative)) {
+                $absolute = Storage::disk('public')->path($relative);
+                if ($presentation->external_asset_type === 'pdf') {
+                    return file_get_contents($absolute);
+                }
+                $html = $this->renderImageAsPdfHtml($absolute);
+                return Pdf::loadHTML($html)->setPaper('a4', 'portrait')->output();
+            }
+            // Asset disappeared from disk — fall through to the template.
+        }
+
+        $html = $this->renderHtml($presentation, $player);
+        return Pdf::loadHTML($html)->setPaper('a4', 'portrait')->output();
+    }
+
+    /** Centres the uploaded image on a borderless A4 page, preserving aspect ratio. */
+    private function renderImageAsPdfHtml(string $absolutePath): string
+    {
+        $dims = @getimagesize($absolutePath) ?: [1, 1];
+        [$w, $h] = [$dims[0] ?: 1, $dims[1] ?: 1];
+        // Portrait-ish → cap to page height; landscape-ish → cap to page width.
+        $style = $w > $h
+            ? 'width: 210mm; height: auto;'
+            : 'height: 297mm; width: auto;';
+        $src = 'file://'.str_replace('\\', '/', $absolutePath);
+        return '<!doctype html><html><head><style>'
+            .'@page { margin: 0; }'
+            .'html, body { margin: 0; padding: 0; background: #fff; }'
+            .'.wrap { width: 210mm; height: 297mm; display: table; }'
+            .'.cell { display: table-cell; text-align: center; vertical-align: middle; }'
+            .'img { '.$style.' }'
+            .'</style></head><body><div class="wrap"><div class="cell">'
+            .'<img src="'.htmlspecialchars($src, ENT_QUOTES).'" />'
+            .'</div></div></body></html>';
     }
 
     private function deleteLocal(?string $url): void

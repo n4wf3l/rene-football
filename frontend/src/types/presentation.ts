@@ -58,6 +58,11 @@ export interface Presentation {
   title: string
   options: PresentationOptions | null
   file_path: string | null
+  /** When set, the generator is bypassed and this file (or a PDF wrap of it) is
+   *  served to guests. Set by the "Fiche externe" uploader. */
+  external_asset_path?: string | null
+  external_asset_type?: 'image' | 'pdf' | null
+  external_asset_original_name?: string | null
   is_published: boolean
   public_token: string | null
   generated_at: string | null
