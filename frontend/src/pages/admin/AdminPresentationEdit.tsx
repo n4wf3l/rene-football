@@ -1164,8 +1164,180 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
               <span className="mt-1 block text-[0.7rem] text-rose-600 dark:text-rose-400">{errors['options.youtube_url']}</span>
             )}
           </label>
+          <label className="block">
+            <span className="block text-[0.65rem] font-mono uppercase tracking-[0.16em] text-zinc-500 dark:text-stone-400 mb-1">
+              URL personnalisée du QR code <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">- prioritaire sur l'article et YouTube (Instagram, Wyscout, portfolio…)</span>
+            </span>
+            <input
+              type="url"
+              value={form.options.qr_custom_url ?? ''}
+              onChange={(e) => setOpt('qr_custom_url', e.target.value || null)}
+              placeholder="https://…"
+              className={INPUT_BASE}
+              maxLength={500}
+            />
+            {errors['options.qr_custom_url'] && (
+              <span className="mt-1 block text-[0.7rem] text-rose-600 dark:text-rose-400">{errors['options.qr_custom_url']}</span>
+            )}
+          </label>
         </section>
         )}
+
+        {/* PARTENAIRES (agence + académies) */}
+        <section className="space-y-5">
+          <h3 className="font-mono uppercase tracking-[0.18em] text-[0.7rem] text-zinc-500 dark:text-stone-400">
+            Partenaires <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">- agence collaboratrice et académies partenaires</span>
+          </h3>
+
+          {/* Agence partenaire */}
+          <div className="space-y-2">
+            <div className="text-[0.65rem] font-mono uppercase tracking-[0.14em] text-zinc-500 dark:text-stone-400">
+              Agence partenaire
+            </div>
+            <div className="grid sm:grid-cols-2 gap-2">
+              <input
+                type="text"
+                value={form.options.partner_agency?.name ?? ''}
+                onChange={(e) => setOpt('partner_agency', { ...(form.options.partner_agency ?? {}), name: e.target.value || null })}
+                placeholder="Nom (ex. WNRS Sport)"
+                className={INPUT_BASE}
+                maxLength={120}
+              />
+              <input
+                type="url"
+                value={form.options.partner_agency?.logo_url ?? ''}
+                onChange={(e) => setOpt('partner_agency', { ...(form.options.partner_agency ?? {}), logo_url: e.target.value || null })}
+                placeholder="URL du logo"
+                className={INPUT_BASE}
+                maxLength={500}
+              />
+              <input
+                type="text"
+                value={form.options.partner_agency?.country ?? ''}
+                onChange={(e) => setOpt('partner_agency', { ...(form.options.partner_agency ?? {}), country: e.target.value || null })}
+                placeholder="Pays (ex. United Kingdom)"
+                className={INPUT_BASE}
+                maxLength={80}
+              />
+              <input
+                type="text"
+                value={form.options.partner_agency?.country_code ?? ''}
+                onChange={(e) => setOpt('partner_agency', { ...(form.options.partner_agency ?? {}), country_code: e.target.value || null })}
+                placeholder="Code pays (gb, fr, de…)"
+                className={INPUT_BASE}
+                maxLength={4}
+              />
+            </div>
+          </div>
+
+          {/* Académies partenaires */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="text-[0.65rem] font-mono uppercase tracking-[0.14em] text-zinc-500 dark:text-stone-400">
+                Académies partenaires
+              </div>
+              <button
+                type="button"
+                onClick={() => setOpt('partner_academies', [...(form.options.partner_academies ?? []), { country: '', clubs: [] }])}
+                className="inline-flex items-center gap-1 text-[0.7rem] font-medium text-turf-700 dark:text-turf-300 hover:underline"
+              >
+                <Plus size={12} weight="bold" /> Ajouter un pays
+              </button>
+            </div>
+            {(form.options.partner_academies ?? []).length === 0 && (
+              <p className="text-[0.7rem] text-zinc-500 dark:text-stone-500">Aucun pays configuré.</p>
+            )}
+            {(form.options.partner_academies ?? []).map((group, gi) => (
+              <div key={gi} className="rounded-lg border border-stone-200 dark:border-stone-50/10 bg-white/60 dark:bg-zinc-900/40 p-3 space-y-2">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={group.country}
+                    onChange={(e) => {
+                      const next = [...(form.options.partner_academies ?? [])]
+                      next[gi] = { ...next[gi], country: e.target.value }
+                      setOpt('partner_academies', next)
+                    }}
+                    placeholder="Pays (ex. Angleterre)"
+                    className={INPUT_BASE}
+                    maxLength={80}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const next = [...(form.options.partner_academies ?? [])]
+                      next.splice(gi, 1)
+                      setOpt('partner_academies', next)
+                    }}
+                    className="text-rose-700 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-500/15 rounded-md p-1.5 transition"
+                    aria-label="Supprimer ce pays"
+                  >
+                    <Trash size={12} weight="bold" />
+                  </button>
+                </div>
+                <div className="space-y-1.5 pl-2">
+                  {group.clubs.map((club, ci) => (
+                    <div key={ci} className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={club.name}
+                        onChange={(e) => {
+                          const next = [...(form.options.partner_academies ?? [])]
+                          const clubs = [...next[gi].clubs]
+                          clubs[ci] = { ...clubs[ci], name: e.target.value }
+                          next[gi] = { ...next[gi], clubs }
+                          setOpt('partner_academies', next)
+                        }}
+                        placeholder="Nom du club"
+                        className={INPUT_BASE}
+                        maxLength={100}
+                      />
+                      <input
+                        type="url"
+                        value={club.logo_url ?? ''}
+                        onChange={(e) => {
+                          const next = [...(form.options.partner_academies ?? [])]
+                          const clubs = [...next[gi].clubs]
+                          clubs[ci] = { ...clubs[ci], logo_url: e.target.value || null }
+                          next[gi] = { ...next[gi], clubs }
+                          setOpt('partner_academies', next)
+                        }}
+                        placeholder="URL du logo"
+                        className={INPUT_BASE}
+                        maxLength={500}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const next = [...(form.options.partner_academies ?? [])]
+                          const clubs = [...next[gi].clubs]
+                          clubs.splice(ci, 1)
+                          next[gi] = { ...next[gi], clubs }
+                          setOpt('partner_academies', next)
+                        }}
+                        className="text-rose-700 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-500/15 rounded-md p-1.5 transition"
+                        aria-label="Supprimer ce club"
+                      >
+                        <Trash size={12} weight="bold" />
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const next = [...(form.options.partner_academies ?? [])]
+                      next[gi] = { ...next[gi], clubs: [...next[gi].clubs, { name: '', logo_url: null }] }
+                      setOpt('partner_academies', next)
+                    }}
+                    className="inline-flex items-center gap-1 text-[0.7rem] font-medium text-turf-700 dark:text-turf-300 hover:underline"
+                  >
+                    <Plus size={12} weight="bold" /> Ajouter un club
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
         </>)}
 
         {/* PUBLICATION */}

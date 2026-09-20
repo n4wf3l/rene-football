@@ -24,8 +24,24 @@ export interface PresentationOptions {
   article_slug?: string | null
   /** Optional external YouTube URL (dribbles compilation, full match, ...). */
   youtube_url?: string | null
+  /** Free-form URL that overrides the QR target when set (Instagram, Wyscout,
+   *  agency landing page…). Wins over article_slug and youtube_url. */
+  qr_custom_url?: string | null
   /** Free-form list of clubs the player previously played for. */
   previous_clubs?: Array<{ name: string; logo_url?: string | null }>
+  /** Partner agency block shown as "En collaboration avec". */
+  partner_agency?: {
+    name?: string | null
+    logo_url?: string | null
+    country?: string | null
+    /** ISO 3166-1 alpha-2 lowercase (e.g. "gb", "fr") — used for the flag. */
+    country_code?: string | null
+  } | null
+  /** Partner academies grid, grouped by country. */
+  partner_academies?: Array<{
+    country: string
+    clubs: Array<{ name: string; logo_url?: string | null }>
+  }>
   /** Font pairing applied to the whole document. */
   font_family?: 'editorial' | 'sans' | 'grotesque'
   /** Base font-size scale relative to the template default. */

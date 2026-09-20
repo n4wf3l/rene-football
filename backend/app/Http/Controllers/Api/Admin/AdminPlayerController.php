@@ -235,14 +235,17 @@ class AdminPlayerController extends Controller
             // Lowered to 8 to allow young academy players (e.g. U13 representés
             // par l'agence). The frontend mirrors this bound.
             'age' => [$req, 'integer', 'min:8', 'max:60'],
+            'date_of_birth' => ['nullable', 'date', 'before:tomorrow'],
             'height' => ['nullable', 'string', 'max:20'],
             'position' => [$req, 'string', 'max:120'],
             'category' => [$req, 'string', 'in:Gardien,Defenseur,Milieu,Attaquant'],
             'club' => ['nullable', 'string', 'max:255'],
+            'club_logo_url' => ['nullable', 'string', 'max:500'],
             'nationality' => ['nullable', 'string', 'max:120'],
             'preferred_foot' => ['nullable', 'string', 'max:20'],
             'since' => ['nullable', 'integer', 'min:1990', 'max:2100'],
             'photo_url'    => ['nullable', 'string', 'max:500'],
+            'secondary_photo_url' => ['nullable', 'string', 'max:500'],
             'photo'        => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:4096'], // 4 MB
             'photo_remove' => ['nullable', 'boolean'],
             'bio' => ['nullable', 'string'],

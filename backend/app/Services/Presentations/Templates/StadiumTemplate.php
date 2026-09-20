@@ -2,7 +2,6 @@
 
 namespace App\Services\Presentations\Templates;
 
-use App\Models\Article;
 use App\Models\Player;
 use App\Services\Presentations\PresentationTemplate;
 
@@ -163,15 +162,6 @@ class StadiumTemplate extends PresentationTemplate
             $clubsHtml = '<div class="mini-title">'.$this->esc(mb_strtoupper($this->t('previous_clubs', $options))).'</div><table class="clubs"><tr>'.$cells.'</tr></table>';
         }
 
-        $articleSlug = $options['article_slug'] ?? null;
-        $youtubeUrl  = $options['youtube_url'] ?? null;
-
-        $articleUrl = null;
-        if ($articleSlug) {
-            $article = Article::where('slug', $articleSlug)->first();
-            if ($article) $articleUrl = url('/actualites/'.$article->slug);
-        }
-
         // Truncate the display URL - DomPDF doesn't break long unbroken
         // strings and lets them overflow the page. The full URL still lives
         // in the QR code, which is the point.
@@ -181,11 +171,8 @@ class StadiumTemplate extends PresentationTemplate
         };
 
         $linkBlocks = '';
-        if ($articleUrl) {
-            $linkBlocks .= '<div class="link-row"><img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&margin=0&data='.urlencode($articleUrl).'"><div class="link-meta"><div class="link-label" style="color:'.$secondary.';">'.$this->esc($this->t('article', $options)).'</div><div class="link-url">'.$this->esc($shortUrl($articleUrl)).'</div></div></div>';
-        }
-        if ($youtubeUrl) {
-            $linkBlocks .= '<div class="link-row"><img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&margin=0&data='.urlencode($youtubeUrl).'"><div class="link-meta"><div class="link-label" style="color:'.$secondary.';">'.$this->esc($this->t('video', $options)).'</div><div class="link-url">'.$this->esc($shortUrl($youtubeUrl)).'</div></div></div>';
+        foreach ($this->qrTargets($options) as $qr) {
+            $linkBlocks .= '<div class="link-row"><img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&margin=0&data='.urlencode($qr['url']).'"><div class="link-meta"><div class="link-label" style="color:'.$secondary.';">'.$this->esc($this->t($qr['label_key'], $options)).'</div><div class="link-url">'.$this->esc($shortUrl($qr['url'])).'</div></div></div>';
         }
 
         // Adaptive physique block — sits under the heatmap on the left.

@@ -439,6 +439,7 @@ abstract class PresentationTemplate
     private const T = [
         'presentation_joueur' => ['fr' => 'Présentation joueur', 'en' => 'Player presentation', 'de' => 'Spielervorstellung', 'nl' => 'Spelerpresentatie'],
         'age'                 => ['fr' => 'Âge',                  'en' => 'Age',                 'de' => 'Alter',                'nl' => 'Leeftijd'],
+        'date_of_birth'       => ['fr' => 'Date de naissance',     'en' => 'Date of birth',       'de' => 'Geburtsdatum',         'nl' => 'Geboortedatum'],
         'position'            => ['fr' => 'Poste',                'en' => 'Position',            'de' => 'Position',             'nl' => 'Positie'],
         'category'            => ['fr' => 'Catégorie',            'en' => 'Category',            'de' => 'Kategorie',            'nl' => 'Categorie'],
         'height'              => ['fr' => 'Taille',               'en' => 'Height',              'de' => 'Größe',                'nl' => 'Lengte'],
@@ -454,7 +455,10 @@ abstract class PresentationTemplate
         'identity'            => ['fr' => 'Identité',             'en' => 'Identity',            'de' => 'Identität',            'nl' => 'Identiteit'],
         'article'             => ['fr' => 'ARTICLE',              'en' => 'ARTICLE',             'de' => 'ARTIKEL',              'nl' => 'ARTIKEL'],
         'video'               => ['fr' => 'VIDÉO',                'en' => 'VIDEO',               'de' => 'VIDEO',                'nl' => 'VIDEO'],
+        'link'                => ['fr' => 'LIEN',                 'en' => 'LINK',                'de' => 'LINK',                 'nl' => 'LINK'],
         'scan_more'           => ['fr' => 'Scannez pour en voir plus', 'en' => 'Scan for more', 'de' => 'Für mehr scannen', 'nl' => 'Scan voor meer'],
+        'partner_agency'      => ['fr' => 'En collaboration avec',     'en' => 'In collaboration with', 'de' => 'In Zusammenarbeit mit', 'nl' => 'In samenwerking met'],
+        'partner_academies'   => ['fr' => 'Accès aux plus grandes académies européennes', 'en' => 'Access to top European academies', 'de' => 'Zugang zu Top-Akademien Europas', 'nl' => 'Toegang tot Europese topacademies'],
         'internal_document'   => ['fr' => 'Document interne',     'en' => 'Internal document',   'de' => 'Internes Dokument',    'nl' => 'Intern document'],
         'no_strengths'        => ['fr' => 'Aucun point fort renseigné sur la fiche joueur.', 'en' => 'No strengths listed on the player card.', 'de' => 'Keine Stärken auf der Spielerkarte hinterlegt.', 'nl' => 'Geen sterke punten opgegeven op de spelerskaart.'],
         'no_bio'              => ['fr' => 'Ajoutez une bio dans la fiche joueur pour enrichir cette présentation.', 'en' => 'Add a bio to the player card to enrich this presentation.', 'de' => 'Fügen Sie der Spielerkarte eine Biografie hinzu, um diese Präsentation zu bereichern.', 'nl' => 'Voeg een bio toe aan de spelerskaart om deze presentatie te verrijken.'],
@@ -763,21 +767,14 @@ abstract class PresentationTemplate
      */
     protected function columnExtrasHtml(array $options, array $style = []): string
     {
-        $clubs       = is_array($options['previous_clubs'] ?? null) ? $options['previous_clubs'] : [];
-        $articleSlug = $options['article_slug'] ?? null;
-        $youtubeUrl  = $options['youtube_url'] ?? null;
-
+        $clubs = is_array($options['previous_clubs'] ?? null) ? $options['previous_clubs'] : [];
         $clubs = array_values(array_filter($clubs, static fn ($c) =>
             (isset($c['name']) && trim((string) $c['name']) !== '')
             || (isset($c['logo_url']) && trim((string) $c['logo_url']) !== '')
         ));
 
-        $articleUrl = null;
-        if ($articleSlug) {
-            $article = \App\Models\Article::where('slug', $articleSlug)->first();
-            if ($article) $articleUrl = url('/actualites/'.$article->slug);
-        }
-        if (empty($clubs) && ! $articleUrl && ! $youtubeUrl) return '';
+        $qrs = $this->qrTargets($options);
+        if (empty($clubs) && empty($qrs)) return '';
 
         $accent = $style['accent'] ?? '#1e40af';
         $text   = $style['text']   ?? '#0c0a09';
@@ -807,23 +804,15 @@ abstract class PresentationTemplate
                 .'<table style="width:100%;border-collapse:collapse;margin-bottom:3mm;">'.$rows.'</table>';
         }
 
-        // Article + Video QRs — compact (40×40) so the whole extras block
-        // stays under ~35mm even when both links are present.
+        // QR codes for the resolved link targets — compact (40x40) so the
+        // whole extras block stays under ~35mm even when several links are set.
         $linkRows = '';
-        if ($articleUrl) {
+        foreach ($qrs as $qr) {
             $linkRows .= '<tr>'
                 .'<td style="width:14mm;padding:1.5mm 2mm 1.5mm 0;vertical-align:middle;">'
-                .'<img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&margin=0&data='.urlencode($articleUrl).'" width="40" height="40" style="background:#fff;padding:0.5mm;">'
+                .'<img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&margin=0&data='.urlencode($qr['url']).'" width="40" height="40" style="background:#fff;padding:0.5mm;">'
                 .'</td>'
-                .'<td style="padding:1.5mm 0;font-size:7pt;letter-spacing:1.5px;color:'.$muted.';text-transform:uppercase;font-weight:700;vertical-align:middle;">'.$this->esc($this->t('article', $options)).'</td>'
-                .'</tr>';
-        }
-        if ($youtubeUrl) {
-            $linkRows .= '<tr>'
-                .'<td style="width:14mm;padding:1.5mm 2mm 1.5mm 0;vertical-align:middle;">'
-                .'<img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&margin=0&data='.urlencode($youtubeUrl).'" width="40" height="40" style="background:#fff;padding:0.5mm;">'
-                .'</td>'
-                .'<td style="padding:1.5mm 0;font-size:7pt;letter-spacing:1.5px;color:'.$muted.';text-transform:uppercase;font-weight:700;vertical-align:middle;">'.$this->esc($this->t('video', $options)).'</td>'
+                .'<td style="padding:1.5mm 0;font-size:7pt;letter-spacing:1.5px;color:'.$muted.';text-transform:uppercase;font-weight:700;vertical-align:middle;">'.$this->esc($this->t($qr['label_key'], $options)).'</td>'
                 .'</tr>';
         }
         if ($linkRows !== '') {
@@ -835,6 +824,130 @@ abstract class PresentationTemplate
         // the column past the doc-row height budget. Just a small margin
         // to keep the block visually distinct from the strengths list above.
         return $out !== '' ? '<div style="margin-top:4mm;">'.$out.'</div>' : '';
+    }
+
+    /**
+     * Resolves the QR targets for a presentation. Priority:
+     *   1. options.qr_custom_url — wins alone (single QR with "Lien" label)
+     *   2. article_slug + youtube_url — the historic pair (rendered as-is)
+     * Returns a list of ['url' => ..., 'label_key' => ...] where label_key
+     * is a translation key resolved via $this->t().
+     *
+     * @return array<int, array{url:string, label_key:string}>
+     */
+    protected function qrTargets(array $options): array
+    {
+        $custom = trim((string) ($options['qr_custom_url'] ?? ''));
+        if ($custom !== '') {
+            return [['url' => $custom, 'label_key' => 'link']];
+        }
+
+        $out = [];
+        $articleSlug = $options['article_slug'] ?? null;
+        if ($articleSlug) {
+            $article = \App\Models\Article::where('slug', $articleSlug)->first();
+            if ($article) {
+                $out[] = ['url' => url('/actualites/'.$article->slug), 'label_key' => 'article'];
+            }
+        }
+        $youtube = trim((string) ($options['youtube_url'] ?? ''));
+        if ($youtube !== '') {
+            $out[] = ['url' => $youtube, 'label_key' => 'video'];
+        }
+        return $out;
+    }
+
+    /**
+     * "En collaboration avec" block — small partner-agency card with logo,
+     * name, country and flag. Returns '' when not configured so callers can
+     * inline it unconditionally.
+     */
+    protected function partnerAgencyHtml(array $options, array $style = []): string
+    {
+        $pa = $options['partner_agency'] ?? null;
+        if (! is_array($pa)) return '';
+        $name = trim((string) ($pa['name'] ?? ''));
+        $logo = trim((string) ($pa['logo_url'] ?? ''));
+        $country = trim((string) ($pa['country'] ?? ''));
+        $countryCode = trim((string) ($pa['country_code'] ?? ''));
+        if ($name === '' && $logo === '' && $country === '') return '';
+
+        $muted = $style['muted'] ?? '#78716c';
+        $text  = $style['text']  ?? '#0c0a09';
+
+        $flagHtml = '';
+        if ($countryCode !== '') {
+            // Flat, 24x18 CDN flags (SVG/PNG) — flagcdn.com serves both.
+            $flagHtml = '<img src="https://flagcdn.com/w40/'.$this->esc(strtolower($countryCode)).'.png" width="16" height="12" style="vertical-align:middle;margin-right:1.5mm;">';
+        }
+
+        $logoHtml = $logo !== ''
+            ? '<img src="'.$this->esc($this->absolutePath($logo)).'" alt="" style="height:8mm;max-width:26mm;object-fit:contain;">'
+            : '';
+
+        return '<div style="padding:2.5mm 3mm;">'
+            .'<div style="font-size:6.5pt;letter-spacing:2px;text-transform:uppercase;color:'.$muted.';font-weight:700;margin-bottom:1.5mm;">'
+            .$this->esc(mb_strtoupper($this->t('partner_agency', $options)))
+            .'</div>'
+            .($logoHtml !== '' ? '<div style="margin-bottom:1.5mm;">'.$logoHtml.'</div>' : '')
+            .($name !== '' ? '<div style="font-size:9pt;font-weight:700;color:'.$text.';margin-bottom:0.5mm;">'.$this->esc($name).'</div>' : '')
+            .($country !== '' ? '<div style="font-size:7.5pt;color:'.$muted.';">'.$flagHtml.$this->esc(mb_strtoupper($country)).'</div>' : '')
+            .'</div>';
+    }
+
+    /**
+     * Partner-academies grid ("Accès aux plus grandes académies européennes"):
+     * one column per country, each with a list of club logos + names. Empty
+     * groups are skipped. Returns '' when nothing is configured.
+     */
+    protected function partnerAcademiesHtml(array $options, array $style = []): string
+    {
+        $groups = is_array($options['partner_academies'] ?? null) ? $options['partner_academies'] : [];
+        $groups = array_values(array_filter($groups, static function ($g) {
+            return is_array($g)
+                && isset($g['clubs']) && is_array($g['clubs']) && count(array_filter($g['clubs'], static fn ($c) =>
+                    is_array($c) && (
+                        (isset($c['name']) && trim((string) $c['name']) !== '')
+                        || (isset($c['logo_url']) && trim((string) $c['logo_url']) !== '')
+                    )
+                )) > 0;
+        }));
+        if (empty($groups)) return '';
+
+        $accent = $style['accent'] ?? '#1e40af';
+        $muted  = $style['muted']  ?? '#78716c';
+        $text   = $style['text']   ?? '#0c0a09';
+
+        $cols = '';
+        foreach ($groups as $g) {
+            $country = trim((string) ($g['country'] ?? ''));
+            $clubsHtml = '';
+            foreach ($g['clubs'] as $c) {
+                $cname = trim((string) ($c['name'] ?? ''));
+                $clogo = trim((string) ($c['logo_url'] ?? ''));
+                if ($cname === '' && $clogo === '') continue;
+                $img = $clogo !== ''
+                    ? '<img src="'.$this->esc($this->absolutePath($clogo)).'" alt="" style="height:9mm;max-width:14mm;object-fit:contain;">'
+                    : '<div style="height:9mm;line-height:9mm;font-size:6.5pt;font-weight:700;">'.$this->esc(strtoupper(mb_substr($cname, 0, 3))).'</div>';
+                $clubsHtml .= '<div style="display:inline-block;text-align:center;padding:1.5mm 1.5mm;vertical-align:top;width:32%;">'
+                    .$img
+                    .'<div style="font-size:5.5pt;letter-spacing:0.5px;color:'.$text.';margin-top:1mm;text-transform:uppercase;font-weight:700;">'.$this->esc($cname).'</div>'
+                    .'</div>';
+            }
+            $cols .= '<td style="vertical-align:top;padding:2mm 3mm;border-left:0.5px solid '.$muted.';">'
+                .'<div style="font-size:6.5pt;letter-spacing:2px;text-transform:uppercase;color:'.$accent.';font-weight:800;margin-bottom:2mm;text-align:center;">'.$this->esc(mb_strtoupper($country)).'</div>'
+                .$clubsHtml
+                .'</td>';
+        }
+
+        return '<div style="margin-top:4mm;">'
+            .'<div style="font-size:7pt;letter-spacing:2.5px;text-transform:uppercase;color:'.$muted.';font-weight:800;margin-bottom:2mm;text-align:center;">'
+            .$this->esc(mb_strtoupper($this->t('partner_academies', $options)))
+            .'</div>'
+            .'<table style="width:100%;border-collapse:collapse;table-layout:fixed;">'
+            .'<tr>'.$cols.'</tr>'
+            .'</table>'
+            .'</div>';
     }
 
     /**
@@ -866,8 +979,6 @@ abstract class PresentationTemplate
     protected function extrasBlockHtml(array $options, array $style = []): string
     {
         $clubs = is_array($options['previous_clubs'] ?? null) ? $options['previous_clubs'] : [];
-        $articleSlug = $options['article_slug'] ?? null;
-        $youtubeUrl  = $options['youtube_url'] ?? null;
 
         // Trim empty club entries.
         $clubs = array_values(array_filter($clubs, static fn ($c) =>
@@ -875,13 +986,8 @@ abstract class PresentationTemplate
             || (isset($c['logo_url']) && trim((string) $c['logo_url']) !== '')
         ));
 
-        $articleUrl = null;
-        if ($articleSlug) {
-            $article = \App\Models\Article::where('slug', $articleSlug)->first();
-            if ($article) $articleUrl = url('/actualites/'.$article->slug);
-        }
-
-        if (empty($clubs) && ! $articleUrl && ! $youtubeUrl) return '';
+        $qrs = $this->qrTargets($options);
+        if (empty($clubs) && empty($qrs)) return '';
 
         $accent    = $style['accent']    ?? ($options['accent_color']    ?? '#1e40af');
         $secondary = $style['secondary'] ?? ($options['secondary_color'] ?? '#a8a29e');
@@ -912,16 +1018,10 @@ abstract class PresentationTemplate
         // 96dpi lookup lands close to the intended 12mm print size instead of
         // upscaling to ~42mm. Explicit width/height attrs harden the sizing.
         $qrCells = '';
-        if ($articleUrl) {
+        foreach ($qrs as $qr) {
             $qrCells .= '<td style="width:24mm;text-align:center;vertical-align:middle;padding-left:5mm;">'
-                .'<img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&margin=0&data='.urlencode($articleUrl).'" width="46" height="46" style="background:#fff;padding:1mm;">'
-                .'<div style="font-size:6pt;letter-spacing:2px;color:'.$secondary.';margin-top:1.5mm;font-weight:700;">'.$this->esc($this->t('article', $options)).'</div>'
-                .'</td>';
-        }
-        if ($youtubeUrl) {
-            $qrCells .= '<td style="width:24mm;text-align:center;vertical-align:middle;padding-left:5mm;">'
-                .'<img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&margin=0&data='.urlencode($youtubeUrl).'" width="46" height="46" style="background:#fff;padding:1mm;">'
-                .'<div style="font-size:6pt;letter-spacing:2px;color:'.$secondary.';margin-top:1.5mm;font-weight:700;">'.$this->esc($this->t('video', $options)).'</div>'
+                .'<img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&margin=0&data='.urlencode($qr['url']).'" width="46" height="46" style="background:#fff;padding:1mm;">'
+                .'<div style="font-size:6pt;letter-spacing:2px;color:'.$secondary.';margin-top:1.5mm;font-weight:700;">'.$this->esc($this->t($qr['label_key'], $options)).'</div>'
                 .'</td>';
         }
 

@@ -216,10 +216,23 @@ class AdminPresentationController extends Controller
             'options.language'                  => ['nullable', 'string', 'in:fr,en,de,nl'],
             'options.article_slug'              => ['nullable', 'string', 'max:200'],
             'options.youtube_url'               => ['nullable', 'string', 'max:500'],
+            'options.qr_custom_url'             => ['nullable', 'string', 'max:500'],
             'options.previous_clubs'            => ['nullable', 'array', 'max:12'],
             'options.previous_clubs.*'          => ['array'],
             'options.previous_clubs.*.name'     => ['nullable', 'string', 'max:100'],
             'options.previous_clubs.*.logo_url' => ['nullable', 'string', 'max:500'],
+            'options.partner_agency'                => ['nullable', 'array'],
+            'options.partner_agency.name'           => ['nullable', 'string', 'max:120'],
+            'options.partner_agency.logo_url'       => ['nullable', 'string', 'max:500'],
+            'options.partner_agency.country'        => ['nullable', 'string', 'max:80'],
+            'options.partner_agency.country_code'   => ['nullable', 'string', 'max:4'],
+            'options.partner_academies'                    => ['nullable', 'array', 'max:8'],
+            'options.partner_academies.*'                  => ['array'],
+            'options.partner_academies.*.country'          => ['nullable', 'string', 'max:80'],
+            'options.partner_academies.*.clubs'            => ['nullable', 'array', 'max:20'],
+            'options.partner_academies.*.clubs.*'          => ['array'],
+            'options.partner_academies.*.clubs.*.name'     => ['nullable', 'string', 'max:100'],
+            'options.partner_academies.*.clubs.*.logo_url' => ['nullable', 'string', 'max:500'],
         ]);
     }
 
@@ -240,7 +253,7 @@ class AdminPresentationController extends Controller
         }
         // Empty strings -> null on the optional text fields so they don't
         // accidentally trip downstream length / format checks.
-        foreach (['tagline', 'custom_photo_url', 'article_slug', 'youtube_url'] as $k) {
+        foreach (['tagline', 'custom_photo_url', 'article_slug', 'youtube_url', 'qr_custom_url'] as $k) {
             if (isset($opts[$k]) && is_string($opts[$k]) && trim($opts[$k]) === '') {
                 $opts[$k] = null;
             }
@@ -254,6 +267,43 @@ class AdminPresentationController extends Controller
                     && ((isset($row['name']) && trim((string) $row['name']) !== '')
                         || (isset($row['logo_url']) && trim((string) $row['logo_url']) !== '')),
             ));
+        }
+        // Same for partner_academies: drop empty countries and clubs so the
+        // grid doesn't render orphaned rows.
+        if (isset($opts['partner_academies']) && is_array($opts['partner_academies'])) {
+            $opts['partner_academies'] = array_values(array_filter(array_map(static function ($row) {
+                if (! is_array($row)) return null;
+                $clubs = array_values(array_filter(
+                    is_array($row['clubs'] ?? null) ? $row['clubs'] : [],
+                    static fn ($c) => is_array($c)
+                        && ((isset($c['name']) && trim((string) $c['name']) !== '')
+                            || (isset($c['logo_url']) && trim((string) $c['logo_url']) !== '')),
+                ));
+                $country = isset($row['country']) ? trim((string) $row['country']) : '';
+                if ($country === '' && empty($clubs)) return null;
+                return ['country' => $country, 'clubs' => $clubs];
+            }, $opts['partner_academies'])));
+        }
+        // Drop the partner_agency entirely if nothing was filled in.
+        if (isset($opts['partner_agency']) && is_array($opts['partner_agency'])) {
+            $pa = $opts['partner_agency'];
+            $empty = collect(['name', 'logo_url', 'country', 'country_code'])
+                ->every(fn ($k) => ! isset($pa[$k]) || trim((string) $pa[$k]) === '');
+            if ($empty) {
+                unset($opts['partner_agency']);
+            } else {
+                foreach (['name', 'logo_url', 'country', 'country_code'] as $k) {
+                    if (isset($pa[$k]) && is_string($pa[$k])) {
+                        $trimmed = trim($pa[$k]);
+                        $pa[$k] = $trimmed === '' ? null : $trimmed;
+                    }
+                }
+                // Lowercase the country code so it matches flag URL conventions.
+                if (! empty($pa['country_code'])) {
+                    $pa['country_code'] = strtolower($pa['country_code']);
+                }
+                $opts['partner_agency'] = $pa;
+            }
         }
         return $opts;
     }

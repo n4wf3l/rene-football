@@ -37,14 +37,17 @@ const FEET = ['Droit', 'Gauche', 'Ambidextre']
 const EMPTY_PLAYER: PlayerFormState = {
   name: '',
   age: 20,
+  date_of_birth: null,
   height: '',
   position: '',
   category: 'Milieu',
   club: '',
+  club_logo_url: '',
   nationality: '',
   preferred_foot: 'Droit',
   since: new Date().getFullYear(),
   photo_url: '',
+  secondary_photo_url: '',
   bio: '',
   matches_played: 0,
   goals: 0,
@@ -365,6 +368,13 @@ function PlayerEditor({ player, isNew, onClose, onSaved, onDelete, mode = 'modal
               {/* Min 8 to cover U13 academy players represented by the agency. */}
               <NumberInput value={form.age} onChange={(v) => set('age', v)} min={8} max={60} />
             </FieldRow>
+            <FieldRow label="Date de naissance" hint="optionnelle - remplace l'affichage de l'âge dans le PDF">
+              <TextInput
+                type="date"
+                value={form.date_of_birth || ''}
+                onChange={(e) => set('date_of_birth', e.target.value || null)}
+              />
+            </FieldRow>
             <FieldRow label="Taille" hint="ex. 1m83">
               <TextInput value={form.height || ''} onChange={(e) => set('height', e.target.value)} />
             </FieldRow>
@@ -376,6 +386,13 @@ function PlayerEditor({ player, isNew, onClose, onSaved, onDelete, mode = 'modal
             </FieldRow>
             <FieldRow label="Club">
               <TextInput value={form.club || ''} onChange={(e) => set('club', e.target.value)} />
+            </FieldRow>
+            <FieldRow label="Logo du club" hint="URL du blason - affiché à côté du club sur la fiche">
+              <TextInput
+                value={form.club_logo_url || ''}
+                onChange={(e) => set('club_logo_url', e.target.value)}
+                placeholder="https://…/crest.png"
+              />
             </FieldRow>
             <FieldRow label="Depuis">
               <NumberInput value={form.since} onChange={(v) => set('since', v)} min={1990} max={2100} />
@@ -463,6 +480,15 @@ function PlayerEditor({ player, isNew, onClose, onSaved, onDelete, mode = 'modal
                     </div>
                   </details>
                 </div>
+              </FieldRow>
+            </div>
+            <div className="col-span-2">
+              <FieldRow label="Photo portrait secondaire" hint="URL - petit portrait affiché à côté de la photo principale (fiches marketing)">
+                <TextInput
+                  value={form.secondary_photo_url || ''}
+                  onChange={(e) => set('secondary_photo_url', e.target.value)}
+                  placeholder="https://…"
+                />
               </FieldRow>
             </div>
             <div className="col-span-2">
