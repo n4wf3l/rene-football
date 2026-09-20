@@ -18,11 +18,30 @@ export interface Player {
   /** URL of the current club crest, shown next to the club name. */
   club_logo_url?: string | null
   nationality: string | null
+  /** Dual nationality (e.g. "Ghanaian / Dutch" → primary + secondary). */
+  secondary_nationality?: string | null
+  /** Free-form list of languages spoken (Fiche marketing). */
+  languages_spoken?: string[] | null
   preferred_foot: PreferredFoot | string | null
+  /** "Percutant – Dribbleur" style qualifier for the marketing card. */
+  playing_style?: string | null
+  /** Best position (may differ from `position`, e.g. "Attaquant de pointe"). */
+  best_position?: string | null
+  /** Long-term career objective (marketing card). */
+  objective?: string | null
+  /** Mental / soft-skill traits (Confiant, Persévérant…). */
+  mental_strengths?: string[] | null
   since: number | null
   photo_url: string | null
   /** Small portrait shown alongside the main action photo on marketing fiches. */
   secondary_photo_url?: string | null
+  /** Extra photo URLs shown as a 3-vignette strip. */
+  gallery_photos?: string[] | null
+  /** Career history rows (marketing fiche "Parcours"). */
+  career_history?: Array<{ years?: string | null; club?: string | null; logo_url?: string | null }> | null
+  /** "Vient de" chip banner over the photo (marketing fiche). */
+  previous_club?: string | null
+  previous_club_logo?: string | null
   bio: string | null
 
   matches_played: number

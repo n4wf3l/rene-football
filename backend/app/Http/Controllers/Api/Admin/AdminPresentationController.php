@@ -233,6 +233,20 @@ class AdminPresentationController extends Controller
             'options.partner_academies.*.clubs.*'          => ['array'],
             'options.partner_academies.*.clubs.*.name'     => ['nullable', 'string', 'max:100'],
             'options.partner_academies.*.clubs.*.logo_url' => ['nullable', 'string', 'max:500'],
+            // Marketing v1 template controls.
+            'options.theme'          => ['nullable', 'string', 'in:violet,navy,black-gold,black-yellow,custom'],
+            'options.photo_side'     => ['nullable', 'string', 'in:left,right'],
+            'options.motto'          => ['nullable', 'string', 'max:120'],
+            'options.slogan_cursive' => ['nullable', 'string', 'max:160'],
+            'options.supervised_by'              => ['nullable', 'array'],
+            'options.supervised_by.name'         => ['nullable', 'string', 'max:120'],
+            'options.supervised_by.logo_url'     => ['nullable', 'string', 'max:500'],
+            'options.supervised_by.country'      => ['nullable', 'string', 'max:80'],
+            'options.supervised_by.country_code' => ['nullable', 'string', 'max:4'],
+            'options.player_profile_bars'        => ['nullable', 'array', 'max:8'],
+            'options.player_profile_bars.*'      => ['array'],
+            'options.player_profile_bars.*.label'=> ['nullable', 'string', 'max:40'],
+            'options.player_profile_bars.*.pct'  => ['nullable', 'integer', 'min:0', 'max:100'],
         ]);
     }
 
@@ -253,9 +267,36 @@ class AdminPresentationController extends Controller
         }
         // Empty strings -> null on the optional text fields so they don't
         // accidentally trip downstream length / format checks.
-        foreach (['tagline', 'custom_photo_url', 'article_slug', 'youtube_url', 'qr_custom_url'] as $k) {
+        foreach (['tagline', 'custom_photo_url', 'article_slug', 'youtube_url', 'qr_custom_url', 'motto', 'slogan_cursive'] as $k) {
             if (isset($opts[$k]) && is_string($opts[$k]) && trim($opts[$k]) === '') {
                 $opts[$k] = null;
+            }
+        }
+        // Player profile bars: drop empty rows (label AND pct missing).
+        if (isset($opts['player_profile_bars']) && is_array($opts['player_profile_bars'])) {
+            $opts['player_profile_bars'] = array_values(array_filter(
+                $opts['player_profile_bars'],
+                static fn ($row) => is_array($row)
+                    && ((isset($row['label']) && trim((string) $row['label']) !== '')
+                        || (isset($row['pct']) && $row['pct'] !== null && $row['pct'] !== '')),
+            ));
+        }
+        // supervised_by: normalise like partner_agency.
+        if (isset($opts['supervised_by']) && is_array($opts['supervised_by'])) {
+            $sb = $opts['supervised_by'];
+            $empty = collect(['name', 'logo_url', 'country', 'country_code'])
+                ->every(fn ($k) => ! isset($sb[$k]) || trim((string) $sb[$k]) === '');
+            if ($empty) {
+                unset($opts['supervised_by']);
+            } else {
+                foreach (['name', 'logo_url', 'country', 'country_code'] as $k) {
+                    if (isset($sb[$k]) && is_string($sb[$k])) {
+                        $trimmed = trim($sb[$k]);
+                        $sb[$k] = $trimmed === '' ? null : $trimmed;
+                    }
+                }
+                if (! empty($sb['country_code'])) $sb['country_code'] = strtolower($sb['country_code']);
+                $opts['supervised_by'] = $sb;
             }
         }
         // Drop fully-empty previous_clubs rows (saved by accident when the

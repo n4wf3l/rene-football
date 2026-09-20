@@ -512,6 +512,87 @@ function PlayerEditor({ player, isNew, onClose, onSaved, onDelete, mode = 'modal
           </div>
         </section>
 
+        {/* Fiche marketing — champs supplémentaires utilisés par le template
+            "Marketing v1" (fiches agence style Zoran/Camara/Destiny). */}
+        <section className="space-y-4">
+          <h3 className="font-mono uppercase tracking-[0.18em] text-[0.7rem] text-zinc-500 dark:text-stone-400">
+            Fiche marketing <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">— champs pour le template "Marketing v1"</span>
+          </h3>
+          <div className="grid grid-cols-2 gap-3">
+            <FieldRow label="Style de jeu" hint="ex. Percutant – Dribbleur">
+              <TextInput value={form.playing_style || ''} onChange={(e) => set('playing_style', e.target.value)} />
+            </FieldRow>
+            <FieldRow label="Meilleur poste" hint="ex. Attaquant de pointe">
+              <TextInput value={form.best_position || ''} onChange={(e) => set('best_position', e.target.value)} />
+            </FieldRow>
+            <FieldRow label="Nationalité secondaire" hint="pour les binationaux">
+              <TextInput value={form.secondary_nationality || ''} onChange={(e) => set('secondary_nationality', e.target.value)} />
+            </FieldRow>
+            <FieldRow label="Langues parlées" hint="séparer par virgules — ex. Français, Anglais">
+              <TextInput
+                value={(form.languages_spoken ?? []).join(', ')}
+                onChange={(e) => set('languages_spoken', e.target.value.split(',').map((s) => s.trim()).filter(Boolean))}
+                placeholder="Français, Anglais, Néerlandais"
+              />
+            </FieldRow>
+            <div className="col-span-2">
+              <FieldRow label="Objectif" hint="ex. Devenir un joueur professionnel">
+                <textarea
+                  rows={2}
+                  value={form.objective || ''}
+                  onChange={(e) => set('objective', e.target.value)}
+                  maxLength={400}
+                  className={INPUT_BASE}
+                />
+              </FieldRow>
+            </div>
+            <div className="col-span-2">
+              <FieldRow label="Points forts mentaux" hint="séparer par virgules — ex. Confiant, Persévérant, Compétiteur">
+                <TextInput
+                  value={(form.mental_strengths ?? []).join(', ')}
+                  onChange={(e) => set('mental_strengths', e.target.value.split(',').map((s) => s.trim()).filter(Boolean))}
+                  placeholder="Confiant, Persévérant, Compétiteur"
+                />
+              </FieldRow>
+            </div>
+            <FieldRow label="Vient de (club)" hint="chip en haut de la photo — ex. KRC Genk">
+              <TextInput value={form.previous_club || ''} onChange={(e) => set('previous_club', e.target.value)} />
+            </FieldRow>
+            <FieldRow label="Logo « vient de »">
+              <TextInput
+                value={form.previous_club_logo || ''}
+                onChange={(e) => set('previous_club_logo', e.target.value)}
+                placeholder="https://…"
+              />
+            </FieldRow>
+            <div className="col-span-2">
+              <FieldRow label="Galerie photos" hint="URLs séparées par des sauts de ligne — max 6">
+                <textarea
+                  rows={3}
+                  value={(form.gallery_photos ?? []).join('\n')}
+                  onChange={(e) => set('gallery_photos', e.target.value.split('\n').map((s) => s.trim()).filter(Boolean).slice(0, 6))}
+                  placeholder="https://…/photo1.jpg&#10;https://…/photo2.jpg"
+                  className={INPUT_BASE}
+                />
+              </FieldRow>
+            </div>
+            <div className="col-span-2">
+              <FieldRow label="Parcours (années → club)" hint="une ligne par étape : Années | Club | URL logo">
+                <textarea
+                  rows={4}
+                  value={(form.career_history ?? []).map((c) => `${c.years ?? ''} | ${c.club ?? ''} | ${c.logo_url ?? ''}`).join('\n')}
+                  onChange={(e) => set('career_history', e.target.value.split('\n').map((line) => {
+                    const [years, club, logo_url] = line.split('|').map((s) => s.trim())
+                    return (years || club) ? { years: years || null, club: club || null, logo_url: logo_url || null } : null
+                  }).filter(Boolean) as Array<{ years?: string | null; club?: string | null; logo_url?: string | null }>)}
+                  placeholder="2024-2026 | F91 Dudelange | https://…/f91.png&#10;2023-2024 | RWDM Molenbeek | https://…"
+                  className={INPUT_BASE}
+                />
+              </FieldRow>
+            </div>
+          </div>
+        </section>
+
         <section className="space-y-4">
           <h3 className="font-mono uppercase tracking-[0.18em] text-[0.7rem] text-zinc-500 dark:text-stone-400">Stats de base</h3>
           <div className="grid grid-cols-3 gap-3">

@@ -47,7 +47,16 @@ const TEMPLATE_CAPABILITIES: Record<PresentationTemplateKey, { previousClubs: bo
   magazine:  { previousClubs: true, externalLinks: true },
   minimal:   { previousClubs: true, externalLinks: true },
   stadium:   { previousClubs: true, externalLinks: true },
+  marketing: { previousClubs: false, externalLinks: true },
 }
+
+const MARKETING_THEMES: Array<{ value: 'violet' | 'navy' | 'black-gold' | 'black-yellow' | 'custom'; label: string; swatch: string }> = [
+  { value: 'navy',         label: 'Navy · bleu',        swatch: '#3b82f6' },
+  { value: 'violet',       label: 'Violet',              swatch: '#8b5cf6' },
+  { value: 'black-gold',   label: 'Noir & or',          swatch: '#d4a017' },
+  { value: 'black-yellow', label: 'Noir & jaune',       swatch: '#facc15' },
+  { value: 'custom',       label: 'Personnalisé',       swatch: 'linear-gradient(45deg,#3b82f6,#8b5cf6,#facc15)' },
+]
 
 const INPUT_BASE =
   'w-full rounded-lg border border-stone-300 bg-white text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-900 dark:border-stone-50/15 dark:bg-zinc-900 dark:text-stone-50 dark:placeholder:text-stone-500 dark:focus:border-turf-300 px-3 py-2 text-sm focus:outline-none transition'
@@ -514,7 +523,7 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
                     Aperçu live
                   </span>
                   <span className="text-[0.6rem] font-mono uppercase tracking-wider text-zinc-400 dark:text-stone-500">
-                    A4 · {{ classic: 'Carte d\'identité', signature: 'Signature', magazine: 'Magazine', minimal: 'Minimal', stadium: 'Stadium' }[form.template_key]}
+                    A4 · {{ classic: 'Carte d\'identité', signature: 'Signature', magazine: 'Magazine', minimal: 'Minimal', stadium: 'Stadium', marketing: 'Marketing v1' }[form.template_key]}
                   </span>
                 </div>
                 <PresentationPreview
@@ -774,6 +783,161 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
             />
           </label>
         </section>
+
+        {/* MARKETING v1 — options spécifiques au template */}
+        {form.template_key === 'marketing' && (
+        <section className="space-y-5">
+          <h3 className="font-mono uppercase tracking-[0.18em] text-[0.7rem] text-zinc-500 dark:text-stone-400">
+            Marketing v1 <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">— options du template</span>
+          </h3>
+
+          {/* Thème couleur */}
+          <div className="space-y-2">
+            <div className="text-[0.65rem] font-mono uppercase tracking-[0.14em] text-zinc-500 dark:text-stone-400">Thème</div>
+            <div className="grid grid-cols-5 gap-2">
+              {MARKETING_THEMES.map((t) => {
+                const active = (form.options.theme ?? 'navy') === t.value
+                return (
+                  <button
+                    key={t.value}
+                    type="button"
+                    onClick={() => setOpt('theme', t.value)}
+                    className={`rounded-lg border p-2 text-center transition ${
+                      active
+                        ? 'border-turf-700 dark:border-turf-300 ring-2 ring-turf-700/20 dark:ring-turf-300/20 bg-white dark:bg-zinc-900'
+                        : 'border-stone-200 dark:border-stone-50/10 bg-white/60 dark:bg-zinc-900/40 hover:border-stone-400 dark:hover:border-stone-50/25'
+                    }`}
+                  >
+                    <div className="w-full h-6 rounded" style={{ background: t.swatch }} />
+                    <div className="mt-1 text-[0.65rem] font-medium text-zinc-800 dark:text-stone-200">{t.label}</div>
+                  </button>
+                )
+              })}
+            </div>
+            <p className="text-[0.65rem] text-zinc-500 dark:text-stone-500">
+              « Personnalisé » utilise les couleurs de la section Palette ci-dessus. Les autres thèmes appliquent leur propre palette.
+            </p>
+          </div>
+
+          {/* Côté de la photo */}
+          <div className="space-y-2">
+            <div className="text-[0.65rem] font-mono uppercase tracking-[0.14em] text-zinc-500 dark:text-stone-400">Côté de la photo</div>
+            <div className="inline-flex items-center gap-0.5 rounded-full border border-stone-300 dark:border-stone-50/15 p-0.5 text-xs">
+              {(['left','right'] as const).map((side) => {
+                const active = (form.options.photo_side ?? 'right') === side
+                return (
+                  <button
+                    key={side}
+                    type="button"
+                    onClick={() => setOpt('photo_side', side)}
+                    className={`px-4 py-1.5 rounded-full transition ${active ? 'bg-turf-700 text-white' : 'text-zinc-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-50/5'}`}
+                  >
+                    {side === 'left' ? 'Gauche' : 'Droite'}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Motto + slogan */}
+          <div className="grid sm:grid-cols-2 gap-3">
+            <label className="block">
+              <span className="block text-[0.65rem] font-mono uppercase tracking-[0.16em] text-zinc-500 dark:text-stone-400 mb-1">
+                Motto <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">— footer (ex. DISCIPLINE • WORK • PASSION)</span>
+              </span>
+              <input
+                type="text"
+                value={form.options.motto ?? ''}
+                onChange={(e) => setOpt('motto', e.target.value || null)}
+                placeholder="DISCIPLINE • WORK • PASSION • SUCCESS"
+                className={INPUT_BASE}
+                maxLength={120}
+              />
+            </label>
+            <label className="block">
+              <span className="block text-[0.65rem] font-mono uppercase tracking-[0.16em] text-zinc-500 dark:text-stone-400 mb-1">
+                Slogan cursif <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">— italique bas de fiche</span>
+              </span>
+              <input
+                type="text"
+                value={form.options.slogan_cursive ?? ''}
+                onChange={(e) => setOpt('slogan_cursive', e.target.value || null)}
+                placeholder="Notre vision, ton avenir. Ensemble vers l'élite."
+                className={INPUT_BASE}
+                maxLength={160}
+              />
+            </label>
+          </div>
+
+          {/* Supervisé par */}
+          <div className="space-y-2">
+            <div className="text-[0.65rem] font-mono uppercase tracking-[0.14em] text-zinc-500 dark:text-stone-400">
+              Supervisé par <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">— agence supérieure (ex. WNRS Sport)</span>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-2">
+              <input type="text" value={form.options.supervised_by?.name ?? ''} onChange={(e) => setOpt('supervised_by', { ...(form.options.supervised_by ?? {}), name: e.target.value || null })} placeholder="Nom" className={INPUT_BASE} maxLength={120} />
+              <input type="url"  value={form.options.supervised_by?.logo_url ?? ''} onChange={(e) => setOpt('supervised_by', { ...(form.options.supervised_by ?? {}), logo_url: e.target.value || null })} placeholder="URL logo" className={INPUT_BASE} maxLength={500} />
+              <input type="text" value={form.options.supervised_by?.country ?? ''} onChange={(e) => setOpt('supervised_by', { ...(form.options.supervised_by ?? {}), country: e.target.value || null })} placeholder="Pays" className={INPUT_BASE} maxLength={80} />
+              <input type="text" value={form.options.supervised_by?.country_code ?? ''} onChange={(e) => setOpt('supervised_by', { ...(form.options.supervised_by ?? {}), country_code: e.target.value || null })} placeholder="Code pays (gb, fr…)" className={INPUT_BASE} maxLength={4} />
+            </div>
+          </div>
+
+          {/* Player profile bars */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="text-[0.65rem] font-mono uppercase tracking-[0.14em] text-zinc-500 dark:text-stone-400">
+                Bars de progression <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">— Speed 90%, Technique 85%…</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setOpt('player_profile_bars', [...(form.options.player_profile_bars ?? []), { label: '', pct: 50 }])}
+                className="inline-flex items-center gap-1 text-[0.7rem] font-medium text-turf-700 dark:text-turf-300 hover:underline"
+              >
+                <Plus size={12} weight="bold" /> Ajouter une barre
+              </button>
+            </div>
+            {(form.options.player_profile_bars ?? []).map((bar, bi) => (
+              <div key={bi} className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={bar.label}
+                  onChange={(e) => {
+                    const next = [...(form.options.player_profile_bars ?? [])]
+                    next[bi] = { ...next[bi], label: e.target.value }
+                    setOpt('player_profile_bars', next)
+                  }}
+                  placeholder="Libellé (ex. Speed)"
+                  className={INPUT_BASE}
+                  maxLength={40}
+                />
+                <input
+                  type="number"
+                  min={0} max={100}
+                  value={bar.pct}
+                  onChange={(e) => {
+                    const next = [...(form.options.player_profile_bars ?? [])]
+                    next[bi] = { ...next[bi], pct: Math.max(0, Math.min(100, Number(e.target.value) || 0)) }
+                    setOpt('player_profile_bars', next)
+                  }}
+                  className={`${INPUT_BASE} w-20 tabular-nums`}
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const next = [...(form.options.player_profile_bars ?? [])]
+                    next.splice(bi, 1)
+                    setOpt('player_profile_bars', next)
+                  }}
+                  className="text-rose-700 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-500/15 rounded-md p-1.5 transition"
+                  aria-label="Supprimer"
+                >
+                  <Trash size={12} weight="bold" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+        )}
 
         {/* TYPOGRAPHIE */}
         <section className="space-y-4">
