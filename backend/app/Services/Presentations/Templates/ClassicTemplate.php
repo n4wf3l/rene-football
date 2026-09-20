@@ -63,25 +63,70 @@ class ClassicTemplate extends PresentationTemplate
                 .'</div>';
         }
 
-        $infoRows = [
-            [$this->t('age', $options),      ((int) $player->age).' '.$this->t('years_old', $options)],
-            [$this->t('position', $options), $player->position],
-            [$this->t('category', $options), $this->tCategory($player->category, $options)],
-        ];
-        if ($player->height)         $infoRows[] = [$this->t('height', $options),         $player->height];
-        if ($player->preferred_foot) $infoRows[] = [$this->t('preferred_foot', $options), $this->tFoot($player->preferred_foot, $options)];
-        if ($player->club)           $infoRows[] = [$this->t('club', $options),           $player->club];
-        if ($player->since)          $infoRows[] = [$this->t('since', $options),          (string) $player->since];
-        if ($player->nationality)    $infoRows[] = [$this->t('nationality', $options),    $player->nationality];
+        // DOB wins over age when set — matches the marketing fiche layout.
+        // Format DD-MM-YYYY to align with the reference fiche.
+        $dobLabel = null;
+        if (! empty($player->date_of_birth)) {
+            try {
+                $dobLabel = \Carbon\Carbon::parse($player->date_of_birth)->format('d-m-Y');
+            } catch (\Throwable) { $dobLabel = null; }
+        }
+
+        // Each row is [label, value, isHtml]. isHtml=true skips esc() on value
+        // (used when we render an inline club crest).
+        $infoRows = [];
+        if ($dobLabel !== null) {
+            $infoRows[] = [$this->t('date_of_birth', $options), $dobLabel, false];
+        } else {
+            $infoRows[] = [$this->t('age', $options), ((int) $player->age).' '.$this->t('years_old', $options), false];
+        }
+        $infoRows[] = [$this->t('position', $options), $player->position, false];
+        $infoRows[] = [$this->t('category', $options), $this->tCategory($player->category, $options), false];
+        if ($player->height)         $infoRows[] = [$this->t('height', $options),         $player->height, false];
+        if ($player->preferred_foot) $infoRows[] = [$this->t('preferred_foot', $options), $this->tFoot($player->preferred_foot, $options), false];
+        if ($player->club) {
+            $clubLogo = trim((string) ($player->club_logo_url ?? ''));
+            $clubValue = $this->esc($player->club);
+            if ($clubLogo !== '') {
+                $clubValue = '<img src="'.$this->esc($this->absolutePath($clubLogo)).'" alt="" style="height:5mm;width:auto;vertical-align:middle;margin-right:2mm;">'.$clubValue;
+            }
+            $infoRows[] = [$this->t('club', $options), $clubValue, true];
+        }
+        if ($player->since)          $infoRows[] = [$this->t('since', $options),          (string) $player->since, false];
+        if ($player->nationality)    $infoRows[] = [$this->t('nationality', $options),    $player->nationality, false];
         if ($player->potential_rating) {
             $potVal = number_format((float) $player->potential_rating, 1, ',', '').'/10'
                 .($player->potential_label ? ' · '.$player->potential_label : '');
-            $infoRows[] = [$this->t('potential', $options), $potVal];
+            $infoRows[] = [$this->t('potential', $options), $potVal, false];
         }
 
         $infoHtml = '';
         foreach ($infoRows as $r) {
-            $infoHtml .= '<tr><td>'.$this->esc($r[0]).'</td><td>'.$this->esc($r[1]).'</td></tr>';
+            $val = $r[2] ? $r[1] : $this->esc($r[1]);
+            $infoHtml .= '<tr><td>'.$this->esc($r[0]).'</td><td>'.$val.'</td></tr>';
+        }
+
+        // Small secondary portrait — sits between the main photo and the
+        // identity table, ~28mm square. Only renders when set.
+        $secondaryPhotoHtml = '';
+        $secondaryPhotoUrl = trim((string) ($player->secondary_photo_url ?? ''));
+        if ($secondaryPhotoUrl !== '') {
+            $secondaryPhotoHtml = '<div style="margin-top:3mm;text-align:right;">'
+                .'<img src="'.$this->esc($this->absolutePath($secondaryPhotoUrl)).'" alt="" style="width:22mm;height:22mm;object-fit:cover;border-radius:2mm;border:0.5px solid #e7e5e4;">'
+                .'</div>';
+        }
+
+        // Partner blocks (agency + academies) — rendered as a full-width band
+        // under the .doc row. They stay optional so classic dossiers without
+        // any partner data look identical to before.
+        $partnerAgencyHtml    = $this->partnerAgencyHtml($options, ['accent' => $accent, 'text' => $text, 'muted' => '#78716c']);
+        $partnerAcademiesHtml = $this->partnerAcademiesHtml($options, ['accent' => $accent, 'text' => $text, 'muted' => '#78716c']);
+        $partnersBand = '';
+        if ($partnerAgencyHtml !== '' || $partnerAcademiesHtml !== '') {
+            $partnersBand = '<div style="margin-top:6mm;border-top:1px solid #e7e5e4;padding-top:4mm;">'
+                .($partnerAgencyHtml !== '' ? '<div style="margin-bottom:3mm;">'.$partnerAgencyHtml.'</div>' : '')
+                .$partnerAcademiesHtml
+                .'</div>';
         }
 
         // Adaptive block rendering — variants are chosen from the layout hints
@@ -173,6 +218,7 @@ class ClassicTemplate extends PresentationTemplate
   <div class="doc">
     <div class="col-left">
       <div class="photo">{$photoHtml}</div>
+      {$secondaryPhotoHtml}
       <div class="name">{$this->esc($player->name)}</div>
 HTML
       .($tagline ? '<div class="tagline">'.$this->esc($tagline).'</div>' : '')
@@ -196,6 +242,7 @@ HTML
       .$scoutQuoteHtml
       .'</div>
   </div>
+  '.$partnersBand.'
   <div class="footer">Rene Football · '.now()->format('d/m/Y').'</div>
 </body></html>';
     }

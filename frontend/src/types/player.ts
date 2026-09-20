@@ -8,14 +8,21 @@ export interface Player {
   slug: string
   name: string
   age: number
+  /** ISO date (YYYY-MM-DD). Optional — when set, presentations show DOB
+   *  instead of the derived age. */
+  date_of_birth?: string | null
   height: string | null
   position: string
   category: PlayerCategory | string
   club: string | null
+  /** URL of the current club crest, shown next to the club name. */
+  club_logo_url?: string | null
   nationality: string | null
   preferred_foot: PreferredFoot | string | null
   since: number | null
   photo_url: string | null
+  /** Small portrait shown alongside the main action photo on marketing fiches. */
+  secondary_photo_url?: string | null
   bio: string | null
 
   matches_played: number
