@@ -305,14 +305,14 @@ function Header() {
     <>
       <ScrollProgress />
 
-      {/* Floating capsule - sticky, glass, centered. */}
+      {/* Full-width sticky bar - edge to edge, glass. */}
       <motion.div
         animate={{ y: hidden ? -120 : 0, opacity: hidden ? 0 : 1 }}
         transition={{ type: 'spring', stiffness: 240, damping: 30 }}
         aria-hidden={hidden}
-        className="fixed inset-x-0 top-3 sm:top-4 z-40 px-3 sm:px-6 will-change-transform pointer-events-none"
+        className="fixed inset-x-0 top-0 z-40 will-change-transform pointer-events-none"
       >
-        <nav className="pointer-events-auto relative mx-auto max-w-page flex items-center justify-between gap-2 rounded-full bg-zinc-950/85 backdrop-blur-xl border border-stone-50/10 px-2.5 py-1.5 shadow-[0_24px_50px_-22px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.08)]">
+        <nav className="pointer-events-auto relative flex items-center justify-between gap-2 bg-zinc-950/85 backdrop-blur-xl border-b border-stone-50/10 px-4 sm:px-6 lg:px-8 py-2.5 shadow-[0_24px_50px_-22px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.08)]">
           {/* Top inner hairline - liquid glass refraction. */}
           <span
             aria-hidden="true"

@@ -13,6 +13,7 @@ import HeroTrail from '../components/HeroTrail'
 import YouTubeEmbed from '../components/YouTubeEmbed'
 import MeshGradient from '../components/MeshGradient'
 import FloatingAccents from '../components/FloatingAccents'
+import LuxembourgMap from '../components/LuxembourgMap'
 import AnimatedNumber from '../components/AnimatedNumber'
 import AnimatedUnderline from '../components/AnimatedUnderline'
 import { usePublicPlayers, pickShowcase } from '../lib/usePublicPlayers'
@@ -82,6 +83,31 @@ function HomePage() {
       <section ref={heroRef} className="relative overflow-hidden text-zinc-900 dark:text-stone-100">
         <MeshGradient intensity="medium" tone="auto" />
         <FloatingAccents />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-0 left-0 hidden w-7/12 items-center justify-start -ml-10 lg:flex"
+        >
+          <LuxembourgMap
+            className="h-[70%] max-h-[440px] w-auto text-turf-700/70 dark:text-turf-300/50"
+            showStroke={false}
+            fillOpacity={0.1}
+          />
+        </div>
+        {/* Stroke drawn again above the text (z-20) so the outline stays
+           visible where it crosses opaque headline glyphs. Screen-blend was
+           tried first but is invisible over pure white text (screen(white,
+           anything) ~= white) - a plain semi-transparent overlay reads on
+           both the white glyphs and the dark background instead. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-0 left-0 z-20 hidden w-7/12 items-center justify-start -ml-10 lg:flex"
+        >
+          <LuxembourgMap
+            className="h-[70%] max-h-[440px] w-auto text-turf-600/60 dark:text-turf-300/70"
+            showFill={false}
+            strokeWidth={1.6}
+          />
+        </div>
         <div
           aria-hidden="true"
           className="pointer-events-none fixed inset-0 -z-10 opacity-[0.035]"
@@ -389,7 +415,7 @@ function HomePage() {
                 transition={{ type: 'spring', stiffness: 110, damping: 20 }}
                 className={`relative overflow-hidden rounded-3xl border p-7 lg:p-8 flex flex-col justify-between ${span} ${
                   accent
-                    ? 'bg-zinc-950 text-stone-100 border-stone-950/10 shadow-diffusion'
+                    ? 'bg-zinc-900 text-stone-100 border-white/10 shadow-diffusion'
                     : 'bg-white text-zinc-900 border-stone-200/80 dark:bg-zinc-900 dark:text-stone-50 dark:border-stone-50/10'
                 }`}
               >
@@ -402,6 +428,16 @@ function HomePage() {
                 >
                   <Icon size={22} weight="regular" />
                 </div>
+                {accent && (
+                  <div>
+                    <div className="font-mono text-5xl lg:text-6xl font-semibold text-turf-200 tracking-tight">
+                      <AnimatedNumber value={127} />+
+                    </div>
+                    <div className="mt-1 text-xs uppercase tracking-[0.18em] text-stone-400">
+                      Joueurs représentés
+                    </div>
+                  </div>
+                )}
                 <div>
                   <h3
                     className={`font-display font-semibold text-xl lg:text-2xl tracking-tight ${
