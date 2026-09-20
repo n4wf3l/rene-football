@@ -42,6 +42,22 @@ export interface PresentationOptions {
     country: string
     clubs: Array<{ name: string; logo_url?: string | null }>
   }>
+  /** Marketing v1 template controls. */
+  theme?: 'violet' | 'navy' | 'black-gold' | 'black-yellow' | 'custom'
+  photo_side?: 'left' | 'right'
+  /** Motto shown in the marketing footer (e.g. "DISCIPLINE • WORK • PASSION"). */
+  motto?: string | null
+  /** Cursive slogan overlaid on the marketing fiche footer. */
+  slogan_cursive?: string | null
+  /** "Supervisé par" block (Fiche Destiny — supervising agency). */
+  supervised_by?: {
+    name?: string | null
+    logo_url?: string | null
+    country?: string | null
+    country_code?: string | null
+  } | null
+  /** Player profile percentage bars (Fiche Saeed — Speed 90%, Technique 85%…). */
+  player_profile_bars?: Array<{ label: string; pct: number }>
   /** Font pairing applied to the whole document. */
   font_family?: 'editorial' | 'sans' | 'grotesque'
   /** Base font-size scale relative to the template default. */
@@ -51,7 +67,7 @@ export interface PresentationOptions {
   language?: 'fr' | 'en' | 'de' | 'nl'
 }
 
-export type PresentationTemplateKey = 'classic' | 'signature' | 'magazine' | 'minimal' | 'stadium'
+export type PresentationTemplateKey = 'classic' | 'signature' | 'magazine' | 'minimal' | 'stadium' | 'marketing'
 
 export interface PresentationTemplate {
   key: PresentationTemplateKey

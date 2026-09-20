@@ -4,6 +4,7 @@ namespace App\Services\Presentations;
 
 use App\Services\Presentations\Templates\ClassicTemplate;
 use App\Services\Presentations\Templates\MagazineTemplate;
+use App\Services\Presentations\Templates\MarketingTemplate;
 use App\Services\Presentations\Templates\MinimalTemplate;
 use App\Services\Presentations\Templates\SignatureTemplate;
 use App\Services\Presentations\Templates\StadiumTemplate;
@@ -14,6 +15,7 @@ class PresentationTemplateRegistry
     /** @var array<class-string<PresentationTemplate>> */
     private const TEMPLATES = [
         ClassicTemplate::class,
+        MarketingTemplate::class,
         SignatureTemplate::class,
         MagazineTemplate::class,
         StadiumTemplate::class,

@@ -1098,6 +1098,103 @@ function SignaturePreview({ player, options, title, statCatalogue }: Presentatio
 }
 
 // --------------------------------------------------------------------------
+// Marketing v1 — simplified live preview. Not pixel-perfect: it shows the
+// theme colours, name split, hero photo side and info block so the admin
+// can iterate on options quickly. Final layout is the PDF preview button.
+// --------------------------------------------------------------------------
+
+const MARKETING_THEMES: Record<string, { bg: string; accent: string; secondary: string; text: string; card: string; cardBorder: string }> = {
+  navy:           { bg: '#0a1f3d', accent: '#3b82f6', secondary: '#93c5fd', text: '#ffffff', card: 'rgba(59,130,246,0.10)',  cardBorder: 'rgba(147,197,253,0.25)' },
+  violet:         { bg: '#1a0f2e', accent: '#8b5cf6', secondary: '#c4b5fd', text: '#ffffff', card: 'rgba(139,92,246,0.10)',  cardBorder: 'rgba(196,181,253,0.25)' },
+  'black-gold':   { bg: '#0a0a0a', accent: '#d4a017', secondary: '#e5c04a', text: '#ffffff', card: 'rgba(212,160,23,0.10)', cardBorder: 'rgba(229,192,74,0.30)' },
+  'black-yellow': { bg: '#0d0d0d', accent: '#facc15', secondary: '#e5e5e5', text: '#ffffff', card: 'rgba(250,204,21,0.10)', cardBorder: 'rgba(250,204,21,0.30)' },
+}
+
+function MarketingPreview({ player, options }: PresentationPreviewProps): ReactElement {
+  const themeKey = options.theme ?? 'navy'
+  const p = themeKey === 'custom'
+    ? {
+        bg: options.background_color ?? '#0a1f3d',
+        accent: options.accent_color ?? '#3b82f6',
+        secondary: options.secondary_color ?? '#93c5fd',
+        text: options.text_color ?? '#ffffff',
+        card: 'rgba(255,255,255,0.06)',
+        cardBorder: 'rgba(255,255,255,0.15)',
+      }
+    : MARKETING_THEMES[themeKey] ?? MARKETING_THEMES.navy
+  const photoSide = options.photo_side === 'left' ? 'left' : 'right'
+  const photo = pickPhoto(player, options)
+  const name = player?.name ?? 'Prénom Nom'
+  const parts = name.trim().split(/\s+/, 2)
+  const firstName = parts[0] ?? ''
+  const lastName = parts.length > 1 ? parts.slice(1).join(' ') : ''
+  const tagline = options.tagline || 'PROPULSEUR DE TALENTS'
+
+  const dob = player?.date_of_birth
+    ? new Date(player.date_of_birth).toLocaleDateString('fr-FR')
+    : null
+
+  const infoRows: Array<[string, string]> = []
+  if (dob) infoRows.push(['DATE DE NAISSANCE', dob])
+  else if (player?.age) infoRows.push(['ÂGE', `${player.age} ans`])
+  const nat = [player?.nationality, player?.secondary_nationality].filter(Boolean).join(' / ')
+  if (nat) infoRows.push(['NATIONALITÉ', nat.toUpperCase()])
+  const pos = player?.best_position || player?.position
+  if (pos) infoRows.push(['POSITION', pos.toUpperCase()])
+  if (player?.club) infoRows.push(['CLUB', player.club.toUpperCase()])
+  if (player?.preferred_foot) infoRows.push(['PIED FORT', player.preferred_foot.toUpperCase()])
+  infoRows.push(['AGENCE', 'RENEFOOTBALL'])
+
+  const headerBlock = (
+    <div style={{ padding: '4% 5% 2% 5%' }}>
+      <span style={{ fontSize: '3%', fontWeight: 900, letterSpacing: '0.05em', color: p.text }}>RENE</span>
+      <span style={{ fontSize: '3%', fontWeight: 900, letterSpacing: '0.05em', color: p.accent }}>FOOTBALL</span>
+      <div style={{ fontSize: '1.3%', letterSpacing: '0.25em', color: p.secondary, marginTop: '0.5%' }}>{tagline}</div>
+    </div>
+  )
+  const nameBlock = (
+    <div style={{ padding: '0 5%', lineHeight: 0.95 }}>
+      <div style={{ fontSize: '7.5%', fontWeight: 900, color: p.text, letterSpacing: '-0.02em', textTransform: 'uppercase' }}>{firstName}</div>
+      {lastName && <div style={{ fontSize: '7.5%', fontWeight: 900, color: p.accent, letterSpacing: '-0.02em', textTransform: 'uppercase', marginTop: '0.5%' }}>{lastName}</div>}
+    </div>
+  )
+  const infoBlock = (
+    <div style={{ padding: '3% 5%' }}>
+      {infoRows.map(([label, value]) => (
+        <div key={label} style={{ marginBottom: '1.5%', display: 'flex', gap: '1.5%' }}>
+          <div style={{ width: '3%', height: '3%', borderRadius: '50%', background: p.card, border: `0.5px solid ${p.cardBorder}`, color: p.accent, fontSize: '1.8%', fontWeight: 900, display: 'grid', placeItems: 'center', flexShrink: 0 }}>#</div>
+          <div>
+            <div style={{ fontSize: '1.4%', letterSpacing: '0.15em', color: p.secondary, fontWeight: 700 }}>{label}</div>
+            <div style={{ fontSize: '2%', fontWeight: 700, color: p.text }}>{value}</div>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+  const photoBlock = photo ? (
+    <img src={photo} alt="" style={{ width: '100%', height: '50%', objectFit: 'cover', objectPosition: 'center', display: 'block' }} />
+  ) : (
+    <div style={{ width: '100%', height: '50%', background: '#222' }} />
+  )
+
+  const infoCol = <>{headerBlock}{nameBlock}{infoBlock}</>
+  const photoCol = photoBlock
+
+  return (
+    <div style={{
+      position: 'absolute', inset: 0, background: p.bg, color: p.text, fontFamily: 'Inter, sans-serif',
+      display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: 'auto 1fr',
+    }}>
+      <div style={{ gridColumn: photoSide === 'left' ? '2 / 3' : '1 / 2' }}>{infoCol}</div>
+      <div style={{ gridColumn: photoSide === 'left' ? '1 / 2' : '2 / 3' }}>{photoCol}</div>
+      <div style={{ gridColumn: '1 / -1', padding: '3% 5%', fontSize: '1.6%', color: p.secondary, textAlign: 'center' }}>
+        Aperçu simplifié · cliquez « Aperçu PDF » pour le rendu final.
+      </div>
+    </div>
+  )
+}
+
+// --------------------------------------------------------------------------
 
 export default function PresentationPreview(props: PresentationPreviewProps) {
   const ext = props.externalAsset
@@ -1133,6 +1230,7 @@ export default function PresentationPreview(props: PresentationPreviewProps) {
           {props.template === 'classic'   && <ClassicPreview   {...props} />}
           {props.template === 'stadium'   && <StadiumPreview   {...props} />}
           {props.template === 'signature' && <SignaturePreview {...props} />}
+          {props.template === 'marketing' && <MarketingPreview {...props} />}
         </>
       )}
     </div>
