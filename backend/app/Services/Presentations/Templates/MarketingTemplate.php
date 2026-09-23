@@ -7,22 +7,19 @@ use App\Services\Presentations\PresentationTemplate;
 use Carbon\Carbon;
 
 /**
- * "Marketing v1" — reproduces the dark-themed agency fiche used by René
- * Football (Zoran / Camara / Destiny / Hanibal references). Photo bleeds
- * to one edge, big split-color name, info block with icons, caractéristiques
- * card, projet sportif paragraph, partner blocks and footer band.
+ * "Marketing v1" - reproduces the dark agency fiches used by René Football
+ * (Hanibal / Destiny / Camara / Saeed / Zoran references).
  *
- * Layout knobs on options:
- *   - theme: violet | navy | black-gold | black-yellow | custom
- *   - photo_side: left | right (default right)
- *   - motto, slogan_cursive, supervised_by, player_profile_bars
+ * Layout knobs:
+ *   theme       : navy | violet | black-gold | black-yellow (default: black-gold)
+ *   photo_side  : left | right                              (default: left)
+ *   name_split  : auto | first-last (colour split on the last word)
+ *   show_watermark : bool - ghost "RF" behind the name
+ *   tagline / motto / slogan_cursive / supervised_by / player_profile_bars
  *
- * Player data consumed:
- *   name, photo_url, secondary_photo_url, gallery_photos,
- *   date_of_birth (or age), position, best_position, club, club_logo_url,
- *   nationality (+ secondary_nationality), preferred_foot, playing_style,
- *   mental_strengths, objective, languages_spoken, previous_club/logo,
- *   career_history, strengths, bio.
+ * The visual anchors are: giant split-colour name, full-bleed hero photo,
+ * SVG-icon info block, checkmark bullets on strengths, gold-bordered partner
+ * cards, and a yellow contact bar at the bottom.
  */
 class MarketingTemplate extends PresentationTemplate
 {
@@ -36,194 +33,207 @@ class MarketingTemplate extends PresentationTemplate
     public static function defaultOptions(): array
     {
         return [
-            'theme'            => 'navy',
-            'photo_side'       => 'right',
-            'accent_color'     => '#3b82f6',
-            'secondary_color'  => '#93c5fd',
+            'theme'            => 'black-gold',
+            'photo_side'       => 'left',
+            'accent_color'     => '#d4a017',
+            'secondary_color'  => '#a89570',
             'text_color'       => '#ffffff',
-            'background_color' => '#0a1f3d',
+            'background_color' => '#0a0a0a',
             'font_family'      => 'sans',
+            'show_watermark'   => true,
         ];
     }
 
     public static function thumbnailSvg(): string
     {
         return '<svg viewBox="0 0 60 84" xmlns="http://www.w3.org/2000/svg">'
-            .'<rect width="60" height="84" fill="#0a1f3d"/>'
-            .'<rect x="30" y="0" width="30" height="60" fill="#1e40af" opacity="0.6"/>'
-            .'<rect x="4" y="4" width="18" height="2" fill="#3b82f6"/>'
-            .'<rect x="4" y="14" width="24" height="4" fill="#ffffff"/>'
-            .'<rect x="4" y="20" width="20" height="4" fill="#3b82f6"/>'
-            .'<rect x="4" y="30" width="24" height="1" fill="#93c5fd" opacity="0.5"/>'
-            .'<rect x="4" y="34" width="22" height="1" fill="#93c5fd" opacity="0.5"/>'
-            .'<rect x="4" y="38" width="20" height="1" fill="#93c5fd" opacity="0.5"/>'
-            .'<rect x="4" y="42" width="22" height="1" fill="#93c5fd" opacity="0.5"/>'
-            .'<rect x="4" y="62" width="24" height="8" fill="#1e40af" opacity="0.4" rx="1"/>'
-            .'<rect x="32" y="62" width="24" height="8" fill="#1e40af" opacity="0.4" rx="1"/>'
-            .'<rect x="0" y="76" width="60" height="8" fill="#3b82f6"/>'
+            .'<rect width="60" height="84" fill="#0a0a0a"/>'
+            .'<rect x="0" y="0" width="30" height="60" fill="#1a1a1a"/>'
+            .'<rect x="34" y="8" width="16" height="6" fill="#ffffff"/>'
+            .'<rect x="34" y="16" width="20" height="6" fill="#d4a017"/>'
+            .'<rect x="34" y="30" width="4" height="4" fill="#d4a017"/>'
+            .'<rect x="40" y="30" width="14" height="4" fill="#ffffff" opacity="0.6"/>'
+            .'<rect x="34" y="38" width="4" height="4" fill="#d4a017"/>'
+            .'<rect x="40" y="38" width="14" height="4" fill="#ffffff" opacity="0.6"/>'
+            .'<rect x="34" y="46" width="4" height="4" fill="#d4a017"/>'
+            .'<rect x="40" y="46" width="14" height="4" fill="#ffffff" opacity="0.6"/>'
+            .'<rect x="0" y="78" width="60" height="6" fill="#d4a017"/>'
             .'</svg>';
     }
 
-    /** Palette per theme. Custom falls back to the accent/secondary/bg options. */
     private function palette(array $options): array
     {
-        $theme = $options['theme'] ?? 'navy';
+        $theme = $options['theme'] ?? 'black-gold';
         $presets = [
-            'violet'       => ['bg' => '#1a0f2e', 'accent' => '#8b5cf6', 'secondary' => '#c4b5fd', 'text' => '#ffffff', 'card' => 'rgba(139,92,246,0.10)', 'card_border' => 'rgba(196,181,253,0.25)'],
-            'navy'         => ['bg' => '#0a1f3d', 'accent' => '#3b82f6', 'secondary' => '#93c5fd', 'text' => '#ffffff', 'card' => 'rgba(59,130,246,0.10)', 'card_border' => 'rgba(147,197,253,0.25)'],
-            'black-gold'   => ['bg' => '#0a0a0a', 'accent' => '#d4a017', 'secondary' => '#e5c04a', 'text' => '#ffffff', 'card' => 'rgba(212,160,23,0.10)', 'card_border' => 'rgba(229,192,74,0.30)'],
-            'black-yellow' => ['bg' => '#0d0d0d', 'accent' => '#facc15', 'secondary' => '#e5e5e5', 'text' => '#ffffff', 'card' => 'rgba(250,204,21,0.10)', 'card_border' => 'rgba(250,204,21,0.30)'],
+            'violet'       => ['bg' => '#1a0f2e', 'accent' => '#8b5cf6', 'secondary' => '#c4b5fd', 'text' => '#ffffff', 'card' => 'rgba(139,92,246,0.10)', 'card_border' => 'rgba(196,181,253,0.30)', 'footer' => '#8b5cf6', 'footer_ink' => '#1a0f2e'],
+            'navy'         => ['bg' => '#0a1f3d', 'accent' => '#3b82f6', 'secondary' => '#93c5fd', 'text' => '#ffffff', 'card' => 'rgba(59,130,246,0.10)', 'card_border' => 'rgba(147,197,253,0.30)', 'footer' => '#3b82f6', 'footer_ink' => '#0a1f3d'],
+            'black-gold'   => ['bg' => '#0a0a0a', 'accent' => '#d4a017', 'secondary' => '#a89570', 'text' => '#ffffff', 'card' => 'rgba(212,160,23,0.08)', 'card_border' => 'rgba(212,160,23,0.35)', 'footer' => '#d4a017', 'footer_ink' => '#0a0a0a'],
+            'black-yellow' => ['bg' => '#0d0d0d', 'accent' => '#facc15', 'secondary' => '#e5e5e5', 'text' => '#ffffff', 'card' => 'rgba(250,204,21,0.08)', 'card_border' => 'rgba(250,204,21,0.35)', 'footer' => '#facc15', 'footer_ink' => '#0d0d0d'],
         ];
         if (isset($presets[$theme])) return $presets[$theme];
-        // custom theme — user colors win
-        $accent = $options['accent_color'] ?? '#3b82f6';
+        $accent = $options['accent_color'] ?? '#d4a017';
         return [
-            'bg'          => $options['background_color'] ?? '#0a1f3d',
+            'bg'          => $options['background_color'] ?? '#0a0a0a',
             'accent'      => $accent,
-            'secondary'   => $options['secondary_color'] ?? '#93c5fd',
+            'secondary'   => $options['secondary_color'] ?? '#a89570',
             'text'        => $options['text_color'] ?? '#ffffff',
-            'card'        => 'rgba(255,255,255,0.06)',
-            'card_border' => 'rgba(255,255,255,0.15)',
+            'card'        => 'rgba(255,255,255,0.05)',
+            'card_border' => 'rgba(255,255,255,0.20)',
+            'footer'      => $accent,
+            'footer_ink'  => $options['background_color'] ?? '#0a0a0a',
         ];
     }
 
     public function render(Player $player, array $options, string $title): string
     {
         $p = $this->palette($options);
-        $photoSide = ($options['photo_side'] ?? 'right') === 'left' ? 'left' : 'right';
+        $photoSide = ($options['photo_side'] ?? 'left') === 'right' ? 'right' : 'left';
+        $showWatermark = (bool) ($options['show_watermark'] ?? true);
 
         $photoUrl = $this->pickPhoto($player, $options);
         $photoAbsPath = $photoUrl ? $this->esc($this->absolutePath($photoUrl)) : null;
 
-        // Header: RF wordmark + tagline
-        $tagline = $options['tagline'] ?? 'PROPULSEUR DE TALENTS';
-        $header = '<div style="padding:8mm 10mm 4mm 10mm;">'
-            .'<span style="font-size:16pt;font-weight:800;letter-spacing:1.5px;color:'.$p['text'].';">RENE</span>'
-            .'<span style="font-size:16pt;font-weight:800;letter-spacing:1.5px;color:'.$p['accent'].';">FOOTBALL</span>'
-            .'<div style="font-size:6pt;letter-spacing:3px;color:'.$p['secondary'].';margin-top:1mm;">'.$this->esc(mb_strtoupper($tagline)).'</div>'
+        // ---------- Right / info column ----------
+
+        // Logo brand block (RF wordmark + tagline)
+        $tagline = trim((string) ($options['tagline'] ?? 'AGENCE DE JOUEURS'));
+        $brandBlock = '<div style="padding:0 0 4mm 0;">'
+            .'<div style="font-size:18pt;font-weight:900;letter-spacing:0.5px;color:'.$p['text'].';line-height:1;">'
+                .'<span style="color:'.$p['accent'].';">R</span><span style="color:'.$p['text'].';">F</span>'
+                .'&nbsp;&nbsp;<span style="font-size:10pt;letter-spacing:3px;font-weight:800;">RENE<span style="color:'.$p['accent'].';">FOOTBALL</span></span>'
+            .'</div>'
+            .($tagline !== '' ? '<div style="font-size:5.5pt;letter-spacing:3px;color:'.$p['secondary'].';margin-top:1.5mm;font-weight:700;">'.$this->esc(mb_strtoupper($tagline)).'</div>' : '')
             .'</div>';
 
-        // Big name split-color: split at first whitespace/hyphen. If it's a
-        // two-word name we colour the last name; otherwise we split "First-Second".
+        // Giant name — split first/rest, first line white, second line accent gold
         [$firstName, $lastName] = $this->splitName($player->name);
-        $nameHtml = '<div style="padding:0 10mm;line-height:0.95;">'
-            .'<div style="font-size:34pt;font-weight:900;color:'.$p['text'].';letter-spacing:-0.5px;text-transform:uppercase;">'.$this->esc($firstName).'</div>'
-            .'<div style="font-size:34pt;font-weight:900;color:'.$p['accent'].';letter-spacing:-0.5px;text-transform:uppercase;margin-top:1mm;">'.$this->esc($lastName).'</div>'
+        $nameFontSize = mb_strlen($firstName.$lastName) > 18 ? '40pt' : '52pt';
+        $subFontSize  = mb_strlen($firstName.$lastName) > 18 ? '34pt' : '44pt';
+
+        $watermark = $showWatermark
+            ? '<div style="position:absolute;top:-4mm;right:-4mm;font-size:120pt;font-weight:900;color:'.$p['accent'].';opacity:0.08;line-height:0.8;letter-spacing:-4px;pointer-events:none;">RF</div>'
+            : '';
+
+        $nameBlock = '<div style="position:relative;padding:4mm 0 2mm 0;">'
+            .$watermark
+            .'<div style="font-size:'.$nameFontSize.';font-weight:900;color:'.$p['text'].';line-height:0.9;letter-spacing:-1px;text-transform:uppercase;position:relative;">'.$this->esc($firstName).'</div>'
+            .($lastName !== ''
+                ? '<div style="font-size:'.$subFontSize.';font-weight:900;color:'.$p['accent'].';line-height:0.9;letter-spacing:-1px;text-transform:uppercase;margin-top:2mm;position:relative;">'.$this->esc($lastName).'</div>'
+                : '')
             .'</div>';
 
-        // Info block (DOB / nationality / position / club / foot / agency)
+        // Sub-title (best position or category)
+        $subtitle = trim((string) ($player->best_position ?? '')) ?: (string) $player->position;
+        $subtitleBlock = $subtitle !== ''
+            ? '<div style="font-size:9pt;letter-spacing:4px;color:'.$p['accent'].';font-weight:800;text-transform:uppercase;margin:3mm 0 0 0;padding-bottom:3mm;border-bottom:1px solid '.$p['card_border'].';">'.$this->esc($subtitle).'</div>'
+            : '';
+
+        // Info block with SVG icons
         $infoBlock = $this->buildInfoBlock($player, $options, $p);
 
-        // Points forts card — driven by strengths JSON
-        $strengthsCard = $this->strengthsCardHtml($player, $p);
+        // Right column assembled
+        $rightColumn = '<div style="padding:8mm 8mm 4mm 8mm;">'
+            .$brandBlock
+            .$nameBlock
+            .$subtitleBlock
+            .'<div style="margin-top:2mm;">'.$infoBlock.'</div>'
+            .'</div>';
 
-        // Caractéristiques card — 5 rows table
-        $caracsCard = $this->caracsCardHtml($player, $p);
+        // ---------- Left / photo column ----------
 
-        // Profil du joueur (bio) + Objectif
-        $profileHtml = $this->profileHtml($player, $p);
-
-        // Galerie photos (up to 3)
-        $galleryHtml = $this->galleryHtml($player, $p);
-
-        // Partner blocks (existing base helpers) with the marketing palette applied
-        $partnerAgency    = $this->partnerAgencyHtml($options, ['accent' => $p['accent'], 'text' => $p['text'], 'muted' => $p['secondary']]);
-        $partnerAcademies = $this->partnerAcademiesHtml($options, ['accent' => $p['accent'], 'text' => $p['text'], 'muted' => $p['secondary']]);
-
-        // Supervised by (like partner_agency but themed differently)
-        $supervisedHtml = $this->supervisedByHtml($options, $p);
-
-        // Player profile bars (Fiche 3 Saeed)
-        $barsHtml = $this->barsHtml($options, $p);
-
-        // Motto & slogan
-        $motto  = trim((string) ($options['motto'] ?? ''));
-        $slogan = trim((string) ($options['slogan_cursive'] ?? ''));
-
-        // Photo panel — bleeds to edge; percentage width so DomPDF's table
-        // layout puts it opposite the info column. Uses object-fit:cover via
-        // fixed-height wrapper because DomPDF ignores object-fit in <img>.
-        $photoCell = $photoAbsPath
-            ? '<div style="width:100%;height:150mm;overflow:hidden;background:#111;position:relative;">'
-                .'<img src="'.$photoAbsPath.'" style="width:100%;height:150mm;object-fit:cover;object-position:center;" />'
-                .'</div>'
-            : '<div style="width:100%;height:150mm;background:#222;"></div>';
-
-        // Previous club chip (Fiche 4 "Vient de KRC Genk")
+        // "Vient de" chip
         $prevClub = trim((string) ($player->previous_club ?? ''));
         $prevChip = '';
         if ($prevClub !== '') {
             $prevLogo = trim((string) ($player->previous_club_logo ?? ''));
-            $prevChip = '<div style="position:absolute;top:6mm;left:6mm;background:rgba(0,0,0,0.6);padding:2mm 4mm;border-radius:2mm;">'
-                .'<div style="font-size:5pt;letter-spacing:2px;color:'.$p['secondary'].';text-transform:uppercase;font-weight:700;">Vient de</div>'
-                .($prevLogo !== '' ? '<img src="'.$this->esc($this->absolutePath($prevLogo)).'" alt="" style="height:8mm;margin-top:1mm;">' : '')
-                .'<div style="font-size:8pt;font-weight:700;color:'.$p['text'].';margin-top:1mm;">'.$this->esc(mb_strtoupper($prevClub)).'</div>'
+            $prevChip = '<div style="position:absolute;top:12mm;left:6mm;padding:3mm 4mm;background:rgba(0,0,0,0.55);border-left:2px solid '.$p['accent'].';color:'.$p['text'].';">'
+                .'<div style="font-size:6pt;letter-spacing:2px;color:'.$p['secondary'].';font-weight:700;text-transform:uppercase;margin-bottom:1mm;">Vient de</div>'
+                .($prevLogo !== '' ? '<img src="'.$this->esc($this->absolutePath($prevLogo)).'" alt="" style="height:10mm;max-width:22mm;object-fit:contain;margin:1mm 0;"><br>' : '')
+                .'<div style="font-size:8pt;font-weight:800;letter-spacing:1px;text-transform:uppercase;">'.$this->esc($prevClub).'</div>'
                 .'</div>';
         }
 
-        // Column layout: photo left or right, info the other side. Rendered
-        // as a DomPDF table because absolute positioning full-bleed is fragile.
-        if ($photoSide === 'left') {
-            $topRow = '<tr>'
-                .'<td style="width:50%;vertical-align:top;padding:0;position:relative;">'.$photoCell.$prevChip.'</td>'
-                .'<td style="width:50%;vertical-align:top;padding:0;">'.$header.$nameHtml.$infoBlock.'</td>'
-                .'</tr>';
+        // Photo panel — bleeds vertically
+        $photoCell = $photoAbsPath
+            ? '<div style="width:100%;height:120mm;overflow:hidden;background:#0f0f0f;position:relative;">'
+                .'<img src="'.$photoAbsPath.'" style="width:100%;height:120mm;object-fit:cover;object-position:center;">'
+                .$prevChip
+                .'</div>'
+            : '<div style="width:100%;height:120mm;background:#1a1a1a;position:relative;">'.$prevChip.'</div>';
+
+        // Top row layout: photo one side, info the other. Explicit table +
+        // row height keeps DomPDF from expanding the row past the photo cell
+        // when the info column overflows slightly.
+        $topStyle = 'width:100%;border-collapse:collapse;table-layout:fixed;height:120mm;';
+        if ($photoSide === 'right') {
+            $topRow = '<table style="'.$topStyle.'">'
+                .'<tr style="height:120mm;">'
+                .'<td style="width:52%;vertical-align:top;padding:0;height:120mm;overflow:hidden;">'.$rightColumn.'</td>'
+                .'<td style="width:48%;vertical-align:top;padding:0;height:120mm;">'.$photoCell.'</td>'
+                .'</tr></table>';
         } else {
-            $topRow = '<tr>'
-                .'<td style="width:50%;vertical-align:top;padding:0;">'.$header.$nameHtml.$infoBlock.'</td>'
-                .'<td style="width:50%;vertical-align:top;padding:0;position:relative;">'.$photoCell.$prevChip.'</td>'
-                .'</tr>';
+            $topRow = '<table style="'.$topStyle.'">'
+                .'<tr style="height:120mm;">'
+                .'<td style="width:48%;vertical-align:top;padding:0;height:120mm;">'.$photoCell.'</td>'
+                .'<td style="width:52%;vertical-align:top;padding:0;height:120mm;overflow:hidden;">'.$rightColumn.'</td>'
+                .'</tr></table>';
         }
 
-        // Middle band: Points forts (left) + Caractéristiques (right)
-        $middleBand = '<table style="width:100%;border-collapse:collapse;margin-top:5mm;">'
-            .'<tr>'
-            .'<td style="width:50%;vertical-align:top;padding:4mm 4mm 4mm 10mm;">'.$strengthsCard.'</td>'
-            .'<td style="width:50%;vertical-align:top;padding:4mm 10mm 4mm 4mm;">'.$caracsCard.'</td>'
-            .'</tr></table>';
+        // ---------- Content bands ----------
 
-        // Bottom band: Profil du joueur (left) + Galerie (right)
-        $bottomBand = ($profileHtml !== '' || $galleryHtml !== '')
-            ? '<table style="width:100%;border-collapse:collapse;">'
+        $profileHtml   = $this->profileHtml($player, $p);
+        $strengthsHtml = $this->strengthsCardHtml($player, $p);
+
+        $middleBand = '';
+        if ($profileHtml !== '' || $strengthsHtml !== '') {
+            $middleBand = '<table style="width:100%;border-collapse:collapse;margin-top:0mm;">'
                 .'<tr>'
-                .'<td style="width:50%;vertical-align:top;padding:2mm 4mm 4mm 10mm;">'.$profileHtml.'</td>'
-                .'<td style="width:50%;vertical-align:top;padding:2mm 10mm 4mm 4mm;">'.$galleryHtml.'</td>'
-                .'</tr></table>'
-            : '';
-
-        // Bars card (Saeed) — sits under profile when set
-        $barsBand = $barsHtml !== ''
-            ? '<div style="padding:2mm 10mm 4mm 10mm;">'.$barsHtml.'</div>'
-            : '';
-
-        // Partners band (agency + supervised + academies)
-        $partnersBand = '';
-        if ($partnerAgency !== '' || $supervisedHtml !== '' || $partnerAcademies !== '') {
-            $partnersBand = '<div style="padding:4mm 10mm 4mm 10mm;border-top:1px solid '.$p['card_border'].';margin-top:2mm;">';
-            if ($supervisedHtml !== '' || $partnerAgency !== '') {
-                $partnersBand .= '<table style="width:100%;border-collapse:collapse;margin-bottom:3mm;"><tr>';
-                if ($supervisedHtml !== '') $partnersBand .= '<td style="width:50%;vertical-align:top;padding-right:4mm;">'.$supervisedHtml.'</td>';
-                if ($partnerAgency !== '')  $partnersBand .= '<td style="width:50%;vertical-align:top;padding-left:4mm;">'.$partnerAgency.'</td>';
-                $partnersBand .= '</tr></table>';
-            }
-            $partnersBand .= $partnerAcademies;
-            $partnersBand .= '</div>';
+                .'<td style="width:50%;vertical-align:top;padding:3mm 6mm 2mm 8mm;border-right:1px solid '.$p['card_border'].';">'.$profileHtml.'</td>'
+                .'<td style="width:50%;vertical-align:top;padding:3mm 8mm 2mm 6mm;">'.$strengthsHtml.'</td>'
+                .'</tr></table>';
         }
 
-        // Footer — motto + slogan + contact bar
-        $footerBar = '<div style="background:'.$p['accent'].';padding:4mm 10mm;color:'.$p['bg'].';">'
-            .'<table style="width:100%;border-collapse:collapse;font-size:8pt;font-weight:700;">'
-            .'<tr>'
-            .'<td style="text-align:left;">renefootball.com</td>'
-            .'<td style="text-align:center;">+352 691 712 574</td>'
-            .'<td style="text-align:right;">renefootball.p@gmail.com</td>'
-            .'</tr></table>'
-            .($motto !== '' ? '<div style="text-align:center;font-size:7pt;letter-spacing:3px;margin-top:2mm;">'.$this->esc(mb_strtoupper($motto)).'</div>' : '')
-            .'</div>';
+        // Projet sportif intro (bio-driven) + academies grid
+        $projetIntro = $this->projetSportifIntro($player, $options, $p);
+        $academies   = $this->academiesGrid($options, $p);
+        $supervised  = $this->supervisedCard($options, $p);
+        $partnerAgency = $this->partnerAgencyCard($options, $p);
 
-        $sloganHtml = $slogan !== ''
-            ? '<div style="text-align:right;padding:2mm 10mm 0 10mm;font-style:italic;font-family:Georgia,serif;font-size:11pt;color:'.$p['secondary'].';">« '.$this->esc($slogan).' »</div>'
-            : '';
+        $partnersBand = '';
+        if ($projetIntro !== '' || $academies !== '' || $supervised !== '' || $partnerAgency !== '') {
+            $mainCol = $projetIntro.$academies;
+            $sideCol = $supervised.$partnerAgency;
+
+            if ($sideCol !== '') {
+                $partnersBand = '<div style="padding:1mm 8mm 3mm 8mm;">'
+                    .'<div style="font-size:11pt;letter-spacing:3px;color:'.$p['accent'].';font-weight:900;text-transform:uppercase;margin-bottom:3mm;border-left:3px solid '.$p['accent'].';padding-left:3mm;">Projet Sportif</div>'
+                    .'<table style="width:100%;border-collapse:collapse;table-layout:fixed;">'
+                    .'<tr>'
+                    .'<td style="width:66%;vertical-align:top;padding-right:6mm;">'.$mainCol.'</td>'
+                    .'<td style="width:34%;vertical-align:top;padding-left:4mm;border-left:1px solid '.$p['card_border'].';">'.$sideCol.'</td>'
+                    .'</tr></table>'
+                    .'</div>';
+            } elseif ($mainCol !== '') {
+                $partnersBand = '<div style="padding:1mm 8mm 3mm 8mm;">'
+                    .'<div style="font-size:11pt;letter-spacing:3px;color:'.$p['accent'].';font-weight:900;text-transform:uppercase;margin-bottom:3mm;border-left:3px solid '.$p['accent'].';padding-left:3mm;">Projet Sportif</div>'
+                    .$mainCol
+                    .'</div>';
+            }
+        }
+
+        // Bars (Saeed) - optional
+        $barsHtml = $this->barsHtml($options, $p);
+        $barsBand = $barsHtml !== '' ? '<div style="padding:0 8mm 2mm 8mm;">'.$barsHtml.'</div>' : '';
+
+        // Cursive slogan - inlined into the footer bar to save vertical space.
+        $slogan = trim((string) ($options['slogan_cursive'] ?? ''));
+        $sloganHtml = '';
+
+        // Yellow footer bar
+        $motto  = trim((string) ($options['motto'] ?? ''));
+        $footerBar = $this->footerBar($options, $p, $motto, $slogan);
+
+        // ---------- Assemble ----------
 
         $lang = $this->lang($options);
         $fontFamily = $this->fontFamily($options);
@@ -237,173 +247,240 @@ class MarketingTemplate extends PresentationTemplate
   html, body { margin: 0; padding: 0; }
   body { font-family: {$fontFamily}; background: {$bg}; color: {$text}; }
 </style></head><body>
-  <table style="width:100%;border-collapse:collapse;">
-    {$topRow}
-  </table>
+  {$topRow}
   {$middleBand}
-  {$bottomBand}
-  {$barsBand}
   {$partnersBand}
+  {$barsBand}
   {$sloganHtml}
   {$footerBar}
 </body></html>
 HTML;
     }
 
-    /** Split a full name into [first, rest]. Handles single-word names too. */
+    // ==================== Sub-blocks ====================
+
     private function splitName(string $name): array
     {
         $name = trim($name);
         if ($name === '') return ['', ''];
-        $parts = preg_split('/\s+/', $name, 2);
+        $parts = preg_split('/\s+/', $name);
         if (count($parts) === 1) return [$parts[0], ''];
-        return [$parts[0], $parts[1]];
+        // First word = firstname, all other words = "last" (Camara Philan, Destiny Megogo)
+        return [$parts[0], implode(' ', array_slice($parts, 1))];
     }
 
     /**
-     * Info block: rows of "icon-ish glyph + label + value". No SVG icons —
-     * we use unicode bullets + emoji fallbacks so DomPDF doesn't need any
-     * font shim.
+     * Info block: gold-bordered square icon + label + value, stacked rows.
      */
     private function buildInfoBlock(Player $player, array $options, array $p): string
     {
         $rows = [];
 
-        // DOB first (fallback to age)
+        // Date of birth (fallback: age)
         $dob = null;
         if (! empty($player->date_of_birth)) {
-            try { $dob = Carbon::parse($player->date_of_birth)->format('d-m-Y'); } catch (\Throwable) {}
+            try { $dob = Carbon::parse($player->date_of_birth)->format('d / m / Y'); } catch (\Throwable) {}
         }
         if ($dob) {
-            $rows[] = ['DATE DE NAISSANCE', $dob, '#'];
-        } else {
-            $rows[] = ['ÂGE', ((int) $player->age).' ans', '#'];
+            $rows[] = ['icon' => $this->iconCalendar($p['accent']), 'label' => 'Date de naissance', 'value' => $dob];
+        } elseif ($player->age) {
+            $rows[] = ['icon' => $this->iconCalendar($p['accent']), 'label' => 'Âge', 'value' => ((int) $player->age).' ans'];
         }
 
-        // Nationality (+ secondary)
-        $natVal = $player->nationality ?: '';
-        if ($player->secondary_nationality) $natVal .= ' / '.$player->secondary_nationality;
-        if ($natVal !== '') $rows[] = ['NATIONALITÉ', mb_strtoupper($natVal), '#'];
+        // Nationality with optional flag
+        $natVal = mb_strtoupper(trim((string) $player->nationality));
+        if (! empty($player->secondary_nationality)) {
+            $natVal .= ' / '.mb_strtoupper($player->secondary_nationality);
+        }
+        if ($natVal !== '') {
+            $rows[] = ['icon' => $this->iconGlobe($p['accent']), 'label' => 'Nationalité', 'value' => $natVal];
+        }
 
-        // Position (prefer best_position for marketing)
-        $posVal = trim((string) ($player->best_position ?? '')) ?: (string) $player->position;
-        if ($posVal !== '') $rows[] = ['POSITION', mb_strtoupper($posVal), '#'];
+        // Position (best_position preferred) - only if not already shown as
+        // the subtitle under the name (saves a full row of vertical space).
+        $subtitle = trim((string) ($player->best_position ?? '')) ?: (string) $player->position;
+        $posVal   = (string) $player->position;
+        if ($posVal !== '' && mb_strtoupper($posVal) !== mb_strtoupper($subtitle)) {
+            $rows[] = ['icon' => $this->iconPitch($p['accent']), 'label' => 'Position', 'value' => mb_strtoupper($posVal)];
+        }
 
-        // Club + logo
+        // Club (with logo inline if present)
         if ($player->club) {
             $clubLogo = trim((string) ($player->club_logo_url ?? ''));
-            $clubVal = $this->esc(mb_strtoupper($player->club));
-            if ($clubLogo !== '') {
-                $clubVal = '<img src="'.$this->esc($this->absolutePath($clubLogo)).'" alt="" style="height:5mm;vertical-align:middle;margin-right:2mm;">'.$clubVal;
-            }
-            $rows[] = ['CLUB', $clubVal, '#', true];
+            $clubHtml = $clubLogo !== ''
+                ? '<img src="'.$this->esc($this->absolutePath($clubLogo)).'" alt="" style="height:5mm;vertical-align:middle;margin-right:2mm;">'
+                    .'<span style="vertical-align:middle;">'.$this->esc(mb_strtoupper($player->club)).'</span>'
+                : $this->esc(mb_strtoupper($player->club));
+            $rows[] = ['icon' => $this->iconShield($p['accent']), 'label' => 'Club actuel', 'value' => $clubHtml, 'html' => true];
         }
 
-        // Foot
+        // Preferred foot
         if ($player->preferred_foot) {
-            $rows[] = ['PIED FORT', mb_strtoupper($this->tFoot($player->preferred_foot, $options)), '#'];
+            $rows[] = ['icon' => $this->iconFoot($p['accent']), 'label' => 'Pied fort', 'value' => mb_strtoupper($this->tFoot($player->preferred_foot, $options))];
         }
 
-        // Languages
+        // Languages (optional)
         $langs = is_array($player->languages_spoken) ? $player->languages_spoken : [];
         if (! empty($langs)) {
-            $rows[] = ['LANGUES PARLÉES', mb_strtoupper(implode(' // ', $langs)), '#'];
+            $rows[] = ['icon' => $this->iconLangs($p['accent']), 'label' => 'Langues parlées', 'value' => mb_strtoupper(implode(' // ', $langs))];
         }
 
-        // Agency (always Renefootball)
-        $rows[] = ['AGENCE', 'RENEFOOTBALL', '#'];
+        // Agency always at the bottom (skip if agency line disabled)
+        if (($options['hide_agency_row'] ?? false) !== true) {
+            $rows[] = ['icon' => $this->iconBriefcase($p['accent']), 'label' => 'Agence', 'value' => 'RENEFOOTBALL'];
+        }
 
-        $html = '<div style="padding:8mm 10mm 4mm 10mm;">';
+        $html = '';
         foreach ($rows as $r) {
-            [$label, $value, $glyph] = $r;
-            $isHtml = $r[3] ?? false;
-            $safeVal = $isHtml ? $value : $this->esc($value);
-            $html .= '<div style="margin-bottom:3mm;">'
-                .'<table style="border-collapse:collapse;width:100%;">'
+            $safeVal = ($r['html'] ?? false) ? $r['value'] : $this->esc($r['value']);
+            $html .= '<table style="width:100%;border-collapse:collapse;margin-bottom:2mm;">'
                 .'<tr>'
-                .'<td style="width:8mm;vertical-align:top;padding-top:1mm;">'
-                    .'<div style="width:6mm;height:6mm;border-radius:3mm;background:'.$p['card'].';border:0.5px solid '.$p['card_border'].';text-align:center;line-height:6mm;color:'.$p['accent'].';font-size:8pt;font-weight:900;">'.$glyph.'</div>'
+                .'<td style="width:12mm;vertical-align:middle;">'
+                    .'<div style="width:10mm;height:10mm;border:1px solid '.$p['accent'].';text-align:center;padding:1.2mm 0 0 0;">'.$r['icon'].'</div>'
                     .'</td>'
-                .'<td style="vertical-align:top;padding-left:2mm;">'
-                    .'<div style="font-size:6.5pt;letter-spacing:2px;color:'.$p['secondary'].';font-weight:700;">'.$this->esc($label).'</div>'
-                    .'<div style="font-size:10pt;font-weight:700;color:'.$p['text'].';margin-top:0.5mm;">'.$safeVal.'</div>'
+                .'<td style="vertical-align:middle;padding-left:3mm;">'
+                    .'<div style="font-size:6.5pt;letter-spacing:2px;color:'.$p['secondary'].';font-weight:700;text-transform:uppercase;">'.$this->esc($r['label']).'</div>'
+                    .'<div style="font-size:9.5pt;font-weight:800;color:'.$p['text'].';margin-top:0.5mm;line-height:1.2;">'.$safeVal.'</div>'
                     .'</td>'
-                .'</tr></table>'
-                .'</div>';
+                .'</tr></table>';
         }
-        $html .= '</div>';
         return $html;
     }
 
     private function strengthsCardHtml(Player $player, array $p): string
     {
-        $strengths = is_array($player->strengths) ? $player->strengths : [];
+        // Cap at 6 - fits inside the middle band without pushing the partners
+        // band off the page when the player also has a full bio.
+        $strengths = $this->strengthsList($player, 6);
         if (empty($strengths)) return '';
+
         $rows = '';
-        foreach (array_slice($strengths, 0, 6) as $s) {
-            $label = $s['label'] ?? ($s['key'] ?? '');
-            if (trim((string) $label) === '') continue;
+        foreach ($strengths as $s) {
             $rows .= '<tr>'
-                .'<td style="width:5mm;vertical-align:middle;color:'.$p['accent'].';font-size:11pt;font-weight:900;padding:1mm 0;">•</td>'
-                .'<td style="vertical-align:middle;font-size:9pt;color:'.$p['text'].';font-weight:600;padding:1mm 0;">'.$this->esc($label).'</td>'
+                .'<td style="width:7mm;vertical-align:middle;padding:0.9mm 0;">'.$this->iconCheck($p['accent']).'</td>'
+                .'<td style="vertical-align:middle;font-size:8.5pt;color:'.$p['text'].';font-weight:600;padding:0.9mm 0;line-height:1.25;">'.$this->esc($s).'</td>'
                 .'</tr>';
         }
-        return '<div style="background:'.$p['card'].';border:0.5px solid '.$p['card_border'].';border-radius:2mm;padding:5mm;">'
-            .'<div style="font-size:8pt;letter-spacing:3px;color:'.$p['accent'].';font-weight:800;margin-bottom:3mm;">POINTS FORTS</div>'
-            .'<table style="width:100%;border-collapse:collapse;">'.$rows.'</table>'
-            .'</div>';
-    }
 
-    private function caracsCardHtml(Player $player, array $p): string
-    {
-        $rows = [];
-        if ($player->preferred_foot) $rows[] = ['PIED FORT',  mb_strtoupper($player->preferred_foot)];
-        if ($player->playing_style)  $rows[] = ['STYLE DE JEU', $player->playing_style];
-        if ($player->best_position)  $rows[] = ['MEILLEUR POSTE', $player->best_position];
-        $mental = is_array($player->mental_strengths) ? $player->mental_strengths : [];
-        if (! empty($mental)) $rows[] = ['POINTS FORTS MENTAUX', implode(' – ', $mental)];
-        if ($player->objective) $rows[] = ['OBJECTIF', $this->safeText($player->objective, 200)];
-        if (empty($rows)) return '';
-
-        $html = '<div style="background:'.$p['card'].';border:0.5px solid '.$p['card_border'].';border-radius:2mm;padding:5mm;">'
-            .'<div style="font-size:8pt;letter-spacing:3px;color:'.$p['accent'].';font-weight:800;margin-bottom:3mm;">CARACTÉRISTIQUES</div>'
-            .'<table style="width:100%;border-collapse:collapse;">';
-        foreach ($rows as $r) {
-            $html .= '<tr>'
-                .'<td style="vertical-align:top;padding:1.5mm 3mm 1.5mm 0;border-bottom:0.5px solid '.$p['card_border'].';font-size:6.5pt;letter-spacing:1.5px;color:'.$p['secondary'].';font-weight:700;width:45%;">'.$this->esc($r[0]).'</td>'
-                .'<td style="vertical-align:top;padding:1.5mm 0;border-bottom:0.5px solid '.$p['card_border'].';font-size:8.5pt;color:'.$p['text'].';font-weight:600;">'.$this->esc($r[1]).'</td>'
-                .'</tr>';
-        }
-        $html .= '</table></div>';
-        return $html;
+        return '<div style="font-size:10pt;letter-spacing:3px;color:'.$p['accent'].';font-weight:900;margin-bottom:3mm;text-transform:uppercase;border-left:3px solid '.$p['accent'].';padding-left:3mm;">Points forts</div>'
+            .'<table style="width:100%;border-collapse:collapse;">'.$rows.'</table>';
     }
 
     private function profileHtml(Player $player, array $p): string
     {
-        $bio = $this->safeText($player->bio, 500);
+        $bio = $this->safeText($player->bio, 380);
         if ($bio === '') return '';
-        return '<div>'
-            .'<div style="font-size:8pt;letter-spacing:3px;color:'.$p['accent'].';font-weight:800;margin-bottom:2mm;">PROFIL DU JOUEUR</div>'
-            .'<p style="font-size:8.5pt;line-height:1.5;color:'.$p['text'].';margin:0;">'.nl2br($this->esc($bio)).'</p>'
+        return '<div style="font-size:10pt;letter-spacing:3px;color:'.$p['accent'].';font-weight:900;margin-bottom:2mm;text-transform:uppercase;border-left:3px solid '.$p['accent'].';padding-left:3mm;">Profil du joueur</div>'
+            .'<p style="font-size:8.5pt;line-height:1.4;color:'.$p['text'].';margin:0;">'.nl2br($this->esc($bio)).'</p>';
+    }
+
+    private function projetSportifIntro(Player $player, array $options, array $p): string
+    {
+        $custom = trim((string) ($options['projet_intro'] ?? ''));
+        if ($custom === '') return '';
+        return '<p style="font-size:8.5pt;line-height:1.5;color:'.$p['text'].';margin:0 0 3mm 0;">'
+            .nl2br($this->esc($this->safeText($custom, 400))).'</p>';
+    }
+
+    /**
+     * Academies grid — reuses partner_academies option (country > clubs) but
+     * restyles with a small flag + checkmark header, single-row grid per group.
+     */
+    private function academiesGrid(array $options, array $p): string
+    {
+        $groups = is_array($options['partner_academies'] ?? null) ? $options['partner_academies'] : [];
+        $groups = array_values(array_filter($groups, static function ($g) {
+            return is_array($g)
+                && isset($g['clubs']) && is_array($g['clubs'])
+                && count(array_filter($g['clubs'], static fn ($c) =>
+                    is_array($c) && (
+                        (isset($c['name']) && trim((string) $c['name']) !== '')
+                        || (isset($c['logo_url']) && trim((string) $c['logo_url']) !== '')
+                    )
+                )) > 0;
+        }));
+        if (empty($groups)) return '';
+
+        $out = '<div style="font-size:8pt;letter-spacing:2px;color:'.$p['accent'].';font-weight:800;text-transform:uppercase;margin:0 0 3mm 0;">Objectifs :</div>';
+
+        foreach ($groups as $g) {
+            $country = trim((string) ($g['country'] ?? ''));
+            $cc      = trim((string) ($g['country_code'] ?? ''));
+            $flagHtml = $cc !== ''
+                ? '<img src="https://flagcdn.com/w40/'.$this->esc(strtolower($cc)).'.png" width="12" height="9" style="vertical-align:middle;margin-right:2mm;">'
+                : '';
+
+            // Header: check + flag + country - very tight (2mm vertical)
+            $header = '<div style="margin:1.5mm 0 1mm 0;">'
+                .$this->iconCheck($p['accent'], 3.5)
+                .' <span style="font-size:8pt;font-weight:700;color:'.$p['text'].';letter-spacing:0.5px;vertical-align:middle;">'.$flagHtml.$this->esc($country).'</span>'
+                .'</div>';
+
+            // Club logos row - smaller height so 3-4 countries fit stacked
+            $cells = '';
+            foreach (array_slice($g['clubs'], 0, 5) as $c) {
+                $cname = trim((string) ($c['name'] ?? ''));
+                $clogo = trim((string) ($c['logo_url'] ?? ''));
+                if ($cname === '' && $clogo === '') continue;
+                $img = $clogo !== ''
+                    ? '<img src="'.$this->esc($this->absolutePath($clogo)).'" alt="" style="height:9mm;max-width:15mm;object-fit:contain;">'
+                    : '<div style="height:9mm;line-height:9mm;font-size:6.5pt;font-weight:700;color:'.$p['text'].';">'.$this->esc(strtoupper(mb_substr($cname, 0, 3))).'</div>';
+                $cells .= '<td style="text-align:center;padding:0 1.5mm;vertical-align:middle;">'.$img.'</td>';
+            }
+            // Names row below - condensed
+            $names = '';
+            $rawNames = array_map(static fn ($c) => trim((string) ($c['name'] ?? '')), array_slice($g['clubs'], 0, 5));
+            $rawNames = array_values(array_filter($rawNames, static fn ($n) => $n !== ''));
+            if (! empty($rawNames)) {
+                $names = '<div style="font-size:6pt;color:'.$p['secondary'].';margin-top:0.5mm;margin-bottom:1mm;letter-spacing:0.3px;padding-left:6mm;">'.$this->esc(implode(' - ', $rawNames)).'</div>';
+            }
+
+            $out .= $header
+                .'<table style="border-collapse:collapse;margin-left:6mm;"><tr>'.$cells.'</tr></table>'
+                .$names;
+        }
+
+        return $out;
+    }
+
+    /** Partner cards (Supervisé par + En collab avec) — right-column stack. */
+    private function supervisedCard(array $options, array $p): string
+    {
+        $sb = $options['supervised_by'] ?? null;
+        if (! is_array($sb)) return '';
+        $name = trim((string) ($sb['name'] ?? ''));
+        $logo = trim((string) ($sb['logo_url'] ?? ''));
+        $country = trim((string) ($sb['country'] ?? ''));
+        $cc = trim((string) ($sb['country_code'] ?? ''));
+        if ($name === '' && $logo === '' && $country === '') return '';
+
+        $flag = $cc !== ''
+            ? '<img src="https://flagcdn.com/w40/'.$this->esc(strtolower($cc)).'.png" width="18" height="13" style="vertical-align:middle;margin-left:3mm;">'
+            : '';
+
+        return '<div style="margin-bottom:5mm;">'
+            .'<div style="font-size:7.5pt;letter-spacing:3px;color:'.$p['accent'].';font-weight:800;margin-bottom:2mm;text-transform:uppercase;">Supervisé par</div>'
+            .'<div style="padding:3mm 0;">'
+                .($logo !== '' ? '<img src="'.$this->esc($this->absolutePath($logo)).'" alt="" style="height:12mm;max-width:38mm;object-fit:contain;">'.$flag : '')
+                .($name !== '' ? '<div style="font-size:10pt;font-weight:800;color:'.$p['text'].';margin-top:2mm;letter-spacing:1px;">'.$this->esc(mb_strtoupper($name)).'</div>' : '')
+            .'</div>'
             .'</div>';
     }
 
-    private function galleryHtml(Player $player, array $p): string
+    private function partnerAgencyCard(array $options, array $p): string
     {
-        $photos = is_array($player->gallery_photos) ? $player->gallery_photos : [];
-        $photos = array_values(array_filter(array_map('trim', $photos), static fn ($u) => $u !== ''));
-        $photos = array_slice($photos, 0, 3);
-        if (empty($photos)) return '';
-        $cells = '';
-        foreach ($photos as $u) {
-            $cells .= '<td style="width:33%;padding:0 1mm;">'
-                .'<div style="width:100%;height:35mm;overflow:hidden;border-radius:2mm;border:0.5px solid '.$p['card_border'].';">'
-                .'<img src="'.$this->esc($this->absolutePath($u)).'" alt="" style="width:100%;height:35mm;object-fit:cover;">'
-                .'</div></td>';
-        }
+        $pa = $options['partner_agency'] ?? null;
+        if (! is_array($pa)) return '';
+        $name = trim((string) ($pa['name'] ?? ''));
+        $logo = trim((string) ($pa['logo_url'] ?? ''));
+        $desc = trim((string) ($pa['description'] ?? $pa['note'] ?? ''));
+        if ($name === '' && $logo === '' && $desc === '') return '';
+
         return '<div>'
-            .'<div style="font-size:8pt;letter-spacing:3px;color:'.$p['accent'].';font-weight:800;margin-bottom:2mm;">PHOTOS</div>'
-            .'<table style="width:100%;border-collapse:collapse;"><tr>'.$cells.'</tr></table>'
+            .'<div style="font-size:7.5pt;letter-spacing:3px;color:'.$p['accent'].';font-weight:800;margin-bottom:2mm;text-transform:uppercase;">En collaboration avec</div>'
+            .($logo !== '' ? '<div style="padding:2mm 0;"><img src="'.$this->esc($this->absolutePath($logo)).'" alt="" style="height:14mm;max-width:44mm;object-fit:contain;"></div>' : '')
+            .($name !== '' && $logo === '' ? '<div style="font-size:10pt;font-weight:800;color:'.$p['text'].';">'.$this->esc(mb_strtoupper($name)).'</div>' : '')
+            .($desc !== '' ? '<div style="font-size:7.5pt;color:'.$p['secondary'].';margin-top:2mm;line-height:1.4;">'.$this->esc($desc).'</div>' : '')
             .'</div>';
     }
 
@@ -426,31 +503,184 @@ HTML;
                 .'<td style="width:14mm;text-align:right;font-size:8pt;color:'.$p['accent'].';font-weight:800;padding-left:3mm;">'.$pct.'%</td>'
                 .'</tr>';
         }
-        return '<div style="background:'.$p['card'].';border:0.5px solid '.$p['card_border'].';border-radius:2mm;padding:5mm;">'
-            .'<div style="font-size:8pt;letter-spacing:3px;color:'.$p['accent'].';font-weight:800;margin-bottom:3mm;">PLAYER PROFILE</div>'
+        return '<div style="border:1px solid '.$p['card_border'].';padding:4mm 5mm;">'
+            .'<div style="font-size:9pt;letter-spacing:3px;color:'.$p['accent'].';font-weight:900;margin-bottom:3mm;text-transform:uppercase;">Player Profile</div>'
             .'<table style="width:100%;border-collapse:collapse;">'.$rows.'</table>'
             .'</div>';
     }
 
-    private function supervisedByHtml(array $options, array $p): string
+    private function footerBar(array $options, array $p, string $motto, string $slogan = ''): string
     {
-        $sb = $options['supervised_by'] ?? null;
-        if (! is_array($sb)) return '';
-        $name = trim((string) ($sb['name'] ?? ''));
-        $logo = trim((string) ($sb['logo_url'] ?? ''));
-        $country = trim((string) ($sb['country'] ?? ''));
-        $cc = trim((string) ($sb['country_code'] ?? ''));
-        if ($name === '' && $logo === '' && $country === '') return '';
+        // Contact defaults (can be overridden via options.contact.*)
+        $contact = is_array($options['contact'] ?? null) ? $options['contact'] : [];
+        $handle  = trim((string) ($contact['instagram'] ?? '@renefootball'));
+        $email   = trim((string) ($contact['email']     ?? 'renefootball.agency@gmail.com'));
+        $phone   = trim((string) ($contact['phone']     ?? '+352 621 640 640'));
 
-        $flag = $cc !== ''
-            ? '<img src="https://flagcdn.com/w40/'.$this->esc(strtolower($cc)).'.png" width="16" height="12" style="vertical-align:middle;margin-right:1.5mm;">'
+        // Slogan sits just above the contact row on a dark strip that hugs the
+        // yellow bar — keeps the cursive touch without adding a separate band.
+        $sloganStrip = $slogan !== ''
+            ? '<div style="background:'.$p['bg'].';padding:1mm 8mm 1mm 8mm;text-align:right;font-family:\'Times\',\'DejaVu Serif\',serif;font-style:italic;font-size:10pt;color:'.$p['accent'].';">'.$this->esc($slogan).'</div>'
             : '';
 
-        return '<div style="padding:3mm 4mm;background:'.$p['card'].';border:0.5px solid '.$p['card_border'].';border-radius:2mm;">'
-            .'<div style="font-size:6.5pt;letter-spacing:2px;color:'.$p['secondary'].';font-weight:700;margin-bottom:1.5mm;">SUPERVISÉ PAR</div>'
-            .($logo !== '' ? '<img src="'.$this->esc($this->absolutePath($logo)).'" alt="" style="height:9mm;max-width:36mm;object-fit:contain;margin-bottom:1mm;">' : '')
-            .($name !== '' ? '<div style="font-size:10pt;font-weight:800;color:'.$p['text'].';">'.$this->esc($name).'</div>' : '')
-            .($country !== '' ? '<div style="font-size:7.5pt;color:'.$p['secondary'].';margin-top:1mm;">'.$flag.$this->esc(mb_strtoupper($country)).'</div>' : '')
+        $mottoBar = $motto !== ''
+            ? '<div style="text-align:center;font-size:7pt;letter-spacing:4px;color:'.$p['footer_ink'].';font-weight:800;padding-bottom:2mm;">'.$this->esc(mb_strtoupper($motto)).'</div>'
+            : '';
+
+        return $sloganStrip
+            .'<div style="background:'.$p['footer'].';padding:2.5mm 8mm 2.5mm 8mm;color:'.$p['footer_ink'].';">'
+            .$mottoBar
+            .'<table style="width:100%;border-collapse:collapse;">'
+            .'<tr>'
+            .'<td style="width:33%;font-size:9pt;font-weight:800;vertical-align:middle;">'
+                .$this->iconInsta($p['footer_ink']).' <span style="vertical-align:middle;margin-left:2mm;">'.$this->esc($handle).'</span>'
+                .'</td>'
+            .'<td style="width:37%;text-align:center;font-size:8.5pt;font-weight:700;vertical-align:middle;">'
+                .$this->iconMail($p['footer_ink']).' <span style="vertical-align:middle;margin-left:2mm;">'.$this->esc($email).'</span>'
+                .'</td>'
+            .'<td style="width:30%;text-align:right;font-size:9pt;font-weight:800;vertical-align:middle;">'
+                .$this->iconPhone($p['footer_ink']).' <span style="vertical-align:middle;margin-left:2mm;">'.$this->esc($phone).'</span>'
+                .'</td>'
+            .'</tr></table>'
             .'</div>';
+    }
+
+    // ==================== SVG icons (data-URI <img>) ====================
+    // DomPDF renders inline <svg> unreliably (silently drops most stroked
+    // paths in v2+). We ship each icon as an <img src="data:image/svg+xml">
+    // instead: that path goes through DomPDF's image renderer, which honours
+    // stroke / fill / stroke-width faithfully.
+
+    private function svgImg(string $svg, string $sizeMm = '8mm', string $extraStyle = ''): string
+    {
+        // DomPDF's SVG rasteriser needs both explicit root width/height AND a
+        // render size >= ~6mm to preserve interior detail (below that the
+        // shapes collapse to a few noisy pixels). We inject default 24x24 on
+        // the SVG root and let callers pass a print size of at least 5mm.
+        if (! preg_match('/<svg[^>]*\swidth=/i', $svg)) {
+            $svg = preg_replace('/<svg\b/i', '<svg width="24" height="24"', $svg, 1);
+        }
+        $encoded = base64_encode($svg);
+        return '<img src="data:image/svg+xml;base64,'.$encoded.'" width="'.$sizeMm.'" height="'.$sizeMm.'" style="'.$extraStyle.'">';
+    }
+
+    private function iconCalendar(string $c): string
+    {
+        // stroke and fill are put on every shape (php-svg-lib doesn't inherit
+        // presentation attributes from <svg> root).
+        $s = 'fill="none" stroke="'.$c.'" stroke-width="1.8"';
+        $svg = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">'
+            .'<rect x="3" y="6" width="18" height="15" '.$s.'/>'
+            .'<line x1="3" y1="11" x2="21" y2="11" '.$s.'/>'
+            .'<line x1="8" y1="3" x2="8" y2="8" '.$s.'/>'
+            .'<line x1="16" y1="3" x2="16" y2="8" '.$s.'/>'
+            .'</svg>';
+        return $this->svgImg($svg);
+    }
+
+    private function iconGlobe(string $c): string
+    {
+        $s = 'fill="none" stroke="'.$c.'" stroke-width="1.8"';
+        $svg = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">'
+            .'<circle cx="12" cy="12" r="9" '.$s.'/>'
+            .'<ellipse cx="12" cy="12" rx="4" ry="9" '.$s.'/>'
+            .'<line x1="3" y1="12" x2="21" y2="12" '.$s.'/>'
+            .'</svg>';
+        return $this->svgImg($svg);
+    }
+
+    private function iconPitch(string $c): string
+    {
+        $s = 'fill="none" stroke="'.$c.'" stroke-width="1.8"';
+        $svg = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">'
+            .'<rect x="3" y="5" width="18" height="14" '.$s.'/>'
+            .'<line x1="12" y1="5" x2="12" y2="19" '.$s.'/>'
+            .'<circle cx="12" cy="12" r="2.5" '.$s.'/>'
+            .'<rect x="3" y="9" width="3" height="6" '.$s.'/>'
+            .'<rect x="18" y="9" width="3" height="6" '.$s.'/>'
+            .'</svg>';
+        return $this->svgImg($svg);
+    }
+
+    private function iconShield(string $c): string
+    {
+        $s = 'fill="none" stroke="'.$c.'" stroke-width="1.8"';
+        $svg = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">'
+            .'<path d="M12 3 L4 6 V12 C4 16 7.5 19.5 12 21 C16.5 19.5 20 16 20 12 V6 Z" '.$s.'/>'
+            .'</svg>';
+        return $this->svgImg($svg);
+    }
+
+    private function iconFoot(string $c): string
+    {
+        $s = 'fill="'.$c.'" stroke="none"';
+        $svg = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">'
+            .'<path d="M8 21 C6.6 21 5.5 19.9 5.5 18.5 C5.5 17 6.2 15.5 6.9 14.2 C7.5 13 8 12 8 11 V7.5 C8 6.1 9.1 5 10.5 5 C11.9 5 13 6.1 13 7.5 V11 C14 11 15 11.4 15.6 12.1 C16.3 12.8 16.7 13.7 16.7 14.7 V17 C16.7 19.2 15 21 12.7 21 Z" '.$s.'/>'
+            .'<circle cx="15" cy="7" r="1.2" '.$s.'/>'
+            .'<circle cx="17.5" cy="8.5" r="1" '.$s.'/>'
+            .'<circle cx="19" cy="10.5" r="0.9" '.$s.'/>'
+            .'</svg>';
+        return $this->svgImg($svg);
+    }
+
+    private function iconLangs(string $c): string
+    {
+        $s = 'fill="none" stroke="'.$c.'" stroke-width="1.8"';
+        $svg = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">'
+            .'<path d="M4 5 L13 5 L13 14 L9 14 L6 17 L6 14 L4 14 Z" '.$s.'/>'
+            .'<path d="M11 12 L20 12 L20 19 L16 19 L13 22 L13 19 L11 19 Z" '.$s.'/>'
+            .'</svg>';
+        return $this->svgImg($svg);
+    }
+
+    private function iconBriefcase(string $c): string
+    {
+        $s = 'fill="none" stroke="'.$c.'" stroke-width="1.8"';
+        $svg = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">'
+            .'<rect x="3" y="7" width="18" height="13" '.$s.'/>'
+            .'<path d="M9 7 L9 5 L15 5 L15 7" '.$s.'/>'
+            .'<line x1="3" y1="13" x2="21" y2="13" '.$s.'/>'
+            .'</svg>';
+        return $this->svgImg($svg);
+    }
+
+    private function iconCheck(string $c, float $sizeMm = 5): string
+    {
+        $sStroke = 'fill="none" stroke="'.$c.'" stroke-width="2.2"';
+        $svg = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">'
+            .'<circle cx="12" cy="12" r="10" '.$sStroke.'/>'
+            .'<path d="M7 12 L11 16 L17 9" '.$sStroke.'/>'
+            .'</svg>';
+        return $this->svgImg($svg, $sizeMm.'mm', 'vertical-align:middle;');
+    }
+
+    private function iconInsta(string $c): string
+    {
+        $s = 'fill="none" stroke="'.$c.'" stroke-width="1.8"';
+        $svg = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">'
+            .'<rect x="3" y="3" width="18" height="18" '.$s.'/>'
+            .'<circle cx="12" cy="12" r="4.5" '.$s.'/>'
+            .'<circle cx="17.5" cy="6.5" r="1" fill="'.$c.'"/>'
+            .'</svg>';
+        return $this->svgImg($svg, '5mm', 'vertical-align:middle;');
+    }
+
+    private function iconMail(string $c): string
+    {
+        $s = 'fill="none" stroke="'.$c.'" stroke-width="1.8"';
+        $svg = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">'
+            .'<rect x="3" y="5" width="18" height="14" '.$s.'/>'
+            .'<path d="M3 7 L12 13 L21 7" '.$s.'/>'
+            .'</svg>';
+        return $this->svgImg($svg, '5mm', 'vertical-align:middle;');
+    }
+
+    private function iconPhone(string $c): string
+    {
+        $s = 'fill="'.$c.'" stroke="none"';
+        $svg = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">'
+            .'<path d="M6 3 L9.5 3 L11 7.5 L8.5 9 C9.5 11.5 12.5 14.5 15 15.5 L16.5 13 L21 14.5 L21 18 C21 19.7 19.7 21 18 21 C10 21 3 14 3 6 C3 4.3 4.3 3 6 3 Z" '.$s.'/>'
+            .'</svg>';
+        return $this->svgImg($svg, '5mm', 'vertical-align:middle;');
     }
 }
