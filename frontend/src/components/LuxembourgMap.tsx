@@ -38,10 +38,18 @@ export default function LuxembourgMap({
   showStroke = true,
   width = 320,
   height = 380,
-  padding = 10,
+  padding = 16,
 }: LuxembourgMapProps) {
   // Single projection drives the outline - fitExtent guarantees the
   // silhouette fills the viewBox exactly regardless of the country's shape.
+  // The raw d3-geo output ends with `Z` which closes the polygon back to the
+  // starting point via a straight line. Framer Motion's `pathLength` animation
+  // measures dasharray/dashoffset against the *M..last L* stretch and skips the
+  // implicit Z segment, so the closing edge is left un-drawn - visible as a
+  // small gap near the top of Luxembourg where the M and Z points meet.
+  // We patch that by replacing the trailing `Z` with an explicit `L Mx,My`
+  // back to the start plus a short overshoot into the first vertex, so the
+  // stroke traces the whole silhouette and slightly overlaps its own tail.
   const pathD = useMemo(() => {
     const projection = geoMercator().fitExtent(
       [
@@ -50,7 +58,17 @@ export default function LuxembourgMap({
       ],
       luxembourgFeature,
     )
-    return geoPath(projection)(luxembourgFeature) ?? ''
+    const raw = geoPath(projection)(luxembourgFeature) ?? ''
+    // Extract M point coords (first pair after M) and the FIRST L point
+    // coords (so we can overshoot into it after closing).
+    const startMatch = raw.match(/^M(-?[\d.]+),(-?[\d.]+)/)
+    const firstLMatch = raw.match(/L(-?[\d.]+),(-?[\d.]+)/)
+    if (!startMatch || !firstLMatch || !raw.endsWith('Z')) return raw
+    const [mX, mY] = [startMatch[1], startMatch[2]]
+    const [lX, lY] = [firstLMatch[1], firstLMatch[2]]
+    // Trim the trailing Z, add an explicit line back to M, then an overshoot
+    // into the first L. The overlap masks any sub-pixel gap at the join.
+    return `${raw.slice(0, -1)}L${mX},${mY}L${lX},${lY}`
   }, [width, height, padding])
 
   const fill = fillColor ?? strokeColor
@@ -61,6 +79,7 @@ export default function LuxembourgMap({
       preserveAspectRatio="xMidYMid meet"
       className={`block ${className}`}
       aria-hidden="true"
+      overflow="visible"
     >
       {/* Fill fades in after the outline finishes drawing */}
       {showFill && (
@@ -74,7 +93,9 @@ export default function LuxembourgMap({
         />
       )}
 
-      {/* Pencil-stroke outline drawn on mount */}
+      {/* Pencil-stroke outline drawn on mount. pathLength="1" normalises the
+         dasharray/dashoffset calc so the stroke reaches its own tail even on
+         browsers that shortcut closed-polygon length measurement. */}
       {showStroke && (
         <motion.path
           d={pathD}
@@ -85,8 +106,10 @@ export default function LuxembourgMap({
           strokeLinejoin="round"
           strokeLinecap="round"
           vectorEffect="non-scaling-stroke"
-          initial={{ pathLength: 0 }}
-          animate={{ pathLength: 1 }}
+          pathLength={1}
+          strokeDasharray="1 1"
+          initial={{ strokeDashoffset: 1 }}
+          animate={{ strokeDashoffset: 0 }}
           transition={{ duration: 2.6, delay: 0.4, ease: [0.65, 0, 0.35, 1] }}
         />
       )}
