@@ -11,7 +11,7 @@ import {
   useSpring,
   useTransform,
 } from 'framer-motion'
-import { ArrowUpRight, CaretDown, EnvelopeSimple, Gauge, Lock, List, PaperPlaneTilt, X } from '@phosphor-icons/react'
+import { ArrowUpRight, CaretDown, Gauge, Lock, List, X } from '@phosphor-icons/react'
 import ThemeToggle from '../theme/ThemeToggle'
 import BrandLogo from './BrandLogo'
 import { useAuth } from '../auth/AuthContext'
@@ -34,58 +34,21 @@ const NAV: NavItem[] = [
 ]
 
 /*
- * Three Contact CTA styling variants shown side by side in the navbar so we
- * can compare them live. Once one is picked, the other two get stripped and
- * this whole block collapses to a single button.
- *
- *   A - Outlined pill (editorial minimal)
- *       Just a thin turf border, no fill. Feels premium and print-magazine-y.
- *
- *   B - Soft-filled pill (subtle CTA)
- *       Light turf background + border. Reads as a "gentle action" - visible
- *       enough to hierarchise, quiet enough to stay editorial.
- *
- *   C - Solid dark pill (max-contrast CTA)
- *       Same treatment as the hero's "Découvrir nos joueurs" button (bg-zinc-950
- *       in light, bg-stone-50 in dark, inverted text). Loudest of the three.
+ * Solid dark Contact CTA - same DNA as the hero's "Découvrir nos joueurs"
+ * button (bg-zinc-950 in light, bg-stone-50 in dark, inverted text +
+ * arrow-up-right). Positioned in a small cluster before the theme/admin
+ * divider so it reads as the primary action of the navbar.
  */
-function ContactCtaVariants({ onClose }: { onClose?: () => void }) {
+function ContactCta({ onClose }: { onClose?: () => void }) {
   return (
-    <div className="hidden md:flex items-center gap-1.5 pl-2 ml-1 border-l border-zinc-900/10 dark:border-stone-50/10">
-      {/* Variant A - Outlined pill */}
+    <div className="hidden md:flex items-center pl-2 ml-1 border-l border-zinc-900/10 dark:border-stone-50/10">
       <Link
         to="/contact"
         onClick={onClose}
-        title="A - outlined"
-        className="group inline-flex items-center gap-1.5 rounded-full border border-turf-500/40 dark:border-turf-300/40 px-3 py-1.5 text-[0.78rem] font-medium tracking-tight text-turf-800 dark:text-turf-200 hover:bg-turf-500/10 dark:hover:bg-turf-300/10 hover:border-turf-500/70 dark:hover:border-turf-300/70 transition-colors ease-premium"
-      >
-        <EnvelopeSimple size={13} weight="regular" />
-        <span>Contact</span>
-        <span className="ml-1 text-[0.55rem] uppercase tracking-[0.16em] opacity-40">A</span>
-      </Link>
-
-      {/* Variant B - Soft-filled pill */}
-      <Link
-        to="/contact"
-        onClick={onClose}
-        title="B - soft filled"
-        className="group inline-flex items-center gap-1.5 rounded-full border border-turf-300/60 dark:border-turf-500/30 bg-turf-100/70 dark:bg-turf-800/40 px-3 py-1.5 text-[0.78rem] font-semibold tracking-tight text-turf-900 dark:text-turf-100 hover:bg-turf-200 dark:hover:bg-turf-800/60 hover:border-turf-400 dark:hover:border-turf-400/50 transition-colors ease-premium"
-      >
-        <PaperPlaneTilt size={13} weight="fill" className="opacity-80 group-hover:translate-x-0.5 transition-transform ease-premium" />
-        <span>Contact</span>
-        <span className="ml-1 text-[0.55rem] uppercase tracking-[0.16em] opacity-40">B</span>
-      </Link>
-
-      {/* Variant C - Solid dark pill (same DNA as the hero CTA) */}
-      <Link
-        to="/contact"
-        onClick={onClose}
-        title="C - solid dark"
-        className="group inline-flex items-center gap-1.5 rounded-full bg-zinc-950 text-stone-50 dark:bg-stone-50 dark:text-zinc-950 hover:bg-zinc-800 dark:hover:bg-stone-200 px-3 py-1.5 text-[0.78rem] font-semibold tracking-tight transition-colors ease-premium"
+        className="group inline-flex items-center gap-1.5 rounded-full bg-zinc-950 text-stone-50 dark:bg-stone-50 dark:text-zinc-950 hover:bg-zinc-800 dark:hover:bg-stone-200 px-3.5 py-1.5 text-[0.8rem] font-semibold tracking-tight transition-colors ease-premium"
       >
         <span>Contact</span>
         <ArrowUpRight size={13} weight="bold" className="group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-transform ease-premium" />
-        <span className="ml-1 text-[0.55rem] uppercase tracking-[0.16em] opacity-40">C</span>
       </Link>
     </div>
   )
@@ -103,7 +66,6 @@ const HOVER_SHAPES: Record<string, { borderRadius: number; tint: string; tintLig
   '/joueurs':    { borderRadius: 14,  tint: 'rgba(30, 64, 175,0.20)', tintLight: 'rgba(30, 64, 175,0.12)' },
   '/actualites': { borderRadius: 6,   tint: 'rgba(250,250,249,0.07)', tintLight: 'rgba(24,24,27,0.05)' },
   '/a-propos':   { borderRadius: 999, tint: 'rgba(250,250,249,0.08)', tintLight: 'rgba(24,24,27,0.06)' },
-  '/contact':    { borderRadius: 999, tint: 'rgba(132,184,150,0.18)', tintLight: 'rgba(60,120,90,0.14)' },
 }
 
 /* Reactively tracks the `dark` class on <html> so motion tints can swap in
@@ -516,10 +478,10 @@ function Header() {
             })}
           </div>
 
-          {/* Contact CTA variants (A/B/C) - temporary side-by-side comparison
-             so we can pick a style before shipping. Once chosen, the losers
-             get deleted and this collapses to a single button. */}
-          <ContactCtaVariants onClose={close} />
+          {/* Primary Contact CTA - solid dark pill, mirrors the hero's
+             "Découvrir nos joueurs" button so the two brand CTAs read as
+             the same visual language. */}
+          <ContactCta onClose={close} />
 
           {/* Right cluster: divider · theme · admin shortcut.
              When the visitor is signed-in as admin, the lock becomes a dashboard
