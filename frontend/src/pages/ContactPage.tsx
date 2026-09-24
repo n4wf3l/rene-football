@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { ChangeEvent, FormEvent, ReactNode } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ArrowLeft,
@@ -708,6 +708,7 @@ const STEP_LABELS: Record<number, string> = {
 
 function ContactPage() {
   useDarkHero()
+  const [searchParams] = useSearchParams()
   const [step, setStep] = useState<1 | 2 | 3>(1)
   const [form, setForm] = useState<ContactForm>(emptyForm)
   const [errors, setErrors] = useState<ContactErrors>({})
@@ -718,6 +719,45 @@ function ContactPage() {
   const roster = useMemo(() =>
     players.map((p) => ({ id: p.id, name: p.name, club: p.club, position: p.position })),
   [players])
+
+  // Deep-link hydration: /contact?reason=club&player_id=42&interest=player
+  // Runs once on mount; pre-fills the wizard and jumps to step 2 so a
+  // visitor who arrived from a "Intéressé par ce joueur" CTA doesn't have
+  // to re-pick their audience.
+  useEffect(() => {
+    const reason = searchParams.get('reason')
+    const playerId = searchParams.get('player_id')
+    const interest = searchParams.get('interest')
+    const purpose  = searchParams.get('purpose')
+
+    const validReasons: ContactReason[] = ['joueur', 'club', 'medias', 'autre']
+    if (!reason || !validReasons.includes(reason as ContactReason)) return
+
+    setForm((prev) => {
+      const payload: ContactForm['payload'] = { ...prev.payload }
+      const parsedId = playerId && /^\d+$/.test(playerId) ? Number(playerId) : null
+      if (parsedId !== null) payload.player_id = parsedId
+      // Club deep-link: player_id implies interest=player unless explicitly overridden.
+      if (reason === 'club') {
+        if (interest === 'player' || interest === 'profile' || interest === 'partnership' || interest === 'other') {
+          payload.interest = interest
+        } else if (parsedId !== null) {
+          payload.interest = 'player'
+        }
+      }
+      // Media deep-link: player_id implies purpose=interview_player.
+      if (reason === 'medias') {
+        if (purpose === 'interview_player' || purpose === 'article' || purpose === 'documentary' || purpose === 'other') {
+          payload.purpose = purpose
+        } else if (parsedId !== null) {
+          payload.purpose = 'interview_player'
+        }
+      }
+      return { ...prev, reason: reason as ContactReason, payload }
+    })
+    setStep(2)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const setField = <K extends keyof ContactForm>(k: K, v: ContactForm[K]) => {
     setForm((prev) => ({ ...prev, [k]: v } as ContactForm))
