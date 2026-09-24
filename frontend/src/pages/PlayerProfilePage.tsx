@@ -35,6 +35,7 @@ import type { PlayerClip } from '../types/clip'
 import type { Presentation } from '../types/presentation'
 import { heatmapFromPosition, isValidGrid } from '../lib/heatmap'
 import { playerImage } from '../lib/playerImage'
+import { useDarkHero } from '../hooks/useDarkHero'
 
 interface SectionEntry {
   id: string
@@ -997,6 +998,7 @@ interface PlayerResponse {
 }
 
 function PlayerProfilePage() {
+  useDarkHero()
   const { slug } = useParams<{ slug: string }>()
   const [player, setPlayer] = useState<Player | null>(null)
   const [percentiles, setPercentiles] = useState<Record<string, number> | null>(null)

@@ -15,6 +15,7 @@ import { ArrowUpRight, CaretDown, Gauge, Lock, List, X } from '@phosphor-icons/r
 import ThemeToggle from '../theme/ThemeToggle'
 import BrandLogo from './BrandLogo'
 import { useAuth } from '../auth/AuthContext'
+import { useHasDarkHero } from '../hooks/useDarkHero'
 import { usePublicPlayers, pickShowcase } from '../lib/usePublicPlayers'
 import { playerImage } from '../lib/playerImage'
 
@@ -41,7 +42,7 @@ const NAV: NavItem[] = [
  */
 function ContactCta({ onClose }: { onClose?: () => void }) {
   return (
-    <div className="hidden md:flex items-center pl-2 ml-1 border-l border-zinc-900/10 dark:border-stone-50/10">
+    <div className="hidden md:flex items-center">
       <Link
         to="/contact"
         onClick={onClose}
@@ -216,10 +217,10 @@ const MegaPanel = memo(function MegaPanel({ open, onClose, onMouseEnter, onMouse
           className="absolute left-1/2 -translate-x-1/2 top-[calc(100%+10px)] w-[520px] z-50"
           style={{ transformOrigin: 'top center' }}
         >
-          <div className="relative rounded-2xl border border-stone-50/10 bg-zinc-950/95 backdrop-blur-xl shadow-[0_30px_60px_-20px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.08)] overflow-hidden">
+          <div className="relative rounded-2xl border border-stone-900/10 bg-white/95 dark:border-stone-50/10 dark:bg-zinc-950/95 backdrop-blur-xl shadow-[0_30px_60px_-20px_rgba(0,0,0,0.25)] dark:shadow-[0_30px_60px_-20px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.08)] overflow-hidden">
             <StadiumLights />
-            <div className="relative z-10 flex items-center justify-between px-5 pt-4 pb-3 border-b border-stone-50/10">
-              <span className="font-mono uppercase tracking-[0.18em] text-[0.65rem] text-turf-300">
+            <div className="relative z-10 flex items-center justify-between px-5 pt-4 pb-3 border-b border-stone-900/10 dark:border-stone-50/10">
+              <span className="font-mono uppercase tracking-[0.18em] text-[0.65rem] text-turf-700 dark:text-turf-300">
                 Dernières signatures
               </span>
               <span className="font-mono text-[0.65rem] tabular-nums text-stone-500">
@@ -235,7 +236,7 @@ const MegaPanel = memo(function MegaPanel({ open, onClose, onMouseEnter, onMouse
                   transition={{ delay: 0.05 + i * 0.05, type: 'spring', stiffness: 180, damping: 22 }}
                 >
                   <Link to={`/joueurs/${p.slug}`} onClick={onClose} className="group block">
-                    <div className="relative aspect-[3/4] overflow-hidden rounded-xl border border-stone-50/10">
+                    <div className="relative aspect-[3/4] overflow-hidden rounded-xl border border-stone-900/10 dark:border-stone-50/10">
                       <img
                         src={playerImage(p)}
                         alt=""
@@ -243,6 +244,8 @@ const MegaPanel = memo(function MegaPanel({ open, onClose, onMouseEnter, onMouse
                         decoding="async"
                         className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-premium group-hover:scale-[1.06]"
                       />
+                      {/* Bottom gradient stays dark because the caption over the photo
+                          is white in both themes — the image is the backdrop. */}
                       <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent" />
                       <div className="absolute bottom-2 left-2 right-2 text-stone-50">
                         <div className="font-display font-medium text-[0.85rem] leading-tight">
@@ -251,9 +254,9 @@ const MegaPanel = memo(function MegaPanel({ open, onClose, onMouseEnter, onMouse
                         <div className="text-[0.65rem] text-stone-300 mt-0.5">{p.position}</div>
                       </div>
                     </div>
-                    <div className="mt-2 text-[0.7rem] text-stone-400 group-hover:text-stone-200 transition flex items-center justify-between">
+                    <div className="mt-2 text-[0.7rem] text-zinc-600 dark:text-stone-400 group-hover:text-zinc-950 dark:group-hover:text-stone-200 transition flex items-center justify-between">
                       <span>{p.club ?? '-'}</span>
-                      <ArrowUpRight size={11} weight="bold" className="text-stone-500 group-hover:text-turf-300 transition" />
+                      <ArrowUpRight size={11} weight="bold" className="text-zinc-400 dark:text-stone-500 group-hover:text-turf-700 dark:group-hover:text-turf-300 transition" />
                     </div>
                   </Link>
                 </motion.li>
@@ -262,16 +265,16 @@ const MegaPanel = memo(function MegaPanel({ open, onClose, onMouseEnter, onMouse
             <Link
               to="/joueurs"
               onClick={onClose}
-              className="relative z-10 flex items-center justify-between px-5 py-4 border-t border-stone-50/10 text-sm text-stone-200 hover:text-stone-50 hover:bg-stone-50/5 transition group"
+              className="relative z-10 flex items-center justify-between px-5 py-4 border-t border-stone-900/10 dark:border-stone-50/10 text-sm text-zinc-800 hover:text-zinc-950 hover:bg-zinc-900/5 dark:text-stone-200 dark:hover:text-stone-50 dark:hover:bg-stone-50/5 transition group"
             >
               <span className="flex items-center gap-2">
                 <span>Voir tous nos joueurs</span>
-                <span className="font-mono text-[0.7rem] text-stone-500 tabular-nums">({total})</span>
+                <span className="font-mono text-[0.7rem] text-zinc-500 dark:text-stone-500 tabular-nums">({total})</span>
               </span>
               <ArrowUpRight
                 size={15}
                 weight="bold"
-                className="text-stone-400 group-hover:text-turf-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform"
+                className="text-zinc-500 dark:text-stone-400 group-hover:text-turf-700 dark:group-hover:text-turf-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform"
               />
             </Link>
           </div>
@@ -294,6 +297,11 @@ function Header() {
   const { isAuthenticated, user } = useAuth()
   const isAdmin = isAuthenticated && Boolean(user?.is_admin)
   const isDark = useIsDark()
+  // When a page opts in via useDarkHero() we treat the navbar as if we were
+  // in dark theme regardless of the user's picked mode - this stops the
+  // "white strip over a dark hero" mismatch.
+  const hasDarkHero = useHasDarkHero()
+  const effectiveDark = isDark || hasDarkHero
 
   const { scrollY } = useScroll()
 
@@ -361,7 +369,7 @@ function Header() {
         animate={{ y: hidden ? -120 : 0, opacity: hidden ? 0 : 1 }}
         transition={{ type: 'spring', stiffness: 240, damping: 30 }}
         aria-hidden={hidden}
-        className="fixed inset-x-0 top-0 z-40 will-change-transform pointer-events-none"
+        className={`fixed inset-x-0 top-0 z-40 will-change-transform pointer-events-none ${hasDarkHero ? 'dark' : ''}`}
       >
         <nav
           className={`pointer-events-auto relative flex items-center justify-between gap-2 bg-stone-50/85 dark:bg-zinc-950/85 backdrop-blur-xl px-4 sm:px-6 lg:px-8 py-2.5 transition-[border-color,box-shadow] duration-300 ease-premium ${
@@ -411,7 +419,7 @@ function Header() {
                       initial={false}
                       animate={{
                         borderRadius: HOVER_SHAPES[item.to]?.borderRadius ?? 999,
-                        backgroundColor: isDark
+                        backgroundColor: effectiveDark
                           ? (HOVER_SHAPES[item.to]?.tint      ?? 'rgba(250,250,249,0.08)')
                           : (HOVER_SHAPES[item.to]?.tintLight ?? 'rgba(24,24,27,0.06)'),
                       }}
@@ -478,42 +486,40 @@ function Header() {
             })}
           </div>
 
-          {/* Primary Contact CTA - solid dark pill, mirrors the hero's
-             "Découvrir nos joueurs" button so the two brand CTAs read as
-             the same visual language. */}
-          <ContactCta onClose={close} />
-
-          {/* Right cluster: divider · theme · admin shortcut.
-             When the visitor is signed-in as admin, the lock becomes a dashboard
-             dial that goes straight to /admin instead of /admin/login. */}
-          <div className="hidden md:flex items-center gap-0.5 pl-2 ml-1 border-l border-zinc-900/10 dark:border-stone-50/10">
-            <ThemeToggle variant="rail" />
-            <Link
-              to={isAdmin ? '/admin' : '/admin/login'}
-              aria-label={isAdmin ? 'Tableau de bord admin' : 'Espace agence'}
-              title={isAdmin ? 'Tableau de bord admin' : 'Espace agence'}
-              className={`group relative grid place-items-center w-10 h-10 rounded-xl transition-colors ${
-                isAdmin
-                  ? 'text-turf-500 hover:text-turf-600 hover:bg-turf-100 dark:text-turf-300 dark:hover:text-turf-200 dark:hover:bg-turf-800/20'
-                  : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-900/5 dark:text-stone-400 dark:hover:text-stone-50 dark:hover:bg-stone-50/5'
-              }`}
-            >
-              {isAdmin ? <Gauge size={16} weight="regular" /> : <Lock size={15} weight="regular" />}
-              {/* Tiny pulsing dot signals an active admin session. */}
-              {isAdmin && (
-                <span
-                  aria-hidden="true"
-                  className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-turf-300 animate-pulse"
-                  style={{ boxShadow: '0 0 6px rgba(132,184,150,0.8)' }}
-                />
-              )}
-              <span
-                role="tooltip"
-                className="absolute right-0 top-full mt-2 px-2.5 py-1 rounded-md bg-zinc-900 text-stone-100 text-xs whitespace-nowrap opacity-0 -translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200 ease-premium pointer-events-none border border-stone-50/10 shadow-diffusion"
+          {/* Right side: Contact CTA glued to the theme/admin cluster with
+             a single divider between them, so it reads as one action bar
+             pinned to the right edge instead of drifting mid-navbar. */}
+          <div className="hidden md:flex items-center gap-2">
+            <ContactCta onClose={close} />
+            <div className="flex items-center gap-0.5 pl-2 border-l border-zinc-900/10 dark:border-stone-50/10">
+              <ThemeToggle variant="rail" />
+              <Link
+                to={isAdmin ? '/admin' : '/admin/login'}
+                aria-label={isAdmin ? 'Tableau de bord admin' : 'Espace agence'}
+                title={isAdmin ? 'Tableau de bord admin' : 'Espace agence'}
+                className={`group relative grid place-items-center w-10 h-10 rounded-xl transition-colors ${
+                  isAdmin
+                    ? 'text-turf-500 hover:text-turf-600 hover:bg-turf-100 dark:text-turf-300 dark:hover:text-turf-200 dark:hover:bg-turf-800/20'
+                    : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-900/5 dark:text-stone-400 dark:hover:text-stone-50 dark:hover:bg-stone-50/5'
+                }`}
               >
-                {isAdmin ? 'Tableau de bord admin' : 'Espace agence'}
-              </span>
-            </Link>
+                {isAdmin ? <Gauge size={16} weight="regular" /> : <Lock size={15} weight="regular" />}
+                {/* Tiny pulsing dot signals an active admin session. */}
+                {isAdmin && (
+                  <span
+                    aria-hidden="true"
+                    className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-turf-300 animate-pulse"
+                    style={{ boxShadow: '0 0 6px rgba(132,184,150,0.8)' }}
+                  />
+                )}
+                <span
+                  role="tooltip"
+                  className="absolute right-0 top-full mt-2 px-2.5 py-1 rounded-md bg-zinc-900 text-stone-100 text-xs whitespace-nowrap opacity-0 -translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200 ease-premium pointer-events-none border border-stone-50/10 shadow-diffusion"
+                >
+                  {isAdmin ? 'Tableau de bord admin' : 'Espace agence'}
+                </span>
+              </Link>
+            </div>
           </div>
 
           {/* Mobile cluster */}
