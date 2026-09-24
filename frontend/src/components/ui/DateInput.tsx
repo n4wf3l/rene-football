@@ -1,21 +1,23 @@
 import { useEffect, useRef, useState } from 'react'
+import type { CSSProperties } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { DayPicker } from 'react-day-picker'
 import { fr } from 'date-fns/locale'
 import { format, isValid, parseISO } from 'date-fns'
 import { CalendarBlank, CaretDown, X } from '@phosphor-icons/react'
-import 'react-day-picker/dist/style.css'
+import 'react-day-picker/style.css'
 
 /**
- * Calendar-driven date picker matching the wizard aesthetic. The <input> we
- * expose to callers stores an ISO YYYY-MM-DD string (same shape as the
- * previous native date input) so wizard state and server payloads don't
- * need to change.
+ * Calendar-driven date picker matching the wizard aesthetic.
  *
- * The picker itself is react-day-picker localised in French; we render it in
- * a Framer-animated pop-over positioned under the trigger. Clicking outside
- * dismisses it. `min` and `max` bound the visible + selectable range so the
- * DOB flow can hide unrealistic years.
+ * v10 of react-day-picker changed both the CSS import path and the
+ * `classNames` key set; we import the current stylesheet, override the
+ * theming knobs through CSS custom properties on the wrapper (so the
+ * accent, day size, radii and font all match the wizard), and use the v10
+ * class-name keys (root, day_button, selected, today, outside, disabled…)
+ * for the last-mile Tailwind polish.
+ *
+ * Value shape stays ISO YYYY-MM-DD so callers don't need to change.
  */
 interface DateInputProps {
   id?: string
@@ -57,26 +59,46 @@ export default function DateInput({
 
   const selected = parse(value)
 
-  // Close on outside click.
   useEffect(() => {
     if (!open) return
-    const handler = (e: MouseEvent) => {
+    const click = (e: MouseEvent) => {
       if (!wrapperRef.current) return
       if (!wrapperRef.current.contains(e.target as Node)) setOpen(false)
     }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [open])
-
-  // ESC to close.
-  useEffect(() => {
-    if (!open) return
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
-    document.addEventListener('keydown', handler)
-    return () => document.removeEventListener('keydown', handler)
+    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
+    document.addEventListener('mousedown', click)
+    document.addEventListener('keydown', esc)
+    return () => {
+      document.removeEventListener('mousedown', click)
+      document.removeEventListener('keydown', esc)
+    }
   }, [open])
 
   const label = selected ? format(selected, 'd MMMM yyyy', { locale: fr }) : ''
+
+  // Theming through v10 CSS custom properties + `font-family: inherit` so
+  // the calendar picks up the wizard font instead of the library default.
+  const rdpVars: CSSProperties = {
+    ['--rdp-accent-color' as string]: 'rgb(58 105 84)',            // turf-700
+    ['--rdp-accent-background-color' as string]: 'transparent',
+    ['--rdp-today-color' as string]: 'rgb(58 105 84)',
+    ['--rdp-day-height' as string]: '36px',
+    ['--rdp-day-width' as string]: '36px',
+    ['--rdp-day_button-height' as string]: '34px',
+    ['--rdp-day_button-width' as string]: '34px',
+    ['--rdp-day_button-border-radius' as string]: '0.5rem',
+    ['--rdp-day_button-border' as string]: '2px solid transparent',
+    ['--rdp-selected-border' as string]: 'none',
+    ['--rdp-nav_button-height' as string]: '28px',
+    ['--rdp-nav_button-width' as string]: '28px',
+    ['--rdp-nav-height' as string]: '2.5rem',
+    ['--rdp-months-gap' as string]: '1rem',
+    ['--rdp-dropdown-gap' as string]: '0.35rem',
+    ['--rdp-outside-opacity' as string]: '0.35',
+    ['--rdp-disabled-opacity' as string]: '0.28',
+    fontFamily: 'inherit',
+    fontSize: '0.85rem',
+  }
 
   return (
     <div ref={wrapperRef} className={`relative ${className}`}>
@@ -126,14 +148,14 @@ export default function DateInput({
             animate={{ opacity: 1, y: 0,  scale: 1 }}
             exit={{    opacity: 0, y: -6, scale: 0.98 }}
             transition={{ type: 'spring', stiffness: 260, damping: 26 }}
-            className="absolute left-0 top-[calc(100%+6px)] z-50 rounded-2xl border border-stone-200 dark:border-stone-50/10 bg-white dark:bg-zinc-900 shadow-[0_24px_50px_-24px_rgba(24,24,27,0.35)] dark:shadow-[0_24px_50px_-24px_rgba(0,0,0,0.6)] p-3"
-            style={{ transformOrigin: 'top left' }}
+            className="absolute left-0 top-[calc(100%+6px)] z-50 rounded-2xl border border-stone-200 dark:border-stone-50/10 bg-white dark:bg-zinc-900 shadow-[0_24px_50px_-24px_rgba(24,24,27,0.35)] dark:shadow-[0_24px_50px_-24px_rgba(0,0,0,0.6)] p-2"
+            style={{ transformOrigin: 'top left', ...rdpVars }}
           >
             <DayPicker
               mode="single"
               locale={fr}
               selected={selected}
-              defaultMonth={selected}
+              defaultMonth={selected ?? new Date()}
               onSelect={(d) => { onChange(iso(d)); setOpen(false) }}
               startMonth={min ? parse(min) : new Date(1950, 0)}
               endMonth={max ? parse(max) : new Date(new Date().getFullYear() + 5, 11)}
@@ -144,31 +166,32 @@ export default function DateInput({
                 ...(max ? [{ after: parse(max) as Date }] : []),
               ]}
               classNames={{
-                root: 'text-sm text-zinc-900 dark:text-stone-100',
-                months: 'flex flex-col gap-4',
-                month: 'space-y-3',
-                caption: 'flex items-center justify-between px-1',
-                caption_label: 'font-semibold text-sm',
-                nav: 'flex items-center gap-1',
-                nav_button:
-                  'inline-flex items-center justify-center w-7 h-7 rounded-md border border-stone-200 dark:border-stone-50/10 hover:bg-stone-100 dark:hover:bg-stone-50/5 transition',
-                nav_button_previous: '',
-                nav_button_next: '',
-                dropdowns: 'flex gap-2',
+                root: 'text-zinc-900 dark:text-stone-100',
+                months: 'flex flex-col',
+                month: 'space-y-2',
+                nav: 'flex items-center justify-end gap-1 px-1 pb-1',
+                button_previous:
+                  'inline-flex items-center justify-center rounded-md border border-stone-200 dark:border-stone-50/10 text-zinc-700 dark:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-50/5 transition disabled:opacity-30 disabled:cursor-not-allowed',
+                button_next:
+                  'inline-flex items-center justify-center rounded-md border border-stone-200 dark:border-stone-50/10 text-zinc-700 dark:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-50/5 transition disabled:opacity-30 disabled:cursor-not-allowed',
+                month_caption: 'hidden',
+                dropdowns: 'flex items-center gap-1.5',
+                dropdown_root: 'relative inline-flex items-center',
                 dropdown:
-                  'text-xs bg-white dark:bg-zinc-900 border border-stone-200 dark:border-stone-50/10 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-turf-700/20',
-                table: 'w-full border-collapse',
-                head_row: 'flex mb-1',
-                head_cell:
-                  'w-9 h-8 text-[0.65rem] uppercase tracking-wider font-mono text-zinc-500 dark:text-stone-500 grid place-items-center',
-                row: 'flex mt-1',
-                cell: 'w-9 h-9 p-0 relative',
-                day:
-                  'w-9 h-9 grid place-items-center rounded-lg text-[0.8rem] transition-colors hover:bg-stone-100 dark:hover:bg-stone-50/5 focus:outline-none focus:ring-2 focus:ring-turf-700/20',
-                day_selected: 'bg-zinc-950 text-stone-50 dark:bg-stone-50 dark:text-zinc-950 hover:bg-zinc-800 dark:hover:bg-stone-200',
-                day_today: 'text-turf-700 dark:text-turf-300 font-semibold',
-                day_outside: 'text-zinc-300 dark:text-stone-600',
-                day_disabled: 'opacity-30 cursor-not-allowed hover:bg-transparent',
+                  'appearance-none bg-white dark:bg-zinc-900 text-xs font-medium text-zinc-900 dark:text-stone-100 border border-stone-200 dark:border-stone-50/10 rounded-lg pl-2 pr-6 py-1 focus:outline-none focus:ring-2 focus:ring-turf-700/20',
+                caption_label: 'hidden',
+                weekdays: 'grid grid-cols-7 mb-1',
+                weekday: 'text-[0.6rem] uppercase tracking-wider font-mono text-zinc-500 dark:text-stone-500 text-center py-1',
+                weeks: 'grid gap-y-0.5',
+                week: 'grid grid-cols-7',
+                day: 'p-0 text-center',
+                day_button:
+                  'w-full h-full grid place-items-center rounded-lg text-[0.8rem] transition-colors hover:bg-stone-100 dark:hover:bg-stone-50/5 focus:outline-none focus:ring-2 focus:ring-turf-700/20',
+                today: 'font-semibold',
+                selected:
+                  '[&_button]:bg-zinc-950 [&_button]:text-stone-50 dark:[&_button]:bg-stone-50 dark:[&_button]:text-zinc-950 [&_button:hover]:bg-zinc-800 dark:[&_button:hover]:bg-stone-200',
+                outside: 'text-zinc-300 dark:text-stone-600',
+                disabled: 'opacity-30 cursor-not-allowed [&_button]:hover:bg-transparent',
               }}
             />
           </motion.div>
