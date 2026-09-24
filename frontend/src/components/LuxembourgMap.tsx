@@ -73,19 +73,18 @@ export default function LuxembourgMap({
 
   const fill = fillColor ?? strokeColor
 
-  // Cross-faded stroke: two paths always mounted.
-  //   - motion.path traces pathLength 0 → 1 for the "drawn on" feel and stays
-  //     there.
-  //   - a plain <path> (no dasharray) fades in on top just as the tracing
-  //     lands, hiding the sub-pixel gap that Motion's getTotalLength()
-  //     undershoot leaves on closed vector-effect="non-scaling-stroke" paths
-  //     in Chromium.
-  // The overlap in visible strokes prevents any perceived pop; when the fade
-  // completes the static path is authoritative.
+  // Manual dashoffset tracing (instead of Motion's pathLength shorthand):
+  // pathLength reads getTotalLength() from the DOM, which undershoots on
+  // closed non-scaling-stroke paths in Chromium and leaves a sub-pixel gap at
+  // the end. We hard-code strokeDasharray to a value comfortably larger than
+  // any real path length (2000 svg units - Luxembourg's projected outline is
+  // ~700), so at dashoffset=0 the entire path sits inside the first dash of
+  // the pattern with zero measurement dependency, and the loop closes.
+  // The gap "always at the same spot" symptom disappears because there is no
+  // "spot" any more - the whole path is one continuous dash.
+  const DASH = 2000
   const traceDuration = 2.6
   const traceDelay = 0.4
-  const safetyFadeDelay = traceDelay + traceDuration - 0.15
-  const safetyFadeDuration = 0.55
 
   return (
     <svg
@@ -107,8 +106,10 @@ export default function LuxembourgMap({
         />
       )}
 
-      {/* Tracing stroke: Motion animates pathLength 0 → 1 and stays there.
-         Never unmounted, so the tracing motion stays visible throughout. */}
+      {/* Pencil-stroke outline traced on mount. strokeDasharray stays static
+         at DASH (way above the path's own length), strokeDashoffset animates
+         from DASH down to 0 - equivalent to a "reveal from start to end"
+         effect but without any DOM measurement. */}
       {showStroke && (
         <motion.path
           d={pathD}
@@ -119,29 +120,10 @@ export default function LuxembourgMap({
           strokeLinejoin="round"
           strokeLinecap="round"
           vectorEffect="non-scaling-stroke"
-          initial={{ pathLength: 0 }}
-          animate={{ pathLength: 1 }}
+          strokeDasharray={DASH}
+          initial={{ strokeDashoffset: DASH }}
+          animate={{ strokeDashoffset: 0 }}
           transition={{ duration: traceDuration, delay: traceDelay, ease: [0.65, 0, 0.35, 1] }}
-        />
-      )}
-
-      {/* Safety stroke: plain <path> (no dasharray) cross-fades in on top of
-         the tracing stroke just before the tracing lands. Once faded, it is
-         the authoritative outline and closes the loop cleanly regardless of
-         Motion's dashoffset math. */}
-      {showStroke && (
-        <motion.path
-          d={pathD}
-          fill="none"
-          stroke={strokeColor}
-          strokeOpacity={0.95}
-          strokeWidth={strokeWidth}
-          strokeLinejoin="round"
-          strokeLinecap="round"
-          vectorEffect="non-scaling-stroke"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: safetyFadeDuration, delay: safetyFadeDelay, ease: 'easeOut' }}
         />
       )}
     </svg>
