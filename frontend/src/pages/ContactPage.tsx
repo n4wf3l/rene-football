@@ -18,6 +18,7 @@ import {
 } from '@phosphor-icons/react'
 import { ApiError, api } from '../api/client'
 import MeshGradient from '../components/MeshGradient'
+import { useDarkHero } from '../hooks/useDarkHero'
 import { usePublicPlayers } from '../lib/usePublicPlayers'
 import type {
   ContactErrors,
@@ -624,7 +625,7 @@ function StepCoords({ form, errors, onFieldChange }: StepCoordsProps) {
             value={form.name}
             onChange={(e) => onFieldChange('name', e.target.value)}
             className={`${inputBase} ${errors.name ? 'border-rose-400' : 'border-stone-300 focus:border-turf-700'}`}
-            placeholder="Hélène Marchetti"
+            placeholder="Prénom Nom"
           />
           <FieldError message={errors.name} />
         </div>
@@ -709,6 +710,7 @@ const STEP_LABELS: Record<number, string> = {
 }
 
 function ContactPage() {
+  useDarkHero()
   const [step, setStep] = useState<1 | 2 | 3>(1)
   const [form, setForm] = useState<ContactForm>(emptyForm)
   const [errors, setErrors] = useState<ContactErrors>({})

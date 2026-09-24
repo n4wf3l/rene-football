@@ -18,6 +18,7 @@ import Skeleton from '../components/Skeleton'
 import ClipsGalleryPublic from '../components/ClipsGalleryPublic'
 import { api, ApiError } from '../api/client'
 import { playerImage } from '../lib/playerImage'
+import { useDarkHero } from '../hooks/useDarkHero'
 import type { Article, ArticleImage } from '../types/article'
 
 interface ArticleResponse { data: Article }
@@ -172,6 +173,7 @@ function Gallery({ images }: GalleryProps) {
 }
 
 export default function ArticleDetailPage() {
+  useDarkHero()
   const { slug } = useParams<{ slug: string }>()
   const navigate = useNavigate()
   const [article, setArticle] = useState<Article | null>(null)
