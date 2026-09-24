@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { geoMercator, geoPath } from 'd3-geo'
 import type { Feature, Polygon } from 'geojson'
@@ -73,6 +73,15 @@ export default function LuxembourgMap({
 
   const fill = fillColor ?? strokeColor
 
+  // Two-phase stroke render:
+  //   phase 1 - Framer Motion animates pathLength 0 → 1 (the "drawn on" feel)
+  //   phase 2 - once that animation ends, we swap in a plain static path with
+  //             no dasharray at all. Motion's getTotalLength() undershoot on
+  //             closed non-scaling-stroke paths leaves a small residual gap at
+  //             pathLength=1 in Chromium; the static path guarantees the
+  //             final rendered state is a solid closed outline no matter what.
+  const [strokeDrawn, setStrokeDrawn] = useState(false)
+
   return (
     <svg
       viewBox={`0 0 ${width} ${height}`}
@@ -93,11 +102,9 @@ export default function LuxembourgMap({
         />
       )}
 
-      {/* Pencil-stroke outline drawn on mount. We keep Motion's `pathLength`
-         shorthand because it renders the initial hidden state cleanly, and we
-         rely on the path rewrite above (Z → explicit L to M + overshoot) so
-         the closing edge is part of the length Motion measures. */}
-      {showStroke && (
+      {/* Phase 1: Motion-driven pathLength tracing. Hidden once the animation
+         completes so the static safety stroke below takes over. */}
+      {showStroke && !strokeDrawn && (
         <motion.path
           d={pathD}
           fill="none"
@@ -110,6 +117,23 @@ export default function LuxembourgMap({
           initial={{ pathLength: 0 }}
           animate={{ pathLength: 1 }}
           transition={{ duration: 2.6, delay: 0.4, ease: [0.65, 0, 0.35, 1] }}
+          onAnimationComplete={() => setStrokeDrawn(true)}
+        />
+      )}
+
+      {/* Phase 2: plain static stroke, no dasharray. Renders the outline as a
+         solid closed loop immediately after the tracing animation ends and
+         stays there for the life of the component. */}
+      {showStroke && strokeDrawn && (
+        <path
+          d={pathD}
+          fill="none"
+          stroke={strokeColor}
+          strokeOpacity={0.95}
+          strokeWidth={strokeWidth}
+          strokeLinejoin="round"
+          strokeLinecap="round"
+          vectorEffect="non-scaling-stroke"
         />
       )}
     </svg>
