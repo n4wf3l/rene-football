@@ -109,7 +109,7 @@ function HeroFlowline() {
          the stats band and doesn't cut through it. */}
       <motion.div
         className="absolute w-[2px] bg-turf-400/60 dark:bg-turf-300/50 origin-top"
-        style={{ left: '145px', top: '58%', height: '22%' }}
+        style={{ left: '145px', top: '58%', height: '16%' }}
         initial={{ scaleY: 0 }}
         animate={{ scaleY: 1 }}
         transition={{ delay: FLOW_VERTICAL_DELAY_S, duration: FLOW_VERTICAL_DURATION_S, ease: 'easeInOut' }}
@@ -119,7 +119,7 @@ function HeroFlowline() {
          since both use the same 2px stroke and colour. */}
       <motion.div
         className="absolute h-[2px] bg-turf-400/60 dark:bg-turf-300/50 origin-left"
-        style={{ left: '145px', top: '80%', width: '55%' }}
+        style={{ left: '145px', top: '74%', width: '55%' }}
         initial={{ scaleX: 0 }}
         animate={{ scaleX: 1 }}
         transition={{ delay: FLOW_HORIZONTAL_DELAY_S, duration: FLOW_HORIZONTAL_DURATION_S, ease: 'easeInOut' }}
@@ -131,7 +131,7 @@ function HeroFlowline() {
         className="absolute text-turf-500 dark:text-turf-300"
         style={{
           left: 'calc(145px + 55%)',
-          top: '80%',
+          top: '74%',
           transform: 'translate(-40%, -50%)',
         }}
         initial={{ opacity: 0, x: -6 }}
@@ -146,7 +146,7 @@ function HeroFlowline() {
          the line so it never clips the stats band underneath. */}
       <motion.div
         className="absolute max-w-[420px] text-right text-[0.78rem] leading-relaxed text-stone-700 dark:text-stone-300"
-        style={{ right: '4%', top: 'calc(80% + 12px)' }}
+        style={{ right: '4%', top: 'calc(74% + 12px)' }}
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: FLOW_TEXT_DELAY_S, duration: 0.55, ease: 'easeOut' }}
