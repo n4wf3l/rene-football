@@ -4,10 +4,14 @@ import { motion } from 'framer-motion'
 import {
   ArrowRight,
   ArrowUpRight,
+  Buildings,
   Handshake,
   MapPin,
+  MegaphoneSimple,
+  Question,
   ScanSmiley,
   ShieldCheck,
+  SoccerBall,
   TrendUp,
 } from '@phosphor-icons/react'
 import MercatoTicker from '../components/MercatoTicker'
@@ -19,6 +23,7 @@ import LuxembourgMap from '../components/LuxembourgMap'
 import AnimatedNumber from '../components/AnimatedNumber'
 import AnimatedUnderline from '../components/AnimatedUnderline'
 import { usePublicPlayers, pickShowcase } from '../lib/usePublicPlayers'
+import { usePublicStaff } from '../lib/usePublicStaff'
 import { playerImage } from '../lib/playerImage'
 import heroPortrait from '../assets/player2.png'
 
@@ -31,37 +36,34 @@ const LOCAL_PORTRAITS: Record<string, string> = {}
 
 const HERO_PORTRAIT = heroPortrait
 
-const STATS: { value: number; label: string; suffix?: string }[] = [
-  { value: 127, label: 'Joueurs représentés', suffix: '+' },
-  { value: 16,  label: "Années d'expérience" },
-  { value: 38,  label: 'Clubs partenaires',  suffix: '+' },
-  { value: 14,  label: 'Pays couverts' },
-]
+// STATS are now derived at render-time from real DB numbers below. The
+// old hardcoded 127+ joueurs / 38+ clubs / 14 pays counts were placeholder
+// values that no longer match reality (~10 active players in production).
 
 const SERVICES = [
   {
     Icon: Handshake,
     title: 'Représentation de joueurs',
-    text: 'Du centre de formation au sommet de la carrière professionnelle, nous accompagnons chaque joueur avec rigueur et discrétion.',
+    text: 'Du centre de formation au niveau pro, on suit chaque joueur avec la même attention. Peu de mandats, jamais un mandat de trop.',
     span: 'lg:col-span-3 lg:row-span-2',
     accent: true,
   },
   {
     Icon: ShieldCheck,
     title: 'Négociation de contrats',
-    text: 'Notre expertise juridique sécurise transferts, prolongations et droits à l’image.',
+    text: "On s'occupe des transferts, prolongations et droits à l'image avec un conseil juridique dédié.",
     span: 'lg:col-span-2',
   },
   {
     Icon: ScanSmiley,
     title: 'Scouting & recrutement',
-    text: 'Un réseau de scouts à travers l\'Europe - du Benelux à la Bundesliga - pour détecter les profils qui changent une équipe.',
+    text: "Réseau de scouts sur le Benelux, la France, l'Allemagne et les Pays-Bas. On préfère aller voir jouer plutôt que lire des fiches.",
     span: 'lg:col-span-2',
   },
   {
     Icon: TrendUp,
     title: 'Gestion de carrière',
-    text: 'Trajectoire long terme, image, partenariats : nous pensons une carrière comme un projet, pas comme un transfert.',
+    text: "Contrat, image, écoles, partenariats. On pense la carrière comme dix ans, pas comme le prochain mercato.",
     span: 'lg:col-span-3',
   },
 ]
@@ -216,9 +218,24 @@ function LuxembourgLabel() {
 function HomePage() {
   const heroRef = useRef<HTMLElement | null>(null)
   const { players, loading } = usePublicPlayers()
+  const { staff } = usePublicStaff()
   // Top 4 showcase roster picked from the real DB - sorts by minutes_played
   // so the visible cards always reflect the agency's active stars, not seed order.
   const roster = useMemo(() => pickShowcase(players, 4), [players])
+  // Live stats derived from the DB so we never inflate the numbers. Cards
+  // with a value of 0 are filtered out so an empty deployment doesn't
+  // publicise "0 joueurs" / "0 clubs".
+  const clubsCount = useMemo(
+    () => new Set(players.map((p) => p.club).filter(Boolean)).size,
+    [players],
+  )
+  const yearsOfExperience = new Date().getFullYear() - 2010
+  const STATS: { value: number; label: string; suffix?: string }[] = [
+    { value: players.length,     label: 'Joueurs actifs' },
+    { value: yearsOfExperience,  label: "Années d'expérience" },
+    { value: clubsCount,         label: 'Clubs représentés' },
+    { value: staff.length,       label: "Membres de l'équipe" },
+  ].filter((s) => s.value > 0)
   return (
     <>
       {/* HERO - asymmetric 60/40 split. Theme-aware : light mode keeps the
@@ -300,9 +317,9 @@ function HomePage() {
               className="mt-5 font-display font-semibold leading-[1.05] tracking-tightest text-zinc-950 dark:text-stone-50"
               style={{ fontSize: 'clamp(2.4rem, 5.5vw, 4.25rem)' }}
             >
-              Nous façonnons les{' '}
-              <span className="text-turf-700 dark:text-turf-300">carrières</span> qui marquent
-              le football européen.
+              Représenter chaque{' '}
+              <span className="text-turf-700 dark:text-turf-300">joueur</span> comme s'il
+              était le seul.
             </motion.h1>
 
             <motion.p
@@ -310,9 +327,10 @@ function HomePage() {
               transition={{ type: 'spring', stiffness: 110, damping: 18 }}
               className="mt-5 max-w-[58ch] text-base lg:text-lg text-zinc-600 dark:text-stone-400 leading-relaxed"
             >
-              Basée au Luxembourg, Rene Football accompagne jeunes talents,
-              joueurs confirmés et clubs partout en Europe - de la signature
-              du premier contrat professionnel jusqu'au sommet de la carrière.
+              Agence de football basée au Luxembourg. On travaille avec peu
+              de joueurs à la fois — c'est la meilleure façon de rester
+              utiles sur la durée, du premier contrat pro aux étapes qui
+              suivent.
             </motion.p>
 
             <motion.div
@@ -358,54 +376,69 @@ function HomePage() {
                     'linear-gradient(180deg, transparent 30%, rgba(10,10,10,0.45) 70%, #0a0a0a 100%)',
                 }}
               />
-              <div className="absolute bottom-6 left-6 right-6 flex items-end justify-between gap-3">
-                <div>
-                  <div className="font-mono text-[0.7rem] uppercase tracking-wider text-turf-300">
-                    Joueur représenté
+              {/* Hero identity chip — bound to the first real player in the
+                  DB so the name matches the roster instead of a hardcoded
+                  placeholder. Hidden entirely when the roster is empty. */}
+              {roster[0] && (
+                <div className="absolute bottom-6 left-6 right-6 flex items-end justify-between gap-3">
+                  <div>
+                    <div className="font-mono text-[0.7rem] uppercase tracking-wider text-turf-300">
+                      Joueur représenté
+                    </div>
+                    <div className="mt-1 font-display font-semibold text-stone-50 text-xl">
+                      {roster[0].name}
+                    </div>
+                    <div className="text-stone-400 text-sm">
+                      {roster[0].position}{roster[0].age ? ` - ${roster[0].age} ans` : ''}
+                    </div>
                   </div>
-                  <div className="mt-1 font-display font-semibold text-stone-50 text-xl">
-                    Hamzath Mohamadou
-                  </div>
-                  <div className="text-stone-400 text-sm">Ailier droit - 21 ans</div>
+                  {roster[0].since && (
+                    <div className="flex items-center gap-2 rounded-full bg-stone-50/10 backdrop-blur px-3 py-1.5 border border-stone-50/15">
+                      <span className="w-2 h-2 rounded-full bg-turf-300 animate-pulse" />
+                      <span className="text-xs text-stone-100">Signé en {roster[0].since}</span>
+                    </div>
+                  )}
                 </div>
-                <div className="flex items-center gap-2 rounded-full bg-stone-50/10 backdrop-blur px-3 py-1.5 border border-stone-50/15">
-                  <span className="w-2 h-2 rounded-full bg-turf-300 animate-pulse" />
-                  <span className="text-xs text-stone-100">Signé en 2025</span>
-                </div>
-              </div>
+              )}
             </div>
           </motion.div>
         </div>
 
         {/* Stats line - filiform, mono numbers, divided by 1px lines.
            Sits BELOW the 100dvh hero box so it never competes for vertical space
-           with the headline + portrait. Visible on scroll-down. */}
-        <div className="container-page pb-16 lg:pb-20">
-          <div className="grid grid-cols-2 lg:grid-cols-4 lg:divide-x divide-stone-200 dark:divide-stone-50/10 border-t border-stone-200 dark:border-stone-50/10 pt-10">
-            {STATS.map((s, i) => (
-              <motion.div
-                key={s.label}
-                initial={{ opacity: 0, y: 12 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-80px' }}
-                transition={{ delay: i * 0.06, type: 'spring', stiffness: 110, damping: 18 }}
-                className="px-0 lg:px-8 first:lg:pl-0 py-4 lg:py-0"
-              >
-                <div className="font-mono text-3xl lg:text-4xl text-zinc-950 dark:text-stone-50 tabular-nums inline-flex items-baseline">
-                  <AnimatedNumber value={s.value} duration={1.6} />
-                  {s.suffix && <span className="text-turf-700 dark:text-turf-300 ml-0.5">{s.suffix}</span>}
-                </div>
-                <div className="mt-2 text-sm text-zinc-600 dark:text-stone-400">{s.label}</div>
-              </motion.div>
-            ))}
+           with the headline + portrait. Visible on scroll-down.
+           Hidden entirely when STATS is empty (all values are 0). */}
+        {STATS.length > 0 && (
+          <div className="container-page pb-16 lg:pb-20">
+            <div className="grid grid-cols-2 lg:grid-cols-4 lg:divide-x divide-stone-200 dark:divide-stone-50/10 border-t border-stone-200 dark:border-stone-50/10 pt-10">
+              {STATS.map((s, i) => (
+                <motion.div
+                  key={s.label}
+                  initial={{ opacity: 0, y: 12 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-80px' }}
+                  transition={{ delay: i * 0.06, type: 'spring', stiffness: 110, damping: 18 }}
+                  className="px-0 lg:px-8 first:lg:pl-0 py-4 lg:py-0"
+                >
+                  <div className="font-mono text-3xl lg:text-4xl text-zinc-950 dark:text-stone-50 tabular-nums inline-flex items-baseline">
+                    <AnimatedNumber value={s.value} duration={1.6} />
+                    {s.suffix && <span className="text-turf-700 dark:text-turf-300 ml-0.5">{s.suffix}</span>}
+                  </div>
+                  <div className="mt-2 text-sm text-zinc-600 dark:text-stone-400">{s.label}</div>
+                </motion.div>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </section>
 
       {/* MERCATO TICKER */}
       <MercatoTicker />
 
-      {/* ROSTER PREVIEW - light section, gallery feel */}
+      {/* ROSTER PREVIEW - light section, gallery feel.
+          Hidden entirely when the API resolves an empty roster so an empty
+          deployment doesn't publish a "no players yet" line to guests. */}
+      {(loading || roster.length > 0) && (
       <section className="bg-stone-50 dark:bg-zinc-950 py-20 lg:py-28">
         <div className="container-page">
           <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 mb-12">
@@ -413,7 +446,7 @@ function HomePage() {
               <span className="eyebrow">Notre roster</span>
               <AnimatedUnderline className="mt-2" />
               <h2 className="mt-3 font-display font-semibold text-3xl lg:text-5xl tracking-tight text-zinc-950 dark:text-stone-50 max-w-[18ch]">
-                Une nouvelle génération que nous suivons au quotidien.
+                Les joueurs qu'on suit cette saison.
               </h2>
             </div>
             <Link
@@ -431,10 +464,6 @@ function HomePage() {
                 <div key={i} className="aspect-[3/4] rounded-2xl bg-stone-200 dark:bg-zinc-900 animate-pulse" />
               ))}
             </div>
-          ) : roster.length === 0 ? (
-            <p className="text-sm text-zinc-600 dark:text-stone-400">
-              Aucun joueur publié pour le moment.
-            </p>
           ) : (
             <motion.ul
               initial="hidden"
@@ -488,6 +517,7 @@ function HomePage() {
           )}
         </div>
       </section>
+      )}
 
       {/* BRAND VIDEO - dark editorial break between roster (light) and services (light).
          Facade YouTube : poster only at first paint, iframe loaded on click. */}
@@ -586,10 +616,10 @@ function HomePage() {
                 {accent && (
                   <div>
                     <div className="font-mono text-5xl lg:text-6xl font-semibold text-turf-700 dark:text-turf-200 tracking-tight">
-                      <AnimatedNumber value={127} />+
+                      <AnimatedNumber value={players.length} />
                     </div>
                     <div className="mt-1 text-xs uppercase tracking-[0.18em] text-stone-500 dark:text-stone-400">
-                      Joueurs représentés
+                      Joueurs actifs
                     </div>
                   </div>
                 )}
@@ -614,31 +644,61 @@ function HomePage() {
         </div>
       </section>
 
-      {/* CTA */}
+      {/* CTA - 4 audience cards deep-linking into the wizard step 2 so
+         visitors know upfront that the form adapts to their profile. */}
       <section className="text-stone-100 py-20 lg:py-28 relative overflow-hidden">
         <MeshGradient intensity="subtle" />
-        <div className="container-page grid lg:grid-cols-12 gap-10 items-end">
-          <div className="lg:col-span-7">
+        <div className="container-page">
+          <div className="max-w-[60ch]">
             <span className="eyebrow text-turf-300">Prendre contact</span>
             <h2 className="mt-3 font-display font-semibold text-3xl lg:text-5xl leading-tight tracking-tight">
-              Vous êtes joueur, club ou famille ?
+              Vous êtes joueur, club, média ?
               <br />
               <span className="text-stone-400">
-                Échangeons sur votre projet.
+                Choisissez votre profil, on adapte l'échange.
               </span>
             </h2>
-            <p className="mt-6 max-w-[55ch] text-stone-400 leading-relaxed">
-              Notre équipe revient vers vous sous 48 heures. Échange
-              confidentiel, sans engagement.
+            <p className="mt-6 text-stone-400 leading-relaxed">
+              Chaque parcours ouvre les questions utiles à votre situation.
+              Réponse sous 48 heures, échange confidentiel, sans engagement.
             </p>
           </div>
-          <div className="lg:col-span-5 lg:justify-self-end">
+
+          <div className="mt-10 grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {[
+              { reason: 'joueur', label: 'Joueur / Parent',        hint: 'Rejoindre l’agence ou faire suivre un profil.', Icon: SoccerBall },
+              { reason: 'club',   label: 'Club / Staff technique',  hint: 'Intérêt pour un joueur, recherche de profil.',  Icon: Buildings },
+              { reason: 'medias', label: 'Média / Journaliste', hint: 'Interview, article, documentaire.',                    Icon: MegaphoneSimple },
+              { reason: 'autre',  label: 'Autre',                    hint: 'Toute autre demande.',                                    Icon: Question },
+            ].map(({ reason, label, hint, Icon }) => (
+              <Link
+                key={reason}
+                to={`/contact?reason=${reason}`}
+                className="group relative flex items-start gap-3 rounded-2xl border border-stone-50/10 bg-stone-50/[0.03] hover:bg-stone-50/[0.06] hover:border-stone-50/25 p-5 transition-colors ease-premium"
+              >
+                <span className="grid place-items-center w-10 h-10 rounded-xl bg-turf-800/40 text-turf-200 border border-turf-300/25 shrink-0">
+                  <Icon size={18} weight="regular" />
+                </span>
+                <span className="min-w-0">
+                  <span className="block font-semibold text-sm text-stone-50">{label}</span>
+                  <span className="block mt-1 text-xs text-stone-400 leading-relaxed">{hint}</span>
+                </span>
+                <ArrowUpRight
+                  size={13}
+                  weight="bold"
+                  className="absolute top-4 right-4 text-stone-500 group-hover:text-turf-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-all ease-premium"
+                />
+              </Link>
+            ))}
+          </div>
+
+          <div className="mt-8">
             <Link
               to="/contact"
-              className="btn bg-stone-50 text-zinc-950 hover:bg-stone-200 text-base px-7 py-4"
+              className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.18em] font-mono text-stone-400 hover:text-stone-50 transition-colors"
             >
-              Démarrer la conversation
-              <ArrowUpRight size={18} weight="bold" />
+              Ou parcourir tout le formulaire
+              <ArrowRight size={12} weight="bold" />
             </Link>
           </div>
         </div>

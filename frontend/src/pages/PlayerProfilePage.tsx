@@ -4,12 +4,15 @@ import { Link, useParams } from 'react-router-dom'
 import { motion, useScroll, useSpring } from 'framer-motion'
 import {
   ArrowLeft,
+  ArrowRight,
   ArrowUpRight,
+  Buildings,
   Cards,
   FilePdf,
   Flag,
   Lightning,
   ListMagnifyingGlass,
+  MegaphoneSimple,
   Path,
   Person,
   PersonSimpleRun,
@@ -490,7 +493,12 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
         aria-label="Sections du profil"
         className="sticky nav-sticky z-30 bg-stone-50/90 dark:bg-zinc-950/85 backdrop-blur-md border-b border-stone-200/80 dark:border-stone-50/10"
       >
-        <div className="container-page py-2.5 flex items-center gap-3 overflow-x-auto">
+        {/* Full viewport width (bypass container-page's max-w-page) so the
+            identity chip + 9 anchor pills + stats + actions fit on one line
+            without triggering a horizontal scrollbar. `scrollbar-hide` keeps
+            behaviour graceful on tiny screens where content still overflows
+            (scroll works, scrollbar itself is hidden cross-browser). */}
+        <div className="relative z-10 w-full px-4 md:px-8 py-2.5 flex items-center gap-3 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
           {/* Compact identity - stays anchored on the left even at narrow widths. */}
           <div className="flex items-center gap-2.5 pr-3 mr-1 shrink-0 border-r border-stone-200/80 dark:border-stone-50/10">
             {player.photo_url ? (
@@ -983,30 +991,64 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
         </section>
       )}
 
-      {/* CTA bottom */}
+      {/* CTA bottom - the two shortcut buttons deep-link into the Contact
+         wizard pre-configured with the player already picked, so a club or
+         a journalist doesn't have to re-tell us who they're interested in. */}
       <section className="text-stone-100 py-16 lg:py-24 relative overflow-hidden">
         <MeshGradient intensity="subtle" />
         <div className="container-page grid lg:grid-cols-12 gap-8 items-end">
-          <div className="lg:col-span-8">
+          <div className="lg:col-span-7">
             <span className="eyebrow text-turf-300">Échanger sur ce profil</span>
             <h2 className="mt-3 font-display font-semibold text-3xl lg:text-5xl leading-tight tracking-tight">
-              Une question sur {player.name.split(' ')[0]} ?
+              Intéressé par {player.name.split(' ')[0]} ?
             </h2>
             <p className="mt-4 max-w-[55ch] text-stone-400 leading-relaxed">
-              Notre équipe répond aux clubs et représentants sous 48 heures.
-              Les échanges sont confidentiels.
+              Notre équipe répond sous 48 heures. Choisissez la voie qui
+              correspond à votre profil - le formulaire s'ouvre déjà avec
+              {' '}{player.name} pré-sélectionné.
             </p>
           </div>
-          <div className="lg:col-span-4 lg:justify-self-end flex flex-wrap gap-3">
+          <div className="lg:col-span-5 lg:justify-self-end flex flex-col gap-2.5 w-full lg:max-w-[380px]">
+            <Link
+              to={`/contact?reason=club&interest=player&player_id=${player.id}`}
+              className="group inline-flex items-center gap-3 rounded-2xl border border-stone-50/15 bg-stone-50 text-zinc-950 hover:bg-stone-200 px-5 py-4 transition-colors ease-premium"
+            >
+              <span className="grid place-items-center w-9 h-9 rounded-lg bg-zinc-950/5 text-zinc-950 shrink-0">
+                <Buildings size={16} weight="regular" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block font-semibold text-sm">Je suis un club / staff</span>
+                <span className="block text-[0.7rem] text-zinc-600">Intérêt pour ce joueur</span>
+              </span>
+              <ArrowUpRight
+                size={14}
+                weight="bold"
+                className="text-zinc-500 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-transform"
+              />
+            </Link>
+            <Link
+              to={`/contact?reason=medias&purpose=interview_player&player_id=${player.id}`}
+              className="group inline-flex items-center gap-3 rounded-2xl border border-stone-50/15 bg-stone-50/[0.04] hover:bg-stone-50/[0.08] text-stone-100 px-5 py-4 transition-colors ease-premium"
+            >
+              <span className="grid place-items-center w-9 h-9 rounded-lg bg-stone-50/10 text-turf-300 shrink-0">
+                <MegaphoneSimple size={16} weight="regular" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block font-semibold text-sm">Je suis un média</span>
+                <span className="block text-[0.7rem] text-stone-400">Interview / article sur ce joueur</span>
+              </span>
+              <ArrowUpRight
+                size={14}
+                weight="bold"
+                className="text-stone-500 group-hover:text-turf-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-transform"
+              />
+            </Link>
             <Link
               to="/contact"
-              className="btn bg-stone-50 text-zinc-950 hover:bg-stone-200 text-sm px-5 py-3"
+              className="inline-flex items-center gap-2 mt-1 text-xs uppercase tracking-[0.18em] font-mono text-stone-400 hover:text-stone-50 transition-colors self-start"
             >
-              Contacter l'agent
-              <ArrowUpRight size={16} weight="bold" />
-            </Link>
-            <Link to="/joueurs" className="btn btn-ghost text-sm">
-              Voir tout le roster
+              Ou une autre demande
+              <ArrowRight size={11} weight="bold" />
             </Link>
           </div>
         </div>
