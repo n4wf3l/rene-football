@@ -210,7 +210,7 @@ function StepJoueur({ form, errors, onPayloadChange, onCvChange }: StepAudienceF
             onChange={(v) => onPayloadChange('date_of_birth', v)}
             min="1990-01-01"
             max={new Date().toISOString().slice(0, 10)}
-            placeholder="jj mois aaaa"
+            placeholder="jj/mm/aaaa"
           />
         </div>
       </div>
@@ -574,7 +574,7 @@ function StepMedias({ form, errors, onPayloadChange, roster }: ClubOrMediaProps)
             value={form.payload.deadline ?? ''}
             onChange={(v) => onPayloadChange('deadline', v)}
             min={new Date().toISOString().slice(0, 10)}
-            placeholder="jj mois aaaa"
+            placeholder="jj/mm/aaaa"
           />
         </div>
       </div>
