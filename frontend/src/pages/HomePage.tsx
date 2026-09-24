@@ -415,14 +415,14 @@ function HomePage() {
                 transition={{ type: 'spring', stiffness: 110, damping: 20 }}
                 className={`relative overflow-hidden rounded-3xl border p-7 lg:p-8 flex flex-col justify-between ${span} ${
                   accent
-                    ? 'bg-zinc-900 text-stone-100 border-white/10 shadow-diffusion'
+                    ? 'bg-white text-zinc-900 border-stone-200/80 shadow-diffusion dark:bg-zinc-900 dark:text-stone-100 dark:border-white/10'
                     : 'bg-white text-zinc-900 border-stone-200/80 dark:bg-zinc-900 dark:text-stone-50 dark:border-stone-50/10'
                 }`}
               >
                 <div
                   className={`grid place-items-center w-11 h-11 rounded-xl ${
                     accent
-                      ? 'bg-turf-800/40 text-turf-200 border border-turf-300/30'
+                      ? 'bg-turf-50 text-turf-800 border border-turf-100 dark:bg-turf-800/40 dark:text-turf-200 dark:border-turf-300/30'
                       : 'bg-turf-50 text-turf-800 border border-turf-100 dark:bg-turf-800/40 dark:text-turf-200 dark:border-turf-300/30'
                   }`}
                 >
@@ -430,27 +430,19 @@ function HomePage() {
                 </div>
                 {accent && (
                   <div>
-                    <div className="font-mono text-5xl lg:text-6xl font-semibold text-turf-200 tracking-tight">
+                    <div className="font-mono text-5xl lg:text-6xl font-semibold text-turf-700 dark:text-turf-200 tracking-tight">
                       <AnimatedNumber value={127} />+
                     </div>
-                    <div className="mt-1 text-xs uppercase tracking-[0.18em] text-stone-400">
+                    <div className="mt-1 text-xs uppercase tracking-[0.18em] text-stone-500 dark:text-stone-400">
                       Joueurs représentés
                     </div>
                   </div>
                 )}
                 <div>
-                  <h3
-                    className={`font-display font-semibold text-xl lg:text-2xl tracking-tight ${
-                      accent ? 'text-stone-50' : 'text-zinc-950 dark:text-stone-50'
-                    }`}
-                  >
+                  <h3 className="font-display font-semibold text-xl lg:text-2xl tracking-tight text-zinc-950 dark:text-stone-50">
                     {title}
                   </h3>
-                  <p
-                    className={`mt-3 text-sm leading-relaxed max-w-[40ch] ${
-                      accent ? 'text-stone-400' : 'text-zinc-600 dark:text-stone-400'
-                    }`}
-                  >
+                  <p className="mt-3 text-sm leading-relaxed max-w-[40ch] text-zinc-600 dark:text-stone-400">
                     {text}
                   </p>
                 </div>
@@ -458,7 +450,7 @@ function HomePage() {
                   <div
                     aria-hidden="true"
                     className="pointer-events-none absolute -bottom-24 -right-24 w-72 h-72 rounded-full"
-                    style={{ background: 'radial-gradient(circle, rgba(30, 64, 175,0.55), transparent 70%)' }}
+                    style={{ background: 'radial-gradient(circle, rgba(30, 64, 175,0.30), transparent 70%)' }}
                   />
                 )}
               </motion.article>
