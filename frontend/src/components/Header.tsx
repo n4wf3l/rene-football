@@ -35,14 +35,34 @@ const NAV: NavItem[] = [
 /* Mega-menu showcase is populated live from /api/players via usePublicPlayers().
    No more hardcoded names - what's on the public roster IS what shows here. */
 
-/* Per-item hover-pill geometry. The capsule stays dark in both themes (premium
-   editorial-sport identity), so a single tint per item is enough. */
-const HOVER_SHAPES: Record<string, { borderRadius: number; tint: string }> = {
-  '/':           { borderRadius: 999, tint: 'rgba(250,250,249,0.08)' },
-  '/joueurs':    { borderRadius: 14,  tint: 'rgba(30, 64, 175,0.20)'    },
-  '/actualites': { borderRadius: 6,   tint: 'rgba(250,250,249,0.07)' },
-  '/a-propos':   { borderRadius: 999, tint: 'rgba(250,250,249,0.08)' },
-  '/contact':    { borderRadius: 999, tint: 'rgba(132,184,150,0.18)' },
+/* Per-item hover-pill geometry. Neutral tints flip per theme (dark on the
+   light navbar, light on the dark navbar) so the pill stays visible in both;
+   the coloured tints (blue for /joueurs, turf for /contact) work on both bgs
+   as-is. */
+const HOVER_SHAPES: Record<string, { borderRadius: number; tint: string; tintLight: string }> = {
+  '/':           { borderRadius: 999, tint: 'rgba(250,250,249,0.08)', tintLight: 'rgba(24,24,27,0.06)' },
+  '/joueurs':    { borderRadius: 14,  tint: 'rgba(30, 64, 175,0.20)', tintLight: 'rgba(30, 64, 175,0.12)' },
+  '/actualites': { borderRadius: 6,   tint: 'rgba(250,250,249,0.07)', tintLight: 'rgba(24,24,27,0.05)' },
+  '/a-propos':   { borderRadius: 999, tint: 'rgba(250,250,249,0.08)', tintLight: 'rgba(24,24,27,0.06)' },
+  '/contact':    { borderRadius: 999, tint: 'rgba(132,184,150,0.18)', tintLight: 'rgba(60,120,90,0.14)' },
+}
+
+/* Reactively tracks the `dark` class on <html> so motion tints can swap in
+   real time when the user toggles the theme. */
+function useIsDark(): boolean {
+  const [isDark, setIsDark] = useState(() =>
+    typeof document !== 'undefined' && document.documentElement.classList.contains('dark'),
+  )
+  useEffect(() => {
+    if (typeof document === 'undefined') return
+    const target = document.documentElement
+    const observer = new MutationObserver(() => {
+      setIsDark(target.classList.contains('dark'))
+    })
+    observer.observe(target, { attributes: true, attributeFilter: ['class'] })
+    return () => observer.disconnect()
+  }, [])
+  return isDark
 }
 
 /* ---- Top-of-viewport scroll progress (full-width, hue-shifting) ---- */
@@ -64,9 +84,10 @@ const ScrollProgress = memo(function ScrollProgress() {
   )
 })
 
-/* ---- Brand mark - capsule navbar is always dark, so we force the white logo. ---- */
+/* ---- Brand mark - swaps with the theme so the black logo shows on the light
+   navbar and the white logo shows on the dark one. ---- */
 const BrandMark = memo(function BrandMark() {
-  return <BrandLogo size={32} variant="light" withPulse />
+  return <BrandLogo size={32} variant="auto" withPulse />
 })
 
 /* ---- Magnetic NavLink - each link tugs the cursor subtly. ---- */
@@ -111,7 +132,9 @@ function MagneticNavLink({ to, end, isActive, onMouseEnter, onMouseLeave, childr
         to={to}
         end={end}
         className={`relative px-3.5 py-1.5 text-[0.85rem] font-medium transition-colors duration-200 ease-premium inline-block ${
-          isActive ? 'text-stone-50' : 'text-stone-300 hover:text-stone-50'
+          isActive
+            ? 'text-zinc-900 dark:text-stone-50'
+            : 'text-zinc-600 hover:text-zinc-900 dark:text-stone-300 dark:hover:text-stone-50'
         }`}
       >
         {children}
@@ -248,6 +271,7 @@ function Header() {
   const location = useLocation()
   const { isAuthenticated, user } = useAuth()
   const isAdmin = isAuthenticated && Boolean(user?.is_admin)
+  const isDark = useIsDark()
 
   const { scrollY } = useScroll()
 
@@ -312,22 +336,23 @@ function Header() {
         aria-hidden={hidden}
         className="fixed inset-x-0 top-0 z-40 will-change-transform pointer-events-none"
       >
-        <nav className="pointer-events-auto relative flex items-center justify-between gap-2 bg-zinc-950/85 backdrop-blur-xl border-b border-stone-50/10 px-4 sm:px-6 lg:px-8 py-2.5 shadow-[0_24px_50px_-22px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.08)]">
-          {/* Top inner hairline - liquid glass refraction. */}
+        <nav className="pointer-events-auto relative flex items-center justify-between gap-2 bg-stone-50/85 dark:bg-zinc-950/85 backdrop-blur-xl border-b border-zinc-900/10 dark:border-stone-50/10 px-4 sm:px-6 lg:px-8 py-2.5 shadow-[0_18px_36px_-24px_rgba(24,24,27,0.25),inset_0_1px_0_rgba(24,24,27,0.06)] dark:shadow-[0_24px_50px_-22px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.08)]">
+          {/* Top inner hairline - liquid glass refraction. Switches to a dark
+             hairline in light mode so it stays visible on the pale bg. */}
           <span
             aria-hidden="true"
-            className="pointer-events-none absolute left-6 right-6 top-0 h-px bg-gradient-to-r from-transparent via-stone-50/15 to-transparent"
+            className="pointer-events-none absolute left-6 right-6 top-0 h-px bg-gradient-to-r from-transparent via-zinc-900/15 dark:via-stone-50/15 to-transparent"
           />
 
           {/* Brand */}
           <Link
             to="/"
             onClick={close}
-            className="inline-flex items-center gap-2 text-stone-50 pl-1.5 pr-2"
+            className="inline-flex items-center gap-2 text-zinc-900 dark:text-stone-50 pl-1.5 pr-2"
           >
             <BrandMark />
             <span className="font-display font-semibold tracking-tight text-[0.95rem] hidden sm:inline">
-              Rene <span className="text-turf-300">Football</span>
+              Rene <span className="text-turf-400 dark:text-turf-300">Football</span>
             </span>
           </Link>
 
@@ -350,10 +375,12 @@ function Header() {
                       initial={false}
                       animate={{
                         borderRadius: HOVER_SHAPES[item.to]?.borderRadius ?? 999,
-                        backgroundColor: HOVER_SHAPES[item.to]?.tint ?? 'rgba(250,250,249,0.08)',
+                        backgroundColor: isDark
+                          ? (HOVER_SHAPES[item.to]?.tint      ?? 'rgba(250,250,249,0.08)')
+                          : (HOVER_SHAPES[item.to]?.tintLight ?? 'rgba(24,24,27,0.06)'),
                       }}
                       transition={{ type: 'spring', stiffness: 380, damping: 32 }}
-                      className="absolute inset-0 border border-stone-50/10"
+                      className="absolute inset-0 border border-zinc-900/10 dark:border-stone-50/10"
                     />
                   )}
                   <span className="relative inline-flex items-center gap-1.5">
@@ -370,7 +397,7 @@ function Header() {
                       <motion.span
                         animate={{ rotate: megaOpen ? 180 : 0 }}
                         transition={{ type: 'spring', stiffness: 280, damping: 24 }}
-                        className="grid place-items-center text-stone-500"
+                        className="grid place-items-center text-zinc-400 dark:text-stone-500"
                         aria-hidden="true"
                       >
                         <CaretDown size={10} weight="bold" />
@@ -418,7 +445,7 @@ function Header() {
           {/* Right cluster: divider · theme · admin shortcut.
              When the visitor is signed-in as admin, the lock becomes a dashboard
              dial that goes straight to /admin instead of /admin/login. */}
-          <div className="hidden md:flex items-center gap-0.5 pl-2 ml-1 border-l border-stone-50/10">
+          <div className="hidden md:flex items-center gap-0.5 pl-2 ml-1 border-l border-zinc-900/10 dark:border-stone-50/10">
             <ThemeToggle variant="rail" />
             <Link
               to={isAdmin ? '/admin' : '/admin/login'}
@@ -426,8 +453,8 @@ function Header() {
               title={isAdmin ? 'Tableau de bord admin' : 'Espace agence'}
               className={`group relative grid place-items-center w-10 h-10 rounded-xl transition-colors ${
                 isAdmin
-                  ? 'text-turf-300 hover:text-turf-200 hover:bg-turf-800/20'
-                  : 'text-stone-400 hover:text-stone-50 hover:bg-stone-50/5'
+                  ? 'text-turf-500 hover:text-turf-600 hover:bg-turf-100 dark:text-turf-300 dark:hover:text-turf-200 dark:hover:bg-turf-800/20'
+                  : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-900/5 dark:text-stone-400 dark:hover:text-stone-50 dark:hover:bg-stone-50/5'
               }`}
             >
               {isAdmin ? <Gauge size={16} weight="regular" /> : <Lock size={15} weight="regular" />}
@@ -453,7 +480,7 @@ function Header() {
             <ThemeToggle variant="rail" />
             <button
               type="button"
-              className="inline-flex items-center justify-center w-10 h-10 rounded-xl text-stone-50 hover:bg-stone-50/5 transition"
+              className="inline-flex items-center justify-center w-10 h-10 rounded-xl text-zinc-900 hover:bg-zinc-900/5 dark:text-stone-50 dark:hover:bg-stone-50/5 transition"
               aria-label={open ? 'Fermer le menu' : 'Ouvrir le menu'}
               aria-expanded={open}
               onClick={() => setOpen((v) => !v)}
