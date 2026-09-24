@@ -35,6 +35,7 @@ const AdminStaff       = lazy(() => import('./pages/admin/AdminStaff'))
 const AdminStaffEdit   = lazy(() => import('./pages/admin/AdminStaffEdit'))
 const AdminPresentations    = lazy(() => import('./pages/admin/AdminPresentations'))
 const AdminPresentationEdit = lazy(() => import('./pages/admin/AdminPresentationEdit'))
+const AdminContact          = lazy(() => import('./pages/admin/AdminContact'))
 
 function App() {
   return (
@@ -105,6 +106,7 @@ function App() {
                 <Route path="presentations" element={<AdminPresentations />} />
                 <Route path="presentations/nouvelle" element={<AdminPresentationEdit creating />} />
                 <Route path="presentations/:id/edit" element={<AdminPresentationEdit />} />
+                <Route path="contact" element={<AdminContact />} />
                 <Route path="*" element={<Navigate to="/admin" replace />} />
               </Route>
             </Routes>

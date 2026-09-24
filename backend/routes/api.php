@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\Admin\AdminAppearanceController;
 use App\Http\Controllers\Api\Admin\AdminArticleController;
 use App\Http\Controllers\Api\Admin\AdminClipController;
 use App\Http\Controllers\Api\Admin\AdminBenchmarkController;
+use App\Http\Controllers\Api\Admin\AdminContactSubmissionController;
 use App\Http\Controllers\Api\Admin\AdminPlayerController;
 use App\Http\Controllers\Api\Admin\AdminPresentationController;
 use App\Http\Controllers\Api\Admin\AdminStaffController;
@@ -91,6 +92,12 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::get('/analysis/percentiles',          [AnalysisController::class, 'percentiles']);
     Route::get('/analysis/benchmarks',           [AnalysisController::class, 'benchmarks']);
     Route::get('/analysis/benchmark/{slug}',     [AnalysisController::class, 'benchmark']);
+
+    // Public contact wizard inbox (audience-typed submissions).
+    Route::get('/contact-submissions',                    [AdminContactSubmissionController::class, 'index']);
+    Route::get('/contact-submissions/{submission}',       [AdminContactSubmissionController::class, 'show']);
+    Route::patch('/contact-submissions/{submission}/status', [AdminContactSubmissionController::class, 'updateStatus']);
+    Route::delete('/contact-submissions/{submission}',    [AdminContactSubmissionController::class, 'destroy']);
 
     // Editable benchmark table (position × age tier × metric).
     Route::get('/benchmarks',                    [AdminBenchmarkController::class, 'index']);
