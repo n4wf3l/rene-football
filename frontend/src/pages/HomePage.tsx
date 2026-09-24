@@ -172,7 +172,7 @@ function HeroFlowline() {
 function LuxembourgLabel() {
   return (
     <div
-      className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-2 text-turf-300"
+      className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-2 text-turf-700 dark:text-turf-300"
       aria-hidden="true"
     >
       <motion.div
@@ -182,7 +182,7 @@ function LuxembourgLabel() {
       >
         <MapPin size={30} weight="fill" />
       </motion.div>
-      <div className="font-mono text-[0.72rem] tracking-[0.42em] font-semibold text-turf-100">
+      <div className="font-mono text-[0.72rem] tracking-[0.42em] font-semibold text-turf-900 dark:text-turf-100">
         {LUXEMBOURG_WORD.split('').map((letter, i) => (
           <motion.span
             key={i}
