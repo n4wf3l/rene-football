@@ -8,6 +8,7 @@ import {
   CaretDoubleLeft,
   CaretDoubleRight,
   ChartLineUp,
+  EnvelopeSimple,
   House,
   List as ListIcon,
   FilePdf,
@@ -24,7 +25,7 @@ import BrandLogo from '../components/BrandLogo'
 
 const SIDEBAR_STATE_KEY = 'rene_admin_sidebar_open'
 
-type BadgeKey = 'scouting'
+type BadgeKey = 'scouting' | 'contact'
 
 interface AdminNavItem {
   to: string
@@ -43,6 +44,7 @@ const NAV_ITEMS: AdminNavItem[] = [
   { to: '/admin/scouting',  label: 'Scouting',        icon: Binoculars,    badgeKey: 'scouting' },
   { to: '/admin/equipe',    label: 'Équipe',          icon: UsersThree },
   { to: '/admin/presentations', label: 'Présentations', icon: FilePdf },
+  { to: '/admin/contact',   label: 'Contact',         icon: EnvelopeSimple, badgeKey: 'contact' },
 ]
 
 interface SidebarLinkProps {
@@ -113,7 +115,7 @@ function Sidebar({ onCloseMobile, onCollapseDesktop }: SidebarProps) {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
-  const [badges, setBadges] = useState<Record<BadgeKey, number>>({ scouting: 0 })
+  const [badges, setBadges] = useState<Record<BadgeKey, number>>({ scouting: 0, contact: 0 })
 
   /**
    * Lightweight inbox poll for the sidebar badge.
@@ -130,6 +132,16 @@ function Sidebar({ onCloseMobile, onCollapseDesktop }: SidebarProps) {
         setBadges((prev) => ({ ...prev, scouting: count }))
       })
       .catch(() => { /* silently ignore - badge falls back to 0 */ })
+
+    // Contact inbox: count "new" (unread) submissions - cheapest possible
+    // read via the standard index endpoint filtered by status.
+    api.get<{ meta?: { counts?: Record<string, number> } }>('/admin/contact-submissions?per_page=1&status=new', { auth: true })
+      .then((d) => {
+        if (cancelled) return
+        const count = d?.meta?.counts?.new ?? 0
+        setBadges((prev) => ({ ...prev, contact: count }))
+      })
+      .catch(() => { /* silently ignore */ })
     return () => { cancelled = true }
   }, [location.pathname])
 

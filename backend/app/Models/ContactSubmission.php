@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class ContactSubmission extends Model
 {
+    public const STATUSES = ['new', 'read', 'handled', 'archived'];
+
     protected $fillable = [
         'reason',
         'name',
@@ -13,6 +15,9 @@ class ContactSubmission extends Model
         'phone',
         'subject',
         'message',
+        'payload',
+        'status',
+        'cv_path',
         'consent_at',
         'ip',
         'user_agent',
@@ -22,6 +27,7 @@ class ContactSubmission extends Model
     {
         return [
             'consent_at' => 'datetime',
+            'payload'    => 'array',
         ];
     }
 }
