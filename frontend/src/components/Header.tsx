@@ -264,6 +264,7 @@ const MegaPanel = memo(function MegaPanel({ open, onClose, onMouseEnter, onMouse
 function Header() {
   const [open, setOpen] = useState(false)
   const [hidden, setHidden] = useState(false)
+  const [atTop, setAtTop] = useState(true)
   const [hovered, setHovered] = useState<string | null>(null)
   const [megaOpen, setMegaOpen] = useState(false)
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -276,9 +277,14 @@ function Header() {
   const { scrollY } = useScroll()
 
   /* Smart navbar: scrolling down hides it (translateY -100%), scrolling up reveals it.
-     Always visible near the top so users never lose access. */
+     Always visible near the top so users never lose access.
+     Also tracks whether we're at the very top so the chrome (border, hairline,
+     shadow) can fade out when the navbar is flush with the page background. */
   useMotionValueEvent(scrollY, 'change', (v) => {
     const dy = v - lastY.current
+    const nextAtTop = v <= 8
+    if (nextAtTop !== atTop) setAtTop(nextAtTop)
+
     if (Math.abs(dy) < 4) return // ignore sub-pixel jitter / trackpad momentum tail
 
     if (v <= 80) {
@@ -336,12 +342,21 @@ function Header() {
         aria-hidden={hidden}
         className="fixed inset-x-0 top-0 z-40 will-change-transform pointer-events-none"
       >
-        <nav className="pointer-events-auto relative flex items-center justify-between gap-2 bg-stone-50/85 dark:bg-zinc-950/85 backdrop-blur-xl border-b border-zinc-900/10 dark:border-stone-50/10 px-4 sm:px-6 lg:px-8 py-2.5 shadow-[0_18px_36px_-24px_rgba(24,24,27,0.25),inset_0_1px_0_rgba(24,24,27,0.06)] dark:shadow-[0_24px_50px_-22px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.08)]">
-          {/* Top inner hairline - liquid glass refraction. Switches to a dark
-             hairline in light mode so it stays visible on the pale bg. */}
+        <nav
+          className={`pointer-events-auto relative flex items-center justify-between gap-2 bg-stone-50/85 dark:bg-zinc-950/85 backdrop-blur-xl px-4 sm:px-6 lg:px-8 py-2.5 transition-[border-color,box-shadow] duration-300 ease-premium ${
+            atTop
+              ? 'border-b border-transparent shadow-none dark:border-stone-50/10 dark:shadow-[0_24px_50px_-22px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.08)]'
+              : 'border-b border-zinc-900/10 dark:border-stone-50/10 shadow-[0_18px_36px_-24px_rgba(24,24,27,0.25),inset_0_1px_0_rgba(24,24,27,0.06)] dark:shadow-[0_24px_50px_-22px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.08)]'
+          }`}
+        >
+          {/* Top inner hairline - liquid glass refraction. Faded out at the
+             top of the page so the navbar sits flush with the body bg, then
+             faded back in on scroll. Dark mode keeps the hairline always. */}
           <span
             aria-hidden="true"
-            className="pointer-events-none absolute left-6 right-6 top-0 h-px bg-gradient-to-r from-transparent via-zinc-900/15 dark:via-stone-50/15 to-transparent"
+            className={`pointer-events-none absolute left-6 right-6 top-0 h-px bg-gradient-to-r from-transparent via-zinc-900/15 dark:via-stone-50/15 to-transparent transition-opacity duration-300 ease-premium ${
+              atTop ? 'opacity-0 dark:opacity-100' : 'opacity-100'
+            }`}
           />
 
           {/* Brand */}
