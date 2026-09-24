@@ -18,6 +18,8 @@ import {
 } from '@phosphor-icons/react'
 import { ApiError, api } from '../api/client'
 import MeshGradient from '../components/MeshGradient'
+import Select from '../components/ui/Select'
+import DateInput from '../components/ui/DateInput'
 import { useDarkHero } from '../hooks/useDarkHero'
 import { usePublicPlayers } from '../lib/usePublicPlayers'
 import type {
@@ -202,12 +204,13 @@ function StepJoueur({ form, errors, onPayloadChange, onCvChange }: StepAudienceF
         </div>
         <div>
           <FieldLabel htmlFor="pl-dob" optional>Date de naissance</FieldLabel>
-          <input
+          <DateInput
             id="pl-dob"
-            type="date"
             value={form.payload.date_of_birth ?? ''}
-            onChange={(e) => onPayloadChange('date_of_birth', e.target.value)}
-            className={`${inputBase} border-stone-300 focus:border-turf-700`}
+            onChange={(v) => onPayloadChange('date_of_birth', v)}
+            min="1990-01-01"
+            max={new Date().toISOString().slice(0, 10)}
+            placeholder="jj mois aaaa"
           />
         </div>
       </div>
@@ -337,19 +340,20 @@ function StepClub({ form, errors, onPayloadChange, roster }: ClubOrMediaProps) {
         </div>
         <div>
           <FieldLabel htmlFor="cl-role">Votre rôle</FieldLabel>
-          <select
+          <Select
             id="cl-role"
             value={form.payload.role ?? ''}
-            onChange={(e) => onPayloadChange('role', e.target.value as ContactForm['payload']['role'])}
-            className={`${inputBase} ${errors['payload.role'] ? 'border-rose-400' : 'border-stone-300 focus:border-turf-700'}`}
-          >
-            <option value="">Choisir…</option>
-            <option value="coach">Entraîneur</option>
-            <option value="sporting_director">Directeur sportif</option>
-            <option value="scout">Scout / Recruteur</option>
-            <option value="president">Président</option>
-            <option value="other">Autre</option>
-          </select>
+            onChange={(v) => onPayloadChange('role', v as ContactForm['payload']['role'])}
+            invalid={Boolean(errors['payload.role'])}
+            placeholder="Choisir…"
+            options={[
+              { value: 'coach',              label: 'Entraîneur' },
+              { value: 'sporting_director',  label: 'Directeur sportif' },
+              { value: 'scout',              label: 'Scout / Recruteur' },
+              { value: 'president',          label: 'Président' },
+              { value: 'other',              label: 'Autre' },
+            ]}
+          />
           <FieldError message={errors['payload.role']} />
         </div>
       </div>
@@ -388,22 +392,17 @@ function StepClub({ form, errors, onPayloadChange, roster }: ClubOrMediaProps) {
         <div className="space-y-5 rounded-2xl border border-stone-200 dark:border-stone-50/10 p-5 bg-stone-50/40 dark:bg-zinc-950/40">
           <div>
             <FieldLabel htmlFor="cl-player">Joueur ciblé</FieldLabel>
-            <select
+            <Select
               id="cl-player"
-              value={form.payload.player_id ?? ''}
-              onChange={(e) => {
-                const v = e.target.value === '' ? null : Number(e.target.value)
-                onPayloadChange('player_id', v)
-              }}
-              className={`${inputBase} border-stone-300 focus:border-turf-700`}
-            >
-              <option value="">Un joueur du roster…</option>
-              {roster.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}{p.position ? ` · ${p.position}` : ''}{p.club ? ` · ${p.club}` : ''}
-                </option>
-              ))}
-            </select>
+              value={form.payload.player_id != null ? String(form.payload.player_id) : ''}
+              onChange={(v) => onPayloadChange('player_id', v === '' ? null : Number(v))}
+              placeholder="Un joueur du roster…"
+              emptyLabel="Aucun joueur publié pour le moment."
+              options={roster.map((p) => ({
+                value: String(p.id),
+                label: `${p.name}${p.position ? ` · ${p.position}` : ''}${p.club ? ` · ${p.club}` : ''}`,
+              }))}
+            />
             <p className="mt-2 text-xs text-zinc-500 dark:text-stone-500">
               Le joueur ne figure pas dans la liste ? Précisez son nom ci-dessous.
             </p>
@@ -491,18 +490,19 @@ function StepMedias({ form, errors, onPayloadChange, roster }: ClubOrMediaProps)
         </div>
         <div>
           <FieldLabel htmlFor="md-role">Votre rôle</FieldLabel>
-          <select
+          <Select
             id="md-role"
             value={form.payload.role ?? ''}
-            onChange={(e) => onPayloadChange('role', e.target.value as ContactForm['payload']['role'])}
-            className={`${inputBase} ${errors['payload.role'] ? 'border-rose-400' : 'border-stone-300 focus:border-turf-700'}`}
-          >
-            <option value="">Choisir…</option>
-            <option value="journalist">Journaliste</option>
-            <option value="editor">Rédacteur en chef</option>
-            <option value="producer">Producteur / Réalisateur</option>
-            <option value="other">Autre</option>
-          </select>
+            onChange={(v) => onPayloadChange('role', v as ContactForm['payload']['role'])}
+            invalid={Boolean(errors['payload.role'])}
+            placeholder="Choisir…"
+            options={[
+              { value: 'journalist', label: 'Journaliste' },
+              { value: 'editor',     label: 'Rédacteur en chef' },
+              { value: 'producer',   label: 'Producteur / Réalisateur' },
+              { value: 'other',      label: 'Autre' },
+            ]}
+          />
           <FieldError message={errors['payload.role']} />
         </div>
       </div>
@@ -540,22 +540,17 @@ function StepMedias({ form, errors, onPayloadChange, roster }: ClubOrMediaProps)
         <div className="space-y-4 rounded-2xl border border-stone-200 dark:border-stone-50/10 p-5 bg-stone-50/40 dark:bg-zinc-950/40">
           <div>
             <FieldLabel htmlFor="md-player">Joueur souhaité</FieldLabel>
-            <select
+            <Select
               id="md-player"
-              value={form.payload.player_id ?? ''}
-              onChange={(e) => {
-                const v = e.target.value === '' ? null : Number(e.target.value)
-                onPayloadChange('player_id', v)
-              }}
-              className={`${inputBase} border-stone-300 focus:border-turf-700`}
-            >
-              <option value="">Un joueur du roster…</option>
-              {roster.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}{p.position ? ` · ${p.position}` : ''}
-                </option>
-              ))}
-            </select>
+              value={form.payload.player_id != null ? String(form.payload.player_id) : ''}
+              onChange={(v) => onPayloadChange('player_id', v === '' ? null : Number(v))}
+              placeholder="Un joueur du roster…"
+              emptyLabel="Aucun joueur publié pour le moment."
+              options={roster.map((p) => ({
+                value: String(p.id),
+                label: `${p.name}${p.position ? ` · ${p.position}` : ''}`,
+              }))}
+            />
           </div>
           <div>
             <FieldLabel htmlFor="md-player-name" optional>Autre joueur (nom libre)</FieldLabel>
@@ -573,13 +568,15 @@ function StepMedias({ form, errors, onPayloadChange, roster }: ClubOrMediaProps)
 
       <div>
         <FieldLabel htmlFor="md-deadline" optional>Deadline de bouclage</FieldLabel>
-        <input
-          id="md-deadline"
-          type="date"
-          value={form.payload.deadline ?? ''}
-          onChange={(e) => onPayloadChange('deadline', e.target.value)}
-          className={`${inputBase} border-stone-300 focus:border-turf-700 max-w-[240px]`}
-        />
+        <div className="max-w-[280px]">
+          <DateInput
+            id="md-deadline"
+            value={form.payload.deadline ?? ''}
+            onChange={(v) => onPayloadChange('deadline', v)}
+            min={new Date().toISOString().slice(0, 10)}
+            placeholder="jj mois aaaa"
+          />
+        </div>
       </div>
     </div>
   )
@@ -906,17 +903,23 @@ function ContactPage() {
               </motion.div>
             </AnimatePresence>
 
-            {/* Nav buttons */}
+            {/* Nav buttons — the Retour button is hidden entirely on step 1
+                (no back to go to) rather than shown greyed out, so the button
+                bar doesn't advertise a dead action. An empty spacer keeps the
+                Continuer button justified to the right. */}
             <div className="mt-10 flex items-center justify-between gap-4">
-              <button
-                type="button"
-                onClick={goBack}
-                disabled={step === 1}
-                className="btn btn-ghost text-sm disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                <ArrowLeft size={15} weight="bold" />
-                Retour
-              </button>
+              {step > 1 ? (
+                <button
+                  type="button"
+                  onClick={goBack}
+                  className="btn btn-ghost text-sm"
+                >
+                  <ArrowLeft size={15} weight="bold" />
+                  Retour
+                </button>
+              ) : (
+                <span aria-hidden="true" />
+              )}
 
               {step < 3 ? (
                 <button
