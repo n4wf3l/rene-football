@@ -93,9 +93,10 @@ export default function LuxembourgMap({
         />
       )}
 
-      {/* Pencil-stroke outline drawn on mount. pathLength="1" normalises the
-         dasharray/dashoffset calc so the stroke reaches its own tail even on
-         browsers that shortcut closed-polygon length measurement. */}
+      {/* Pencil-stroke outline drawn on mount. We keep Motion's `pathLength`
+         shorthand because it renders the initial hidden state cleanly, and we
+         rely on the path rewrite above (Z → explicit L to M + overshoot) so
+         the closing edge is part of the length Motion measures. */}
       {showStroke && (
         <motion.path
           d={pathD}
@@ -106,10 +107,8 @@ export default function LuxembourgMap({
           strokeLinejoin="round"
           strokeLinecap="round"
           vectorEffect="non-scaling-stroke"
-          pathLength={1}
-          strokeDasharray="1 1"
-          initial={{ strokeDashoffset: 1 }}
-          animate={{ strokeDashoffset: 0 }}
+          initial={{ pathLength: 0 }}
+          animate={{ pathLength: 1 }}
           transition={{ duration: 2.6, delay: 0.4, ease: [0.65, 0, 0.35, 1] }}
         />
       )}
