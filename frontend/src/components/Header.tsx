@@ -345,17 +345,17 @@ function Header() {
         <nav
           className={`pointer-events-auto relative flex items-center justify-between gap-2 bg-stone-50/85 dark:bg-zinc-950/85 backdrop-blur-xl px-4 sm:px-6 lg:px-8 py-2.5 transition-[border-color,box-shadow] duration-300 ease-premium ${
             atTop
-              ? 'border-b border-transparent shadow-none dark:border-stone-50/10 dark:shadow-[0_24px_50px_-22px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.08)]'
+              ? 'border-b border-transparent shadow-none'
               : 'border-b border-zinc-900/10 dark:border-stone-50/10 shadow-[0_18px_36px_-24px_rgba(24,24,27,0.25),inset_0_1px_0_rgba(24,24,27,0.06)] dark:shadow-[0_24px_50px_-22px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.08)]'
           }`}
         >
           {/* Top inner hairline - liquid glass refraction. Faded out at the
-             top of the page so the navbar sits flush with the body bg, then
-             faded back in on scroll. Dark mode keeps the hairline always. */}
+             top of the page so the navbar sits flush with the body bg (both
+             themes), then faded back in on scroll. */}
           <span
             aria-hidden="true"
             className={`pointer-events-none absolute left-6 right-6 top-0 h-px bg-gradient-to-r from-transparent via-zinc-900/15 dark:via-stone-50/15 to-transparent transition-opacity duration-300 ease-premium ${
-              atTop ? 'opacity-0 dark:opacity-100' : 'opacity-100'
+              atTop ? 'opacity-0' : 'opacity-100'
             }`}
           />
 
