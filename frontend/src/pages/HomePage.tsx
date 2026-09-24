@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import {
   ArrowUpRight,
   Handshake,
+  MapPin,
   ScanSmiley,
   ShieldCheck,
   TrendUp,
@@ -69,6 +70,61 @@ const FADE_UP = {
   show:   { opacity: 1, y: 0 },
 }
 
+/**
+ * Centered pin + typewriter "LUXEMBOURG" label that lands after the
+ * LuxembourgMap outline finishes drawing. Sequenced by hard-coded delays
+ * (the map's own tracing ends at ~3s = 0.4s delay + 2.6s duration) so it
+ * doesn't need a callback out of the map component.
+ */
+const LUXEMBOURG_WORD = 'LUXEMBOURG'
+const PIN_DELAY_S = 3.1
+const TYPING_DELAY_S = 3.5
+const LETTER_STEP_S = 0.07
+
+function LuxembourgLabel() {
+  return (
+    <div
+      className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-2 text-turf-300"
+      aria-hidden="true"
+    >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.6, y: 4 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ delay: PIN_DELAY_S, duration: 0.45, ease: [0.34, 1.56, 0.64, 1] }}
+      >
+        <MapPin size={30} weight="fill" />
+      </motion.div>
+      <div className="font-mono text-[0.72rem] tracking-[0.42em] font-semibold text-turf-100">
+        {LUXEMBOURG_WORD.split('').map((letter, i) => (
+          <motion.span
+            key={i}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: TYPING_DELAY_S + i * LETTER_STEP_S, duration: 0.001 }}
+          >
+            {letter}
+          </motion.span>
+        ))}
+        {/* Blinking-then-fading cursor: appears with the first letter, blinks
+           while typing, fades out just after the last letter lands. */}
+        <motion.span
+          className="inline-block w-[0.5em] ml-0.5 -mb-0.5 align-baseline"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: [0, 1, 0, 1, 0, 1, 0] }}
+          transition={{
+            delay: TYPING_DELAY_S,
+            duration: LETTER_STEP_S * LUXEMBOURG_WORD.length + 0.6,
+            times: [0, 0.08, 0.24, 0.4, 0.56, 0.85, 1],
+            ease: 'linear',
+          }}
+        >
+          |
+        </motion.span>
+      </div>
+    </div>
+  )
+}
+
 function HomePage() {
   const heroRef = useRef<HTMLElement | null>(null)
   const { players, loading } = usePublicPlayers()
@@ -97,16 +153,22 @@ function HomePage() {
            visible where it crosses opaque headline glyphs. Screen-blend was
            tried first but is invisible over pure white text (screen(white,
            anything) ~= white) - a plain semi-transparent overlay reads on
-           both the white glyphs and the dark background instead. */}
+           both the white glyphs and the dark background instead.
+           The stroke is wrapped in a `relative` shell so the "Luxembourg"
+           label + pin can be absolutely centred over the country silhouette
+           without a second layout system. */}
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-y-0 left-0 z-20 hidden w-7/12 items-center justify-start -ml-10 lg:flex"
         >
-          <LuxembourgMap
-            className="h-[70%] max-h-[440px] w-auto text-turf-600/60 dark:text-turf-300/70"
-            showFill={false}
-            strokeWidth={1.6}
-          />
+          <div className="relative h-[70%] max-h-[440px] flex items-stretch">
+            <LuxembourgMap
+              className="h-full w-auto text-turf-600/60 dark:text-turf-300/70"
+              showFill={false}
+              strokeWidth={1.6}
+            />
+            <LuxembourgLabel />
+          </div>
         </div>
         <div
           aria-hidden="true"
