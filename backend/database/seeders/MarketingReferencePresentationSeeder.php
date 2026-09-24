@@ -122,7 +122,7 @@ class MarketingReferencePresentationSeeder extends Seeder
                     'photo_side'     => 'right',
                     'language'       => 'en',
                     'tagline'        => 'PROPULSEUR DE TALENT',
-                    'middle_variant' => 'profile-strengths',
+                    'middle_variant' => 'profile-bars',
                     'show_watermark' => true,
                     'projet_intro'   => 'Represented by RENEFOOTBALL in collaboration with WNRS SPORT (UK). Opportunities in top academies across Europe.',
                     'partner_academies' => [
