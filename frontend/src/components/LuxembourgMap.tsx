@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { geoMercator, geoPath } from 'd3-geo'
 import type { Feature, Polygon } from 'geojson'
@@ -73,14 +73,19 @@ export default function LuxembourgMap({
 
   const fill = fillColor ?? strokeColor
 
-  // Two-phase stroke render:
-  //   phase 1 - Framer Motion animates pathLength 0 → 1 (the "drawn on" feel)
-  //   phase 2 - once that animation ends, we swap in a plain static path with
-  //             no dasharray at all. Motion's getTotalLength() undershoot on
-  //             closed non-scaling-stroke paths leaves a small residual gap at
-  //             pathLength=1 in Chromium; the static path guarantees the
-  //             final rendered state is a solid closed outline no matter what.
-  const [strokeDrawn, setStrokeDrawn] = useState(false)
+  // Cross-faded stroke: two paths always mounted.
+  //   - motion.path traces pathLength 0 → 1 for the "drawn on" feel and stays
+  //     there.
+  //   - a plain <path> (no dasharray) fades in on top just as the tracing
+  //     lands, hiding the sub-pixel gap that Motion's getTotalLength()
+  //     undershoot leaves on closed vector-effect="non-scaling-stroke" paths
+  //     in Chromium.
+  // The overlap in visible strokes prevents any perceived pop; when the fade
+  // completes the static path is authoritative.
+  const traceDuration = 2.6
+  const traceDelay = 0.4
+  const safetyFadeDelay = traceDelay + traceDuration - 0.15
+  const safetyFadeDuration = 0.55
 
   return (
     <svg
@@ -102,9 +107,9 @@ export default function LuxembourgMap({
         />
       )}
 
-      {/* Phase 1: Motion-driven pathLength tracing. Hidden once the animation
-         completes so the static safety stroke below takes over. */}
-      {showStroke && !strokeDrawn && (
+      {/* Tracing stroke: Motion animates pathLength 0 → 1 and stays there.
+         Never unmounted, so the tracing motion stays visible throughout. */}
+      {showStroke && (
         <motion.path
           d={pathD}
           fill="none"
@@ -116,16 +121,16 @@ export default function LuxembourgMap({
           vectorEffect="non-scaling-stroke"
           initial={{ pathLength: 0 }}
           animate={{ pathLength: 1 }}
-          transition={{ duration: 2.6, delay: 0.4, ease: [0.65, 0, 0.35, 1] }}
-          onAnimationComplete={() => setStrokeDrawn(true)}
+          transition={{ duration: traceDuration, delay: traceDelay, ease: [0.65, 0, 0.35, 1] }}
         />
       )}
 
-      {/* Phase 2: plain static stroke, no dasharray. Renders the outline as a
-         solid closed loop immediately after the tracing animation ends and
-         stays there for the life of the component. */}
-      {showStroke && strokeDrawn && (
-        <path
+      {/* Safety stroke: plain <path> (no dasharray) cross-fades in on top of
+         the tracing stroke just before the tracing lands. Once faded, it is
+         the authoritative outline and closes the loop cleanly regardless of
+         Motion's dashoffset math. */}
+      {showStroke && (
+        <motion.path
           d={pathD}
           fill="none"
           stroke={strokeColor}
@@ -134,6 +139,9 @@ export default function LuxembourgMap({
           strokeLinejoin="round"
           strokeLinecap="round"
           vectorEffect="non-scaling-stroke"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: safetyFadeDuration, delay: safetyFadeDelay, ease: 'easeOut' }}
         />
       )}
     </svg>
