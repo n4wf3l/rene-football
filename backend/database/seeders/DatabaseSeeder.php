@@ -93,5 +93,13 @@ class DatabaseSeeder extends Seeder
             PlayerSourceSeeder::class,
             ScoutingPlayerPatchSeeder::class,
         ]);
+
+        // Reference marketing fiches - run AFTER the scouting patch so the
+        // five reference players stay clean of demo-generated match stats /
+        // scouting scores. Order matters: players first, presentations second.
+        $this->call([
+            FicheReferencePlayersSeeder::class,
+            MarketingReferencePresentationSeeder::class,
+        ]);
     }
 }

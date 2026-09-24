@@ -95,14 +95,16 @@ class MarketingTemplate extends PresentationTemplate
 
         // ---------- Right / info column ----------
 
-        // Logo brand block (RF wordmark + tagline)
+        // Logo brand block (RF wordmark + tagline + optional motto)
         $tagline = trim((string) ($options['tagline'] ?? 'AGENCE DE JOUEURS'));
+        $headerMotto = trim((string) ($options['header_motto'] ?? ''));
         $brandBlock = '<div style="padding:0 0 4mm 0;">'
             .'<div style="font-size:18pt;font-weight:900;letter-spacing:0.5px;color:'.$p['text'].';line-height:1;">'
                 .'<span style="color:'.$p['accent'].';">R</span><span style="color:'.$p['text'].';">F</span>'
                 .'&nbsp;&nbsp;<span style="font-size:10pt;letter-spacing:3px;font-weight:800;">RENE<span style="color:'.$p['accent'].';">FOOTBALL</span></span>'
             .'</div>'
             .($tagline !== '' ? '<div style="font-size:5.5pt;letter-spacing:3px;color:'.$p['secondary'].';margin-top:1.5mm;font-weight:700;">'.$this->esc(mb_strtoupper($tagline)).'</div>' : '')
+            .($headerMotto !== '' ? '<div style="font-size:6.5pt;letter-spacing:3px;color:'.$p['accent'].';margin-top:1.5mm;font-weight:800;">'.$this->esc(mb_strtoupper($headerMotto)).'</div>' : '')
             .'</div>';
 
         // Giant name — split first/rest, first line white, second line accent gold
@@ -180,18 +182,37 @@ class MarketingTemplate extends PresentationTemplate
         }
 
         // ---------- Content bands ----------
+        // Middle band composition is data-driven:
+        //   - "parcours-strengths" — Hanibal fiche (Parcours left, Qualités right)
+        //   - "profile-caracteristiques" — Zoran fiche (Points forts left, Caractéristiques right)
+        //   - default — Destiny/Adams (Profil du joueur left, Points forts right)
 
+        $variant = $options['middle_variant'] ?? 'profile-strengths';
+
+        $strengthsHtml = $this->strengthsCardHtml($player, $p, 'Points forts');
+        $qualitiesHtml = $this->strengthsCardHtml($player, $p, 'Qualités');
         $profileHtml   = $this->profileHtml($player, $p);
-        $strengthsHtml = $this->strengthsCardHtml($player, $p);
+        $caracsHtml    = $this->caracteristiquesCardHtml($player, $p);
+        $parcoursHtml  = $this->parcoursHtml($player, $p);
+
+        [$leftBlock, $rightBlock] = match ($variant) {
+            'parcours-strengths'        => [$parcoursHtml, $qualitiesHtml],
+            'profile-caracteristiques'  => [$strengthsHtml, $caracsHtml],
+            default                     => [$profileHtml,  $strengthsHtml],
+        };
 
         $middleBand = '';
-        if ($profileHtml !== '' || $strengthsHtml !== '') {
+        if ($leftBlock !== '' || $rightBlock !== '') {
             $middleBand = '<table style="width:100%;border-collapse:collapse;margin-top:0mm;">'
                 .'<tr>'
-                .'<td style="width:50%;vertical-align:top;padding:3mm 6mm 2mm 8mm;border-right:1px solid '.$p['card_border'].';">'.$profileHtml.'</td>'
-                .'<td style="width:50%;vertical-align:top;padding:3mm 8mm 2mm 6mm;">'.$strengthsHtml.'</td>'
+                .'<td style="width:50%;vertical-align:top;padding:3mm 6mm 2mm 8mm;border-right:1px solid '.$p['card_border'].';">'.$leftBlock.'</td>'
+                .'<td style="width:50%;vertical-align:top;padding:3mm 8mm 2mm 6mm;">'.$rightBlock.'</td>'
                 .'</tr></table>';
         }
+
+        // Photo gallery strip (Zoran, Saeed) - 3 photos side by side. Rendered
+        // between middle band and partners band.
+        $galleryHtml = $this->galleryStripHtml($player, $p);
 
         // Projet sportif intro (bio-driven) + academies grid
         $projetIntro = $this->projetSportifIntro($player, $options, $p);
@@ -249,6 +270,7 @@ class MarketingTemplate extends PresentationTemplate
 </style></head><body>
   {$topRow}
   {$middleBand}
+  {$galleryHtml}
   {$partnersBand}
   {$barsBand}
   {$sloganHtml}
@@ -347,7 +369,7 @@ HTML;
         return $html;
     }
 
-    private function strengthsCardHtml(Player $player, array $p): string
+    private function strengthsCardHtml(Player $player, array $p, string $title = 'Points forts'): string
     {
         // Cap at 6 - fits inside the middle band without pushing the partners
         // band off the page when the player also has a full bio.
@@ -362,8 +384,100 @@ HTML;
                 .'</tr>';
         }
 
-        return '<div style="font-size:10pt;letter-spacing:3px;color:'.$p['accent'].';font-weight:900;margin-bottom:3mm;text-transform:uppercase;border-left:3px solid '.$p['accent'].';padding-left:3mm;">Points forts</div>'
+        return '<div style="font-size:10pt;letter-spacing:3px;color:'.$p['accent'].';font-weight:900;margin-bottom:3mm;text-transform:uppercase;border-left:3px solid '.$p['accent'].';padding-left:3mm;">'.$this->esc($title).'</div>'
             .'<table style="width:100%;border-collapse:collapse;">'.$rows.'</table>';
+    }
+
+    /**
+     * Caractéristiques table (Zoran fiche): PIED FORT / STYLE DE JEU /
+     * MEILLEUR POSTE / POINTS FORTS MENTAUX / OBJECTIF, one row per non-null
+     * field. Renders as a compact 2-column table.
+     */
+    private function caracteristiquesCardHtml(Player $player, array $p): string
+    {
+        $rows = [];
+        if ($player->preferred_foot)             $rows[] = ['PIED FORT',            $player->preferred_foot];
+        if (trim((string) $player->playing_style) !== '')   $rows[] = ['STYLE DE JEU',   $player->playing_style];
+        if (trim((string) $player->best_position) !== '')   $rows[] = ['MEILLEUR POSTE', $player->best_position];
+
+        $mental = is_array($player->mental_strengths) ? array_values(array_filter($player->mental_strengths)) : [];
+        if (! empty($mental)) $rows[] = ['POINTS FORTS MENTAUX', implode(' – ', $mental)];
+
+        if (trim((string) $player->objective) !== '') $rows[] = ['OBJECTIF', $this->safeText($player->objective, 180)];
+
+        if (empty($rows)) return '';
+
+        $body = '';
+        foreach ($rows as [$label, $value]) {
+            $body .= '<tr>'
+                .'<td style="vertical-align:top;padding:1.6mm 3mm 1.6mm 0;border-bottom:0.5px solid '.$p['card_border'].';font-size:7pt;letter-spacing:1.5px;color:'.$p['secondary'].';font-weight:800;width:38%;text-transform:uppercase;">'.$this->esc($label).'</td>'
+                .'<td style="vertical-align:top;padding:1.6mm 0;border-bottom:0.5px solid '.$p['card_border'].';font-size:8.5pt;color:'.$p['text'].';font-weight:700;">'.$this->esc($value).'</td>'
+                .'</tr>';
+        }
+
+        return '<div style="font-size:10pt;letter-spacing:3px;color:'.$p['accent'].';font-weight:900;margin-bottom:2mm;text-transform:uppercase;border-left:3px solid '.$p['accent'].';padding-left:3mm;">Caractéristiques</div>'
+            .'<table style="width:100%;border-collapse:collapse;">'.$body.'</table>';
+    }
+
+    /**
+     * Parcours block (Hanibal fiche): year range + club logo + club name for
+     * each entry in `career_history` (JSON array of {years, club, logo_url}).
+     */
+    private function parcoursHtml(Player $player, array $p): string
+    {
+        $history = is_array($player->career_history) ? $player->career_history : [];
+        $history = array_values(array_filter($history, static fn ($h) =>
+            is_array($h) && (
+                (isset($h['club']) && trim((string) $h['club']) !== '')
+                || (isset($h['years']) && trim((string) $h['years']) !== '')
+            )
+        ));
+        if (empty($history)) return '';
+
+        $rows = '';
+        foreach (array_slice($history, 0, 4) as $h) {
+            $years = trim((string) ($h['years'] ?? ''));
+            $club  = trim((string) ($h['club']  ?? ''));
+            $logo  = trim((string) ($h['logo_url'] ?? ''));
+
+            $logoCell = $logo !== ''
+                ? '<img src="'.$this->esc($this->absolutePath($logo)).'" alt="" style="height:9mm;max-width:14mm;object-fit:contain;">'
+                : '<div style="width:9mm;height:9mm;border:1px solid '.$p['card_border'].';"></div>';
+
+            $rows .= '<tr>'
+                .'<td style="width:25mm;padding:2mm 3mm 2mm 0;font-size:9pt;font-weight:800;color:'.$p['text'].';letter-spacing:1px;vertical-align:middle;">'.$this->esc($years).'</td>'
+                .'<td style="width:16mm;padding:2mm 3mm;vertical-align:middle;">'.$logoCell.'</td>'
+                .'<td style="padding:2mm 0;font-size:9pt;font-weight:800;color:'.$p['text'].';letter-spacing:1px;text-transform:uppercase;vertical-align:middle;">'.$this->esc($club).'</td>'
+                .'</tr>';
+        }
+
+        return '<div style="font-size:10pt;letter-spacing:3px;color:'.$p['accent'].';font-weight:900;margin-bottom:2mm;text-transform:uppercase;border-left:3px solid '.$p['accent'].';padding-left:3mm;">Parcours</div>'
+            .'<table style="width:100%;border-collapse:collapse;">'.$rows.'</table>';
+    }
+
+    /**
+     * 3-photo gallery strip (Zoran, Saeed). Reads Player.gallery_photos and
+     * lays up to 3 photos side by side. Empty when the field is empty.
+     */
+    private function galleryStripHtml(Player $player, array $p): string
+    {
+        $photos = is_array($player->gallery_photos) ? $player->gallery_photos : [];
+        $photos = array_values(array_filter(array_map(static fn ($u) => trim((string) $u), $photos), static fn ($u) => $u !== ''));
+        if (empty($photos)) return '';
+
+        $cells = '';
+        foreach (array_slice($photos, 0, 3) as $u) {
+            $cells .= '<td style="width:33%;padding:0 1mm;">'
+                .'<div style="width:100%;height:34mm;overflow:hidden;border:1px solid '.$p['card_border'].';">'
+                .'<img src="'.$this->esc($this->absolutePath($u)).'" alt="" style="width:100%;height:34mm;object-fit:cover;">'
+                .'</div>'
+                .'</td>';
+        }
+
+        return '<div style="padding:1mm 8mm 3mm 8mm;">'
+            .'<table style="width:100%;border-collapse:collapse;">'
+            .'<tr>'.$cells.'</tr></table>'
+            .'</div>';
     }
 
     private function profileHtml(Player $player, array $p): string
