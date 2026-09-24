@@ -78,9 +78,9 @@ const FADE_UP = {
  * doesn't need a callback out of the map component.
  */
 const LUXEMBOURG_WORD = 'LUXEMBOURG'
-const PIN_DELAY_S = 3.1
-const TYPING_DELAY_S = 3.5
-const LETTER_STEP_S = 0.07
+const PIN_DELAY_S = 2.0
+const TYPING_DELAY_S = 2.4
+const LETTER_STEP_S = 0.055
 
 /**
  * Continuous L-shaped line that drops from below the "Luxembourg" pin, runs
@@ -88,7 +88,7 @@ const LETTER_STEP_S = 0.07
  * about the long-term player tracking. Timings pick up right after the
  * typewriter cursor fades so the whole intro reads as one narrative beat.
  */
-const FLOW_VERTICAL_DELAY_S    = 4.6
+const FLOW_VERTICAL_DELAY_S    = 3.5
 const FLOW_VERTICAL_DURATION_S = 0.7
 const FLOW_HORIZONTAL_DELAY_S  = FLOW_VERTICAL_DELAY_S + FLOW_VERTICAL_DURATION_S - 0.05
 const FLOW_HORIZONTAL_DURATION_S = 1.0
@@ -105,10 +105,11 @@ function HeroFlowline() {
          pixels because the Luxembourg map is left-aligned with a fixed
          -ml-10 offset and a max-h that caps its width at ~370px, so its
          centre sits around 145px from the viewport edge regardless of
-         viewport width. */}
+         viewport width. Kept short so the horizontal segment lands above
+         the stats band and doesn't cut through it. */}
       <motion.div
         className="absolute w-[2px] bg-turf-400/60 dark:bg-turf-300/50 origin-top"
-        style={{ left: '145px', top: '58%', height: '30%' }}
+        style={{ left: '145px', top: '58%', height: '22%' }}
         initial={{ scaleY: 0 }}
         animate={{ scaleY: 1 }}
         transition={{ delay: FLOW_VERTICAL_DELAY_S, duration: FLOW_VERTICAL_DURATION_S, ease: 'easeInOut' }}
@@ -118,7 +119,7 @@ function HeroFlowline() {
          since both use the same 2px stroke and colour. */}
       <motion.div
         className="absolute h-[2px] bg-turf-400/60 dark:bg-turf-300/50 origin-left"
-        style={{ left: '145px', top: 'calc(58% + 30%)', width: '55%' }}
+        style={{ left: '145px', top: '80%', width: '55%' }}
         initial={{ scaleX: 0 }}
         animate={{ scaleX: 1 }}
         transition={{ delay: FLOW_HORIZONTAL_DELAY_S, duration: FLOW_HORIZONTAL_DURATION_S, ease: 'easeInOut' }}
@@ -130,7 +131,7 @@ function HeroFlowline() {
         className="absolute text-turf-500 dark:text-turf-300"
         style={{
           left: 'calc(145px + 55%)',
-          top: 'calc(58% + 30%)',
+          top: '80%',
           transform: 'translate(-40%, -50%)',
         }}
         initial={{ opacity: 0, x: -6 }}
@@ -140,11 +141,12 @@ function HeroFlowline() {
         <ArrowRight size={18} weight="bold" />
       </motion.div>
 
-      {/* Caption tucked into the bottom-right corner of the hero. Right-aligned
-         so it reads as the destination the arrow points to. */}
+      {/* Caption sits just under the horizontal line, right-aligned so it
+         reads as the destination the arrow points to. Anchored 12px below
+         the line so it never clips the stats band underneath. */}
       <motion.div
         className="absolute max-w-[420px] text-right text-[0.78rem] leading-relaxed text-stone-700 dark:text-stone-300"
-        style={{ right: '4%', top: 'calc(58% + 30% + 12px)' }}
+        style={{ right: '4%', top: 'calc(80% + 12px)' }}
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: FLOW_TEXT_DELAY_S, duration: 0.55, ease: 'easeOut' }}
