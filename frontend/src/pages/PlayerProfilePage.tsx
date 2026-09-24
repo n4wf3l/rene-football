@@ -483,12 +483,38 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
         </div>
       </section>
 
-      {/* Sub-nav (sticky) */}
+      {/* Sub-nav (sticky) - carries the player identity so the reader always
+         knows whose stats they're scrolling through. Photo + name + position
+         sit on the left, section anchors in the middle, actions on the right. */}
       <nav
         aria-label="Sections du profil"
         className="sticky nav-sticky z-30 bg-stone-50/90 dark:bg-zinc-950/85 backdrop-blur-md border-b border-stone-200/80 dark:border-stone-50/10"
       >
-        <div className="container-page py-3 flex items-center gap-2 overflow-x-auto">
+        <div className="container-page py-2.5 flex items-center gap-3 overflow-x-auto">
+          {/* Compact identity - stays anchored on the left even at narrow widths. */}
+          <div className="flex items-center gap-2.5 pr-3 mr-1 shrink-0 border-r border-stone-200/80 dark:border-stone-50/10">
+            {player.photo_url ? (
+              <img
+                src={playerImage(player)}
+                alt=""
+                className="w-8 h-8 rounded-lg object-cover shrink-0"
+                loading="lazy"
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-lg grid place-items-center bg-stone-200 dark:bg-stone-50/10 text-zinc-500 dark:text-stone-400 text-[0.7rem] font-mono font-bold shrink-0">
+                {player.name.split(' ').map((s) => s[0]).slice(0, 2).join('')}
+              </div>
+            )}
+            <div className="min-w-0 leading-tight">
+              <div className="font-display font-semibold text-sm text-zinc-950 dark:text-stone-50 truncate max-w-[16ch] sm:max-w-none">
+                {player.name}
+              </div>
+              <div className="text-[0.65rem] font-mono uppercase tracking-wider text-zinc-500 dark:text-stone-500 truncate max-w-[16ch] sm:max-w-none">
+                {player.position ?? player.category}
+              </div>
+            </div>
+          </div>
+
           {sections.map((s) => (
             <a
               key={s.id}
