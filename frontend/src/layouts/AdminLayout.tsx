@@ -22,6 +22,7 @@ import { useAuth } from '../auth/AuthContext'
 import { api } from '../api/client'
 import ThemeToggle from '../theme/ThemeToggle'
 import BrandLogo from '../components/BrandLogo'
+import PageTransition from '../components/PageTransition'
 
 const SIDEBAR_STATE_KEY = 'rene_admin_sidebar_open'
 
@@ -380,7 +381,9 @@ function AdminLayout() {
         </header>
 
         <main className="flex-1 min-w-0">
-          <Outlet />
+          <PageTransition>
+            <Outlet />
+          </PageTransition>
         </main>
       </div>
     </div>
