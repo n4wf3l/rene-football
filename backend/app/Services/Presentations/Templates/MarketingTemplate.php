@@ -95,14 +95,16 @@ class MarketingTemplate extends PresentationTemplate
 
         // ---------- Right / info column ----------
 
-        // Logo brand block (RF wordmark + tagline)
+        // Logo brand block (RF wordmark + tagline + optional motto)
         $tagline = trim((string) ($options['tagline'] ?? 'AGENCE DE JOUEURS'));
+        $headerMotto = trim((string) ($options['header_motto'] ?? ''));
         $brandBlock = '<div style="padding:0 0 4mm 0;">'
             .'<div style="font-size:18pt;font-weight:900;letter-spacing:0.5px;color:'.$p['text'].';line-height:1;">'
                 .'<span style="color:'.$p['accent'].';">R</span><span style="color:'.$p['text'].';">F</span>'
                 .'&nbsp;&nbsp;<span style="font-size:10pt;letter-spacing:3px;font-weight:800;">RENE<span style="color:'.$p['accent'].';">FOOTBALL</span></span>'
             .'</div>'
             .($tagline !== '' ? '<div style="font-size:5.5pt;letter-spacing:3px;color:'.$p['secondary'].';margin-top:1.5mm;font-weight:700;">'.$this->esc(mb_strtoupper($tagline)).'</div>' : '')
+            .($headerMotto !== '' ? '<div style="font-size:6.5pt;letter-spacing:3px;color:'.$p['accent'].';margin-top:1.5mm;font-weight:800;">'.$this->esc(mb_strtoupper($headerMotto)).'</div>' : '')
             .'</div>';
 
         // Giant name — split first/rest, first line white, second line accent gold
@@ -132,7 +134,7 @@ class MarketingTemplate extends PresentationTemplate
         $infoBlock = $this->buildInfoBlock($player, $options, $p);
 
         // Right column assembled
-        $rightColumn = '<div style="padding:8mm 8mm 4mm 8mm;">'
+        $rightColumn = '<div style="padding:6mm 8mm 3mm 8mm;">'
             .$brandBlock
             .$nameBlock
             .$subtitleBlock
@@ -155,43 +157,64 @@ class MarketingTemplate extends PresentationTemplate
 
         // Photo panel — bleeds vertically
         $photoCell = $photoAbsPath
-            ? '<div style="width:100%;height:120mm;overflow:hidden;background:#0f0f0f;position:relative;">'
-                .'<img src="'.$photoAbsPath.'" style="width:100%;height:120mm;object-fit:cover;object-position:center;">'
+            ? '<div style="width:100%;height:115mm;overflow:hidden;background:#0f0f0f;position:relative;">'
+                .'<img src="'.$photoAbsPath.'" style="width:100%;height:115mm;object-fit:cover;object-position:center;">'
                 .$prevChip
                 .'</div>'
-            : '<div style="width:100%;height:120mm;background:#1a1a1a;position:relative;">'.$prevChip.'</div>';
+            : '<div style="width:100%;height:115mm;background:#1a1a1a;position:relative;">'.$prevChip.'</div>';
 
         // Top row layout: photo one side, info the other. Explicit table +
         // row height keeps DomPDF from expanding the row past the photo cell
         // when the info column overflows slightly.
-        $topStyle = 'width:100%;border-collapse:collapse;table-layout:fixed;height:120mm;';
+        $topStyle = 'width:100%;border-collapse:collapse;table-layout:fixed;height:115mm;';
         if ($photoSide === 'right') {
             $topRow = '<table style="'.$topStyle.'">'
-                .'<tr style="height:120mm;">'
-                .'<td style="width:52%;vertical-align:top;padding:0;height:120mm;overflow:hidden;">'.$rightColumn.'</td>'
-                .'<td style="width:48%;vertical-align:top;padding:0;height:120mm;">'.$photoCell.'</td>'
+                .'<tr style="height:115mm;">'
+                .'<td style="width:52%;vertical-align:top;padding:0;height:115mm;overflow:hidden;">'.$rightColumn.'</td>'
+                .'<td style="width:48%;vertical-align:top;padding:0;height:115mm;">'.$photoCell.'</td>'
                 .'</tr></table>';
         } else {
             $topRow = '<table style="'.$topStyle.'">'
-                .'<tr style="height:120mm;">'
-                .'<td style="width:48%;vertical-align:top;padding:0;height:120mm;">'.$photoCell.'</td>'
-                .'<td style="width:52%;vertical-align:top;padding:0;height:120mm;overflow:hidden;">'.$rightColumn.'</td>'
+                .'<tr style="height:115mm;">'
+                .'<td style="width:48%;vertical-align:top;padding:0;height:115mm;">'.$photoCell.'</td>'
+                .'<td style="width:52%;vertical-align:top;padding:0;height:115mm;overflow:hidden;">'.$rightColumn.'</td>'
                 .'</tr></table>';
         }
 
         // ---------- Content bands ----------
+        // Middle band composition is data-driven:
+        //   - "parcours-strengths" — Hanibal fiche (Parcours left, Qualités right)
+        //   - "profile-caracteristiques" — Zoran fiche (Points forts left, Caractéristiques right)
+        //   - default — Destiny/Adams (Profil du joueur left, Points forts right)
 
+        $variant = $options['middle_variant'] ?? 'profile-strengths';
+
+        $strengthsHtml = $this->strengthsCardHtml($player, $p, 'Points forts');
+        $qualitiesHtml = $this->strengthsCardHtml($player, $p, 'Qualités');
         $profileHtml   = $this->profileHtml($player, $p);
-        $strengthsHtml = $this->strengthsCardHtml($player, $p);
+        $caracsHtml    = $this->caracteristiquesCardHtml($player, $p);
+        $parcoursHtml  = $this->parcoursHtml($player, $p);
+        $barsCardHtml  = $this->barsHtml($options, $p, 'Player Profile');
+
+        [$leftBlock, $rightBlock] = match ($variant) {
+            'parcours-strengths'        => [$parcoursHtml, $qualitiesHtml],
+            'profile-caracteristiques'  => [$strengthsHtml, $caracsHtml],
+            'profile-bars'              => [$profileHtml,  $barsCardHtml],
+            default                     => [$profileHtml,  $strengthsHtml],
+        };
 
         $middleBand = '';
-        if ($profileHtml !== '' || $strengthsHtml !== '') {
+        if ($leftBlock !== '' || $rightBlock !== '') {
             $middleBand = '<table style="width:100%;border-collapse:collapse;margin-top:0mm;">'
                 .'<tr>'
-                .'<td style="width:50%;vertical-align:top;padding:3mm 6mm 2mm 8mm;border-right:1px solid '.$p['card_border'].';">'.$profileHtml.'</td>'
-                .'<td style="width:50%;vertical-align:top;padding:3mm 8mm 2mm 6mm;">'.$strengthsHtml.'</td>'
+                .'<td style="width:50%;vertical-align:top;padding:3mm 6mm 2mm 8mm;border-right:1px solid '.$p['card_border'].';">'.$leftBlock.'</td>'
+                .'<td style="width:50%;vertical-align:top;padding:3mm 8mm 2mm 6mm;">'.$rightBlock.'</td>'
                 .'</tr></table>';
         }
+
+        // Photo gallery strip (Zoran, Saeed) - 3 photos side by side. Rendered
+        // between middle band and partners band.
+        $galleryHtml = $this->galleryStripHtml($player, $p);
 
         // Projet sportif intro (bio-driven) + academies grid
         $projetIntro = $this->projetSportifIntro($player, $options, $p);
@@ -221,8 +244,11 @@ class MarketingTemplate extends PresentationTemplate
             }
         }
 
-        // Bars (Saeed) - optional
-        $barsHtml = $this->barsHtml($options, $p);
+        // Bars (Saeed) - optional. Skipped when the middle band already
+        // consumed them via variant=profile-bars, avoids a duplicate render.
+        $barsHtml = ($variant === 'profile-bars')
+            ? ''
+            : $this->barsHtml($options, $p);
         $barsBand = $barsHtml !== '' ? '<div style="padding:0 8mm 2mm 8mm;">'.$barsHtml.'</div>' : '';
 
         // Cursive slogan - inlined into the footer bar to save vertical space.
@@ -249,6 +275,7 @@ class MarketingTemplate extends PresentationTemplate
 </style></head><body>
   {$topRow}
   {$middleBand}
+  {$galleryHtml}
   {$partnersBand}
   {$barsBand}
   {$sloganHtml}
@@ -347,7 +374,7 @@ HTML;
         return $html;
     }
 
-    private function strengthsCardHtml(Player $player, array $p): string
+    private function strengthsCardHtml(Player $player, array $p, string $title = 'Points forts'): string
     {
         // Cap at 6 - fits inside the middle band without pushing the partners
         // band off the page when the player also has a full bio.
@@ -362,8 +389,100 @@ HTML;
                 .'</tr>';
         }
 
-        return '<div style="font-size:10pt;letter-spacing:3px;color:'.$p['accent'].';font-weight:900;margin-bottom:3mm;text-transform:uppercase;border-left:3px solid '.$p['accent'].';padding-left:3mm;">Points forts</div>'
+        return '<div style="font-size:10pt;letter-spacing:3px;color:'.$p['accent'].';font-weight:900;margin-bottom:3mm;text-transform:uppercase;border-left:3px solid '.$p['accent'].';padding-left:3mm;">'.$this->esc($title).'</div>'
             .'<table style="width:100%;border-collapse:collapse;">'.$rows.'</table>';
+    }
+
+    /**
+     * Caractéristiques table (Zoran fiche): PIED FORT / STYLE DE JEU /
+     * MEILLEUR POSTE / POINTS FORTS MENTAUX / OBJECTIF, one row per non-null
+     * field. Renders as a compact 2-column table.
+     */
+    private function caracteristiquesCardHtml(Player $player, array $p): string
+    {
+        $rows = [];
+        if ($player->preferred_foot)             $rows[] = ['PIED FORT',            $player->preferred_foot];
+        if (trim((string) $player->playing_style) !== '')   $rows[] = ['STYLE DE JEU',   $player->playing_style];
+        if (trim((string) $player->best_position) !== '')   $rows[] = ['MEILLEUR POSTE', $player->best_position];
+
+        $mental = is_array($player->mental_strengths) ? array_values(array_filter($player->mental_strengths)) : [];
+        if (! empty($mental)) $rows[] = ['POINTS FORTS MENTAUX', implode(' – ', $mental)];
+
+        if (trim((string) $player->objective) !== '') $rows[] = ['OBJECTIF', $this->safeText($player->objective, 180)];
+
+        if (empty($rows)) return '';
+
+        $body = '';
+        foreach ($rows as [$label, $value]) {
+            $body .= '<tr>'
+                .'<td style="vertical-align:top;padding:1.6mm 3mm 1.6mm 0;border-bottom:0.5px solid '.$p['card_border'].';font-size:7pt;letter-spacing:1.5px;color:'.$p['secondary'].';font-weight:800;width:38%;text-transform:uppercase;">'.$this->esc($label).'</td>'
+                .'<td style="vertical-align:top;padding:1.6mm 0;border-bottom:0.5px solid '.$p['card_border'].';font-size:8.5pt;color:'.$p['text'].';font-weight:700;">'.$this->esc($value).'</td>'
+                .'</tr>';
+        }
+
+        return '<div style="font-size:10pt;letter-spacing:3px;color:'.$p['accent'].';font-weight:900;margin-bottom:2mm;text-transform:uppercase;border-left:3px solid '.$p['accent'].';padding-left:3mm;">Caractéristiques</div>'
+            .'<table style="width:100%;border-collapse:collapse;">'.$body.'</table>';
+    }
+
+    /**
+     * Parcours block (Hanibal fiche): year range + club logo + club name for
+     * each entry in `career_history` (JSON array of {years, club, logo_url}).
+     */
+    private function parcoursHtml(Player $player, array $p): string
+    {
+        $history = is_array($player->career_history) ? $player->career_history : [];
+        $history = array_values(array_filter($history, static fn ($h) =>
+            is_array($h) && (
+                (isset($h['club']) && trim((string) $h['club']) !== '')
+                || (isset($h['years']) && trim((string) $h['years']) !== '')
+            )
+        ));
+        if (empty($history)) return '';
+
+        $rows = '';
+        foreach (array_slice($history, 0, 4) as $h) {
+            $years = trim((string) ($h['years'] ?? ''));
+            $club  = trim((string) ($h['club']  ?? ''));
+            $logo  = trim((string) ($h['logo_url'] ?? ''));
+
+            $logoCell = $logo !== ''
+                ? '<img src="'.$this->esc($this->absolutePath($logo)).'" alt="" style="height:9mm;max-width:14mm;object-fit:contain;">'
+                : '<div style="width:9mm;height:9mm;border:1px solid '.$p['card_border'].';"></div>';
+
+            $rows .= '<tr>'
+                .'<td style="width:25mm;padding:2mm 3mm 2mm 0;font-size:9pt;font-weight:800;color:'.$p['text'].';letter-spacing:1px;vertical-align:middle;">'.$this->esc($years).'</td>'
+                .'<td style="width:16mm;padding:2mm 3mm;vertical-align:middle;">'.$logoCell.'</td>'
+                .'<td style="padding:2mm 0;font-size:9pt;font-weight:800;color:'.$p['text'].';letter-spacing:1px;text-transform:uppercase;vertical-align:middle;">'.$this->esc($club).'</td>'
+                .'</tr>';
+        }
+
+        return '<div style="font-size:10pt;letter-spacing:3px;color:'.$p['accent'].';font-weight:900;margin-bottom:2mm;text-transform:uppercase;border-left:3px solid '.$p['accent'].';padding-left:3mm;">Parcours</div>'
+            .'<table style="width:100%;border-collapse:collapse;">'.$rows.'</table>';
+    }
+
+    /**
+     * 3-photo gallery strip (Zoran, Saeed). Reads Player.gallery_photos and
+     * lays up to 3 photos side by side. Empty when the field is empty.
+     */
+    private function galleryStripHtml(Player $player, array $p): string
+    {
+        $photos = is_array($player->gallery_photos) ? $player->gallery_photos : [];
+        $photos = array_values(array_filter(array_map(static fn ($u) => trim((string) $u), $photos), static fn ($u) => $u !== ''));
+        if (empty($photos)) return '';
+
+        $cells = '';
+        foreach (array_slice($photos, 0, 3) as $u) {
+            $cells .= '<td style="width:33%;padding:0 1mm;">'
+                .'<div style="width:100%;height:34mm;overflow:hidden;border:1px solid '.$p['card_border'].';">'
+                .'<img src="'.$this->esc($this->absolutePath($u)).'" alt="" style="width:100%;height:34mm;object-fit:cover;">'
+                .'</div>'
+                .'</td>';
+        }
+
+        return '<div style="padding:1mm 8mm 3mm 8mm;">'
+            .'<table style="width:100%;border-collapse:collapse;">'
+            .'<tr>'.$cells.'</tr></table>'
+            .'</div>';
     }
 
     private function profileHtml(Player $player, array $p): string
@@ -401,46 +520,70 @@ HTML;
         }));
         if (empty($groups)) return '';
 
+        // Column count for the country grid. Auto = 1 col for up to 3 groups,
+        // 2 cols beyond so 4-5 country blocks halve their vertical footprint.
+        $cols = (int) ($options['academies_columns'] ?? 0);
+        if ($cols <= 0) $cols = count($groups) >= 4 ? 2 : 1;
+        $cols = max(1, min(2, $cols));
+
         $out = '<div style="font-size:8pt;letter-spacing:2px;color:'.$p['accent'].';font-weight:800;text-transform:uppercase;margin:0 0 3mm 0;">Objectifs :</div>';
 
-        foreach ($groups as $g) {
-            $country = trim((string) ($g['country'] ?? ''));
-            $cc      = trim((string) ($g['country_code'] ?? ''));
-            $flagHtml = $cc !== ''
-                ? '<img src="https://flagcdn.com/w40/'.$this->esc(strtolower($cc)).'.png" width="12" height="9" style="vertical-align:middle;margin-right:2mm;">'
-                : '';
-
-            // Header: check + flag + country - very tight (2mm vertical)
-            $header = '<div style="margin:1.5mm 0 1mm 0;">'
-                .$this->iconCheck($p['accent'], 3.5)
-                .' <span style="font-size:8pt;font-weight:700;color:'.$p['text'].';letter-spacing:0.5px;vertical-align:middle;">'.$flagHtml.$this->esc($country).'</span>'
-                .'</div>';
-
-            // Club logos row - smaller height so 3-4 countries fit stacked
-            $cells = '';
-            foreach (array_slice($g['clubs'], 0, 5) as $c) {
-                $cname = trim((string) ($c['name'] ?? ''));
-                $clogo = trim((string) ($c['logo_url'] ?? ''));
-                if ($cname === '' && $clogo === '') continue;
-                $img = $clogo !== ''
-                    ? '<img src="'.$this->esc($this->absolutePath($clogo)).'" alt="" style="height:9mm;max-width:15mm;object-fit:contain;">'
-                    : '<div style="height:9mm;line-height:9mm;font-size:6.5pt;font-weight:700;color:'.$p['text'].';">'.$this->esc(strtoupper(mb_substr($cname, 0, 3))).'</div>';
-                $cells .= '<td style="text-align:center;padding:0 1.5mm;vertical-align:middle;">'.$img.'</td>';
+        if ($cols === 1) {
+            foreach ($groups as $g) {
+                $out .= $this->countryBlockHtml($g, $p);
             }
-            // Names row below - condensed
-            $names = '';
-            $rawNames = array_map(static fn ($c) => trim((string) ($c['name'] ?? '')), array_slice($g['clubs'], 0, 5));
-            $rawNames = array_values(array_filter($rawNames, static fn ($n) => $n !== ''));
-            if (! empty($rawNames)) {
-                $names = '<div style="font-size:6pt;color:'.$p['secondary'].';margin-top:0.5mm;margin-bottom:1mm;letter-spacing:0.3px;padding-left:6mm;">'.$this->esc(implode(' - ', $rawNames)).'</div>';
-            }
-
-            $out .= $header
-                .'<table style="border-collapse:collapse;margin-left:6mm;"><tr>'.$cells.'</tr></table>'
-                .$names;
+            return $out;
         }
 
+        // 2-col layout: pair groups into rows via a fixed table.
+        $rows = '';
+        for ($i = 0; $i < count($groups); $i += 2) {
+            $left  = $this->countryBlockHtml($groups[$i], $p);
+            $right = isset($groups[$i + 1]) ? $this->countryBlockHtml($groups[$i + 1], $p) : '';
+            $rows .= '<tr>'
+                .'<td style="width:50%;vertical-align:top;padding-right:3mm;">'.$left.'</td>'
+                .'<td style="width:50%;vertical-align:top;padding-left:3mm;">'.$right.'</td>'
+                .'</tr>';
+        }
+        $out .= '<table style="width:100%;border-collapse:collapse;table-layout:fixed;">'.$rows.'</table>';
         return $out;
+    }
+
+    /** One country block (flag+name header, logos row, names row). */
+    private function countryBlockHtml(array $g, array $p): string
+    {
+        $country = trim((string) ($g['country'] ?? ''));
+        $cc      = trim((string) ($g['country_code'] ?? ''));
+        $flagHtml = $cc !== ''
+            ? '<img src="https://flagcdn.com/w40/'.$this->esc(strtolower($cc)).'.png" width="12" height="9" style="vertical-align:middle;margin-right:2mm;">'
+            : '';
+
+        $header = '<div style="margin:1.5mm 0 1mm 0;">'
+            .$this->iconCheck($p['accent'], 3.5)
+            .' <span style="font-size:8pt;font-weight:700;color:'.$p['text'].';letter-spacing:0.5px;vertical-align:middle;">'.$flagHtml.$this->esc($country).'</span>'
+            .'</div>';
+
+        $cells = '';
+        foreach (array_slice($g['clubs'], 0, 5) as $c) {
+            $cname = trim((string) ($c['name'] ?? ''));
+            $clogo = trim((string) ($c['logo_url'] ?? ''));
+            if ($cname === '' && $clogo === '') continue;
+            $img = $clogo !== ''
+                ? '<img src="'.$this->esc($this->absolutePath($clogo)).'" alt="" style="height:9mm;max-width:15mm;object-fit:contain;">'
+                : '<div style="height:9mm;line-height:9mm;font-size:6.5pt;font-weight:700;color:'.$p['text'].';">'.$this->esc(strtoupper(mb_substr($cname, 0, 3))).'</div>';
+            $cells .= '<td style="text-align:center;padding:0 1.5mm;vertical-align:middle;">'.$img.'</td>';
+        }
+
+        $names = '';
+        $rawNames = array_map(static fn ($c) => trim((string) ($c['name'] ?? '')), array_slice($g['clubs'], 0, 5));
+        $rawNames = array_values(array_filter($rawNames, static fn ($n) => $n !== ''));
+        if (! empty($rawNames)) {
+            $names = '<div style="font-size:6pt;color:'.$p['secondary'].';margin-top:0.5mm;margin-bottom:1mm;letter-spacing:0.3px;padding-left:6mm;">'.$this->esc(implode(' - ', $rawNames)).'</div>';
+        }
+
+        return $header
+            .'<table style="border-collapse:collapse;margin-left:6mm;"><tr>'.$cells.'</tr></table>'
+            .$names;
     }
 
     /** Partner cards (Supervisé par + En collab avec) — right-column stack. */
@@ -484,7 +627,7 @@ HTML;
             .'</div>';
     }
 
-    private function barsHtml(array $options, array $p): string
+    private function barsHtml(array $options, array $p, string $title = 'Player Profile'): string
     {
         $bars = is_array($options['player_profile_bars'] ?? null) ? $options['player_profile_bars'] : [];
         $bars = array_values(array_filter($bars, static fn ($b) => is_array($b) && ! empty($b['label'])));
@@ -494,8 +637,8 @@ HTML;
         foreach (array_slice($bars, 0, 8) as $b) {
             $pct = max(0, min(100, (int) ($b['pct'] ?? 0)));
             $rows .= '<tr>'
-                .'<td style="width:35%;font-size:8pt;color:'.$p['text'].';font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:1.5mm 3mm 1.5mm 0;">'.$this->esc($b['label']).'</td>'
-                .'<td style="padding:1.5mm 0;">'
+                .'<td style="width:35%;font-size:8pt;color:'.$p['text'].';font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:1.2mm 3mm 1.2mm 0;">'.$this->esc($b['label']).'</td>'
+                .'<td style="padding:1.2mm 0;">'
                     .'<div style="height:2.5mm;width:100%;background:'.$p['card_border'].';border-radius:1.5mm;overflow:hidden;">'
                     .'<div style="height:2.5mm;width:'.$pct.'%;background:'.$p['accent'].';"></div>'
                     .'</div>'
@@ -503,10 +646,8 @@ HTML;
                 .'<td style="width:14mm;text-align:right;font-size:8pt;color:'.$p['accent'].';font-weight:800;padding-left:3mm;">'.$pct.'%</td>'
                 .'</tr>';
         }
-        return '<div style="border:1px solid '.$p['card_border'].';padding:4mm 5mm;">'
-            .'<div style="font-size:9pt;letter-spacing:3px;color:'.$p['accent'].';font-weight:900;margin-bottom:3mm;text-transform:uppercase;">Player Profile</div>'
-            .'<table style="width:100%;border-collapse:collapse;">'.$rows.'</table>'
-            .'</div>';
+        return '<div style="font-size:10pt;letter-spacing:3px;color:'.$p['accent'].';font-weight:900;margin-bottom:3mm;text-transform:uppercase;border-left:3px solid '.$p['accent'].';padding-left:3mm;">'.$this->esc($title).'</div>'
+            .'<table style="width:100%;border-collapse:collapse;">'.$rows.'</table>';
     }
 
     private function footerBar(array $options, array $p, string $motto, string $slogan = ''): string
@@ -528,7 +669,7 @@ HTML;
             : '';
 
         return $sloganStrip
-            .'<div style="background:'.$p['footer'].';padding:2.5mm 8mm 2.5mm 8mm;color:'.$p['footer_ink'].';">'
+            .'<div style="background:'.$p['footer'].';padding:2mm 8mm 2mm 8mm;color:'.$p['footer_ink'].';">'
             .$mottoBar
             .'<table style="width:100%;border-collapse:collapse;">'
             .'<tr>'
