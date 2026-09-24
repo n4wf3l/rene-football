@@ -126,20 +126,27 @@ function HeroFlowline() {
       />
 
       {/* Arrowhead lands at the end of the horizontal line once the line
-         itself has finished drawing. */}
-      <motion.div
-        className="absolute text-turf-500 dark:text-turf-300"
+         itself has finished drawing. The outer wrapper owns the position +
+         centring transform (-50% Y so the icon centre sits ON the line);
+         the inner motion.div only animates opacity + fade-in slide, so
+         Motion's transform for `x` doesn't overwrite the centring. */}
+      <div
+        className="absolute"
         style={{
           left: 'calc(145px + 55%)',
           top: '74%',
-          transform: 'translate(-40%, -50%)',
+          transform: 'translate(-50%, -50%)',
         }}
-        initial={{ opacity: 0, x: -6 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: FLOW_ARROW_DELAY_S, duration: 0.35, ease: 'easeOut' }}
       >
-        <ArrowRight size={18} weight="bold" />
-      </motion.div>
+        <motion.div
+          className="text-turf-500 dark:text-turf-300"
+          initial={{ opacity: 0, x: -6 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: FLOW_ARROW_DELAY_S, duration: 0.35, ease: 'easeOut' }}
+        >
+          <ArrowRight size={18} weight="bold" />
+        </motion.div>
+      </div>
 
       {/* Caption sits just under the horizontal line, right-aligned so it
          reads as the destination the arrow points to. Anchored 12px below
