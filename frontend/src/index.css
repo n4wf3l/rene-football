@@ -95,7 +95,8 @@
   }
 
   .btn-ghost {
-    @apply bg-transparent text-stone-100 border-stone-100/15 hover:bg-stone-100/5 hover:border-stone-100/30;
+    @apply bg-transparent text-zinc-700 border-zinc-300/60 hover:bg-zinc-100 hover:border-zinc-500
+           dark:text-stone-100 dark:border-stone-100/15 dark:hover:bg-stone-100/5 dark:hover:border-stone-100/30;
   }
 
   .btn-secondary {
