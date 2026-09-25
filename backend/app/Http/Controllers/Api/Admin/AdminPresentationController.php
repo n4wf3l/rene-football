@@ -60,7 +60,7 @@ class AdminPresentationController extends Controller
 
         $presentation = Presentation::create([
             'player_id'    => $player->id,
-            'template_key' => $data['template_key'],
+            'template_key' => $this->normaliseTemplateKey($data['template_key']),
             'title'        => $data['title'],
             'options'      => $options,
             'is_published' => (bool) ($data['is_published'] ?? false),
@@ -82,7 +82,7 @@ class AdminPresentationController extends Controller
 
         $payload = [
             'player_id'    => $player->id,
-            'template_key' => $data['template_key'] ?? $presentation->template_key,
+            'template_key' => $this->normaliseTemplateKey($data['template_key'] ?? $presentation->template_key),
             'title'        => $data['title'] ?? $presentation->title,
             'options'      => $options,
         ];
@@ -120,6 +120,43 @@ class AdminPresentationController extends Controller
             'Content-Type'        => 'application/pdf',
             'Content-Disposition' => 'inline; filename="presentation-'.$player->slug.'-'.$presentation->id.'.pdf"',
         ]);
+    }
+
+    /**
+     * Renders the current *unsaved* wizard state as browser-safe HTML so
+     * the admin editor can show a live iframe preview that matches the
+     * final DomPDF output pixel-for-pixel.
+     *
+     * DomPDF eats filesystem paths for embedded images, but a browser
+     * iframe won't; we run the raw HTML through a small post-processor
+     * that swaps absolute Windows/UNIX paths back to their public
+     * /storage/* URLs before returning.
+     */
+    public function previewHtml(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'player_id'    => ['required', 'integer', 'exists:players,id'],
+            'template_key' => ['required', 'string'],
+            'title'        => ['nullable', 'string', 'max:200'],
+            'options'      => ['nullable', 'array'],
+        ]);
+
+        $player = \App\Models\Player::findOrFail($validated['player_id']);
+        $template = \App\Services\Presentations\PresentationTemplateRegistry::resolve($validated['template_key']);
+        $html = $template->render(
+            $player,
+            $validated['options'] ?? [],
+            $validated['title'] ?? 'Aperçu',
+        );
+
+        // Post-process: template.absolutePath() converts /storage/… to
+        // public_path('storage/…') for DomPDF's file loader. Undo it so
+        // the browser fetches via HTTP from the same origin.
+        $publicStorage = str_replace('\\', '/', public_path('storage/'));
+        $normalized = str_replace(['\\'], ['/'], $html);
+        $html = str_replace($publicStorage, '/storage/', $normalized);
+
+        return response()->json(['html' => $html]);
     }
 
     /** Allows the admin to upload a custom hero photo separately from the player photo. */
@@ -191,9 +228,18 @@ class AdminPresentationController extends Controller
 
     private function validateData(Request $request, ?Presentation $existing = null): array
     {
+        // Legacy template keys (classic/signature/magazine/minimal/stadium) are
+        // silently accepted so historic presentations can still be edited and
+        // saved. They are normalised to `marketing` in normaliseOptions() before
+        // hitting the DB, so re-saving migrates the row to the current schema.
+        $allowedKeys = array_unique(array_merge(
+            PresentationTemplateRegistry::keys(),
+            ['classic', 'signature', 'magazine', 'minimal', 'stadium'],
+        ));
+
         return $request->validate([
             'player_id'    => [$existing ? 'sometimes' : 'required', 'integer', 'exists:players,id'],
-            'template_key' => [$existing ? 'sometimes' : 'required', 'string', 'in:'.implode(',', PresentationTemplateRegistry::keys())],
+            'template_key' => [$existing ? 'sometimes' : 'required', 'string', 'in:'.implode(',', $allowedKeys)],
             'title'        => [$existing ? 'sometimes' : 'required', 'string', 'max:200'],
             'is_published' => ['nullable', 'boolean'],
             'options'                       => ['nullable', 'array'],
@@ -347,6 +393,18 @@ class AdminPresentationController extends Controller
             }
         }
         return $opts;
+    }
+
+    /**
+     * Migrate a legacy template key (classic/signature/magazine/minimal/
+     * stadium) to `marketing` — the only template currently shipped. Keys
+     * already known to the registry pass through untouched.
+     */
+    private function normaliseTemplateKey(string $key): string
+    {
+        $registered = PresentationTemplateRegistry::keys();
+        if (in_array($key, $registered, true)) return $key;
+        return 'marketing';
     }
 
     private function renderHtml(Presentation $presentation, Player $player): string

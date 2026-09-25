@@ -1,6 +1,8 @@
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { CSSProperties, ReactElement } from 'react'
 import type { Player } from '../types/player'
 import type { PresentationOptions, PresentationStatChoice, PresentationTemplateKey } from '../types/presentation'
+import { api } from '../api/client'
 
 /**
  * Translations for the fixed chrome labels that PHP renders. Mirrors the T
@@ -627,6 +629,103 @@ function MarketingPreview({ player, options }: PresentationPreviewProps): ReactE
 }
 
 // --------------------------------------------------------------------------
+// Live iframe preview - fetches the real HTML the backend template renders
+// and paints it in a scaled iframe. What you see == what DomPDF outputs
+// (font metrics aside). Any change to MarketingTemplate.php reflects here
+// without a matching frontend rewrite.
+// --------------------------------------------------------------------------
+
+// A4 portrait dimensions at 96dpi (the default CSS reference pixel density).
+// The iframe renders content at this fixed size, and the container scales it
+// down with CSS transform to fit whatever width the sidebar gives us.
+const A4_WIDTH_PX = 794
+const A4_HEIGHT_PX = 1123
+
+function MarketingIframePreview(props: PresentationPreviewProps) {
+  const containerRef = useRef<HTMLDivElement | null>(null)
+  const [html, setHtml] = useState<string>('')
+  const [loading, setLoading] = useState(false)
+  const [scale, setScale] = useState<number>(0.4)
+
+  // Recompute the scale factor whenever the container resizes so the
+  // iframe always fills the sidebar cleanly at any breakpoint.
+  useLayoutEffect(() => {
+    function measure() {
+      const el = containerRef.current
+      if (!el) return
+      setScale(el.clientWidth / A4_WIDTH_PX)
+    }
+    measure()
+    const obs = new ResizeObserver(measure)
+    if (containerRef.current) obs.observe(containerRef.current)
+    return () => obs.disconnect()
+  }, [])
+
+  // Debounced fetch: every option / bio / title change triggers a new HTML
+  // render on the backend, but batched to 350ms so a fast typist doesn't
+  // hammer the server.
+  useEffect(() => {
+    if (!props.player) { setHtml(''); return }
+    let cancelled = false
+    setLoading(true)
+    const t = setTimeout(async () => {
+      try {
+        const res = await api.post<{ html: string }>(
+          '/admin/presentations/preview-html',
+          {
+            player_id:    props.player!.id,
+            template_key: props.template,
+            title:        props.title,
+            options:      props.options,
+          },
+          { auth: true },
+        )
+        if (!cancelled) setHtml(res.html ?? '')
+      } catch {
+        if (!cancelled) setHtml('')
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }, 350)
+    return () => { cancelled = true; clearTimeout(t) }
+  }, [props.player, props.template, props.title, props.options])
+
+  return (
+    <div ref={containerRef} className="relative w-full h-full" style={{ contain: 'strict' }}>
+      {loading && (
+        <div className="absolute top-2 right-2 z-10 px-2 py-1 rounded-md bg-black/50 text-stone-100 text-[0.6rem] font-mono uppercase tracking-wider backdrop-blur-sm">
+          Rendu…
+        </div>
+      )}
+      {html ? (
+        <iframe
+          srcDoc={html}
+          title="Aperçu Marketing v1"
+          sandbox="allow-same-origin"
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: A4_WIDTH_PX,
+            height: A4_HEIGHT_PX,
+            border: 0,
+            transform: `scale(${scale})`,
+            transformOrigin: 'top left',
+            background: '#0a0a0a',
+          }}
+        />
+      ) : (
+        <div className="absolute inset-0 flex items-center justify-center text-xs text-zinc-500 dark:text-stone-500 text-center px-6">
+          {props.player
+            ? 'Chargement de l\'aperçu…'
+            : 'Sélectionnez un joueur pour voir l\'aperçu.'}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// --------------------------------------------------------------------------
 
 export default function PresentationPreview(props: PresentationPreviewProps) {
   const ext = props.externalAsset
@@ -656,12 +755,7 @@ export default function PresentationPreview(props: PresentationPreviewProps) {
           </object>
         )
       ) : (
-        <>
-          {/* Only Marketing v1 remains. Historic presentations that were
-             saved with classic/magazine/minimal/stadium/signature also
-             fall back here so the admin never sees an empty preview. */}
-          <MarketingPreview {...props} />
-        </>
+        <MarketingIframePreview {...props} />
       )}
     </div>
   )
