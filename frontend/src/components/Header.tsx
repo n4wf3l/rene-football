@@ -28,8 +28,8 @@ interface NavItem {
 const NAV: NavItem[] = [
   { to: '/',           label: 'Accueil',    end: true },
   { to: '/joueurs',    label: 'Joueurs' },
-  { to: '/actualites', label: 'Actualités' },
   { to: '/a-propos',   label: 'À propos' },
+  { to: '/actualites', label: 'Actualités' },
   // Contact is intentionally omitted here: it is rendered as a CTA button
   // in the right cluster (see the Contact variants below the mega-menu).
 ]
@@ -428,15 +428,18 @@ function Header() {
                     />
                   )}
                   <span className="relative inline-flex items-center gap-1.5">
+                    {item.label}
+                    {/* Active-state indicator: animated underline (2026-standard
+                        pattern, more universally readable than the previous dot).
+                        `layoutId` makes it slide smoothly between routes. */}
                     {isActive && (
                       <motion.span
-                        layoutId="nav-active-dot"
-                        className="w-1 h-1 rounded-full bg-turf-300"
+                        layoutId="nav-active-underline"
+                        aria-hidden="true"
+                        className="absolute left-0 right-0 -bottom-1 h-[2px] rounded-full bg-turf-700 dark:bg-turf-300"
                         transition={{ type: 'spring', stiffness: 380, damping: 32 }}
-                        style={{ boxShadow: '0 0 6px rgba(132,184,150,0.8)' }}
                       />
                     )}
-                    {item.label}
                     {isMega && (
                       <motion.span
                         animate={{ rotate: megaOpen ? 180 : 0 }}
