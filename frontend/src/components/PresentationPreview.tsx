@@ -481,14 +481,122 @@ function MarketingPreview({ player, options }: PresentationPreviewProps): ReactE
   const infoCol = <>{headerBlock}{nameBlock}{infoBlock}</>
   const photoCol = photoBlock
 
+  // ----- Middle band (bio + strengths / caracteristiques / parcours / bars) -----
+  const variant = (options.middle_variant as string | undefined) ?? 'profile-strengths'
+  const bio = (player?.bio ?? '').trim()
+  const strengths = (Array.isArray(player?.strengths) ? player.strengths : [])
+    .map((s) => (typeof s === 'string' ? s : (s as { label?: string; key?: string })?.label ?? (s as { key?: string })?.key ?? ''))
+    .filter((s) => typeof s === 'string' && s.trim() !== '')
+    .slice(0, 6)
+
+  const SectionTitle = ({ children }: { children: React.ReactNode }) => (
+    <div style={{
+      fontSize: '2.4%', letterSpacing: '0.18em', color: p.accent, fontWeight: 900,
+      textTransform: 'uppercase', borderLeft: `0.6% solid ${p.accent}`,
+      paddingLeft: '2%', marginBottom: '2%',
+    }}>{children}</div>
+  )
+
+  const bioBlock = (
+    <div style={{ flex: 1, padding: '2% 4% 2% 4%' }}>
+      <SectionTitle>Profil du joueur</SectionTitle>
+      {bio ? (
+        <div style={{ fontSize: '1.9%', lineHeight: 1.45, color: p.text, whiteSpace: 'pre-wrap' }}>
+          {bio.length > 380 ? bio.slice(0, 379) + '…' : bio}
+        </div>
+      ) : (
+        <div style={{ fontSize: '1.8%', color: p.secondary, fontStyle: 'italic' }}>
+          Ajoutez la bio dans le champ « Bio scout » ci-contre pour la voir ici.
+        </div>
+      )}
+    </div>
+  )
+
+  const strengthsBlock = (title: string) => (
+    <div style={{ flex: 1, padding: '2% 4% 2% 4%', borderLeft: `0.4% solid ${p.cardBorder}` }}>
+      <SectionTitle>{title}</SectionTitle>
+      {strengths.length > 0 ? (
+        <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+          {strengths.map((s) => (
+            <li key={s} style={{
+              fontSize: '1.95%', color: p.text, fontWeight: 600,
+              padding: '0.6% 0', display: 'flex', gap: '2%', alignItems: 'center',
+            }}>
+              <span style={{
+                width: '2.2%', height: '2.2%', borderRadius: '50%',
+                border: `0.4% solid ${p.accent}`, flexShrink: 0,
+              }} />
+              {s}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <div style={{ fontSize: '1.8%', color: p.secondary, fontStyle: 'italic' }}>
+          Renseignez les points forts sur la fiche joueur.
+        </div>
+      )}
+    </div>
+  )
+
+  const caracsBlock = (
+    <div style={{ flex: 1, padding: '2% 4% 2% 4%', borderLeft: `0.4% solid ${p.cardBorder}` }}>
+      <SectionTitle>Caractéristiques</SectionTitle>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6%' }}>
+        {[
+          ['PIED FORT', player?.preferred_foot],
+          ['STYLE DE JEU', (player as unknown as { playing_style?: string })?.playing_style],
+          ['MEILLEUR POSTE', player?.best_position],
+          ['OBJECTIF', (player as unknown as { objective?: string })?.objective],
+        ].filter(([, v]) => v && String(v).trim() !== '').map(([label, value]) => (
+          <div key={label as string} style={{ borderBottom: `0.3% solid ${p.cardBorder}`, padding: '0.8% 0', display: 'flex', gap: '3%' }}>
+            <span style={{ fontSize: '1.5%', letterSpacing: '0.12em', color: p.secondary, fontWeight: 700, width: '40%' }}>{label}</span>
+            <span style={{ fontSize: '1.85%', color: p.text, fontWeight: 700 }}>{String(value)}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+
+  const parcoursBlock = (
+    <div style={{ flex: 1, padding: '2% 4% 2% 4%' }}>
+      <SectionTitle>Parcours</SectionTitle>
+      {(() => {
+        const history = (player as unknown as { career_history?: Array<{ years?: string; club?: string }> })?.career_history ?? []
+        if (history.length === 0) {
+          return <div style={{ fontSize: '1.8%', color: p.secondary, fontStyle: 'italic' }}>Renseignez le parcours sur la fiche joueur.</div>
+        }
+        return history.slice(0, 4).map((h, i) => (
+          <div key={i} style={{ display: 'flex', gap: '3%', padding: '0.8% 0', fontSize: '1.9%', color: p.text }}>
+            <span style={{ fontWeight: 800, letterSpacing: '0.08em', width: '30%' }}>{h.years}</span>
+            <span style={{ fontWeight: 800, textTransform: 'uppercase' }}>{h.club}</span>
+          </div>
+        ))
+      })()}
+    </div>
+  )
+
+  let middleLeft = bioBlock
+  let middleRight = strengthsBlock('Points forts')
+  if (variant === 'profile-caracteristiques') { middleLeft = strengthsBlock('Points forts'); middleRight = caracsBlock }
+  else if (variant === 'parcours-strengths')  { middleLeft = parcoursBlock;                   middleRight = strengthsBlock('Qualités') }
+
+  const middleBand = (
+    <div style={{ gridColumn: '1 / -1', display: 'flex', minHeight: '18%' }}>
+      {middleLeft}
+      {middleRight}
+    </div>
+  )
+
   return (
     <div style={{
       position: 'absolute', inset: 0, background: p.bg, color: p.text, fontFamily: 'Inter, sans-serif',
-      display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: 'auto 1fr',
+      display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: 'auto auto 1fr',
+      overflow: 'hidden',
     }}>
       <div style={{ gridColumn: photoSide === 'left' ? '2 / 3' : '1 / 2' }}>{infoCol}</div>
       <div style={{ gridColumn: photoSide === 'left' ? '1 / 2' : '2 / 3' }}>{photoCol}</div>
-      <div style={{ gridColumn: '1 / -1', padding: '3% 5%', fontSize: '1.6%', color: p.secondary, textAlign: 'center' }}>
+      {middleBand}
+      <div style={{ gridColumn: '1 / -1', padding: '2% 5% 3% 5%', fontSize: '1.4%', color: p.secondary, textAlign: 'center' }}>
         Aperçu simplifié · cliquez « Aperçu PDF » pour le rendu final.
       </div>
     </div>
