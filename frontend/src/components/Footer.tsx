@@ -118,6 +118,9 @@ function Footer() {
             <Link to="/confidentialite" className="hover:text-zinc-900 dark:hover:text-stone-300 transition">
               Confidentialité
             </Link>
+            <Link to="/cookies" className="hover:text-zinc-900 dark:hover:text-stone-300 transition">
+              Cookies
+            </Link>
             <Link
               to={isAdmin ? '/admin' : '/admin/login'}
               className="hover:text-turf-700 dark:hover:text-turf-300 transition"
