@@ -1,4 +1,5 @@
 import { Outlet } from 'react-router-dom'
+import CookieNotice from '../components/CookieNotice'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import FooterNav from '../components/FooterNav'
@@ -15,6 +16,7 @@ function PublicLayout() {
       </main>
       <Footer />
       <FooterNav />
+      <CookieNotice />
     </div>
   )
 }

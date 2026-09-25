@@ -20,6 +20,9 @@ const ActualitesPage     = lazy(() => import('./pages/ActualitesPage'))
 const ArticleDetailPage  = lazy(() => import('./pages/ArticleDetailPage'))
 const AProposPage        = lazy(() => import('./pages/AProposPage'))
 const PublicPresentationPage = lazy(() => import('./pages/PublicPresentationPage'))
+const MentionsLegales    = lazy(() => import('./pages/legal/MentionsLegales'))
+const Confidentialite    = lazy(() => import('./pages/legal/Confidentialite'))
+const CookiesPage        = lazy(() => import('./pages/legal/Cookies'))
 
 /* Admin shell + pages: never loaded for public visitors. */
 const AdminLayout    = lazy(() => import('./layouts/AdminLayout'))
@@ -55,24 +58,9 @@ function App() {
                 <Route path="actualites/:slug" element={<ArticleDetailPage />} />
                 <Route path="a-propos" element={<AProposPage />} />
                 <Route path="contact" element={<ContactPage />} />
-                <Route
-                  path="mentions-legales"
-                  element={
-                    <PlaceholderPage
-                      title="Mentions légales"
-                      description="Informations légales à venir."
-                    />
-                  }
-                />
-                <Route
-                  path="confidentialite"
-                  element={
-                    <PlaceholderPage
-                      title="Politique de confidentialité"
-                      description="Politique de confidentialité à venir."
-                    />
-                  }
-                />
+                <Route path="mentions-legales" element={<MentionsLegales />} />
+                <Route path="confidentialite" element={<Confidentialite />} />
+                <Route path="cookies" element={<CookiesPage />} />
                 <Route path="*" element={<NotFoundPage />} />
               </Route>
 
