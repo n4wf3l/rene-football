@@ -95,14 +95,23 @@ class MarketingTemplate extends PresentationTemplate
 
         // ---------- Right / info column ----------
 
-        // Logo brand block (RF wordmark + tagline + optional motto)
+        // Logo brand block (real Rene Football logo + tagline + optional motto).
+        // All Marketing themes render on a dark background, so we embed the
+        // white variant. Encoded inline as a data URI so both DomPDF's file
+        // loader and the browser iframe preview can render it without any
+        // routing gymnastics.
         $tagline = trim((string) ($options['tagline'] ?? 'AGENCE DE JOUEURS'));
         $headerMotto = trim((string) ($options['header_motto'] ?? ''));
+        $logoDataUri = $this->logoDataUri('white');
         $brandBlock = '<div style="padding:0 0 4mm 0;">'
-            .'<div style="font-size:18pt;font-weight:900;letter-spacing:0.5px;color:'.$p['text'].';line-height:1;">'
-                .'<span style="color:'.$p['accent'].';">R</span><span style="color:'.$p['text'].';">F</span>'
-                .'&nbsp;&nbsp;<span style="font-size:10pt;letter-spacing:3px;font-weight:800;">RENE<span style="color:'.$p['accent'].';">FOOTBALL</span></span>'
-            .'</div>'
+            .($logoDataUri !== ''
+                ? '<img src="'.$logoDataUri.'" alt="Rene Football" style="height:15mm;width:auto;display:block;">'
+                // Fallback wordmark if the logo file is missing on disk.
+                : '<div style="font-size:18pt;font-weight:900;letter-spacing:0.5px;color:'.$p['text'].';line-height:1;">'
+                    .'<span style="color:'.$p['accent'].';">R</span><span style="color:'.$p['text'].';">F</span>'
+                    .'&nbsp;&nbsp;<span style="font-size:10pt;letter-spacing:3px;font-weight:800;">RENE<span style="color:'.$p['accent'].';">FOOTBALL</span></span>'
+                .'</div>'
+            )
             .($tagline !== '' ? '<div style="font-size:5.5pt;letter-spacing:3px;color:'.$p['secondary'].';margin-top:1.5mm;font-weight:700;">'.$this->esc(mb_strtoupper($tagline)).'</div>' : '')
             .($headerMotto !== '' ? '<div style="font-size:6.5pt;letter-spacing:3px;color:'.$p['accent'].';margin-top:1.5mm;font-weight:800;">'.$this->esc(mb_strtoupper($headerMotto)).'</div>' : '')
             .'</div>';
@@ -692,6 +701,27 @@ HTML;
                 .'</td>'
             .'</tr></table>'
             .'</div>';
+    }
+
+    /**
+     * Load the real Rene Football logo from public/branding/ and return it
+     * as a base64 data URI. Cached statically so a batch render of several
+     * fiches doesn't re-read the PNG for every call. Returns '' if the
+     * file is missing so the caller can fall back to the text wordmark.
+     */
+    private function logoDataUri(string $variant = 'white'): string
+    {
+        static $cache = [];
+        if (isset($cache[$variant])) return $cache[$variant];
+
+        $file = public_path('branding/logo-'.$variant.'.png');
+        if (! is_file($file) || ! is_readable($file)) {
+            return $cache[$variant] = '';
+        }
+        $bytes = @file_get_contents($file);
+        if ($bytes === false) return $cache[$variant] = '';
+
+        return $cache[$variant] = 'data:image/png;base64,'.base64_encode($bytes);
     }
 
     // ==================== SVG icons (data-URI <img>) ====================
