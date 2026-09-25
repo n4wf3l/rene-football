@@ -14,6 +14,7 @@ import {
 import { api } from '../../api/client'
 import type { Presentation } from '../../types/presentation'
 import Skeleton from '../../components/Skeleton'
+import WorkInProgressBanner from '../../components/admin/WorkInProgressBanner'
 
 interface PresentationListResponse { data: Presentation[] }
 interface ToastState { kind: 'success' | 'error'; message: string }
@@ -127,6 +128,7 @@ export default function AdminPresentations() {
 
   return (
     <div className="px-6 lg:px-10 py-10">
+      <WorkInProgressBanner storageKey="admin_presentations_wip_v1" />
       <div className="flex flex-wrap items-end justify-between gap-4 mb-8">
         <div>
           <span className="eyebrow">Outils</span>

@@ -26,6 +26,7 @@ import PdfGenerationOverlay from '../../components/PdfGenerationOverlay'
 import PlayerSingleSelect from '../../components/PlayerSingleSelect'
 import PresentationPreview from '../../components/PresentationPreview'
 import Skeleton from '../../components/Skeleton'
+import WorkInProgressBanner from '../../components/admin/WorkInProgressBanner'
 
 interface PlayersResponse { data: (Player & { id: number })[] }
 interface PresentationResponse { data: Presentation }
@@ -543,6 +544,7 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
 
       <div className="flex-1 overflow-y-auto">
         <div className="px-6 lg:px-10 py-8 max-w-7xl w-full mx-auto">
+          <WorkInProgressBanner storageKey="admin_presentation_edit_wip_v1" />
           <div className="lg:grid lg:grid-cols-5 lg:gap-8">
             <aside className="lg:col-span-2 lg:order-2 lg:sticky lg:top-0 lg:self-start lg:h-[calc(100dvh-4rem)] lg:flex lg:items-center mb-8 lg:mb-0">
               <div className="w-full lg:max-h-full lg:overflow-y-auto lg:pr-1 lg:py-4">
