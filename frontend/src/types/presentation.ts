@@ -67,7 +67,10 @@ export interface PresentationOptions {
   language?: 'fr' | 'en' | 'de' | 'nl'
 }
 
-export type PresentationTemplateKey = 'classic' | 'signature' | 'magazine' | 'minimal' | 'stadium' | 'marketing'
+// Historic keys (classic/signature/magazine/minimal/stadium) were removed
+// with their template classes. Only marketing ships; old rows in DB fall
+// back to it via PresentationTemplateRegistry::resolve().
+export type PresentationTemplateKey = 'marketing'
 
 export interface PresentationTemplate {
   key: PresentationTemplateKey

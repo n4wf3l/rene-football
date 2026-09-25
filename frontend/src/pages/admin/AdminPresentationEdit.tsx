@@ -42,11 +42,6 @@ interface CatalogueResponse {
  * why the option they filled in doesn't show up on the PDF.
  */
 const TEMPLATE_CAPABILITIES: Record<PresentationTemplateKey, { previousClubs: boolean; externalLinks: boolean }> = {
-  classic:   { previousClubs: true, externalLinks: true },
-  signature: { previousClubs: true, externalLinks: true },
-  magazine:  { previousClubs: true, externalLinks: true },
-  minimal:   { previousClubs: true, externalLinks: true },
-  stadium:   { previousClubs: true, externalLinks: true },
   marketing: { previousClubs: false, externalLinks: true },
 }
 
@@ -112,7 +107,7 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
 
   const [form, setForm] = useState<FormState>({
     player_id: null,
-    template_key: 'classic',
+    template_key: 'marketing',
     title: '',
     is_published: false,
     options: { ...DEFAULT_OPTIONS },
@@ -130,6 +125,7 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
   const [existing, setExisting] = useState<Presentation | null>(null)
   const [photoFile, setPhotoFile] = useState<File | null>(null)
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
+  const [uploadingPlayerPhoto, setUploadingPlayerPhoto] = useState(false)
   const [uploadingAsset, setUploadingAsset] = useState(false)
   const [generatingPdf, setGeneratingPdf] = useState(false)
   const assetInputRef = useRef<HTMLInputElement | null>(null)
@@ -184,7 +180,9 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
         setExisting(p)
         setForm({
           player_id: p.player_id,
-          template_key: p.template_key,
+          // Coerce historic template_keys (classic/magazine/minimal/stadium/
+          // signature) to marketing so the editor speaks the current schema.
+          template_key: 'marketing',
           title: p.title,
           is_published: p.is_published,
           options: { ...DEFAULT_OPTIONS, ...(p.options ?? {}) },
@@ -342,6 +340,36 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
       setPhotoFile(null)
     } finally {
       setUploadingPhoto(false)
+    }
+  }
+
+  /** Upload the picked file directly to the SELECTED PLAYER's photo_url via
+   *  the admin PATCH endpoint. Used when the player has no canonical photo
+   *  yet — one upload updates the DB so the same photo also shows up on the
+   *  public player profile, not just this presentation. */
+  const onUploadPlayerPhoto = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] ?? null
+    if (e.target) e.target.value = ''
+    if (!file || !selectedPlayer) return
+    setUploadingPlayerPhoto(true)
+    try {
+      const fd = new FormData()
+      fd.append('photo', file)
+      // POST alias on the update route (browsers can't send files over PATCH
+      // without _method spoofing dance) - Laravel treats it as an update.
+      const res = await api.post<{ data: Player & { id: number; photo_url: string | null } }>(
+        `/admin/players/${selectedPlayer.slug}`,
+        fd,
+        { auth: true },
+      )
+      // Reflect the new photo in the local players list so the preview + hint
+      // update immediately without a full refetch.
+      setPlayers((ps) => ps.map((p) => (p.id === selectedPlayer.id ? { ...p, photo_url: res.data.photo_url } : p)))
+      showToast('success', 'Photo enregistrée sur la fiche joueur. Visible partout sur le site.')
+    } catch (err: unknown) {
+      showToast('error', err instanceof Error ? err.message : 'Upload impossible.')
+    } finally {
+      setUploadingPlayerPhoto(false)
     }
   }
 
@@ -523,7 +551,7 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
                     Aperçu live
                   </span>
                   <span className="text-[0.6rem] font-mono uppercase tracking-wider text-zinc-400 dark:text-stone-500">
-                    A4 · {{ classic: 'Carte d\'identité', signature: 'Signature', magazine: 'Magazine', minimal: 'Minimal', stadium: 'Stadium', marketing: 'Marketing v1' }[form.template_key]}
+                    A4 · Marketing v1
                   </span>
                 </div>
                 <PresentationPreview
@@ -788,7 +816,7 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
         {form.template_key === 'marketing' && (
         <section className="space-y-5">
           <h3 className="font-mono uppercase tracking-[0.18em] text-[0.7rem] text-zinc-500 dark:text-stone-400">
-            Marketing v1 <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">— options du template</span>
+            Marketing v1 <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">(options du template)</span>
           </h3>
 
           {/* Thème couleur */}
@@ -843,7 +871,7 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
           <div className="grid sm:grid-cols-2 gap-3">
             <label className="block">
               <span className="block text-[0.65rem] font-mono uppercase tracking-[0.16em] text-zinc-500 dark:text-stone-400 mb-1">
-                Motto <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">— footer (ex. DISCIPLINE • WORK • PASSION)</span>
+                Motto <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">(footer, ex. DISCIPLINE • WORK • PASSION)</span>
               </span>
               <input
                 type="text"
@@ -856,7 +884,7 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
             </label>
             <label className="block">
               <span className="block text-[0.65rem] font-mono uppercase tracking-[0.16em] text-zinc-500 dark:text-stone-400 mb-1">
-                Slogan cursif <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">— italique bas de fiche</span>
+                Slogan cursif <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">(italique bas de fiche)</span>
               </span>
               <input
                 type="text"
@@ -872,7 +900,7 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
           {/* Supervisé par */}
           <div className="space-y-2">
             <div className="text-[0.65rem] font-mono uppercase tracking-[0.14em] text-zinc-500 dark:text-stone-400">
-              Supervisé par <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">— agence supérieure (ex. WNRS Sport)</span>
+              Supervisé par <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">(agence supérieure, ex. WNRS Sport)</span>
             </div>
             <div className="grid sm:grid-cols-2 gap-2">
               <input type="text" value={form.options.supervised_by?.name ?? ''} onChange={(e) => setOpt('supervised_by', { ...(form.options.supervised_by ?? {}), name: e.target.value || null })} placeholder="Nom" className={INPUT_BASE} maxLength={120} />
@@ -886,7 +914,7 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <div className="text-[0.65rem] font-mono uppercase tracking-[0.14em] text-zinc-500 dark:text-stone-400">
-                Bars de progression <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">— Speed 90%, Technique 85%…</span>
+                Bars de progression <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">(ex. Speed 90%, Technique 85%…)</span>
               </div>
               <button
                 type="button"
@@ -1048,15 +1076,42 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
             ))}
           </div>
           {form.options.photo_source === 'player' && selectedPlayer && (
-            <div className="flex items-center gap-3 text-xs text-zinc-600 dark:text-stone-400">
-              <div className="w-12 h-12 rounded-lg overflow-hidden bg-stone-200 dark:bg-stone-50/5">
+            <div className="flex items-start gap-3 text-xs text-zinc-600 dark:text-stone-400">
+              <div className="shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-stone-200 dark:bg-stone-50/5 border border-stone-300 dark:border-stone-50/10">
                 {selectedPlayer.photo_url ? (
                   <img src={selectedPlayer.photo_url} alt="" className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full grid place-items-center text-zinc-400"><Person size={18} weight="regular" /></div>
+                  <div className="w-full h-full grid place-items-center text-zinc-400"><Person size={22} weight="regular" /></div>
                 )}
               </div>
-              <span>Utilise la photo de la fiche joueur.</span>
+              {selectedPlayer.photo_url ? (
+                <div className="flex-1 pt-1">
+                  <span>Utilise la photo de la fiche joueur.</span>
+                  <p className="mt-1 text-[0.65rem] text-zinc-500 dark:text-stone-500">
+                    Pour la remplacer, va sur <a href={`/admin/joueurs/${selectedPlayer.slug}/edit`} className="underline hover:text-zinc-900 dark:hover:text-stone-100">la fiche joueur</a>.
+                  </p>
+                </div>
+              ) : (
+                <div className="flex-1 space-y-2">
+                  <p className="text-zinc-700 dark:text-stone-300 leading-relaxed">
+                    <span className="font-medium">Ce joueur n'a pas encore de photo.</span> Uploader ici l'enregistre sur la fiche joueur (visible aussi sur son profil public).
+                  </p>
+                  <label className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium bg-turf-700 text-white hover:bg-turf-800 cursor-pointer transition disabled:opacity-60">
+                    <ImageIcon size={13} weight="bold" />
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="hidden"
+                      onChange={onUploadPlayerPhoto}
+                      disabled={uploadingPlayerPhoto}
+                    />
+                    {uploadingPlayerPhoto ? 'Upload en cours…' : 'Ajouter une photo sur la fiche joueur'}
+                  </label>
+                  <p className="text-[0.65rem] text-zinc-500 dark:text-stone-500">
+                    JPG / PNG / WebP, 4 Mo max. Sinon utilise le mode « Photo personnalisée » pour un one-off qui ne touche pas à la fiche joueur.
+                  </p>
+                </div>
+              )}
             </div>
           )}
           {form.options.photo_source === 'custom' && (
