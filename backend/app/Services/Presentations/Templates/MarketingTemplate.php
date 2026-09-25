@@ -133,13 +133,13 @@ class MarketingTemplate extends PresentationTemplate
         // Info block with SVG icons
         $infoBlock = $this->buildInfoBlock($player, $options, $p);
 
-        // Right column assembled
-        $rightColumn = '<div style="padding:6mm 8mm 3mm 8mm;">'
-            .$brandBlock
+        // Right column - inner content (no outer padding) so we can wrap it
+        // in different chrome depending on whether we have a photo or not.
+        $rightColumnInner = $brandBlock
             .$nameBlock
             .$subtitleBlock
-            .'<div style="margin-top:2mm;">'.$infoBlock.'</div>'
-            .'</div>';
+            .'<div style="margin-top:2mm;">'.$infoBlock.'</div>';
+        $rightColumn = '<div style="padding:6mm 8mm 3mm 8mm;">'.$rightColumnInner.'</div>';
 
         // ---------- Left / photo column ----------
 
@@ -155,30 +155,38 @@ class MarketingTemplate extends PresentationTemplate
                 .'</div>';
         }
 
-        // Photo panel — bleeds vertically
-        $photoCell = $photoAbsPath
-            ? '<div style="width:100%;height:115mm;overflow:hidden;background:#0f0f0f;position:relative;">'
+        // Photo panel — bleeds vertically. When no photo is available we
+        // skip the whole photo column and let the info column stretch to
+        // full width; the previous fallback ("gray box") wasted 48% of the
+        // hero band and made the fiche look unfinished.
+        $topStyle = 'width:100%;border-collapse:collapse;table-layout:fixed;height:115mm;';
+        if ($photoAbsPath) {
+            $photoCell = '<div style="width:100%;height:115mm;overflow:hidden;background:#0f0f0f;position:relative;">'
                 .'<img src="'.$photoAbsPath.'" style="width:100%;height:115mm;object-fit:cover;object-position:center;">'
                 .$prevChip
-                .'</div>'
-            : '<div style="width:100%;height:115mm;background:#1a1a1a;position:relative;">'.$prevChip.'</div>';
-
-        // Top row layout: photo one side, info the other. Explicit table +
-        // row height keeps DomPDF from expanding the row past the photo cell
-        // when the info column overflows slightly.
-        $topStyle = 'width:100%;border-collapse:collapse;table-layout:fixed;height:115mm;';
-        if ($photoSide === 'right') {
-            $topRow = '<table style="'.$topStyle.'">'
-                .'<tr style="height:115mm;">'
-                .'<td style="width:52%;vertical-align:top;padding:0;height:115mm;overflow:hidden;">'.$rightColumn.'</td>'
-                .'<td style="width:48%;vertical-align:top;padding:0;height:115mm;">'.$photoCell.'</td>'
-                .'</tr></table>';
+                .'</div>';
+            if ($photoSide === 'right') {
+                $topRow = '<table style="'.$topStyle.'">'
+                    .'<tr style="height:115mm;">'
+                    .'<td style="width:52%;vertical-align:top;padding:0;height:115mm;overflow:hidden;">'.$rightColumn.'</td>'
+                    .'<td style="width:48%;vertical-align:top;padding:0;height:115mm;">'.$photoCell.'</td>'
+                    .'</tr></table>';
+            } else {
+                $topRow = '<table style="'.$topStyle.'">'
+                    .'<tr style="height:115mm;">'
+                    .'<td style="width:48%;vertical-align:top;padding:0;height:115mm;">'.$photoCell.'</td>'
+                    .'<td style="width:52%;vertical-align:top;padding:0;height:115mm;overflow:hidden;">'.$rightColumn.'</td>'
+                    .'</tr></table>';
+            }
         } else {
-            $topRow = '<table style="'.$topStyle.'">'
-                .'<tr style="height:115mm;">'
-                .'<td style="width:48%;vertical-align:top;padding:0;height:115mm;">'.$photoCell.'</td>'
-                .'<td style="width:52%;vertical-align:top;padding:0;height:115mm;overflow:hidden;">'.$rightColumn.'</td>'
-                .'</tr></table>';
+            // No photo → full-width hero. We drop the photo cell entirely
+            // (previous fallback wasted 48% of the band on a dark
+            // rectangle) and centre the info block for balance.
+            $topRow = '<div style="width:100%;padding:6mm 14mm 3mm 14mm;box-sizing:border-box;">'
+                .'<div style="max-width:170mm;margin:0 auto;position:relative;">'
+                .$rightColumnInner
+                .$prevChip
+                .'</div></div>';
         }
 
         // ---------- Content bands ----------
