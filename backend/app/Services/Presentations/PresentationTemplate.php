@@ -760,8 +760,8 @@ abstract class PresentationTemplate
      * of pushing to a second page.
      *
      * Returns empty string when no clubs / article / video are configured.
-     * Used by ClassicTemplate today; other templates that have a taller
-     * "leftover" column can adopt it too.
+     * Legacy helper retained for future use; not currently wired into the
+     * Marketing template.
      *
      * @param array{accent?:string, text?:string, muted?:string, bg?:string} $style
      */
