@@ -15,6 +15,7 @@ import {
   TrendUp,
 } from '@phosphor-icons/react'
 import MercatoTicker from '../components/MercatoTicker'
+import Seo from '../components/Seo'
 import HeroTrail from '../components/HeroTrail'
 import YouTubeEmbed from '../components/YouTubeEmbed'
 import MeshGradient from '../components/MeshGradient'
@@ -238,6 +239,12 @@ function HomePage() {
   ].filter((s) => s.value > 0)
   return (
     <>
+      <Seo
+        title="Rene Football · Agence de football au Luxembourg"
+        bareTitle
+        description="Agent FIFA licencié basé au Luxembourg. Représentation de joueurs, négociation de transferts, scouting et gestion de carrière, en activité depuis 2010."
+        path="/"
+      />
       {/* HERO - asymmetric 60/40 split. Theme-aware : light mode keeps the
           editorial layout with high-contrast dark text, dark mode keeps the
           stadium-at-night feel that defines the brand. */}
@@ -327,16 +334,16 @@ function HomePage() {
               transition={{ type: 'spring', stiffness: 110, damping: 18 }}
               className="mt-5 max-w-[58ch] text-base lg:text-lg text-zinc-600 dark:text-stone-400 leading-relaxed"
             >
-              Agence de football basée au Luxembourg. On travaille avec peu
-              de joueurs à la fois — c'est la meilleure façon de rester
-              utiles sur la durée, du premier contrat pro aux étapes qui
-              suivent.
+              Agent FIFA licencié basé au Luxembourg, en activité depuis
+              2010 et conforme RGPD. On travaille avec peu de joueurs à la
+              fois : c'est la meilleure façon de rester utiles sur la
+              durée, du premier contrat pro aux étapes qui suivent.
             </motion.p>
 
             <motion.div
               variants={FADE_UP}
               transition={{ type: 'spring', stiffness: 110, damping: 18 }}
-              className="mt-8 flex flex-wrap gap-3"
+              className="mt-6 flex flex-wrap gap-3"
             >
               <Link
                 to="/joueurs"
@@ -640,6 +647,159 @@ function HomePage() {
                 )}
               </motion.article>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* WHY AN AGENCY - fact-based section that pre-answers "why should a
+         player/club deal with an agency" before the contact CTA. Every
+         figure is sourced from FIFA's Football Agents Annual Report 2025
+         and the CIES Football Observatory - links visible so nobody has
+         to trust our word. */}
+      <section className="bg-white dark:bg-zinc-950 border-t border-stone-200/80 dark:border-stone-50/10 py-20 lg:py-28 transition-colors">
+        <div className="container-page">
+          <div className="max-w-[60ch]">
+            <span className="eyebrow">Pourquoi une agence</span>
+            <h2 className="mt-3 font-display font-semibold text-3xl lg:text-5xl tracking-tightest text-zinc-950 dark:text-stone-50 leading-[1.05]">
+              Une carrière pro se joue à quelques décisions clés.
+            </h2>
+            <p className="mt-6 text-base lg:text-lg text-zinc-600 dark:text-stone-400 leading-relaxed">
+              Les chiffres du football professionnel expliquent la valeur
+              d'un accompagnement structuré - qu'il s'agisse d'un jeune qui
+              cherche à percer ou d'un club qui négocie une signature.
+            </p>
+          </div>
+
+          {/* Stat headliners */}
+          <div className="mt-12 grid md:grid-cols-3 gap-4">
+            {[
+              {
+                stat: '0,5%',
+                label: 'des jeunes joueurs signent un contrat pro',
+                detail: 'Sur 21,5 M de jeunes joueurs enregistrés dans le monde, seulement ~113 000 exercent en pro selon FIFA.',
+                sourceLabel: 'FIFA',
+                sourceHref: 'https://digitalhub.fifa.com/m/1e7b741fa0fae779/original/FIFA-Football-Agent-Regulations.pdf',
+              },
+              {
+                stat: '58%',
+                label: 'des joueurs représentés sont des jeunes, pas des pros seniors',
+                detail: 'CIES Football Observatory : la majorité du travail d\'agent se joue en amont, sur l\'émergence.',
+                sourceLabel: 'CIES',
+                sourceHref: 'https://football-observatory.com/IMG/pdf/report_agents_2012-2.pdf',
+              },
+              {
+                stat: '$1,37 Md',
+                label: 'de commissions d\'agents en 2025',
+                detail: 'Sur $13,08 Md de transferts globaux : le marché ne valide un agent que sur résultats.',
+                sourceLabel: 'FIFA 2025',
+                sourceHref: 'https://digitalhub.fifa.com/m/1e7b741fa0fae779/original/FIFA-Football-Agent-Regulations.pdf',
+              },
+            ].map((s) => (
+              <motion.article
+                key={s.stat}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-60px' }}
+                transition={{ type: 'spring', stiffness: 110, damping: 22 }}
+                className="rounded-3xl border border-stone-200/80 bg-stone-50 dark:bg-zinc-900 dark:border-stone-50/10 p-6 lg:p-7 flex flex-col"
+              >
+                <div className="font-mono text-4xl lg:text-5xl font-semibold text-zinc-950 dark:text-stone-50 tracking-tight tabular-nums">
+                  {s.stat}
+                </div>
+                <div className="mt-3 font-display font-medium text-base lg:text-lg text-zinc-950 dark:text-stone-50 leading-snug">
+                  {s.label}
+                </div>
+                <p className="mt-3 text-sm text-zinc-600 dark:text-stone-400 leading-relaxed">
+                  {s.detail}
+                </p>
+                <a
+                  href={s.sourceHref}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-4 inline-flex items-center gap-1.5 text-[0.65rem] uppercase tracking-[0.22em] font-mono text-turf-700 dark:text-turf-300 hover:text-turf-800 dark:hover:text-turf-200 transition-colors"
+                >
+                  Source · {s.sourceLabel}
+                  <ArrowUpRight size={11} weight="bold" />
+                </a>
+              </motion.article>
+            ))}
+          </div>
+
+          {/* Value pillars - what an agency actually adds beyond the numbers */}
+          <div className="mt-14 grid lg:grid-cols-2 gap-4">
+            {[
+              {
+                Icon: ShieldCheck,
+                title: 'Négociation encadrée',
+                text: 'FIFA a plafonné les commissions à 3-5% du salaire brut annuel depuis 2023. Un accompagnement structuré permet d\'aller chercher les clauses qui font la différence dans un cadre où l\'improvisation coûte cher.',
+              },
+              {
+                Icon: TrendUp,
+                title: 'Un plan de carrière, pas un transfert',
+                text: 'Le turnover annuel dans les académies allemandes atteint 24,5% - avec moins de 50% de probabilité d\'y être encore trois ans plus tard. Anticiper l\'étape suivante avant d\'en avoir besoin change la trajectoire.',
+              },
+              {
+                Icon: ScanSmiley,
+                title: 'Détection en amont',
+                text: 'Le CIES observe que la majorité des joueurs sous agent sont des jeunes talents - parce que la valeur ajoutée d\'une agence se construit avant les premières signatures pros, pas après.',
+              },
+              {
+                Icon: Handshake,
+                title: 'Interlocuteur unique côté club',
+                text: 'Un dossier centralisé (fiche joueur, PDF marketing, historique) et un référent unique côté agence : le club raccourcit son cycle de décision et réduit son exposition juridique.',
+              },
+            ].map(({ Icon, title, text }) => (
+              <motion.article
+                key={title}
+                initial={{ opacity: 0, y: 12 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-60px' }}
+                transition={{ type: 'spring', stiffness: 110, damping: 22 }}
+                className="rounded-2xl border border-stone-200/80 bg-white dark:bg-zinc-900 dark:border-stone-50/10 p-6 flex items-start gap-4"
+              >
+                <span className="grid place-items-center w-11 h-11 rounded-xl bg-turf-50 text-turf-800 border border-turf-100 dark:bg-turf-800/30 dark:border-turf-300/25 dark:text-turf-300 shrink-0">
+                  <Icon size={20} weight="regular" />
+                </span>
+                <div className="min-w-0">
+                  <h3 className="font-display font-semibold text-base lg:text-lg text-zinc-950 dark:text-stone-50 tracking-tight">
+                    {title}
+                  </h3>
+                  <p className="mt-2 text-sm text-zinc-600 dark:text-stone-400 leading-relaxed">{text}</p>
+                </div>
+              </motion.article>
+            ))}
+          </div>
+
+          {/* Consolidated sources footnote */}
+          <div className="mt-10 pt-6 border-t border-stone-200/70 dark:border-stone-50/10 flex flex-wrap gap-x-6 gap-y-2 text-[0.68rem] uppercase tracking-[0.18em] font-mono text-zinc-500 dark:text-stone-500">
+            <span className="text-zinc-400 dark:text-stone-600">Sources</span>
+            <a
+              href="https://digitalhub.fifa.com/m/1e7b741fa0fae779/original/FIFA-Football-Agent-Regulations.pdf"
+              target="_blank"
+              rel="noreferrer"
+              className="hover:text-turf-700 dark:hover:text-turf-300 transition-colors inline-flex items-center gap-1"
+            >
+              FIFA · Football Agent Regulations
+              <ArrowUpRight size={10} weight="bold" />
+            </a>
+            <a
+              href="https://football-observatory.com/IMG/pdf/report_agents_2012-2.pdf"
+              target="_blank"
+              rel="noreferrer"
+              className="hover:text-turf-700 dark:hover:text-turf-300 transition-colors inline-flex items-center gap-1"
+            >
+              CIES · Football Observatory
+              <ArrowUpRight size={10} weight="bold" />
+            </a>
+            <a
+              href="https://www.hudl.com/blog/2023-fifa-football-agent-regulations"
+              target="_blank"
+              rel="noreferrer"
+              className="hover:text-turf-700 dark:hover:text-turf-300 transition-colors inline-flex items-center gap-1"
+            >
+              Réforme FIFA 2023
+              <ArrowUpRight size={10} weight="bold" />
+            </a>
           </div>
         </div>
       </section>
