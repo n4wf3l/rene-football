@@ -475,7 +475,30 @@ function MarketingPreview({ player, options }: PresentationPreviewProps): ReactE
   const photoBlock = photo ? (
     <img src={photo} alt="" style={{ width: '100%', height: '50%', objectFit: 'cover', objectPosition: 'center', display: 'block' }} />
   ) : (
-    <div style={{ width: '100%', height: '50%', background: '#222' }} />
+    <div
+      style={{
+        width: '100%', height: '50%',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1.5%',
+        background: `linear-gradient(135deg, ${p.card} 0%, rgba(0,0,0,0.35) 100%)`,
+        border: `0.4% dashed ${p.cardBorder}`,
+        boxSizing: 'border-box',
+        padding: '4%',
+        textAlign: 'center',
+      }}
+    >
+      {/* Simple silhouette placeholder so the frame reads as "photo goes
+         here" instead of a random dark square. */}
+      <svg width="14%" height="14%" viewBox="0 0 24 24" style={{ opacity: 0.55 }}>
+        <circle cx="12" cy="8" r="4" fill="none" stroke={p.accent} strokeWidth="1.4" />
+        <path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8" fill="none" stroke={p.accent} strokeWidth="1.4" strokeLinecap="round" />
+      </svg>
+      <div style={{ fontSize: '1.6%', letterSpacing: '0.16em', color: p.accent, fontWeight: 800, textTransform: 'uppercase' }}>
+        Photo à ajouter
+      </div>
+      <div style={{ fontSize: '1.35%', color: p.secondary, fontStyle: 'italic', maxWidth: '80%', lineHeight: 1.4 }}>
+        Uploadez une photo sur la fiche joueur pour qu'elle s'affiche ici.
+      </div>
+    </div>
   )
 
   const infoCol = <>{headerBlock}{nameBlock}{infoBlock}</>
