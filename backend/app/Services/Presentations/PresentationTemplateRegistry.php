@@ -2,24 +2,23 @@
 
 namespace App\Services\Presentations;
 
-use App\Services\Presentations\Templates\ClassicTemplate;
-use App\Services\Presentations\Templates\MagazineTemplate;
 use App\Services\Presentations\Templates\MarketingTemplate;
-use App\Services\Presentations\Templates\MinimalTemplate;
-use App\Services\Presentations\Templates\SignatureTemplate;
-use App\Services\Presentations\Templates\StadiumTemplate;
 use RuntimeException;
 
+/**
+ * Only the Marketing v1 template ships - it reproduces the agency's real
+ * marketing fiches (violet Zoran-Mawel, navy Camara, black-gold Destiny/
+ * Saeed, black-yellow Hanibal) through its theme + photo_side + middle
+ * variant knobs. The generic Classic/Magazine/Minimal/Signature/Stadium
+ * templates that used to live here were placeholder demos that didn't
+ * match the agency's identity and confused visitors, so they've been
+ * removed.
+ */
 class PresentationTemplateRegistry
 {
     /** @var array<class-string<PresentationTemplate>> */
     private const TEMPLATES = [
-        ClassicTemplate::class,
         MarketingTemplate::class,
-        SignatureTemplate::class,
-        MagazineTemplate::class,
-        StadiumTemplate::class,
-        MinimalTemplate::class,
     ];
 
     /** @return array<int, array{key:string,label:string,description:string,defaults:array,thumbnail:string}> */
@@ -44,6 +43,11 @@ class PresentationTemplateRegistry
         foreach (self::TEMPLATES as $cls) {
             if ($cls::key() === $key) return new $cls();
         }
-        throw new RuntimeException("Unknown presentation template: {$key}");
+        // Historic presentations that were saved with a now-removed template
+        // key (classic / magazine / minimal / signature / stadium) fall
+        // through to Marketing so they at least render instead of throwing.
+        // They can be re-saved through the admin editor to migrate to the
+        // Marketing options schema.
+        return new MarketingTemplate();
     }
 }
