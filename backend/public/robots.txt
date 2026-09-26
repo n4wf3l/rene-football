@@ -1,2 +1,10 @@
+# Rene Football - crawler policy.
 User-agent: *
-Disallow:
+Allow: /
+
+Disallow: /admin
+Disallow: /admin/*
+Disallow: /api/
+Disallow: /p/
+
+Sitemap: https://renefootball.com/sitemap.xml

@@ -1,0 +1,520 @@
+{
+  "common": {
+    "loading": "Gëtt gelueden…",
+    "error": "Eppes ass falsch gaangen.",
+    "retry": "Nach eng Kéier probéieren",
+    "back": "Zréck",
+    "next": "Weider",
+    "submit": "Schécken",
+    "close": "Zoumaachen",
+    "search": "Sichen",
+    "allF": "All",
+    "allM": "All",
+    "clear": "Läschen"
+  },
+  "nav": {
+    "home": "Haaptsäit",
+    "players": "Spiller",
+    "news": "Aktualitéit",
+    "about": "Iwwer eis",
+    "contact": "Kontakt",
+    "adminLogin": "Agence-Beräich",
+    "adminDashboard": "Dashboard"
+  },
+  "language": {
+    "label": "Sprooch",
+    "fr": "Français",
+    "en": "English",
+    "de": "Deutsch",
+    "lb": "Lëtzebuergesch",
+    "nl": "Nederlands"
+  },
+  "footer": {
+    "brand": "Onofhängeg Fussballagence zu Lëtzebuerg. Mir këmmeren eis ëm Karriereplanung, Scouting a Vertriedung vu Beruffsspiller a ganz Europa.",
+    "socials": "Sozial Netzwierker",
+    "navigation": "Navigatioun",
+    "services": "Servicer",
+    "servicesList": {
+      "representation": "Spillervertriedung",
+      "contracts": "Kontraktsverhandlungen",
+      "scouting": "Scouting & Recrutement",
+      "career": "Karriereplanung"
+    },
+    "contact": "Kontakt",
+    "legal": {
+      "mentions": "Impressum",
+      "privacy": "Dateschutz",
+      "cookies": "Cookien"
+    },
+    "copyright": "© {{year}} Rene Football. All Rechter reservéiert."
+  },
+  "home": {
+    "hero": {
+      "chip": "Fussballagence",
+      "titlePre": "Jidder",
+      "titleAccent": "Spiller",
+      "titlePost": "esou vertrieden, wéi wann hie deen eenzegen wier.",
+      "paragraph": "FIFA-lizenzéiert Agent zu Lëtzebuerg, aktiv zënter 2010 an DSGVO-konform. Mir schaffen bewosst mat wéinegen Spiller — esou bleiwe mir op der Längt nëtzlech, vum éischte Profikontrakt bis zu de nächste Schrëtt.",
+      "ctaPrimary": "Eis Spiller entdecken",
+      "ctaSecondary": "Kontakt ophuelen",
+      "identityLabel": "Vertriedene Spiller",
+      "signedIn": "Ënnerschriwwen {{year}}"
+    },
+    "stats": {
+      "players": "Aktiv Spiller",
+      "years": "Joer Erfarung",
+      "clubs": "Vertridde Veräiner",
+      "team": "Teammemberen"
+    },
+    "roster": {
+      "eyebrow": "Eise Roster",
+      "title": "D'Spiller déi mir dës Saison begleeden.",
+      "viewAll": "All Spiller kucken"
+    },
+    "brandVideo": {
+      "eyebrow": "D'Agence a Beweegung",
+      "title": "Méi wéi eng Agence,",
+      "titleAccent": "e Liewesprojet.",
+      "paragraph": "Eis Method, eis Spiller, eis Visioun vum Beruff vum Agent an enger Minutt. Eng kleng Paus fir eis kennenzeléieren, éier mir iwwer Äre Projet schwätzen.",
+      "videoTitle": "Rene Football, Presentatioun vun der Agence"
+    },
+    "services": {
+      "eyebrow": "Eis Beruffer",
+      "title": "Komplett Expertise, geduecht wéi e Cabinet.",
+      "intro": "Vun der Detektioun bis zum Enn vun der Karriär gëtt all Etapp vun enger klenger Ekipp begleet, gewielt fir hir gutt Kenntnis vum Spill an dem Sportrecht.",
+      "representation": {
+        "title": "Spillervertriedung",
+        "text": "Vun der Akademie bis op de Profiveau begleede mir all Spiller mat der selwechter Opmierksamkeet. Wéineg Mandater, ni een ze vill."
+      },
+      "contracts": {
+        "title": "Kontraktsverhandlungen",
+        "text": "Mir këmmeren eis ëm Transferten, Verlängerungen a Bildrechter mat engem eegene juristesche Conseil."
+      },
+      "scouting": {
+        "title": "Scouting & Recrutement",
+        "text": "Scouting-Netz am Benelux, a Frankräich, Däitschland an den Nidderlanden. Mir kucken léiwer e Match, wéi eng Fiche ze liesen."
+      },
+      "career": {
+        "title": "Karriereplanung",
+        "text": "Kontrakt, Image, Schoul, Partnerschaften. Mir denken u Karriäre vun zéng Joer, net un den nächsten Transfer."
+      }
+    },
+    "why": {
+      "eyebrow": "Firwat eng Agence",
+      "title": "Eng Profikarriär entscheet sech op e puer Schlësselmomenter.",
+      "intro": "D'Zuelen aus dem Profifussball weisen de Wäert vun enger strukturéierter Begleedung, egal ob et ëm e jonke Spiller geet dee sech duerchsetze wëllt oder ëm e Veräin dee verhandelt.",
+      "stats": {
+        "one": {
+          "label": "vun de jonke Spiller ënnerschreiwe jeemools e Profikontrakt",
+          "detail": "Vun 21,5 Mio. weltwäit ageschriwwene Jugendspiller spillen no der FIFA nëmme ~113.000 op Profiveau."
+        },
+        "two": {
+          "label": "vun de vertriddene Spiller si Jonker, keng erfahren Profien",
+          "detail": "CIES Football Observatory: den Haaptdeel vun der Aarbecht vun engem Agent geschitt fréi, bei den opkomenden Talenter."
+        },
+        "three": {
+          "label": "u Beroderprovisiounen am Joer 2025",
+          "detail": "Bei $13,08 Mrd u globalen Transferten: de Maart validéiert en Agent nëmmen iwwer Resultater."
+        }
+      },
+      "sourceLabel": "Quell",
+      "pillars": {
+        "one": {
+          "title": "Regelméisseg Verhandlung",
+          "text": "D'FIFA huet d'Provisiounen zënter 2023 op 3-5 % vum Bruttojoresgehalt begrenzt. Eng strukturéiert Begleedung sichert déi entscheedend Klauselen an engem Kader, wou Improvisatioun deier gëtt."
+        },
+        "two": {
+          "title": "E Karriärplang, kee Transfer",
+          "text": "Den Turnover an den däitschen Akademien läit bei 24,5 % pro Joer, mat manner wéi 50 % Chance nach dräi Joer méi spéit do ze sinn. Deen nächsten Schrëtt virauszedenken ännert de Wee."
+        },
+        "three": {
+          "title": "Fréi Identifikatioun",
+          "text": "Den CIES stellt fest, datt d'Majoritéit vun de Spiller ënner Beroderschaft jonk Talenter sinn: de Mierwäert vun enger Agence entsteet virun den éischte Profikontrakter, net duerno."
+        },
+        "four": {
+          "title": "Een Uspriechpartner op der Veräinssäit",
+          "text": "En zentraliséierte Dossier (Spillerfiche, Marketing-PDF, Historique) an een eenzegen Uspriechpartner op der Agence-Säit: de Veräin verkierzt säin Decisiounszyklus a reduzéiert säi juristescht Risiko."
+        }
+      },
+      "sources": "Quellen"
+    },
+    "cta": {
+      "eyebrow": "Kontakt ophuelen",
+      "title": "Spiller, Veräin, Medien?",
+      "subtitle": "Wielt Äert Profil, mir passen den Austausch un.",
+      "paragraph": "All Wee opent d'Froen déi zu Ärer Situatioun passen. Äntwert bannent 48 Stonnen, vertraulechen Austausch, ouni Verpflichtung.",
+      "browseAll": "Oder duerch de ganze Formulaire goen"
+    }
+  },
+  "players": {
+    "seo": {
+      "title": "Eis Spiller",
+      "description": "D'Spiller déi mir dës Saison begleeden. Eng bewosst kleng Auswiel, iwwer déi ganz Saison vun engem festen Team begleet."
+    },
+    "hero": {
+      "eyebrow": "Eise Roster",
+      "title": "D'Spiller déi mir dës Saison begleeden.",
+      "paragraph": "Mir schaffen bewosst mat wéinegen Spiller op eemol. Fir jiddereen déi selwecht Ekipp: Berater, Juristescher Conseil, Mentalcoach, vum Ufank bis zum Enn vun der Saison.",
+      "activePlayers": "Aktiv Spiller",
+      "clubs": "Veräiner"
+    },
+    "filters": {
+      "positions": {
+        "Tous": "All Positiounen",
+        "Gardien": "Golkipp",
+        "Defenseur": "Verdeedeger",
+        "Milieu": "Mëttelfeld",
+        "Attaquant": "Stiermer"
+      },
+      "ages": {
+        "Tous": "All Alter",
+        "U21": "Manner wéi 21",
+        "21-26": "21-26 Joer",
+        "27+": "27 Joer an méi"
+      },
+      "searchPlaceholder": "Spiller oder Veräin sichen"
+    },
+    "empty": {
+      "title": "Kee Spiller entsprécht.",
+      "paragraph": "Probéiert är Krittären ze erweideren oder setzt d'Filteren zréck.",
+      "reset": "Filteren zrécksetzen"
+    }
+  },
+  "about": {
+    "seo": {
+      "title": "Iwwer eis",
+      "description": "Rene Football, Fussballagence gegrënnt vum René Jacob Yougbaré 2010 zu Lëtzebuerg. Vertriedung, Scouting, laangfristeg Karrierebegleedung."
+    },
+    "hero": {
+      "eyebrow": "Iwwer eis",
+      "title": "Eng iwwerschaubar Agence, zu Lëtzebuerg.",
+      "paragraph": "Rene Football begleet zënter 2010 Spiller an hir Familljen. Mir schaffe léiwer mat wéinegen Mandater op eemol: nëmmen esou si mir do wann et zielt, an net nëmme beim Transfer."
+    },
+    "founderQuote": {
+      "eyebrow": "E Wuert vum Grënner",
+      "quote": "„Mäi Zil ass et, dass jonk Fussballer keng gutt Geleeënheeten verpassen, an hinnen ze hëllefen, hir Karriär mat enger kloerer Method opzebauen.\"",
+      "paragraph": "Mat mengem eegene Wee am Profifussball hunn ech ze oft gesinn, wéi Geleeënheete verluer gaange sinn, well d'Begleedung gefeelt huet. Als Agent well ech haut Kloerheet, seriö Begleedung an en nëtzlecht Netzwierk fir eis Spiller bréngen."
+    },
+    "pillars": {
+      "eyebrow": "Eise Approche",
+      "title": "Wat mir fir e Spiller maachen.",
+      "intro": "Léiwer manner Saachen, awer gutt. Dat sinn déi dräi Beräicher déi mir fir all Spiller ënner Mandat ofdecken.",
+      "representation": {
+        "title": "Vertriedung",
+        "text": "Ee Berater, ee Jurist an ee Mentalcoach pro Spiller. D'Ekipp bleift kleng, esou datt jidderee sech verstänneg ka wann et musse decidéiert ginn."
+      },
+      "scouting": {
+        "title": "Scouting",
+        "text": "Eise Scouting-Netz deckt de Benelux, Frankräich, Däitschland an d'Nidderlanden of. Mir kucken als éischt wat um Terrain lass ass, éier mir op d'Fiche kucken."
+      },
+      "career": {
+        "title": "Laangfristeg Begleedung",
+        "text": "Kontrakt, Image, Schoul, Partnerschaften. Mir denken u Karriäre vun zéng Joer, net un den nächsten Transfer."
+      }
+    },
+    "staff": {
+      "eyebrow": "D'Ekipp",
+      "title": "Eng kleng, ausgewielt Ekipp.",
+      "intro": "Véier komplementär Profiler. Keng Zwëschepersoune tëscht Iech an der Persoun déi Äre Fall begleet."
+    },
+    "partners": {
+      "eyebrow": "Eis Partner",
+      "title": "Mat wiem mir schaffen.",
+      "intro": "Agence-Netzwierker, kierperlech Preparatioun, juristesche Conseil. Mir ëmginn eis mat Partner déi déi selwecht Uspréch un eng laangfristeg Begleedung deelen."
+    },
+    "timeline": {
+      "eyebrow": "Eis Geschicht",
+      "title": "Fofzéng Joer, ouni Pressie.",
+      "events": {
+        "2010": {
+          "title": "Grënnung vun der Agence",
+          "text": "René Jacob Yougbaré grënnt Rene Football zu Lëtzebuerg mat zwee Mandater."
+        },
+        "2015": {
+          "title": "Éischte grousse Transfer",
+          "text": "Ënnerschrëft vun engem offensiven Mëttelfeldspiller an der belscher éischter Klass, dat selwecht Joer éischt Mandat an der Bundesliga."
+        },
+        "2020": {
+          "title": "Opbau vum Scouting-Netz",
+          "text": "Opbau vun engem Scouting-Netz iwwer ganz Europa (Benelux, Frankräich, Däitschland, Nidderlanden)."
+        },
+        "2024": {
+          "title": "Konsolidéierung vum Roster",
+          "text": "D'Agence reduzéiert bewosst hir Mandater fir jidder Spiller eng perséinlech Begleedung ze garantéieren."
+        }
+      }
+    },
+    "cta": {
+      "eyebrow": "Zesumme schaffen",
+      "title": "Vertritt Dir e Veräin oder e Spiller?",
+      "paragraph": "Eis Ekipp mellt sech bannent 48 Stonnen zréck. Vertraulechen Austausch, ouni Verpflichtung.",
+      "button": "D'Gespréich ufänken"
+    }
+  },
+  "news": {
+    "seo": {
+      "title": "Aktualitéit",
+      "description": "Transferten, Ënnerschrëften, Profiler. Wat ronderëm eis Spiller geschitt. Publizéiert wa mir eppes ze soen hunn."
+    },
+    "hero": {
+      "eyebrow": "Aktualitéit",
+      "title": "Transferten, Ënnerschrëften, Profiler.",
+      "paragraph": "Wat ronderëm d'Spiller geschitt déi mir begleeden: Transferten, Trainingen, Pressetermin. Publizéiert wa mir eppes ze soen hunn."
+    },
+    "categories": {
+      "Tous": "All",
+      "Mercato": "Transferten",
+      "Talents": "Talenter",
+      "Profils": "Profiler",
+      "Coulisses": "Hannert de Kulissen",
+      "Agence": "Agence"
+    },
+    "empty": {
+      "category": "Nach keen Artikel an dëser Kategorie."
+    }
+  },
+  "notFound": {
+    "eyebrow": "Feeler 404",
+    "title": "Dës Säit existéiert net.",
+    "paragraph": "De Link deen Dir gefollegt hutt ass vläicht net méi aktuell. Zréck op d'Haaptsäit fir eis Spiller an eis Aktualitéit z'entdecken.",
+    "cta": "Zréck op d'Haaptsäit"
+  },
+  "article": {
+    "backToList": "All Aktualitéit",
+    "featured": "Ausgesicht",
+    "sidebarTitle": "Am Iwwerbléck",
+    "category": "Kategorie",
+    "publishedOn": "Verëffentlecht den",
+    "photos": "Fotoen",
+    "clips": "Clipen",
+    "notFound": {
+      "title": "Artikel net fonnt",
+      "paragraph": "Dësen Artikel gouf vläicht ewechgeholl oder seng URL huet sech geännert.",
+      "cta": "Zréck op d'Aktualitéit"
+    }
+  },
+  "playerProfile": {
+    "backToRoster": "Zréck op de Kader",
+    "pdfButton": "Spillerbou PDF",
+    "yearsUnit": "Joer",
+    "notFound": {
+      "eyebrow": "Spiller net fonnt",
+      "title": "Dëse Profil ass net méi disponibel.",
+      "paragraph": "De Spiller, deen Dir sicht, gouf vläicht aus dem ëffentleche Kader ewechgeholl. Gitt zréck op d'Lëscht, fir déi aner Profiler ze entdecken, déi mir vertrieden."
+    },
+    "sections": {
+      "identite":   { "nav": "Identitéit", "title": "Identitéit vum Spiller." },
+      "scout":      { "nav": "Scout",      "title": "Scout-Profil." },
+      "saison":     { "nav": "Saison",     "title": "Aktuell Saison." },
+      "terrain":    { "nav": "Terrain",    "title": "Aktivitéitszonen." },
+      "creation":   { "nav": "Kreatioun",  "title": "Offensiv Kreatioun." },
+      "defense":    { "nav": "Verdeedegung", "title": "Defensiv Aarbecht." },
+      "physique":   { "nav": "Physesch",   "title": "Physesche Profil." },
+      "discipline": { "nav": "Disziplin",  "title": "Disziplin." },
+      "gardien":    { "nav": "Aktivitéit", "title": "Aktivitéit an der Strofraum." },
+      "matchs":     { "nav": "Match-Log",  "title": "Lescht Matcher." },
+      "moments":    { "nav": "Momenter",   "title": "Marquante Momenter kommentéiert." }
+    },
+    "hero": {
+      "representedPlayer": "Vertrieden Spiller",
+      "since": "Zënter {{year}}",
+      "age": "Alter",
+      "height": "Gréisst",
+      "preferredFoot": "Staarke Fouss",
+      "nationality": "Nationalitéit",
+      "currentSeason": "Aktuell Saison",
+      "matchesCount": "{{count}} Matcher",
+      "underContract": "Ënner Vertrag"
+    },
+    "stickyNav": {
+      "summary": "{{matches}} Matcher · {{minutes}} Min",
+      "presentationButton": "Presentatioun",
+      "sectionsAria": "Sektioune vum Profil"
+    },
+    "scrollRail": {
+      "label": "Profil"
+    },
+    "identity": {
+      "cards": {
+        "category": "Kategorie",
+        "position": "Positioun",
+        "nationality": "Nationalitéit",
+        "height": "Gréisst",
+        "since": "Verfollegt zënter"
+      }
+    },
+    "scout": {
+      "footprint": {
+        "eyebrow": "Statistesche Fussowaréck",
+        "title": "Sechs Schlësselaxen fir de Posten.",
+        "description": "Normaliséiert op Standard-Saisonsreferenzen."
+      },
+      "percentiles": {
+        "eyebrow": "Rang an der Kategorie",
+        "title": "{{firstName}} vs aner {{category}}s.",
+        "description": "Fir all Metrik säi Perzentil an der Populatioun vun de Spiller vun der selwechter Kategorie.",
+        "best": "100 = bescht",
+        "worst": "0 = lescht"
+      }
+    },
+    "season": {
+      "matchesPlayed": "Gespillte Matcher",
+      "cleanSheets": "Clean sheets",
+      "saves": "Paraden",
+      "goals": "Goaler",
+      "assists": "Passgeber",
+      "minutesPerMatch": "Min / Match",
+      "playVolume": "Spillvolumen",
+      "overAppearances": "Iwwer {{count}} Asätz dës Saison.",
+      "performanceVsExpected": "Leeschtung vs erwaart",
+      "goalsMinusXG": "Goaler − xG",
+      "assistsMinusXA": "Passgeber − xA"
+    },
+    "terrain": {
+      "description": "Duerchschnëttlech Aktivitéitskaart vun der Saison. Déi gréngste Zonen sinn do, wou {{firstName}} am aktivsten ass: Ballkontakter, Lafaktiounen an Duellen zesummen. De Spiller attackéiert vu lénks no riets.",
+      "referencePosition": "Referenzpositioun",
+      "preferredFoot": "Staarke Fouss"
+    },
+    "creation": {
+      "shotAccuracy": "Schoss-Präzisioun",
+      "conversion": "Konversioun (Goaler / Schéiss)",
+      "passAccuracy": "% gelongen Päss",
+      "cumulativeXG": "Kumuléiert xG",
+      "cumulativeXA": "Kumuléiert xA",
+      "keyPasses": "Schlësselpäss",
+      "dribblesCompleted": "Gelongen Dribblingen"
+    },
+    "keeper": {
+      "cleanSheets": "Clean sheets",
+      "saves": "Paraden",
+      "passAccuracy": "Gelongen Päss",
+      "duelsWon": "Gewonnen Duellen"
+    },
+    "defense": {
+      "tackles": "Tacklingen",
+      "interceptions": "Ofgefaange Bäll",
+      "duelsWon": "Gewonnen Duellen"
+    },
+    "physique": {
+      "gpsAverage": "Duerchschnëttswäerter pro Match aus dem GPS-Tracking.",
+      "distancePerMatch": "Distanz / Match",
+      "sprintsPerMatch": "Sprinten / Match",
+      "topSpeed": "Héchstgeschwindegkeet",
+      "highIntensityRuns": "Héich-intensiv Läfe"
+    },
+    "discipline": {
+      "yellowCards": "Giel Kaarten",
+      "redCards": "Rout Kaarten"
+    },
+    "matchs": {
+      "description": "Déi lescht aacht Asätz vum Spiller, vum aktuellsten op de eelsten. D'Kurve riets weist d'Entwécklung vun der Note (lénks = eeler, riets = méi frësch)."
+    },
+    "moments": {
+      "description": "Opzeechnungen vu präzise Momenter, ausgesicht vun eiser Scouting-Zell: klickt op eng Minaturbild fir ze zoomen."
+    },
+    "cta": {
+      "eyebrow": "Iwwer dëse Profil schwätzen",
+      "title": "Interesséiert un {{firstName}}?",
+      "paragraph": "Eist Team äntwert an 48 Stonnen. Wielt de Wee, deen zu Ärem Profil passt: d'Formulaire opent scho mat {{name}} virselektéiert.",
+      "club": {
+        "label": "Ech si e Veräin / Staff",
+        "hint": "Interess un dësem Spiller"
+      },
+      "media": {
+        "label": "Ech sinn e Medium",
+        "hint": "Interview / Artikel iwwer dëse Spiller"
+      },
+      "other": "Oder eng aner Ufro"
+    },
+    "metrics": {
+      "matches_played": "Gespillte Matcher",
+      "minutes_played": "Minutten",
+      "clean_sheets": "Clean sheets",
+      "saves": "Paraden",
+      "pass_accuracy": "% Päss",
+      "goals": "Goaler",
+      "assists": "Passgeber",
+      "xg": "xG",
+      "xa": "xA",
+      "key_passes": "Schlësselpäss",
+      "dribbles_completed": "Gelongen Dribblingen",
+      "tackles": "Tacklingen",
+      "duels_won": "Gewonnen Duellen",
+      "yellow_cards": "Giel Kaarten"
+    },
+    "seo": {
+      "descriptionFallback": "{{name}}, {{role}}{{club}}. Vollstännege Profil, Statistiken a Scouting op Rene Football."
+    }
+  },
+  "presentation": {
+    "download": "PDF eroflueden",
+    "headerEyebrow": "Rene Football · Spillerpresentatioun",
+    "sentBy": "Geschéckt vum {{agent}}",
+    "generatedOn": "Erstallt de(n) {{date}}",
+    "template": "Template {{name}}",
+    "confidential": "Vertraulecht Dokument · Rene Football",
+    "backToSite": "Zréck op d'Rene-Football-Websäit",
+    "gone": "Presentatioun net fonnt",
+    "goneHint": "Dëse Link ass net méi gëlteg oder d'Presentatioun gouf vun der Agence zréckgezunn.",
+    "errorTitle": "E Feeler ass opgetrueden",
+    "errorHint": "D'Presentatioun konnt net gelueden ginn. Kontrolléiert Är Verbindung a probéiert et nach eng Kéier."
+  },
+  "contact": {
+    "hero": {
+      "eyebrow": "Kontakt ophuelen",
+      "title": "Schreift eis.",
+      "paragraph": "Wielt Äert Profil: d'Froen passen sech un, fir datt mir Är Ufro schnell verstinn."
+    },
+    "steps": {
+      "profile": "Profil",
+      "details": "Detailer",
+      "coordinates": "Kontaktdaten"
+    },
+    "audience": {
+      "title": "Dir schreift eis als…",
+      "subtitle": "Wielt d'Profil dat op Iech passt. Déi nächst Froen passen sech un Är Situatioun un, fir datt mir Iech méi schnell weiderhëllefe kënnen.",
+      "player": {
+        "label": "Spiller / Elteren",
+        "hint": "Dir wëllt der Agence bäitrieden oder e Profil weiderginn."
+      },
+      "club": {
+        "label": "Veräin / Technesche Staff",
+        "hint": "Interesse un engem Spiller, Profillsich, Partnerschaft."
+      },
+      "media": {
+        "label": "Medien / Journalist",
+        "hint": "Interview, Artikel, Dokumentatioun."
+      },
+      "other": {
+        "label": "Anerer",
+        "hint": "All aner Ufro."
+      }
+    },
+    "sidebar": {
+      "eyebrow": "Direkte Kontakt",
+      "title": "Wann Dir léiwer schreift oder untelefonéiert.",
+      "email": "E-Mail",
+      "phone": "Telefon",
+      "office": "Büro",
+      "officeSubtitle": "Nëmmen op Rendez-vous.",
+      "replyDelay": "Äntwertzäit",
+      "replyDelayNote": "Méindes bis Freides, ausser Feierdeeg.",
+      "follow": "Follegt eis"
+    },
+    "buttons": {
+      "sending": "Gëtt geschéckt…",
+      "submit": "Meng Ufro schécken"
+    },
+    "errors": {
+      "submitFailed": "Schécken huet net funktionéiert. Probéiert et nach eng Kéier oder schreift eis op renefootball.p@gmail.com."
+    },
+    "success": {
+      "eyebrow": "Ufro geschéckt",
+      "title": "Mir mellen eis bannent 48 Stonnen.",
+      "bodyPre": "Är",
+      "bodyPost": "Ufro ass an eiser Boîte ukomm. Eis Ekipp behandelt all Ufro perséinlech, mir priorisréieren no Dringlechkeet a Profil.",
+      "resetCta": "Eng aner Ufro schécken",
+      "homeCta": "Zréck op d'Haaptsäit"
+    }
+  }
+}

@@ -59,7 +59,10 @@ function MeshGradientBase({ intensity = 'medium', tone = 'dark', className = '' 
         className={`absolute -top-24 -left-24 w-[42rem] h-[42rem] rounded-full ${blobOpacityClass}`}
         style={{
           ...blobOpacityStyle,
-          background: `radial-gradient(circle, rgba(132,184,150,${a.light}) 0%, rgba(132,184,150,${a.light * 0.25}) 35%, transparent 65%)`,
+          // Was a legacy turf-green blob that survived the blue rebrand.
+          // Swapped to turf-500 blue so all three hero blobs sit in the
+          // same palette family.
+          background: `radial-gradient(circle, rgba(59,130,246,${a.light}) 0%, rgba(59,130,246,${a.light * 0.25}) 35%, transparent 65%)`,
         }}
         animate={{ x: [0, 60, -30, 0], y: [0, 40, -20, 0], scale: [1, 1.08, 0.95, 1] }}
         transition={{ duration: 22, ease: 'easeInOut', repeat: Infinity }}

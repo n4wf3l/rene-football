@@ -21,17 +21,19 @@
   }
 
   ::selection {
-    background-color: rgb(15 81 50 / 0.18);
+    background-color: rgb(30 64 175 / 0.20);
     color: rgb(245 245 244);
   }
 
-  /* Firefox scrollbar */
+  /* Firefox scrollbar - turf blue thumb, near-black track (dark theme).
+     Was rgb(23 81 51) green - swapped to match the blue turf palette
+     used everywhere else on the site. */
   * {
     scrollbar-width: thin;
-    scrollbar-color: rgb(23 81 51) rgb(10 10 10);
+    scrollbar-color: rgb(30 64 175) rgb(10 10 10);
   }
 
-  /* Webkit scrollbar - turf gradient on near-black track */
+  /* Webkit scrollbar - turf blue gradient on near-black track */
   ::-webkit-scrollbar {
     width: 12px;
     height: 12px;
@@ -40,14 +42,14 @@
     background: rgb(10 10 10);
   }
   ::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, rgb(23 81 51) 0%, rgb(15 81 50) 50%, rgb(12 61 39) 100%);
+    background: linear-gradient(180deg, rgb(29 78 216) 0%, rgb(30 64 175) 50%, rgb(15 38 100) 100%);
     border-radius: 999px;
     border: 3px solid rgb(10 10 10);
     background-clip: padding-box;
     transition: background 0.2s ease;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(180deg, rgb(45 125 79) 0%, rgb(31 104 64) 50%, rgb(15 81 50) 100%);
+    background: linear-gradient(180deg, rgb(59 130 246) 0%, rgb(37 99 235) 50%, rgb(29 78 216) 100%);
     background-clip: padding-box;
   }
   ::-webkit-scrollbar-corner {

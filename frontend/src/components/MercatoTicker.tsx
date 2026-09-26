@@ -5,33 +5,23 @@ import { ArrowRight } from '@phosphor-icons/react'
 import { usePublicPlayers } from '../lib/usePublicPlayers'
 import type { Player } from '../types/player'
 
-/* Stable "note" pool used to dress each ticker entry. We rotate them by index
-   so the ticker stays visually varied even though the underlying data comes
-   straight from /api/players. */
-const NOTE_POOL = [
-  'transfert définitif',
-  'prolongation contrat',
-  'prêt avec option',
-  'signature pro',
-  'mandat agence',
-  'observation scout',
-]
-
+/* Ticker items are derived straight from /api/players — no fake mercato
+   notes (transfert, prolongation, prêt…) are appended anymore. The previous
+   NOTE_POOL rotation attached fake contractual states to real players, which
+   was a credibility risk. */
 interface MercatoItem {
   slug: string
   player: string
   move: string
-  note: string
 }
 
 function buildItems(players: Player[]): MercatoItem[] {
   return players
     .filter((p) => p.club)
-    .map((p, i) => ({
+    .map((p) => ({
       slug: p.slug,
       player: p.name,
       move: p.club ?? '-',
-      note: NOTE_POOL[i % NOTE_POOL.length],
     }))
 }
 
@@ -65,8 +55,6 @@ function Row({ items, ariaHidden = false }: RowProps) {
               className="text-stone-500 group-hover:text-turf-300 group-hover:translate-x-0.5 transition-transform duration-200 ease-premium"
             />
             <span className="text-stone-200">{it.move}</span>
-            <span className="text-stone-500">·</span>
-            <span className="text-stone-400 group-hover:text-stone-300">{it.note}</span>
           </Link>
         </li>
       ))}

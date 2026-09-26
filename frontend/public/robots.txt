@@ -1,0 +1,14 @@
+# Rene Football - crawler policy.
+# All bots allowed on the public site. Admin routes are gated by auth
+# but we still disallow them explicitly so crawlers don't waste budget
+# on login pages that never index anyway.
+
+User-agent: *
+Allow: /
+
+Disallow: /admin
+Disallow: /admin/*
+Disallow: /api/
+Disallow: /p/
+
+Sitemap: https://renefootball.com/sitemap.xml

@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowUpRight, CalendarBlank, Tag } from '@phosphor-icons/react'
 import MeshGradient from '../components/MeshGradient'
+import Seo from '../components/Seo'
+import { useTranslation } from 'react-i18next'
 import AnimatedUnderline from '../components/AnimatedUnderline'
 import Skeleton from '../components/Skeleton'
 import { api } from '../api/client'
@@ -161,6 +163,7 @@ function ArticleCard({ article, span = '' }: ArticleCardProps) {
 }
 
 function ActualitesPage() {
+  const { t } = useTranslation()
   const [articles, setArticles] = useState<Article[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -189,20 +192,23 @@ function ActualitesPage() {
 
   return (
     <>
+      <Seo
+        title={t('news.seo.title')}
+        description={t('news.seo.description')}
+        path="/actualites"
+      />
       {/* Hero */}
-      <section className="relative overflow-hidden text-stone-100">
-        <MeshGradient intensity="medium" />
+      <section className="relative overflow-hidden text-zinc-900 dark:text-stone-100">
+        <MeshGradient intensity="medium" tone="auto" />
         <div className="container-page pt-16 pb-12 lg:pt-24 lg:pb-16">
-          <span className="font-mono uppercase tracking-[0.18em] text-[0.65rem] text-turf-300">
-            Actualités
+          <span className="font-mono uppercase tracking-[0.18em] text-[0.65rem] text-turf-700 dark:text-turf-300">
+            {t('news.hero.eyebrow')}
           </span>
-          <h1 className="mt-3 font-display font-semibold text-4xl lg:text-6xl tracking-tightest leading-[1.05] text-stone-50 max-w-[20ch]">
-            Transferts, signatures, profils.
+          <h1 className="mt-3 font-display font-semibold text-4xl lg:text-6xl tracking-tightest leading-[1.05] text-zinc-950 dark:text-stone-50 max-w-[20ch]">
+            {t('news.hero.title')}
           </h1>
-          <p className="mt-6 max-w-[58ch] text-base lg:text-lg text-stone-400 leading-relaxed">
-            Les nouvelles du roster, les coulisses de l'agence, et nos
-            choix éditoriaux sur ce qui compte vraiment dans la vie d'une
-            carrière professionnelle.
+          <p className="mt-6 max-w-[58ch] text-base lg:text-lg text-zinc-600 dark:text-stone-400 leading-relaxed">
+            {t('news.hero.paragraph')}
           </p>
         </div>
       </section>
@@ -230,7 +236,7 @@ function ActualitesPage() {
                     transition={{ type: 'spring', stiffness: 400, damping: 32 }}
                   />
                 )}
-                <span className="relative">{c}</span>
+                <span className="relative">{t(`news.categories.${c}`)}</span>
               </button>
             )
           })}
@@ -302,7 +308,7 @@ function ActualitesPage() {
                       animate={{ opacity: 1, y: 0 }}
                       className="col-span-full text-center py-20 text-zinc-500 dark:text-stone-400"
                     >
-                      Aucun article dans cette catégorie pour le moment.
+                      {t('news.empty.category')}
                     </motion.li>
                   ) : (
                     filtered.map((a, i) => (

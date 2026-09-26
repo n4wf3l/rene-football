@@ -2,22 +2,42 @@ import { useEffect, useMemo, useState } from 'react'
 import type { ChangeEvent, FormEvent, ReactNode } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import {
   ArrowLeft,
   ArrowRight,
   Buildings,
   CheckCircle,
   EnvelopeSimple,
+  FacebookLogo,
+  InstagramLogo,
+  LinkedinLogo,
   MapPin,
   MegaphoneSimple,
   PaperclipHorizontal,
   Phone,
   Question,
   SoccerBall,
+  TiktokLogo,
   Warning,
+  XLogo,
+  YoutubeLogo,
 } from '@phosphor-icons/react'
+import type { Icon as PhosphorIcon } from '@phosphor-icons/react'
 import { ApiError, api } from '../api/client'
 import MeshGradient from '../components/MeshGradient'
+import Seo from '../components/Seo'
+import { useAppSettings } from '../lib/useAppSettings'
+import type { SocialPlatform } from '../types/settings'
+
+const CONTACT_SOCIAL_META: Array<{ key: SocialPlatform; Icon: PhosphorIcon; label: string }> = [
+  { key: 'instagram', Icon: InstagramLogo, label: 'Instagram' },
+  { key: 'facebook',  Icon: FacebookLogo,  label: 'Facebook'  },
+  { key: 'linkedin',  Icon: LinkedinLogo,  label: 'LinkedIn'  },
+  { key: 'youtube',   Icon: YoutubeLogo,   label: 'YouTube'   },
+  { key: 'tiktok',    Icon: TiktokLogo,    label: 'TikTok'    },
+  { key: 'x',         Icon: XLogo,         label: 'X'         },
+]
 import Select from '../components/ui/Select'
 import DateInput from '../components/ui/DateInput'
 import { useDarkHero } from '../hooks/useDarkHero'
@@ -35,16 +55,16 @@ import type {
 
 interface AudienceOption {
   value: ContactReason
-  label: string
-  hint: string
+  /** i18n key stem (`contact.audience.<stem>.label` / `.hint`) resolved at render time. */
+  i18nKey: 'player' | 'club' | 'media' | 'other'
   Icon: typeof SoccerBall
 }
 
 const AUDIENCES: AudienceOption[] = [
-  { value: 'joueur',  label: 'Joueur / Parent',       hint: 'Vous voulez rejoindre l’agence ou faire suivre un profil.', Icon: SoccerBall },
-  { value: 'club',    label: 'Club / Staff technique', hint: 'Intérêt pour un joueur, recherche de profil, partenariat.', Icon: Buildings },
-  { value: 'medias',  label: 'Média / Journaliste',   hint: 'Interview, article, documentaire.',                          Icon: MegaphoneSimple },
-  { value: 'autre',   label: 'Autre',                  hint: 'Toute autre demande.',                                       Icon: Question },
+  { value: 'joueur',  i18nKey: 'player', Icon: SoccerBall },
+  { value: 'club',    i18nKey: 'club',   Icon: Buildings },
+  { value: 'medias',  i18nKey: 'media',  Icon: MegaphoneSimple },
+  { value: 'autre',   i18nKey: 'other',  Icon: Question },
 ]
 
 /* -------------------------------------------------------------------------- */
@@ -62,8 +82,13 @@ const emptyForm: ContactForm = {
   cv: null,
 }
 
-function labelForReason(r: ContactReason): string {
-  return AUDIENCES.find((a) => a.value === r)?.label ?? r
+/** Resolve the display label for a ContactReason using the active i18n
+ *  language. Callers pass their `t` (from useTranslation) so the same helper
+ *  works inside hooks and event handlers. */
+function labelForReason(r: ContactReason, t: (key: string) => string): string {
+  const audience = AUDIENCES.find((a) => a.value === r)
+  if (!audience) return r
+  return t(`contact.audience.${audience.i18nKey}.label`)
 }
 
 /* -------------------------------------------------------------------------- */
@@ -98,19 +123,18 @@ function StepAudience({
   reason: ContactReason
   onPick: (r: ContactReason) => void
 }) {
+  const { t } = useTranslation()
   return (
     <div>
       <h2 className="font-display font-semibold text-2xl lg:text-3xl tracking-tight text-zinc-950 dark:text-stone-50">
-        Vous nous écrivez en tant que…
+        {t('contact.audience.title')}
       </h2>
       <p className="mt-2 text-sm text-zinc-600 dark:text-stone-400 max-w-[52ch]">
-        Sélectionnez le profil qui vous correspond. Les questions suivantes
-        s’adaptent à votre situation pour que nous puissions vous orienter
-        plus vite.
+        {t('contact.audience.subtitle')}
       </p>
 
       <div className="mt-8 grid sm:grid-cols-2 gap-3">
-        {AUDIENCES.map(({ value, label, hint, Icon }) => {
+        {AUDIENCES.map(({ value, i18nKey, Icon }) => {
           const active = reason === value
           return (
             <button
@@ -133,9 +157,9 @@ function StepAudience({
                 <Icon size={20} weight="regular" />
               </span>
               <span>
-                <span className="block font-semibold text-base">{label}</span>
+                <span className="block font-semibold text-base">{t(`contact.audience.${i18nKey}.label`)}</span>
                 <span className={`block mt-1 text-xs leading-relaxed ${active ? 'text-stone-300 dark:text-zinc-600' : 'text-zinc-500 dark:text-stone-400'}`}>
-                  {hint}
+                  {t(`contact.audience.${i18nKey}.hint`)}
                 </span>
               </span>
             </button>
@@ -700,13 +724,14 @@ function StepCoords({ form, errors, onFieldChange }: StepCoordsProps) {
 /*  Main wizard                                                               */
 /* -------------------------------------------------------------------------- */
 
-const STEP_LABELS: Record<number, string> = {
-  1: 'Profil',
-  2: 'Détails',
-  3: 'Coordonnées',
+const STEP_LABEL_KEYS: Record<number, 'contact.steps.profile' | 'contact.steps.details' | 'contact.steps.coordinates'> = {
+  1: 'contact.steps.profile',
+  2: 'contact.steps.details',
+  3: 'contact.steps.coordinates',
 }
 
 function ContactPage() {
+  const { t } = useTranslation()
   useDarkHero()
   const [searchParams] = useSearchParams()
   const [step, setStep] = useState<1 | 2 | 3>(1)
@@ -716,6 +741,8 @@ function ContactPage() {
   const [status, setStatus] = useState<ContactStatus>(null)
 
   const { players } = usePublicPlayers()
+  const { settings } = useAppSettings()
+  const contactSocials = CONTACT_SOCIAL_META.filter((s) => Boolean(settings.social_links[s.key]))
   const roster = useMemo(() =>
     players.map((p) => ({ id: p.id, name: p.name, club: p.club, position: p.position })),
   [players])
@@ -878,6 +905,11 @@ function ContactPage() {
 
   return (
     <>
+      <Seo
+        title="Contact"
+        description="Joueur, parent, club ou média : contactez Rene Football. Agence de football basée au Luxembourg, agent FIFA licencié depuis 2010."
+        path="/contact"
+      />
       {/* Hero */}
       <section className="relative overflow-hidden text-stone-100">
         <MeshGradient intensity="medium" />
@@ -907,7 +939,7 @@ function ContactPage() {
             <ProgressBar step={step} reason={form.reason} />
 
             {status === 'error' && (
-              <ErrorBanner message="L'envoi a échoué. Réessayez dans un instant ou écrivez-nous à contact@renefootball.com." />
+              <ErrorBanner message={t('contact.errors.submitFailed')} />
             )}
             {status === 'throttled' && (
               <ErrorBanner tone="warning" message="Trop de demandes envoyées. Patientez une minute avant de réessayer." />
@@ -955,7 +987,7 @@ function ContactPage() {
                   className="btn btn-ghost text-sm"
                 >
                   <ArrowLeft size={15} weight="bold" />
-                  Retour
+                  {t('common.back')}
                 </button>
               ) : (
                 <span aria-hidden="true" />
@@ -967,7 +999,7 @@ function ContactPage() {
                   onClick={goNext}
                   className="btn btn-primary text-sm"
                 >
-                  Continuer
+                  {t('common.next')}
                   <ArrowRight size={15} weight="bold" />
                 </button>
               ) : (
@@ -984,10 +1016,10 @@ function ContactPage() {
                         animate={{ rotate: 360 }}
                         transition={{ duration: 0.8, ease: 'linear', repeat: Infinity }}
                       />
-                      Envoi…
+                      {t('contact.buttons.sending')}
                     </>
                   ) : (
-                    <>Envoyer ma demande<ArrowRight size={15} weight="bold" /></>
+                    <>{t('contact.buttons.submit')}<ArrowRight size={15} weight="bold" /></>
                   )}
                 </button>
               )}
@@ -1003,10 +1035,10 @@ function ContactPage() {
                 style={{ background: 'radial-gradient(circle, rgba(30, 64, 175,0.4), transparent 70%)' }}
               />
               <div className="font-mono uppercase tracking-[0.18em] text-[0.65rem] text-turf-300">
-                Coordonnées directes
+                {t('contact.sidebar.eyebrow')}
               </div>
               <h2 className="mt-3 font-display font-semibold text-2xl lg:text-3xl tracking-tight text-stone-50 max-w-[18ch]">
-                Si vous préférez nous écrire ou appeler.
+                {t('contact.sidebar.title')}
               </h2>
               <ul className="mt-8 space-y-5">
                 <li className="flex items-start gap-3">
@@ -1014,9 +1046,9 @@ function ContactPage() {
                     <EnvelopeSimple size={16} weight="regular" />
                   </span>
                   <div>
-                    <div className="text-[0.65rem] uppercase tracking-wider font-mono text-stone-400">Email</div>
-                    <a href="mailto:contact@renefootball.com" className="text-stone-100 hover:text-stone-50 transition">
-                      contact@renefootball.com
+                    <div className="text-[0.65rem] uppercase tracking-wider font-mono text-stone-400">{t('contact.sidebar.email')}</div>
+                    <a href="mailto:renefootball.p@gmail.com" className="text-stone-100 hover:text-stone-50 transition">
+                      renefootball.p@gmail.com
                     </a>
                   </div>
                 </li>
@@ -1025,9 +1057,9 @@ function ContactPage() {
                     <Phone size={16} weight="regular" />
                   </span>
                   <div>
-                    <div className="text-[0.65rem] uppercase tracking-wider font-mono text-stone-400">Téléphone</div>
-                    <a href="tel:+352661241847" className="font-mono text-stone-100 hover:text-stone-50 transition tabular-nums">
-                      +352 661 24 18 47
+                    <div className="text-[0.65rem] uppercase tracking-wider font-mono text-stone-400">{t('contact.sidebar.phone')}</div>
+                    <a href="tel:+352691712574" className="font-mono text-stone-100 hover:text-stone-50 transition tabular-nums">
+                      +352 691 712 574
                     </a>
                   </div>
                 </li>
@@ -1036,19 +1068,43 @@ function ContactPage() {
                     <MapPin size={16} weight="regular" />
                   </span>
                   <div>
-                    <div className="text-[0.65rem] uppercase tracking-wider font-mono text-stone-400">Bureau</div>
+                    <div className="text-[0.65rem] uppercase tracking-wider font-mono text-stone-400">{t('contact.sidebar.office')}</div>
                     <div className="text-stone-100">Luxembourg-Ville · Luxembourg</div>
-                    <div className="text-xs text-stone-400 mt-0.5">Sur rendez-vous uniquement.</div>
+                    <div className="text-xs text-stone-400 mt-0.5">{t('contact.sidebar.officeSubtitle')}</div>
                   </div>
                 </li>
               </ul>
               <div className="mt-10 pt-6 border-t border-stone-50/10">
-                <div className="text-[0.65rem] uppercase tracking-wider font-mono text-stone-400 mb-2">Délai de réponse</div>
+                <div className="text-[0.65rem] uppercase tracking-wider font-mono text-stone-400 mb-2">{t('contact.sidebar.replyDelay')}</div>
                 <div className="font-mono text-2xl tabular-nums text-stone-50">
                   48<span className="text-stone-400 text-lg ml-1">h</span>
                 </div>
-                <p className="text-xs text-stone-400 mt-1.5">Lundi à vendredi, hors jours fériés.</p>
+                <p className="text-xs text-stone-400 mt-1.5">{t('contact.sidebar.replyDelayNote')}</p>
               </div>
+
+              {/* Social icons — driven by admin settings, entire row hidden
+                  when no URL was set. */}
+              {contactSocials.length > 0 && (
+                <div className="mt-6 pt-6 border-t border-stone-50/10">
+                  <div className="text-[0.65rem] uppercase tracking-wider font-mono text-stone-400 mb-3">{t('contact.sidebar.follow')}</div>
+                  <ul className="flex items-center gap-2" aria-label={t('contact.sidebar.follow')}>
+                    {contactSocials.map(({ key, Icon, label }) => (
+                      <li key={key}>
+                        <a
+                          href={settings.social_links[key]}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={label}
+                          title={label}
+                          className="grid place-items-center w-9 h-9 rounded-full bg-stone-50/5 border border-stone-50/10 text-turf-300 hover:bg-stone-50/10 hover:text-stone-50 transition-colors ease-premium"
+                        >
+                          <Icon size={16} weight="regular" />
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           </aside>
         </div>
@@ -1062,6 +1118,7 @@ function ContactPage() {
 /* -------------------------------------------------------------------------- */
 
 function ProgressBar({ step, reason }: { step: 1 | 2 | 3; reason: ContactReason }) {
+  const { t } = useTranslation()
   return (
     <div className="flex items-center gap-2 text-[0.65rem] uppercase tracking-[0.22em] font-mono text-zinc-500 dark:text-stone-500">
       {[1, 2, 3].map((n) => {
@@ -1081,8 +1138,8 @@ function ProgressBar({ step, reason }: { step: 1 | 2 | 3; reason: ContactReason 
               {done ? '✓' : n}
             </span>
             <span className={active ? 'text-zinc-900 dark:text-stone-100' : ''}>
-              {STEP_LABELS[n]}
-              {n === 1 && step >= 2 ? ` · ${labelForReason(reason)}` : ''}
+              {t(STEP_LABEL_KEYS[n])}
+              {n === 1 && step >= 2 ? ` · ${labelForReason(reason, t)}` : ''}
             </span>
             {n < 3 && <span aria-hidden="true" className="w-6 h-px bg-stone-300 dark:bg-stone-50/15" />}
           </div>
@@ -1112,6 +1169,7 @@ function ErrorBanner({ message, tone = 'error' }: { message: string; tone?: 'err
 }
 
 function SuccessScreen({ reason, onReset }: { reason: ContactReason; onReset: () => void }) {
+  const { t } = useTranslation()
   return (
     <section className="bg-stone-50 dark:bg-zinc-950 min-h-[80vh] py-24 lg:py-32">
       <div className="container-page">
@@ -1125,22 +1183,20 @@ function SuccessScreen({ reason, onReset }: { reason: ContactReason; onReset: ()
             <CheckCircle size={26} weight="regular" />
           </div>
           <span className="font-mono uppercase tracking-[0.2em] text-xs text-turf-700 dark:text-turf-300 mt-8 inline-block">
-            Demande envoyée
+            {t('contact.success.eyebrow')}
           </span>
           <h1 className="mt-3 font-display font-semibold text-4xl lg:text-6xl tracking-tightest text-zinc-950 dark:text-stone-50 leading-[1.05]">
-            Nous reviendrons vers vous sous 48 heures.
+            {t('contact.success.title')}
           </h1>
           <p className="mt-6 text-base lg:text-lg text-zinc-600 dark:text-stone-400 leading-relaxed">
-            Votre dossier <span className="font-semibold">{labelForReason(reason).toLowerCase()}</span> est arrivé
-            dans notre boîte. Notre équipe traite chaque demande personnellement -
-            nous priorisons selon l'urgence et le profil.
+            {t('contact.success.bodyPre')} <span className="font-semibold">{labelForReason(reason, t).toLowerCase()}</span> {t('contact.success.bodyPost')}
           </p>
           <div className="mt-10 flex flex-wrap gap-3">
             <button type="button" onClick={onReset} className="btn btn-outline text-sm">
-              Envoyer une autre demande
+              {t('contact.success.resetCta')}
             </button>
             <Link to="/joueurs" className="btn btn-primary text-sm">
-              Découvrir nos joueurs
+              {t('home.hero.ctaPrimary')}
               <ArrowRight size={15} weight="bold" />
             </Link>
           </div>

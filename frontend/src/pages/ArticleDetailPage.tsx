@@ -14,6 +14,8 @@ import {
   X,
 } from '@phosphor-icons/react'
 import MeshGradient from '../components/MeshGradient'
+import Seo from '../components/Seo'
+import { useTranslation } from 'react-i18next'
 import Skeleton from '../components/Skeleton'
 import ClipsGalleryPublic from '../components/ClipsGalleryPublic'
 import { api, ApiError } from '../api/client'
@@ -173,6 +175,7 @@ function Gallery({ images }: GalleryProps) {
 }
 
 export default function ArticleDetailPage() {
+  const { t } = useTranslation()
   useDarkHero()
   const { slug } = useParams<{ slug: string }>()
   const navigate = useNavigate()
@@ -221,17 +224,17 @@ export default function ArticleDetailPage() {
     return (
       <div className="container-page py-24 text-center">
         <h1 className="font-display font-semibold text-3xl lg:text-5xl tracking-tight text-zinc-950 dark:text-stone-50">
-          Article introuvable
+          {t('article.notFound.title')}
         </h1>
         <p className="mt-4 text-zinc-600 dark:text-stone-400">
-          Cet article a peut-être été retiré ou son URL a changé.
+          {t('article.notFound.paragraph')}
         </p>
         <button
           type="button"
           onClick={() => navigate('/actualites')}
           className="btn btn-primary text-sm mt-8"
         >
-          <ArrowLeft size={14} weight="bold" /> Retour aux actualités
+          <ArrowLeft size={14} weight="bold" /> {t('article.notFound.cta')}
         </button>
       </div>
     )
@@ -243,6 +246,13 @@ export default function ArticleDetailPage() {
 
   return (
     <>
+      <Seo
+        title={article.title}
+        description={article.excerpt || `${article.title} — actualité Rene Football, agence de football au Luxembourg.`}
+        path={`/actualites/${article.slug}`}
+        ogType="article"
+        image={cover.startsWith('http') ? cover : `https://renefootball.com${cover}`}
+      />
       {/* Hero with cover */}
       <section className="relative overflow-hidden text-stone-100">
         <MeshGradient intensity="subtle" />
@@ -252,18 +262,18 @@ export default function ArticleDetailPage() {
             className="inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-[0.16em] text-stone-300 hover:text-stone-50 transition"
           >
             <ArrowLeft size={12} weight="bold" />
-            Toutes les actualités
+            {t('article.backToList')}
           </Link>
 
           <div className="mt-6 flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[0.65rem] font-mono uppercase tracking-wider bg-turf-800/40 border border-turf-300/30 text-turf-200">
               <Tag size={10} weight="bold" />
-              {article.category}
+              {t(`news.categories.${article.category}`, article.category)}
             </span>
             {article.featured && (
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[0.65rem] font-mono uppercase tracking-wider bg-amber-500/20 border border-amber-400/40 text-amber-200">
                 <Star size={10} weight="fill" />
-                À la une
+                {t('article.featured')}
               </span>
             )}
             <span className="inline-flex items-center gap-1.5 text-xs text-stone-400">
@@ -341,23 +351,23 @@ export default function ArticleDetailPage() {
 
             <div className="rounded-2xl border border-stone-200/80 dark:border-stone-50/10 bg-white dark:bg-zinc-900 p-5">
               <span className="font-mono uppercase tracking-[0.18em] text-[0.6rem] text-zinc-500 dark:text-stone-500">
-                En bref
+                {t('article.sidebarTitle')}
               </span>
               <ul className="mt-3 space-y-2 text-sm text-zinc-700 dark:text-stone-300">
                 <li className="flex items-center justify-between gap-2">
-                  <span className="text-zinc-500 dark:text-stone-500">Catégorie</span>
-                  <span className="font-medium">{article.category}</span>
+                  <span className="text-zinc-500 dark:text-stone-500">{t('article.category')}</span>
+                  <span className="font-medium">{t(`news.categories.${article.category}`, article.category)}</span>
                 </li>
                 <li className="flex items-center justify-between gap-2">
-                  <span className="text-zinc-500 dark:text-stone-500">Publié le</span>
+                  <span className="text-zinc-500 dark:text-stone-500">{t('article.publishedOn')}</span>
                   <span className="font-mono tabular-nums">{formatDate(article.published_at) || '-'}</span>
                 </li>
                 <li className="flex items-center justify-between gap-2">
-                  <span className="text-zinc-500 dark:text-stone-500">Photos</span>
+                  <span className="text-zinc-500 dark:text-stone-500">{t('article.photos')}</span>
                   <span className="font-mono tabular-nums">{images.length}</span>
                 </li>
                 <li className="flex items-center justify-between gap-2">
-                  <span className="text-zinc-500 dark:text-stone-500">Captures</span>
+                  <span className="text-zinc-500 dark:text-stone-500">{t('article.clips')}</span>
                   <span className="font-mono tabular-nums">{clips.length}</span>
                 </li>
               </ul>

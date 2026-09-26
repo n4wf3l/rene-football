@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { DownloadSimple, FilePdf, Person, User } from '@phosphor-icons/react'
 import { api, ApiError } from '../api/client'
+import { useTranslation } from 'react-i18next'
 
 /**
  * Public landing page for a shared presentation link.
@@ -36,13 +37,14 @@ const TEMPLATE_LABEL: Record<string, string> = {
   stadium:   'Stadium',
 }
 
-function fmtDate(value: string | null): string {
+function fmtDate(value: string | null, lang = 'fr'): string {
   if (!value) return ''
   const d = new Date(value)
-  return isNaN(d.getTime()) ? '' : d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })
+  return isNaN(d.getTime()) ? '' : d.toLocaleDateString(lang, { day: '2-digit', month: 'long', year: 'numeric' })
 }
 
 export default function PublicPresentationPage() {
+  const { t, i18n } = useTranslation()
   const { token } = useParams<{ token: string }>()
   const [meta, setMeta] = useState<Meta | null>(null)
   const [error, setError] = useState<'gone' | 'unknown' | null>(null)
@@ -62,15 +64,13 @@ export default function PublicPresentationPage() {
         <div className="max-w-md text-center space-y-4">
           <FilePdf size={48} weight="regular" className="mx-auto text-zinc-400 dark:text-stone-600" />
           <h1 className="font-display font-semibold text-2xl text-zinc-950 dark:text-stone-50">
-            {error === 'gone' ? 'Présentation introuvable' : 'Une erreur est survenue'}
+            {error === 'gone' ? t('presentation.gone') : t('presentation.errorTitle')}
           </h1>
           <p className="text-sm text-zinc-600 dark:text-stone-400">
-            {error === 'gone'
-              ? 'Ce lien n\'est plus valide ou la présentation a été retirée par l\'agence.'
-              : 'Impossible de charger la présentation. Vérifiez votre connexion et réessayez.'}
+            {error === 'gone' ? t('presentation.goneHint') : t('presentation.errorHint')}
           </p>
           <a href="/" className="inline-block text-xs font-medium text-turf-700 dark:text-turf-300 hover:underline">
-            Retour au site Rene Football
+            {t('presentation.backToSite')}
           </a>
         </div>
       </div>
@@ -81,7 +81,7 @@ export default function PublicPresentationPage() {
     return (
       <div className="min-h-screen grid place-items-center bg-stone-100 dark:bg-zinc-950">
         <div className="text-xs font-mono uppercase tracking-[0.2em] text-zinc-500 dark:text-stone-500 animate-pulse">
-          Chargement…
+          {t('common.loading')}
         </div>
       </div>
     )
@@ -110,7 +110,7 @@ export default function PublicPresentationPage() {
             )}
             <div className="min-w-0">
               <div className="text-[0.6rem] font-mono uppercase tracking-[0.18em] text-turf-700 dark:text-turf-300">
-                Rene Football · Présentation joueur
+                {t('presentation.headerEyebrow')}
               </div>
               <div className="font-display font-semibold text-lg text-zinc-950 dark:text-stone-50 truncate">
                 {meta.player?.name ?? meta.title}
@@ -127,7 +127,7 @@ export default function PublicPresentationPage() {
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-turf-700 text-white hover:bg-turf-800 text-sm font-medium transition shadow-sm"
           >
             <DownloadSimple size={16} weight="bold" />
-            Télécharger le PDF
+            {t('presentation.download')}
           </a>
         </div>
 
@@ -135,11 +135,11 @@ export default function PublicPresentationPage() {
           {meta.agent && (
             <span className="inline-flex items-center gap-1.5">
               <User size={11} weight="bold" />
-              Envoyée par {meta.agent}
+              {t('presentation.sentBy', { agent: meta.agent })}
             </span>
           )}
-          {meta.generated_at && <span>· Générée le {fmtDate(meta.generated_at)}</span>}
-          <span>· Template {TEMPLATE_LABEL[meta.template_key] ?? meta.template_key}</span>
+          {meta.generated_at && <span>· {t('presentation.generatedOn', { date: fmtDate(meta.generated_at, i18n.resolvedLanguage) })}</span>}
+          <span>· {t('presentation.template', { name: TEMPLATE_LABEL[meta.template_key] ?? meta.template_key })}</span>
         </div>
       </motion.header>
 
@@ -160,7 +160,7 @@ export default function PublicPresentationPage() {
       </main>
 
       <footer className="max-w-5xl mx-auto w-full px-6 py-4 text-[0.65rem] font-mono uppercase tracking-[0.18em] text-zinc-400 dark:text-stone-600 text-center">
-        Document confidentiel · Rene Football
+        {t('presentation.confidential')}
       </footer>
     </div>
   )

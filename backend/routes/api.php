@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Api\Admin\AdminPartnerController;
+use App\Http\Controllers\Api\Admin\AdminSettingsController;
 use App\Http\Controllers\Api\Admin\AdminAppearanceController;
 use App\Http\Controllers\Api\Admin\AdminArticleController;
 use App\Http\Controllers\Api\Admin\AdminClipController;
@@ -29,8 +31,10 @@ use App\Http\Controllers\Api\ArticleController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\PdfController;
+use App\Http\Controllers\Api\PartnerController;
 use App\Http\Controllers\Api\PlayerController;
 use App\Http\Controllers\Api\PresentationController;
+use App\Http\Controllers\Api\SettingsController;
 use App\Http\Controllers\Api\StaffController;
 use Illuminate\Support\Facades\Route;
 
@@ -45,6 +49,8 @@ Route::get('/articles', [ArticleController::class, 'index']);
 Route::get('/articles/{article:slug}', [ArticleController::class, 'show']);
 
 Route::get('/staff', [StaffController::class, 'index']);
+Route::get('/partners', [PartnerController::class, 'index']);
+Route::get('/settings', [SettingsController::class, 'show']);
 
 Route::get('/players/{player:slug}/presentations', [PresentationController::class, 'indexForPlayer']);
 Route::get('/presentations/{token}',               [PresentationController::class, 'show']);
@@ -129,6 +135,21 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::delete('/presentations/{presentation}/asset',     [AdminPresentationController::class, 'clearAsset']);
 
     // Staff (À propos / L'équipe) - photo via multipart, _method=PUT spoofing.
+    // Agency-wide settings singleton (social URLs today).
+    Route::get('/settings',                    [AdminSettingsController::class, 'show']);
+    Route::put('/settings',                    [AdminSettingsController::class, 'update']);
+    Route::patch('/settings',                  [AdminSettingsController::class, 'update']);
+
+    // Partners CRUD (logo strip on the public site).
+    Route::get('/partners',                       [AdminPartnerController::class, 'index']);
+    Route::post('/partners',                      [AdminPartnerController::class, 'store']);
+    Route::post('/partners/reorder',              [AdminPartnerController::class, 'reorder']);
+    Route::get('/partners/{partner:slug}',        [AdminPartnerController::class, 'show']);
+    Route::put('/partners/{partner:slug}',        [AdminPartnerController::class, 'update']);
+    Route::patch('/partners/{partner:slug}',      [AdminPartnerController::class, 'update']);
+    Route::post('/partners/{partner:slug}',       [AdminPartnerController::class, 'update']);
+    Route::delete('/partners/{partner:slug}',     [AdminPartnerController::class, 'destroy']);
+
     Route::get('/staff',                       [AdminStaffController::class, 'index']);
     Route::post('/staff',                      [AdminStaffController::class, 'store']);
     Route::post('/staff/reorder',              [AdminStaffController::class, 'reorder']);

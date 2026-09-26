@@ -9,6 +9,8 @@ import {
   CaretDoubleRight,
   ChartLineUp,
   EnvelopeSimple,
+  Gear,
+  Handshake,
   House,
   List as ListIcon,
   FilePdf,
@@ -44,8 +46,10 @@ const NAV_ITEMS: AdminNavItem[] = [
   { to: '/admin/articles',  label: 'Actualités',      icon: Newspaper },
   { to: '/admin/scouting',  label: 'Scouting',        icon: Binoculars,    badgeKey: 'scouting' },
   { to: '/admin/equipe',    label: 'Équipe',          icon: UsersThree },
+  { to: '/admin/partenaires', label: 'Partenaires',   icon: Handshake },
   { to: '/admin/presentations', label: 'Présentations', icon: FilePdf },
   { to: '/admin/contact',   label: 'Contact',         icon: EnvelopeSimple, badgeKey: 'contact' },
+  { to: '/admin/reglages',  label: 'Réglages',        icon: Gear },
 ]
 
 interface SidebarLinkProps {

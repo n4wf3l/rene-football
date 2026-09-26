@@ -12,7 +12,9 @@ import {
   useTransform,
 } from 'framer-motion'
 import { ArrowUpRight, CaretDown, Gauge, Lock, List, X } from '@phosphor-icons/react'
+import { useTranslation } from 'react-i18next'
 import ThemeToggle from '../theme/ThemeToggle'
+import LanguageSwitcher from './LanguageSwitcher'
 import BrandLogo from './BrandLogo'
 import { useAuth } from '../auth/AuthContext'
 import { useHasDarkHero } from '../hooks/useDarkHero'
@@ -21,15 +23,16 @@ import { playerImage } from '../lib/playerImage'
 
 interface NavItem {
   to: string
-  label: string
+  /** i18next key resolved on render — labels swap live when the user picks a language. */
+  labelKey: 'nav.home' | 'nav.players' | 'nav.news' | 'nav.about'
   end?: boolean
 }
 
 const NAV: NavItem[] = [
-  { to: '/',           label: 'Accueil',    end: true },
-  { to: '/joueurs',    label: 'Joueurs' },
-  { to: '/a-propos',   label: 'À propos' },
-  { to: '/actualites', label: 'Actualités' },
+  { to: '/',           labelKey: 'nav.home',    end: true },
+  { to: '/joueurs',    labelKey: 'nav.players' },
+  { to: '/a-propos',   labelKey: 'nav.about' },
+  { to: '/actualites', labelKey: 'nav.news' },
   // Contact is intentionally omitted here: it is rendered as a CTA button
   // in the right cluster (see the Contact variants below the mega-menu).
 ]
@@ -41,6 +44,7 @@ const NAV: NavItem[] = [
  * divider so it reads as the primary action of the navbar.
  */
 function ContactCta({ onClose }: { onClose?: () => void }) {
+  const { t } = useTranslation()
   return (
     <div className="hidden md:flex items-center">
       <Link
@@ -48,7 +52,7 @@ function ContactCta({ onClose }: { onClose?: () => void }) {
         onClick={onClose}
         className="group inline-flex items-center gap-1.5 rounded-full bg-zinc-950 text-stone-50 dark:bg-stone-50 dark:text-zinc-950 hover:bg-zinc-800 dark:hover:bg-stone-200 px-3.5 py-1.5 text-[0.8rem] font-semibold tracking-tight transition-colors ease-premium"
       >
-        <span>Contact</span>
+        <span>{t('nav.contact')}</span>
         <ArrowUpRight size={13} weight="bold" className="group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-transform ease-premium" />
       </Link>
     </div>
@@ -286,6 +290,7 @@ const MegaPanel = memo(function MegaPanel({ open, onClose, onMouseEnter, onMouse
 
 /* ---- Header - floating glass capsule, smart hide-on-scroll-down. ---- */
 function Header() {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const [hidden, setHidden] = useState(false)
   const [atTop, setAtTop] = useState(true)
@@ -297,6 +302,7 @@ function Header() {
   const { isAuthenticated, user } = useAuth()
   const isAdmin = isAuthenticated && Boolean(user?.is_admin)
   const isDark = useIsDark()
+  const adminLabel = isAdmin ? t('nav.adminDashboard') : t('nav.adminLogin')
   // When a page opts in via useDarkHero() we treat the navbar as if we were
   // in dark theme regardless of the user's picked mode - this stops the
   // "white strip over a dark hero" mismatch.
@@ -428,7 +434,7 @@ function Header() {
                     />
                   )}
                   <span className="relative inline-flex items-center gap-1.5">
-                    {item.label}
+                    {t(item.labelKey)}
                     {/* Active-state indicator: animated underline (2026-standard
                         pattern, more universally readable than the previous dot).
                         `layoutId` makes it slide smoothly between routes. */}
@@ -489,17 +495,18 @@ function Header() {
             })}
           </div>
 
-          {/* Right side: Contact CTA glued to the theme/admin cluster with
-             a single divider between them, so it reads as one action bar
+          {/* Right side: Contact CTA glued to the language/theme/admin cluster
+             with a single divider between them, so it reads as one action bar
              pinned to the right edge instead of drifting mid-navbar. */}
           <div className="hidden md:flex items-center gap-2">
             <ContactCta onClose={close} />
             <div className="flex items-center gap-0.5 pl-2 border-l border-zinc-900/10 dark:border-stone-50/10">
+              <LanguageSwitcher variant="chip" />
               <ThemeToggle variant="rail" />
               <Link
                 to={isAdmin ? '/admin' : '/admin/login'}
-                aria-label={isAdmin ? 'Tableau de bord admin' : 'Espace agence'}
-                title={isAdmin ? 'Tableau de bord admin' : 'Espace agence'}
+                aria-label={adminLabel}
+                title={adminLabel}
                 className={`group relative grid place-items-center w-10 h-10 rounded-xl transition-colors ${
                   isAdmin
                     ? 'text-turf-500 hover:text-turf-600 hover:bg-turf-100 dark:text-turf-300 dark:hover:text-turf-200 dark:hover:bg-turf-800/20'
@@ -519,7 +526,7 @@ function Header() {
                   role="tooltip"
                   className="absolute right-0 top-full mt-2 px-2.5 py-1 rounded-md bg-zinc-900 text-stone-100 text-xs whitespace-nowrap opacity-0 -translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200 ease-premium pointer-events-none border border-stone-50/10 shadow-diffusion"
                 >
-                  {isAdmin ? 'Tableau de bord admin' : 'Espace agence'}
+                  {adminLabel}
                 </span>
               </Link>
             </div>
@@ -578,7 +585,7 @@ function Header() {
                         }`
                       }
                     >
-                      {item.label}
+                      {t(item.labelKey)}
                     </NavLink>
                   </li>
                 ))}
@@ -596,10 +603,13 @@ function Header() {
                       }`
                     }
                   >
-                    Contact
+                    {t('nav.contact')}
                   </NavLink>
                 </li>
               </ul>
+              <div className="border-t border-stone-50/10 px-3 py-3 space-y-3">
+                <LanguageSwitcher variant="full" />
+              </div>
               <div className="border-t border-stone-50/10 px-3 py-3 flex items-center justify-between">
                 <Link
                   to={isAdmin ? '/admin' : '/admin/login'}
@@ -611,7 +621,7 @@ function Header() {
                   }`}
                 >
                   {isAdmin ? <Gauge size={13} weight="regular" /> : <Lock size={13} weight="regular" />}
-                  {isAdmin ? 'Tableau de bord admin' : 'Espace agence'}
+                  {adminLabel}
                 </Link>
                 <span className="text-[0.65rem] text-stone-500 font-mono uppercase tracking-wider">
                   Rene Football

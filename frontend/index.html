@@ -2,16 +2,91 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/logo-black.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Rene Football - agence de football. Représentation de joueurs, négociation de transferts, scouting et gestion de carrière." />
+
+    <!-- Primary : base title & description shipped in the static HTML so
+         non-JS crawlers (social scrapers, older bots) always see something.
+         Per-route pages override these client-side via react-helmet-async
+         once React mounts. -->
+    <title>Rene Football · Agence de football au Luxembourg</title>
+    <meta name="description" content="Agent FIFA licencié basé au Luxembourg. Représentation de joueurs, négociation de transferts, scouting et gestion de carrière, en activité depuis 2010." />
+    <meta name="author" content="Rene Football" />
+    <meta name="keywords" content="agence de football, agent FIFA, Luxembourg, représentation joueur, scouting football, transferts, Rene Football, René Jacob Yougbaré" />
+    <meta name="theme-color" content="#0a1f3d" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#fafaf9" media="(prefers-color-scheme: light)" />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="canonical" href="https://renefootball.com/" />
+
+    <!-- Icons -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" href="/logo-black.png" />
+    <link rel="apple-touch-icon" href="/logo-black.png" />
+
+    <!-- Open Graph (Facebook, LinkedIn, WhatsApp, Slack, iMessage…) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Rene Football" />
+    <meta property="og:locale" content="fr_FR" />
+    <meta property="og:url" content="https://renefootball.com/" />
+    <meta property="og:title" content="Rene Football · Agence de football au Luxembourg" />
+    <meta property="og:description" content="Agent FIFA licencié basé au Luxembourg. Représentation, transferts, scouting et gestion de carrière depuis 2010." />
+    <meta property="og:image" content="https://renefootball.com/logo-black.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Rene Football, propulseur de talents" />
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Rene Football · Agence de football au Luxembourg" />
+    <meta name="twitter:description" content="Agent FIFA licencié basé au Luxembourg. Représentation, transferts, scouting et gestion de carrière depuis 2010." />
+    <meta name="twitter:image" content="https://renefootball.com/logo-black.png" />
+
+    <!-- Robots -->
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="googlebot" content="index, follow" />
+
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-    <title>Rene Football - Agence de football</title>
+
+    <!-- JSON-LD structured data (SportsOrganization). Injected in the static
+         HTML so search engines pick it up without executing JS. Feeds the
+         Knowledge Panel with the right name, logo, founder, address, contact. -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SportsOrganization",
+      "name": "Rene Football",
+      "alternateName": "Rene Football, agence de football",
+      "url": "https://renefootball.com/",
+      "logo": "https://renefootball.com/logo-black.png",
+      "description": "Agence de football basée au Luxembourg. Représentation de joueurs, négociation de transferts, scouting et gestion de carrière.",
+      "foundingDate": "2010",
+      "founder": {
+        "@type": "Person",
+        "name": "René Jacob Yougbaré",
+        "jobTitle": "Fondateur, Agent FIFA licencié"
+      },
+      "address": {
+        "@type": "PostalAddress",
+        "addressCountry": "LU",
+        "addressLocality": "Luxembourg"
+      },
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "customer service",
+        "email": "renefootball.p@gmail.com",
+        "telephone": "+352-691-712-574",
+        "areaServed": "EU",
+        "availableLanguage": ["French", "English"]
+      },
+      "sameAs": []
+    }
+    </script>
+
     <script>
       // Apply the dark class BEFORE React mounts so the very first paint
-      // is already dark — avoids the white flash while ThemeProvider boots.
+      // is already dark - avoids the white flash while ThemeProvider boots.
       // Mirrors ThemeContext.readInitial(): honour the stored choice,
       // otherwise default to dark.
       (function () {

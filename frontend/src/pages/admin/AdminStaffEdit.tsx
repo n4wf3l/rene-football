@@ -239,7 +239,7 @@ export default function AdminStaffEdit({ creating = false }: { creating?: boolea
 
           <label className="block">
             <span className="block text-[0.65rem] font-mono uppercase tracking-[0.16em] text-zinc-500 dark:text-stone-400 mb-1">
-              Rôle <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">- ex. Fondatrice · Agent FIFA</span>
+              Rôle <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">- ex. Fondateur · Agent FIFA</span>
             </span>
             <input
               type="text"

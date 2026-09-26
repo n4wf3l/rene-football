@@ -4,15 +4,16 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class StaffMember extends Model
+class Partner extends Model
 {
     protected $fillable = [
         'slug',
         'name',
         'role',
-        'bio',
-        'career_entries',
-        'photo_url',
+        'logo_url',
+        'website_url',
+        'country_code',
+        'country_label',
         'sort_order',
         'is_published',
     ];
@@ -20,9 +21,8 @@ class StaffMember extends Model
     protected function casts(): array
     {
         return [
-            'career_entries' => 'array',
-            'sort_order'     => 'integer',
-            'is_published'   => 'boolean',
+            'sort_order'   => 'integer',
+            'is_published' => 'boolean',
         ];
     }
 
