@@ -8,18 +8,16 @@ import {
 } from '@phosphor-icons/react'
 import { api } from '../api/client'
 import MeshGradient from '../components/MeshGradient'
+import Seo from '../components/Seo'
+import { useTranslation } from 'react-i18next'
 import AnimatedNumber from '../components/AnimatedNumber'
 import Skeleton from '../components/Skeleton'
 import { playerImage } from '../lib/playerImage'
 import type { Player, PositionFilter, AgeFilter } from '../types/player'
 
 const POSITION_FILTERS: PositionFilter[] = ['Tous', 'Gardien', 'Defenseur', 'Milieu', 'Attaquant']
-const AGE_FILTERS: { key: AgeFilter; label: string }[] = [
-  { key: 'Tous',    label: 'Tous âges' },
-  { key: 'U21',     label: 'Moins de 21' },
-  { key: '21-26',   label: '21-26 ans' },
-  { key: '27+',     label: '27 ans et plus' },
-]
+/** Age filter keys — display labels come from players.filters.ages.* */
+const AGE_FILTER_KEYS: AgeFilter[] = ['Tous', 'U21', '21-26', '27+']
 
 function matchesAge(player: Player, key: AgeFilter): boolean {
   if (key === 'Tous') return true
@@ -139,6 +137,7 @@ interface EmptyStateProps {
 }
 
 function EmptyState({ onReset }: EmptyStateProps) {
+  const { t } = useTranslation()
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -149,13 +148,13 @@ function EmptyState({ onReset }: EmptyStateProps) {
         <MagnifyingGlass size={22} weight="regular" />
       </div>
       <h3 className="mt-5 font-display font-semibold text-xl text-zinc-950 dark:text-stone-50">
-        Aucun joueur ne correspond.
+        {t('players.empty.title')}
       </h3>
       <p className="mt-2 text-sm text-zinc-600 dark:text-stone-400 leading-relaxed">
-        Essayez d'élargir vos critères ou réinitialisez les filtres.
+        {t('players.empty.paragraph')}
       </p>
       <button type="button" onClick={onReset} className="btn btn-outline mt-6 text-sm">
-        Réinitialiser les filtres
+        {t('players.empty.reset')}
       </button>
     </motion.div>
   )
@@ -166,6 +165,7 @@ interface PlayersResponse {
 }
 
 function PlayersPage() {
+  const { t } = useTranslation()
   const [players, setPlayers] = useState<Player[]>([])
   const [loading, setLoading] = useState(true)
   const [position, setPosition] = useState<PositionFilter>('Tous')
@@ -196,33 +196,36 @@ function PlayersPage() {
 
   return (
     <>
-      <section className="text-stone-100 pt-16 pb-12 lg:pt-24 lg:pb-16 relative overflow-hidden">
-        <MeshGradient intensity="subtle" />
+      <Seo
+        title={t('players.seo.title')}
+        description={t('players.seo.description')}
+        path="/joueurs"
+      />
+      <section className="text-zinc-900 dark:text-stone-100 pt-16 pb-12 lg:pt-24 lg:pb-16 relative overflow-hidden">
+        <MeshGradient intensity="subtle" tone="auto" />
         <div className="container-page grid lg:grid-cols-12 gap-8 items-end">
           <div className="lg:col-span-8">
-            <span className="eyebrow text-turf-300">Notre roster</span>
-            <h1 className="mt-3 font-display font-semibold text-4xl lg:text-6xl tracking-tightest leading-[1.05] text-stone-50 max-w-[20ch]">
-              Les joueurs que nous accompagnons cette saison.
+            <span className="eyebrow text-turf-700 dark:text-turf-300">{t('players.hero.eyebrow')}</span>
+            <h1 className="mt-3 font-display font-semibold text-4xl lg:text-6xl tracking-tightest leading-[1.05] text-zinc-950 dark:text-stone-50 max-w-[20ch]">
+              {t('players.hero.title')}
             </h1>
-            <p className="mt-6 max-w-[58ch] text-base lg:text-lg text-stone-400 leading-relaxed">
-              Une sélection volontairement resserrée. Pour chaque joueur,
-              une équipe dédiée - agent, conseiller juridique, préparateur
-              mental - qui le suit toute la saison.
+            <p className="mt-6 max-w-[58ch] text-base lg:text-lg text-zinc-600 dark:text-stone-400 leading-relaxed">
+              {t('players.hero.paragraph')}
             </p>
           </div>
           <div className="lg:col-span-4 lg:justify-self-end">
-            <div className="flex gap-8 lg:gap-10 border-t lg:border-t-0 border-stone-50/10 pt-6 lg:pt-0">
+            <div className="flex gap-8 lg:gap-10 border-t lg:border-t-0 border-stone-900/10 dark:border-stone-50/10 pt-6 lg:pt-0">
               <div>
-                <div className="font-mono text-3xl text-stone-50 tabular-nums">
+                <div className="font-mono text-3xl text-zinc-950 dark:text-stone-50 tabular-nums">
                   <AnimatedNumber value={players.length} duration={1.2} />
                 </div>
-                <div className="text-xs text-stone-400 mt-1">Joueurs actifs</div>
+                <div className="text-xs text-zinc-600 dark:text-stone-400 mt-1">{t('players.hero.activePlayers')}</div>
               </div>
               <div>
-                <div className="font-mono text-3xl text-stone-50 tabular-nums">
+                <div className="font-mono text-3xl text-zinc-950 dark:text-stone-50 tabular-nums">
                   <AnimatedNumber value={clubsCount} duration={1.2} />
                 </div>
-                <div className="text-xs text-stone-400 mt-1">Clubs</div>
+                <div className="text-xs text-zinc-600 dark:text-stone-400 mt-1">{t('players.hero.clubs')}</div>
               </div>
             </div>
           </div>
@@ -252,7 +255,7 @@ function PlayersPage() {
                       transition={{ type: 'spring', stiffness: 400, damping: 32 }}
                     />
                   )}
-                  <span className="relative">{p}</span>
+                  <span className="relative">{t(`players.filters.positions.${p}`)}</span>
                 </button>
               )
             })}
@@ -261,7 +264,7 @@ function PlayersPage() {
           <div className="hidden lg:block w-px h-6 bg-stone-300 dark:bg-stone-50/15" />
 
           <div className="flex flex-wrap items-center gap-2">
-            {AGE_FILTERS.map(({ key, label }) => {
+            {AGE_FILTER_KEYS.map((key) => {
               const active = age === key
               return (
                 <button
@@ -274,7 +277,7 @@ function PlayersPage() {
                       : 'bg-transparent border-stone-300 text-zinc-700 hover:border-zinc-500 hover:text-zinc-950 dark:border-stone-50/15 dark:text-stone-300 dark:hover:border-stone-50/40 dark:hover:text-stone-50'
                   }`}
                 >
-                  {label}
+                  {t(`players.filters.ages.${key}`)}
                 </button>
               )
             })}
@@ -290,13 +293,13 @@ function PlayersPage() {
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Rechercher un joueur ou un club"
+              placeholder={t('players.filters.searchPlaceholder')}
               className="w-full lg:w-72 pl-10 pr-9 py-2 rounded-full border border-stone-300 bg-white text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-zinc-900 transition dark:bg-zinc-900 dark:border-stone-50/15 dark:text-stone-50 dark:placeholder:text-stone-500 dark:focus:border-turf-300"
             />
             {query && (
               <button
                 type="button"
-                aria-label="Effacer"
+                aria-label={t('common.clear')}
                 onClick={() => setQuery('')}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-700"
               >

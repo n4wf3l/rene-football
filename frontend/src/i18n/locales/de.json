@@ -1,0 +1,520 @@
+{
+  "common": {
+    "loading": "Wird geladen…",
+    "error": "Etwas ist schiefgelaufen.",
+    "retry": "Erneut versuchen",
+    "back": "Zurück",
+    "next": "Weiter",
+    "submit": "Senden",
+    "close": "Schließen",
+    "search": "Suchen",
+    "allF": "Alle",
+    "allM": "Alle",
+    "clear": "Leeren"
+  },
+  "nav": {
+    "home": "Startseite",
+    "players": "Spieler",
+    "news": "Aktuelles",
+    "about": "Über uns",
+    "contact": "Kontakt",
+    "adminLogin": "Agentur-Bereich",
+    "adminDashboard": "Dashboard"
+  },
+  "language": {
+    "label": "Sprache",
+    "fr": "Français",
+    "en": "English",
+    "de": "Deutsch",
+    "lb": "Lëtzebuergesch",
+    "nl": "Nederlands"
+  },
+  "footer": {
+    "brand": "Unabhängige Spielervermittlungsagentur mit Sitz in Luxemburg. Wir betreuen Karrieren, betreiben Scouting und vertreten Profifußballer in ganz Europa.",
+    "socials": "Soziale Netzwerke",
+    "navigation": "Navigation",
+    "services": "Leistungen",
+    "servicesList": {
+      "representation": "Spielervertretung",
+      "contracts": "Vertragsverhandlungen",
+      "scouting": "Scouting & Rekrutierung",
+      "career": "Karriereplanung"
+    },
+    "contact": "Kontakt",
+    "legal": {
+      "mentions": "Impressum",
+      "privacy": "Datenschutz",
+      "cookies": "Cookies"
+    },
+    "copyright": "© {{year}} Rene Football. Alle Rechte vorbehalten."
+  },
+  "home": {
+    "hero": {
+      "chip": "Fußball-Agentur",
+      "titlePre": "Jeden",
+      "titleAccent": "Spieler",
+      "titlePost": "so vertreten, als wäre er der einzige.",
+      "paragraph": "FIFA-lizenzierter Berater mit Sitz in Luxemburg, aktiv seit 2010 und DSGVO-konform. Wir arbeiten bewusst mit wenigen Spielern gleichzeitig — so bleiben wir langfristig nützlich, vom ersten Profivertrag bis zu den nächsten Karriereschritten.",
+      "ctaPrimary": "Unsere Spieler entdecken",
+      "ctaSecondary": "Kontakt aufnehmen",
+      "identityLabel": "Vertretener Spieler",
+      "signedIn": "Unterschrieben {{year}}"
+    },
+    "stats": {
+      "players": "Aktive Spieler",
+      "years": "Jahre Erfahrung",
+      "clubs": "Vertretene Vereine",
+      "team": "Teammitglieder"
+    },
+    "roster": {
+      "eyebrow": "Unser Roster",
+      "title": "Die Spieler, die wir diese Saison begleiten.",
+      "viewAll": "Alle Spieler ansehen"
+    },
+    "brandVideo": {
+      "eyebrow": "Die Agentur in Bewegung",
+      "title": "Mehr als eine Agentur,",
+      "titleAccent": "ein Lebensprojekt.",
+      "paragraph": "Unsere Methode, unsere Spieler, unser Verständnis vom Beruf des Beraters in einer Minute. Eine kleine Pause, um uns kennenzulernen, bevor wir über Ihr Projekt sprechen.",
+      "videoTitle": "Rene Football, Vorstellung der Agentur"
+    },
+    "services": {
+      "eyebrow": "Unsere Leistungen",
+      "title": "Umfassende Expertise, aufgebaut wie eine Kanzlei.",
+      "intro": "Von der Entdeckung bis zum Karriereende wird jede Etappe von einem kleinen, sorgfältig gewählten Team begleitet, das den Fußball und das Sportrecht genau kennt.",
+      "representation": {
+        "title": "Spielervertretung",
+        "text": "Von der Akademie bis zur Profiebene begleiten wir jeden Spieler mit derselben Aufmerksamkeit. Ein bewusst kleiner Roster, nie ein Mandat zu viel."
+      },
+      "contracts": {
+        "title": "Vertragsverhandlungen",
+        "text": "Wir kümmern uns um Transfers, Verlängerungen und Bildrechte mit einer eigenen Rechtsberatung."
+      },
+      "scouting": {
+        "title": "Scouting & Rekrutierung",
+        "text": "Scouting-Netz im Benelux, in Frankreich, Deutschland und den Niederlanden. Wir sehen lieber einem Spiel zu, als ein Datenblatt zu lesen."
+      },
+      "career": {
+        "title": "Karriereplanung",
+        "text": "Vertrag, Image, Ausbildung, Partnerschaften. Wir denken in Karrieren von zehn Jahren, nicht in Transferfenstern."
+      }
+    },
+    "why": {
+      "eyebrow": "Warum eine Agentur",
+      "title": "Eine Profikarriere entscheidet sich an wenigen Schlüsselmomenten.",
+      "intro": "Die Zahlen des Profifußballs zeigen, wie wichtig strukturierte Begleitung ist, egal ob es sich um einen jungen Spieler auf dem Weg nach oben handelt oder um einen Verein, der eine Verpflichtung verhandelt.",
+      "stats": {
+        "one": {
+          "label": "der jungen Spieler unterschreiben je einen Profivertrag",
+          "detail": "Von 21,5 Mio. weltweit registrierten Jugendspielern spielen laut FIFA nur ~113.000 auf Profiniveau."
+        },
+        "two": {
+          "label": "der vertretenen Spieler sind Nachwuchsspieler, keine erfahrenen Profis",
+          "detail": "CIES Football Observatory: Die Hauptarbeit eines Beraters findet früh statt, im Nachwuchsbereich."
+        },
+        "three": {
+          "label": "an Beraterprovisionen im Jahr 2025",
+          "detail": "Bei 13,08 Mrd. $ globalem Transfervolumen: Der Markt bestätigt einen Berater nur über Ergebnisse."
+        }
+      },
+      "sourceLabel": "Quelle",
+      "pillars": {
+        "one": {
+          "title": "Regulierte Verhandlung",
+          "text": "Die FIFA hat die Provisionen seit 2023 auf 3-5 % des Bruttojahresgehalts begrenzt. Strukturierte Begleitung sichert die entscheidenden Klauseln in einem Rahmen, in dem Improvisation teuer wird."
+        },
+        "two": {
+          "title": "Ein Karriereplan, kein Transfer",
+          "text": "Der Jahres-Turnover in deutschen Akademien liegt bei 24,5 %, mit weniger als 50 % Wahrscheinlichkeit, drei Jahre später noch dort zu sein. Den nächsten Schritt vorwegzudenken verändert die Karriere."
+        },
+        "three": {
+          "title": "Frühzeitige Identifikation",
+          "text": "Das CIES stellt fest, dass die Mehrheit der Spieler unter Beratung Nachwuchstalente sind: Der Mehrwert einer Agentur entsteht vor den ersten Profiverträgen, nicht danach."
+        },
+        "four": {
+          "title": "Ein Ansprechpartner auf Vereinsseite",
+          "text": "Eine zentralisierte Akte (Spielerkarte, Marketing-PDF, Historie) und ein fester Ansprechpartner auf Agenturseite: Der Verein verkürzt seinen Entscheidungszyklus und reduziert sein rechtliches Risiko."
+        }
+      },
+      "sources": "Quellen"
+    },
+    "cta": {
+      "eyebrow": "Kontakt aufnehmen",
+      "title": "Spieler, Verein, Medien?",
+      "subtitle": "Wählen Sie Ihr Profil, wir passen den Austausch an.",
+      "paragraph": "Jeder Weg öffnet die Fragen, die zu Ihrer Situation passen. Antwort innerhalb von 48 Stunden, vertraulicher Austausch, unverbindlich.",
+      "browseAll": "Oder das komplette Formular durchgehen"
+    }
+  },
+  "players": {
+    "seo": {
+      "title": "Unsere Spieler",
+      "description": "Die Spieler, die wir in dieser Saison begleiten. Eine bewusst kleine Auswahl, von einem festen Team über die gesamte Saison betreut."
+    },
+    "hero": {
+      "eyebrow": "Unser Roster",
+      "title": "Die Spieler, die wir in dieser Saison begleiten.",
+      "paragraph": "Wir arbeiten bewusst mit wenigen Spielern gleichzeitig. Für jeden dasselbe Team: Berater, Rechtsberatung, Mentalcoach, vom Anfang bis zum Ende der Saison.",
+      "activePlayers": "Aktive Spieler",
+      "clubs": "Vereine"
+    },
+    "filters": {
+      "positions": {
+        "Tous": "Alle Positionen",
+        "Gardien": "Torwart",
+        "Defenseur": "Verteidiger",
+        "Milieu": "Mittelfeld",
+        "Attaquant": "Stürmer"
+      },
+      "ages": {
+        "Tous": "Alle Altersgruppen",
+        "U21": "Unter 21",
+        "21-26": "21-26 Jahre",
+        "27+": "27 Jahre und älter"
+      },
+      "searchPlaceholder": "Spieler oder Verein suchen"
+    },
+    "empty": {
+      "title": "Kein Spieler entspricht den Kriterien.",
+      "paragraph": "Erweitern Sie die Kriterien oder setzen Sie die Filter zurück.",
+      "reset": "Filter zurücksetzen"
+    }
+  },
+  "about": {
+    "seo": {
+      "title": "Über uns",
+      "description": "Rene Football, Fußballagentur gegründet von René Jacob Yougbaré 2010 in Luxemburg. Vertretung, Scouting, langfristige Karrierebegleitung."
+    },
+    "hero": {
+      "eyebrow": "Über uns",
+      "title": "Eine überschaubare Agentur, mit Sitz in Luxemburg.",
+      "paragraph": "Rene Football betreut seit 2010 Spieler und ihre Familien. Wir arbeiten bewusst mit wenigen Mandaten gleichzeitig — nur so sind wir für unsere Spieler da, wenn es zählt, und nicht nur beim Transfer."
+    },
+    "founderQuote": {
+      "eyebrow": "Ein Wort vom Gründer",
+      "quote": "„Mein Ziel ist es, jungen Fußballern nicht die richtigen Chancen entgehen zu lassen und ihnen zu helfen, ihre Karriere mit einem klaren Plan aufzubauen.\"",
+      "paragraph": "Mit meinem eigenen Werdegang im Fußball habe ich zu oft erlebt, dass Chancen wegen fehlender Betreuung ungenutzt blieben. Heute möchte ich als Berater klare Sicht, seriöse Begleitung und ein nützliches Netzwerk in die Karriere unserer Spieler bringen."
+    },
+    "pillars": {
+      "eyebrow": "Unser Ansatz",
+      "title": "Was wir für einen Spieler tun.",
+      "intro": "Lieber weniger machen, aber richtig. Das sind die drei Bereiche, die wir für jeden Spieler unter Mandat abdecken.",
+      "representation": {
+        "title": "Vertretung",
+        "text": "Ein Berater, ein Rechtsanwalt und ein Mentalcoach pro Spieler. Das Team bleibt klein, damit wir uns bei Entscheidungen abstimmen können."
+      },
+      "scouting": {
+        "title": "Scouting",
+        "text": "Unser Scouting-Netzwerk deckt Benelux, Frankreich, Deutschland und die Niederlande ab. Wir schauen zuerst auf das, was auf dem Platz passiert, dann auf das Datenblatt."
+      },
+      "career": {
+        "title": "Langfristige Begleitung",
+        "text": "Vertrag, Image, Ausbildung, Partnerschaften. Wir denken in Karrieren von zehn Jahren, nicht in Transferfenstern."
+      }
+    },
+    "staff": {
+      "eyebrow": "Das Team",
+      "title": "Ein bewusst kleines, sorgfältig gewähltes Team.",
+      "intro": "Vier sich ergänzende Profile. Keine Mittelsmänner zwischen Ihnen und der Person, die Ihren Fall betreut."
+    },
+    "partners": {
+      "eyebrow": "Unsere Partner",
+      "title": "Mit wem wir zusammenarbeiten.",
+      "intro": "Agenturnetzwerke, Athletiktraining, Rechtsberatung. Wir umgeben uns mit Partnern, die denselben Anspruch an langfristige Begleitung teilen."
+    },
+    "timeline": {
+      "eyebrow": "Unsere Geschichte",
+      "title": "Fünfzehn Jahre, ohne Eile.",
+      "events": {
+        "2010": {
+          "title": "Gründung der Agentur",
+          "text": "René Jacob Yougbaré gründet Rene Football in Luxemburg mit zwei Mandaten."
+        },
+        "2015": {
+          "title": "Erster großer Transfer",
+          "text": "Unterzeichnung eines offensiven Mittelfeldspielers in der belgischen ersten Liga, im selben Jahr erstes Mandat in der Bundesliga."
+        },
+        "2020": {
+          "title": "Aufbau des Scouting-Netzwerks",
+          "text": "Aufbau eines europaweiten Scouting-Netzwerks (Benelux, Frankreich, Deutschland, Niederlande)."
+        },
+        "2024": {
+          "title": "Konsolidierung des Rosters",
+          "text": "Die Agentur reduziert bewusst die Anzahl ihrer Mandate, um jedem Spieler eine persönliche Betreuung zu garantieren."
+        }
+      }
+    },
+    "cta": {
+      "eyebrow": "Zusammenarbeiten",
+      "title": "Vertreten Sie einen Verein oder einen Spieler?",
+      "paragraph": "Unser Team meldet sich innerhalb von 48 Stunden zurück. Vertraulicher Austausch, unverbindlich.",
+      "button": "Gespräch starten"
+    }
+  },
+  "news": {
+    "seo": {
+      "title": "Aktuelles",
+      "description": "Transfers, Verpflichtungen, Profile. Was rund um die Spieler passiert, die wir betreuen. Veröffentlicht, wenn wir etwas zu sagen haben."
+    },
+    "hero": {
+      "eyebrow": "Aktuelles",
+      "title": "Transfers, Verpflichtungen, Profile.",
+      "paragraph": "Was rund um die Spieler passiert, die wir betreuen: Transfers, Training, Pressetermine. Veröffentlicht, wenn wir etwas zu sagen haben."
+    },
+    "categories": {
+      "Tous": "Alle",
+      "Mercato": "Transfermarkt",
+      "Talents": "Talente",
+      "Profils": "Profile",
+      "Coulisses": "Hinter den Kulissen",
+      "Agence": "Agentur"
+    },
+    "empty": {
+      "category": "In dieser Kategorie gibt es noch keinen Artikel."
+    }
+  },
+  "notFound": {
+    "eyebrow": "Fehler 404",
+    "title": "Diese Seite existiert nicht.",
+    "paragraph": "Der Link, den Sie besucht haben, ist möglicherweise veraltet. Zurück zur Startseite, um unsere Spieler und Neuigkeiten zu entdecken.",
+    "cta": "Zurück zur Startseite"
+  },
+  "article": {
+    "backToList": "Alle Beiträge",
+    "featured": "Empfohlen",
+    "sidebarTitle": "Auf einen Blick",
+    "category": "Kategorie",
+    "publishedOn": "Veröffentlicht am",
+    "photos": "Fotos",
+    "clips": "Clips",
+    "notFound": {
+      "title": "Artikel nicht gefunden",
+      "paragraph": "Dieser Beitrag wurde möglicherweise entfernt oder seine URL geändert.",
+      "cta": "Zurück zu Aktuelles"
+    }
+  },
+  "playerProfile": {
+    "backToRoster": "Zurück zum Roster",
+    "pdfButton": "PDF-Datenblatt",
+    "yearsUnit": "Jahre",
+    "notFound": {
+      "eyebrow": "Spieler nicht gefunden",
+      "title": "Dieses Profil ist nicht mehr verfügbar.",
+      "paragraph": "Der gesuchte Spieler wurde möglicherweise aus dem öffentlichen Roster entfernt. Kehren Sie zur Liste zurück, um weitere Profile zu entdecken, die wir vertreten."
+    },
+    "sections": {
+      "identite":   { "nav": "Identität",   "title": "Spieler-Identität." },
+      "scout":      { "nav": "Scout",       "title": "Scouting-Profil." },
+      "saison":     { "nav": "Saison",      "title": "Laufende Saison." },
+      "terrain":    { "nav": "Platz",       "title": "Aktivitätszonen." },
+      "creation":   { "nav": "Kreativität", "title": "Offensive Kreativität." },
+      "defense":    { "nav": "Defensive",   "title": "Defensivarbeit." },
+      "physique":   { "nav": "Athletik",    "title": "Athletisches Profil." },
+      "discipline": { "nav": "Disziplin",   "title": "Disziplin." },
+      "gardien":    { "nav": "Aktivität",   "title": "Aktivität im Strafraum." },
+      "matchs":     { "nav": "Spielprotokoll", "title": "Letzte Spiele." },
+      "moments":    { "nav": "Momente",     "title": "Kommentierte Schlüsselmomente." }
+    },
+    "hero": {
+      "representedPlayer": "Vertretener Spieler",
+      "since": "Seit {{year}}",
+      "age": "Alter",
+      "height": "Größe",
+      "preferredFoot": "Starker Fuß",
+      "nationality": "Nationalität",
+      "currentSeason": "Laufende Saison",
+      "matchesCount": "{{count}} Spiele",
+      "underContract": "Unter Vertrag"
+    },
+    "stickyNav": {
+      "summary": "{{matches}} Spiele · {{minutes}} Min",
+      "presentationButton": "Präsentation",
+      "sectionsAria": "Profil-Sektionen"
+    },
+    "scrollRail": {
+      "label": "Profil"
+    },
+    "identity": {
+      "cards": {
+        "category": "Kategorie",
+        "position": "Position",
+        "nationality": "Nationalität",
+        "height": "Größe",
+        "since": "Betreut seit"
+      }
+    },
+    "scout": {
+      "footprint": {
+        "eyebrow": "Statistischer Fußabdruck",
+        "title": "Sechs Schlüsselachsen der Position.",
+        "description": "Normalisiert an gängigen Saison-Referenzen."
+      },
+      "percentiles": {
+        "eyebrow": "Einordnung in der Kategorie",
+        "title": "{{firstName}} vs andere {{category}}s.",
+        "description": "Für jede Metrik das Perzentil in der Spielergruppe derselben Kategorie.",
+        "best": "100 = bester",
+        "worst": "0 = letzter"
+      }
+    },
+    "season": {
+      "matchesPlayed": "Absolvierte Spiele",
+      "cleanSheets": "Zu-null-Spiele",
+      "saves": "Paraden",
+      "goals": "Tore",
+      "assists": "Vorlagen",
+      "minutesPerMatch": "Min / Spiel",
+      "playVolume": "Einsatzvolumen",
+      "overAppearances": "In {{count}} Einsätzen dieser Saison.",
+      "performanceVsExpected": "Leistung vs Erwartung",
+      "goalsMinusXG": "Tore − xG",
+      "assistsMinusXA": "Vorlagen − xA"
+    },
+    "terrain": {
+      "description": "Durchschnittliche Aufenthaltskarte der Saison. Die grünsten Zonen zeigen, wo {{firstName}} am aktivsten ist: Ballkontakte, Läufe und Duelle zusammen. Der Spieler greift von links nach rechts an.",
+      "referencePosition": "Referenzposition",
+      "preferredFoot": "Starker Fuß"
+    },
+    "creation": {
+      "shotAccuracy": "Schussgenauigkeit",
+      "conversion": "Chancenverwertung (Tore / Schüsse)",
+      "passAccuracy": "% Passquote",
+      "cumulativeXG": "Kumuliertes xG",
+      "cumulativeXA": "Kumuliertes xA",
+      "keyPasses": "Schlüsselpässe",
+      "dribblesCompleted": "Erfolgreiche Dribblings"
+    },
+    "keeper": {
+      "cleanSheets": "Zu-null-Spiele",
+      "saves": "Paraden",
+      "passAccuracy": "Passquote",
+      "duelsWon": "Gewonnene Duelle"
+    },
+    "defense": {
+      "tackles": "Tacklings",
+      "interceptions": "Abfangaktionen",
+      "duelsWon": "Gewonnene Duelle"
+    },
+    "physique": {
+      "gpsAverage": "Durchschnittswerte pro Spiel aus dem GPS-Tracking.",
+      "distancePerMatch": "Distanz / Spiel",
+      "sprintsPerMatch": "Sprints / Spiel",
+      "topSpeed": "Höchstgeschwindigkeit",
+      "highIntensityRuns": "Hochintensive Läufe"
+    },
+    "discipline": {
+      "yellowCards": "Gelbe Karten",
+      "redCards": "Rote Karten"
+    },
+    "matchs": {
+      "description": "Die letzten acht Einsätze des Spielers, vom aktuellsten zum ältesten. Die Kurve rechts zeigt die Entwicklung der Note (links = älter, rechts = neuer)."
+    },
+    "moments": {
+      "description": "Aufnahmen ausgewählter Schlüsselmomente unserer Scouting-Abteilung: Miniaturansicht anklicken, um zu zoomen."
+    },
+    "cta": {
+      "eyebrow": "Zu diesem Profil austauschen",
+      "title": "Interesse an {{firstName}}?",
+      "paragraph": "Unser Team antwortet innerhalb von 48 Stunden. Wählen Sie den Weg, der zu Ihrem Profil passt: Das Formular öffnet sich mit bereits vorausgewähltem {{name}}.",
+      "club": {
+        "label": "Ich bin ein Verein / Staff",
+        "hint": "Interesse an diesem Spieler"
+      },
+      "media": {
+        "label": "Ich bin ein Medium",
+        "hint": "Interview / Artikel zu diesem Spieler"
+      },
+      "other": "Oder eine andere Anfrage"
+    },
+    "metrics": {
+      "matches_played": "Absolvierte Spiele",
+      "minutes_played": "Minuten",
+      "clean_sheets": "Zu-null-Spiele",
+      "saves": "Paraden",
+      "pass_accuracy": "% Pässe",
+      "goals": "Tore",
+      "assists": "Vorlagen",
+      "xg": "xG",
+      "xa": "xA",
+      "key_passes": "Schlüsselpässe",
+      "dribbles_completed": "Erfolgreiche Dribblings",
+      "tackles": "Tacklings",
+      "duels_won": "Gewonnene Duelle",
+      "yellow_cards": "Gelbe Karten"
+    },
+    "seo": {
+      "descriptionFallback": "{{name}}, {{role}}{{club}}. Vollständiges Profil, Statistiken und Scouting auf Rene Football."
+    }
+  },
+  "presentation": {
+    "download": "PDF herunterladen",
+    "headerEyebrow": "Rene Football · Spielerpräsentation",
+    "sentBy": "Gesendet von {{agent}}",
+    "generatedOn": "Erstellt am {{date}}",
+    "template": "Template {{name}}",
+    "confidential": "Vertrauliches Dokument · Rene Football",
+    "backToSite": "Zurück zur Rene-Football-Website",
+    "gone": "Präsentation nicht gefunden",
+    "goneHint": "Dieser Link ist nicht mehr gültig oder die Präsentation wurde von der Agentur zurückgezogen.",
+    "errorTitle": "Ein Fehler ist aufgetreten",
+    "errorHint": "Die Präsentation konnte nicht geladen werden. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut."
+  },
+  "contact": {
+    "hero": {
+      "eyebrow": "Kontakt aufnehmen",
+      "title": "Schreiben Sie uns.",
+      "paragraph": "Wählen Sie Ihr Profil aus: Die Fragen passen sich an, damit wir Ihre Anfrage schnell verstehen."
+    },
+    "steps": {
+      "profile": "Profil",
+      "details": "Details",
+      "coordinates": "Kontaktdaten"
+    },
+    "audience": {
+      "title": "Sie schreiben uns als…",
+      "subtitle": "Wählen Sie das passende Profil. Die nachfolgenden Fragen passen sich an Ihre Situation an, damit wir Sie schneller weiterleiten können.",
+      "player": {
+        "label": "Spieler / Eltern",
+        "hint": "Sie möchten der Agentur beitreten oder ein Profil vorlegen."
+      },
+      "club": {
+        "label": "Verein / Technischer Stab",
+        "hint": "Interesse an einem Spieler, Profilsuche, Partnerschaft."
+      },
+      "media": {
+        "label": "Medien / Journalist",
+        "hint": "Interview, Artikel, Dokumentation."
+      },
+      "other": {
+        "label": "Sonstiges",
+        "hint": "Jede andere Anfrage."
+      }
+    },
+    "sidebar": {
+      "eyebrow": "Direkter Kontakt",
+      "title": "Falls Sie lieber schreiben oder anrufen möchten.",
+      "email": "E-Mail",
+      "phone": "Telefon",
+      "office": "Büro",
+      "officeSubtitle": "Nur nach Terminvereinbarung.",
+      "replyDelay": "Antwortzeit",
+      "replyDelayNote": "Montag bis Freitag, ohne Feiertage.",
+      "follow": "Folgen Sie uns"
+    },
+    "buttons": {
+      "sending": "Wird gesendet…",
+      "submit": "Anfrage senden"
+    },
+    "errors": {
+      "submitFailed": "Senden fehlgeschlagen. Versuchen Sie es erneut oder schreiben Sie an renefootball.p@gmail.com."
+    },
+    "success": {
+      "eyebrow": "Anfrage gesendet",
+      "title": "Wir melden uns innerhalb von 48 Stunden.",
+      "bodyPre": "Ihre",
+      "bodyPost": "Anfrage ist in unserem Postfach angekommen. Unser Team bearbeitet jede Anfrage persönlich und priorisiert nach Dringlichkeit und Profil.",
+      "resetCta": "Eine weitere Anfrage senden",
+      "homeCta": "Zurück zur Startseite"
+    }
+  }
+}

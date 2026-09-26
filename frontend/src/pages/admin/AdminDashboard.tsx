@@ -162,7 +162,7 @@ function GetStartedBand({ onDismiss }: { onDismiss: () => void }) {
             Le workflow standard, en 4 étapes
           </h2>
           <p className="mt-0.5 text-xs text-zinc-600 dark:text-stone-400 max-w-prose leading-relaxed">
-            Cliquez sur une étape pour y aller. Chaque étape est indépendante — vous pouvez sauter dans le désordre.
+            Cliquez sur une étape pour y aller. Chaque étape est indépendante : vous pouvez sauter dans le désordre.
           </p>
         </div>
         <button

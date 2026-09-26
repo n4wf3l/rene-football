@@ -14,6 +14,7 @@ import {
   SoccerBall,
   TrendUp,
 } from '@phosphor-icons/react'
+import { useTranslation } from 'react-i18next'
 import MercatoTicker from '../components/MercatoTicker'
 import Seo from '../components/Seo'
 import HeroTrail from '../components/HeroTrail'
@@ -41,32 +42,12 @@ const HERO_PORTRAIT = heroPortrait
 // old hardcoded 127+ joueurs / 38+ clubs / 14 pays counts were placeholder
 // values that no longer match reality (~10 active players in production).
 
-const SERVICES = [
-  {
-    Icon: Handshake,
-    title: 'Représentation de joueurs',
-    text: 'Du centre de formation au niveau pro, on suit chaque joueur avec la même attention. Peu de mandats, jamais un mandat de trop.',
-    span: 'lg:col-span-3 lg:row-span-2',
-    accent: true,
-  },
-  {
-    Icon: ShieldCheck,
-    title: 'Négociation de contrats',
-    text: "On s'occupe des transferts, prolongations et droits à l'image avec un conseil juridique dédié.",
-    span: 'lg:col-span-2',
-  },
-  {
-    Icon: ScanSmiley,
-    title: 'Scouting & recrutement',
-    text: "Réseau de scouts sur le Benelux, la France, l'Allemagne et les Pays-Bas. On préfère aller voir jouer plutôt que lire des fiches.",
-    span: 'lg:col-span-2',
-  },
-  {
-    Icon: TrendUp,
-    title: 'Gestion de carrière',
-    text: "Contrat, image, écoles, partenariats. On pense la carrière comme dix ans, pas comme le prochain mercato.",
-    span: 'lg:col-span-3',
-  },
+/** Icon + layout meta ; title/text come from home.services.<key>.title / .text */
+const SERVICES: Array<{ Icon: typeof Handshake; key: 'representation' | 'contracts' | 'scouting' | 'career'; span: string; accent?: boolean }> = [
+  { Icon: Handshake,   key: 'representation', span: 'lg:col-span-3 lg:row-span-2', accent: true },
+  { Icon: ShieldCheck, key: 'contracts',      span: 'lg:col-span-2' },
+  { Icon: ScanSmiley,  key: 'scouting',       span: 'lg:col-span-2' },
+  { Icon: TrendUp,     key: 'career',         span: 'lg:col-span-3' },
 ]
 
 const FADE_UP = {
@@ -217,6 +198,7 @@ function LuxembourgLabel() {
 }
 
 function HomePage() {
+  const { t } = useTranslation()
   const heroRef = useRef<HTMLElement | null>(null)
   const { players, loading } = usePublicPlayers()
   const { staff } = usePublicStaff()
@@ -232,10 +214,10 @@ function HomePage() {
   )
   const yearsOfExperience = new Date().getFullYear() - 2010
   const STATS: { value: number; label: string; suffix?: string }[] = [
-    { value: players.length,     label: 'Joueurs actifs' },
-    { value: yearsOfExperience,  label: "Années d'expérience" },
-    { value: clubsCount,         label: 'Clubs représentés' },
-    { value: staff.length,       label: "Membres de l'équipe" },
+    { value: players.length,     label: t('home.stats.players') },
+    { value: yearsOfExperience,  label: t('home.stats.years') },
+    { value: clubsCount,         label: t('home.stats.clubs') },
+    { value: staff.length,       label: t('home.stats.team') },
   ].filter((s) => s.value > 0)
   return (
     <>
@@ -315,7 +297,7 @@ function HomePage() {
               className="inline-flex items-center gap-2 rounded-full border border-turf-300/60 bg-turf-50 px-3 py-1 text-xs font-medium uppercase tracking-[0.18em] text-turf-800 dark:border-turf-400/30 dark:bg-turf-800/20 dark:text-turf-300"
             >
               <span className="w-1.5 h-1.5 rounded-full bg-turf-600 dark:bg-turf-300 animate-pulse" />
-              Agence de football
+              {t('home.hero.chip')}
             </motion.span>
 
             <motion.h1
@@ -324,9 +306,9 @@ function HomePage() {
               className="mt-5 font-display font-semibold leading-[1.05] tracking-tightest text-zinc-950 dark:text-stone-50"
               style={{ fontSize: 'clamp(2.4rem, 5.5vw, 4.25rem)' }}
             >
-              Représenter chaque{' '}
-              <span className="text-turf-700 dark:text-turf-300">joueur</span> comme s'il
-              était le seul.
+              {t('home.hero.titlePre')}{' '}
+              <span className="text-turf-700 dark:text-turf-300">{t('home.hero.titleAccent')}</span>{' '}
+              {t('home.hero.titlePost')}
             </motion.h1>
 
             <motion.p
@@ -334,10 +316,7 @@ function HomePage() {
               transition={{ type: 'spring', stiffness: 110, damping: 18 }}
               className="mt-5 max-w-[58ch] text-base lg:text-lg text-zinc-600 dark:text-stone-400 leading-relaxed"
             >
-              Agent FIFA licencié basé au Luxembourg, en activité depuis
-              2010 et conforme RGPD. On travaille avec peu de joueurs à la
-              fois : c'est la meilleure façon de rester utiles sur la
-              durée, du premier contrat pro aux étapes qui suivent.
+              {t('home.hero.paragraph')}
             </motion.p>
 
             <motion.div
@@ -349,11 +328,11 @@ function HomePage() {
                 to="/joueurs"
                 className="btn bg-zinc-950 text-stone-50 hover:bg-zinc-800 dark:bg-stone-50 dark:text-zinc-950 dark:hover:bg-stone-200 ease-premium"
               >
-                Découvrir nos joueurs
+                {t('home.hero.ctaPrimary')}
                 <ArrowUpRight size={18} weight="bold" />
               </Link>
               <Link to="/contact" className="btn btn-ghost">
-                Nous contacter
+                {t('home.hero.ctaSecondary')}
               </Link>
             </motion.div>
           </motion.div>
@@ -390,19 +369,19 @@ function HomePage() {
                 <div className="absolute bottom-6 left-6 right-6 flex items-end justify-between gap-3">
                   <div>
                     <div className="font-mono text-[0.7rem] uppercase tracking-wider text-turf-300">
-                      Joueur représenté
+                      {t('home.hero.identityLabel')}
                     </div>
                     <div className="mt-1 font-display font-semibold text-stone-50 text-xl">
                       {roster[0].name}
                     </div>
                     <div className="text-stone-400 text-sm">
-                      {roster[0].position}{roster[0].age ? ` - ${roster[0].age} ans` : ''}
+                      {roster[0].position}{roster[0].age ? ` · ${roster[0].age}` : ''}
                     </div>
                   </div>
                   {roster[0].since && (
                     <div className="flex items-center gap-2 rounded-full bg-stone-50/10 backdrop-blur px-3 py-1.5 border border-stone-50/15">
                       <span className="w-2 h-2 rounded-full bg-turf-300 animate-pulse" />
-                      <span className="text-xs text-stone-100">Signé en {roster[0].since}</span>
+                      <span className="text-xs text-stone-100">{t('home.hero.signedIn', { year: roster[0].since })}</span>
                     </div>
                   )}
                 </div>
@@ -450,17 +429,17 @@ function HomePage() {
         <div className="container-page">
           <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 mb-12">
             <div>
-              <span className="eyebrow">Notre roster</span>
+              <span className="eyebrow">{t('home.roster.eyebrow')}</span>
               <AnimatedUnderline className="mt-2" />
               <h2 className="mt-3 font-display font-semibold text-3xl lg:text-5xl tracking-tight text-zinc-950 dark:text-stone-50 max-w-[18ch]">
-                Les joueurs qu'on suit cette saison.
+                {t('home.roster.title')}
               </h2>
             </div>
             <Link
               to="/joueurs"
               className="inline-flex items-center gap-2 text-zinc-950 dark:text-stone-50 font-medium border-b border-zinc-950/30 dark:border-stone-50/30 hover:border-zinc-950 dark:hover:border-stone-50 transition pb-1 self-start"
             >
-              Voir tous nos joueurs
+              {t('home.roster.viewAll')}
               <ArrowUpRight size={16} weight="bold" />
             </Link>
           </div>
@@ -549,9 +528,9 @@ function HomePage() {
               transition={{ type: 'spring', stiffness: 110, damping: 20 }}
               className="lg:col-span-7"
             >
-              <span className="eyebrow text-turf-300">L'agence en mouvement</span>
+              <span className="eyebrow text-turf-300">{t('home.brandVideo.eyebrow')}</span>
               <h2 className="mt-3 font-display font-semibold text-3xl lg:text-5xl leading-[1.05] tracking-tight max-w-[18ch]">
-                Plus qu'une agence, <span className="text-turf-300">un projet de vie.</span>
+                {t('home.brandVideo.title')} <span className="text-turf-300">{t('home.brandVideo.titleAccent')}</span>
               </h2>
             </motion.div>
             <motion.p
@@ -561,9 +540,7 @@ function HomePage() {
               transition={{ type: 'spring', stiffness: 110, damping: 20, delay: 0.08 }}
               className="lg:col-span-5 text-stone-400 leading-relaxed lg:pb-2"
             >
-              Notre méthode, nos joueurs, notre vision du métier d'agent - en une
-              minute. Une parenthèse pour comprendre qui nous sommes avant de
-              parler de votre projet.
+              {t('home.brandVideo.paragraph')}
             </motion.p>
           </div>
 
@@ -575,7 +552,7 @@ function HomePage() {
           >
             <YouTubeEmbed
               videoId="bu84Ph4KCG0"
-              title="Rene Football - présentation de l'agence"
+              title={t('home.brandVideo.videoTitle')}
             />
           </motion.div>
         </div>
@@ -585,22 +562,20 @@ function HomePage() {
       <section className="bg-stone-50 dark:bg-zinc-950 pt-4 pb-20 lg:pb-28">
         <div className="container-page">
           <div className="max-w-[44ch] mb-12">
-            <span className="eyebrow">Nos métiers</span>
+            <span className="eyebrow">{t('home.services.eyebrow')}</span>
             <AnimatedUnderline className="mt-2" />
             <h2 className="mt-3 font-display font-semibold text-3xl lg:text-5xl tracking-tight text-zinc-950 dark:text-stone-50">
-              Une expertise complète, pensée comme un cabinet.
+              {t('home.services.title')}
             </h2>
             <p className="mt-4 text-base text-zinc-600 dark:text-stone-400 leading-relaxed">
-              De la détection à la fin de carrière, chaque étape est suivie
-              par une équipe restreinte, choisie pour sa connaissance fine
-              du jeu et du droit du sport.
+              {t('home.services.intro')}
             </p>
           </div>
 
           <div className="grid lg:grid-cols-5 lg:auto-rows-[14rem] gap-4 lg:gap-5">
-            {SERVICES.map(({ Icon, title, text, span, accent }) => (
+            {SERVICES.map(({ Icon, key, span, accent }) => (
               <motion.article
-                key={title}
+                key={key}
                 initial={{ opacity: 0, y: 16 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-80px' }}
@@ -626,16 +601,16 @@ function HomePage() {
                       <AnimatedNumber value={players.length} />
                     </div>
                     <div className="mt-1 text-xs uppercase tracking-[0.18em] text-stone-500 dark:text-stone-400">
-                      Joueurs actifs
+                      {t('home.stats.players')}
                     </div>
                   </div>
                 )}
                 <div>
                   <h3 className="font-display font-semibold text-xl lg:text-2xl tracking-tight text-zinc-950 dark:text-stone-50">
-                    {title}
+                    {t(`home.services.${key}.title`)}
                   </h3>
                   <p className="mt-3 text-sm leading-relaxed max-w-[40ch] text-zinc-600 dark:text-stone-400">
-                    {text}
+                    {t(`home.services.${key}.text`)}
                   </p>
                 </div>
                 {accent && (
@@ -659,41 +634,22 @@ function HomePage() {
       <section className="bg-white dark:bg-zinc-950 border-t border-stone-200/80 dark:border-stone-50/10 py-20 lg:py-28 transition-colors">
         <div className="container-page">
           <div className="max-w-[60ch]">
-            <span className="eyebrow">Pourquoi une agence</span>
+            <span className="eyebrow">{t('home.why.eyebrow')}</span>
             <h2 className="mt-3 font-display font-semibold text-3xl lg:text-5xl tracking-tightest text-zinc-950 dark:text-stone-50 leading-[1.05]">
-              Une carrière pro se joue à quelques décisions clés.
+              {t('home.why.title')}
             </h2>
             <p className="mt-6 text-base lg:text-lg text-zinc-600 dark:text-stone-400 leading-relaxed">
-              Les chiffres du football professionnel expliquent la valeur
-              d'un accompagnement structuré - qu'il s'agisse d'un jeune qui
-              cherche à percer ou d'un club qui négocie une signature.
+              {t('home.why.intro')}
             </p>
           </div>
 
-          {/* Stat headliners */}
+          {/* Stat headliners — figures (0,5 % / 58 % / $1,37 Md) stay in the
+              source language ; only the surrounding narrative is translated. */}
           <div className="mt-12 grid md:grid-cols-3 gap-4">
             {[
-              {
-                stat: '0,5%',
-                label: 'des jeunes joueurs signent un contrat pro',
-                detail: 'Sur 21,5 M de jeunes joueurs enregistrés dans le monde, seulement ~113 000 exercent en pro selon FIFA.',
-                sourceLabel: 'FIFA',
-                sourceHref: 'https://digitalhub.fifa.com/m/1e7b741fa0fae779/original/FIFA-Football-Agent-Regulations.pdf',
-              },
-              {
-                stat: '58%',
-                label: 'des joueurs représentés sont des jeunes, pas des pros seniors',
-                detail: 'CIES Football Observatory : la majorité du travail d\'agent se joue en amont, sur l\'émergence.',
-                sourceLabel: 'CIES',
-                sourceHref: 'https://football-observatory.com/IMG/pdf/report_agents_2012-2.pdf',
-              },
-              {
-                stat: '$1,37 Md',
-                label: 'de commissions d\'agents en 2025',
-                detail: 'Sur $13,08 Md de transferts globaux : le marché ne valide un agent que sur résultats.',
-                sourceLabel: 'FIFA 2025',
-                sourceHref: 'https://digitalhub.fifa.com/m/1e7b741fa0fae779/original/FIFA-Football-Agent-Regulations.pdf',
-              },
+              { stat: '0,5%',    key: 'one',   sourceLabel: 'FIFA',      sourceHref: 'https://digitalhub.fifa.com/m/1e7b741fa0fae779/original/FIFA-Football-Agent-Regulations.pdf' },
+              { stat: '58%',     key: 'two',   sourceLabel: 'CIES',      sourceHref: 'https://football-observatory.com/IMG/pdf/report_agents_2012-2.pdf' },
+              { stat: '$1,37 Md', key: 'three', sourceLabel: 'FIFA 2025', sourceHref: 'https://digitalhub.fifa.com/m/1e7b741fa0fae779/original/FIFA-Football-Agent-Regulations.pdf' },
             ].map((s) => (
               <motion.article
                 key={s.stat}
@@ -707,10 +663,10 @@ function HomePage() {
                   {s.stat}
                 </div>
                 <div className="mt-3 font-display font-medium text-base lg:text-lg text-zinc-950 dark:text-stone-50 leading-snug">
-                  {s.label}
+                  {t(`home.why.stats.${s.key}.label`)}
                 </div>
                 <p className="mt-3 text-sm text-zinc-600 dark:text-stone-400 leading-relaxed">
-                  {s.detail}
+                  {t(`home.why.stats.${s.key}.detail`)}
                 </p>
                 <a
                   href={s.sourceHref}
@@ -718,7 +674,7 @@ function HomePage() {
                   rel="noreferrer"
                   className="mt-4 inline-flex items-center gap-1.5 text-[0.65rem] uppercase tracking-[0.22em] font-mono text-turf-700 dark:text-turf-300 hover:text-turf-800 dark:hover:text-turf-200 transition-colors"
                 >
-                  Source · {s.sourceLabel}
+                  {t('home.why.sourceLabel')} · {s.sourceLabel}
                   <ArrowUpRight size={11} weight="bold" />
                 </a>
               </motion.article>
@@ -728,29 +684,13 @@ function HomePage() {
           {/* Value pillars - what an agency actually adds beyond the numbers */}
           <div className="mt-14 grid lg:grid-cols-2 gap-4">
             {[
-              {
-                Icon: ShieldCheck,
-                title: 'Négociation encadrée',
-                text: 'FIFA a plafonné les commissions à 3-5% du salaire brut annuel depuis 2023. Un accompagnement structuré permet d\'aller chercher les clauses qui font la différence dans un cadre où l\'improvisation coûte cher.',
-              },
-              {
-                Icon: TrendUp,
-                title: 'Un plan de carrière, pas un transfert',
-                text: 'Le turnover annuel dans les académies allemandes atteint 24,5% - avec moins de 50% de probabilité d\'y être encore trois ans plus tard. Anticiper l\'étape suivante avant d\'en avoir besoin change la trajectoire.',
-              },
-              {
-                Icon: ScanSmiley,
-                title: 'Détection en amont',
-                text: 'Le CIES observe que la majorité des joueurs sous agent sont des jeunes talents - parce que la valeur ajoutée d\'une agence se construit avant les premières signatures pros, pas après.',
-              },
-              {
-                Icon: Handshake,
-                title: 'Interlocuteur unique côté club',
-                text: 'Un dossier centralisé (fiche joueur, PDF marketing, historique) et un référent unique côté agence : le club raccourcit son cycle de décision et réduit son exposition juridique.',
-              },
-            ].map(({ Icon, title, text }) => (
+              { Icon: ShieldCheck, key: 'one'   },
+              { Icon: TrendUp,     key: 'two'   },
+              { Icon: ScanSmiley,  key: 'three' },
+              { Icon: Handshake,   key: 'four'  },
+            ].map(({ Icon, key }) => (
               <motion.article
-                key={title}
+                key={key}
                 initial={{ opacity: 0, y: 12 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-60px' }}
@@ -762,9 +702,9 @@ function HomePage() {
                 </span>
                 <div className="min-w-0">
                   <h3 className="font-display font-semibold text-base lg:text-lg text-zinc-950 dark:text-stone-50 tracking-tight">
-                    {title}
+                    {t(`home.why.pillars.${key}.title`)}
                   </h3>
-                  <p className="mt-2 text-sm text-zinc-600 dark:text-stone-400 leading-relaxed">{text}</p>
+                  <p className="mt-2 text-sm text-zinc-600 dark:text-stone-400 leading-relaxed">{t(`home.why.pillars.${key}.text`)}</p>
                 </div>
               </motion.article>
             ))}
@@ -772,7 +712,7 @@ function HomePage() {
 
           {/* Consolidated sources footnote */}
           <div className="mt-10 pt-6 border-t border-stone-200/70 dark:border-stone-50/10 flex flex-wrap gap-x-6 gap-y-2 text-[0.68rem] uppercase tracking-[0.18em] font-mono text-zinc-500 dark:text-stone-500">
-            <span className="text-zinc-400 dark:text-stone-600">Sources</span>
+            <span className="text-zinc-400 dark:text-stone-600">{t('home.why.sources')}</span>
             <a
               href="https://digitalhub.fifa.com/m/1e7b741fa0fae779/original/FIFA-Football-Agent-Regulations.pdf"
               target="_blank"
@@ -810,27 +750,26 @@ function HomePage() {
         <MeshGradient intensity="subtle" />
         <div className="container-page">
           <div className="max-w-[60ch]">
-            <span className="eyebrow text-turf-300">Prendre contact</span>
+            <span className="eyebrow text-turf-300">{t('home.cta.eyebrow')}</span>
             <h2 className="mt-3 font-display font-semibold text-3xl lg:text-5xl leading-tight tracking-tight">
-              Vous êtes joueur, club, média ?
+              {t('home.cta.title')}
               <br />
               <span className="text-stone-400">
-                Choisissez votre profil, on adapte l'échange.
+                {t('home.cta.subtitle')}
               </span>
             </h2>
             <p className="mt-6 text-stone-400 leading-relaxed">
-              Chaque parcours ouvre les questions utiles à votre situation.
-              Réponse sous 48 heures, échange confidentiel, sans engagement.
+              {t('home.cta.paragraph')}
             </p>
           </div>
 
           <div className="mt-10 grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {[
-              { reason: 'joueur', label: 'Joueur / Parent',        hint: 'Rejoindre l’agence ou faire suivre un profil.', Icon: SoccerBall },
-              { reason: 'club',   label: 'Club / Staff technique',  hint: 'Intérêt pour un joueur, recherche de profil.',  Icon: Buildings },
-              { reason: 'medias', label: 'Média / Journaliste', hint: 'Interview, article, documentaire.',                    Icon: MegaphoneSimple },
-              { reason: 'autre',  label: 'Autre',                    hint: 'Toute autre demande.',                                    Icon: Question },
-            ].map(({ reason, label, hint, Icon }) => (
+              { reason: 'joueur', i18nKey: 'player', Icon: SoccerBall },
+              { reason: 'club',   i18nKey: 'club',   Icon: Buildings },
+              { reason: 'medias', i18nKey: 'media',  Icon: MegaphoneSimple },
+              { reason: 'autre',  i18nKey: 'other',  Icon: Question },
+            ].map(({ reason, i18nKey, Icon }) => (
               <Link
                 key={reason}
                 to={`/contact?reason=${reason}`}
@@ -840,8 +779,8 @@ function HomePage() {
                   <Icon size={18} weight="regular" />
                 </span>
                 <span className="min-w-0">
-                  <span className="block font-semibold text-sm text-stone-50">{label}</span>
-                  <span className="block mt-1 text-xs text-stone-400 leading-relaxed">{hint}</span>
+                  <span className="block font-semibold text-sm text-stone-50">{t(`contact.audience.${i18nKey}.label`)}</span>
+                  <span className="block mt-1 text-xs text-stone-400 leading-relaxed">{t(`contact.audience.${i18nKey}.hint`)}</span>
                 </span>
                 <ArrowUpRight
                   size={13}
@@ -857,7 +796,7 @@ function HomePage() {
               to="/contact"
               className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.18em] font-mono text-stone-400 hover:text-stone-50 transition-colors"
             >
-              Ou parcourir tout le formulaire
+              {t('home.cta.browseAll')}
               <ArrowRight size={12} weight="bold" />
             </Link>
           </div>

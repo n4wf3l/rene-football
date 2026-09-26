@@ -1,0 +1,520 @@
+{
+  "common": {
+    "loading": "Laden…",
+    "error": "Er is iets misgegaan.",
+    "retry": "Opnieuw proberen",
+    "back": "Terug",
+    "next": "Doorgaan",
+    "submit": "Versturen",
+    "close": "Sluiten",
+    "search": "Zoeken",
+    "allF": "Alle",
+    "allM": "Alle",
+    "clear": "Wissen"
+  },
+  "nav": {
+    "home": "Home",
+    "players": "Spelers",
+    "news": "Nieuws",
+    "about": "Over ons",
+    "contact": "Contact",
+    "adminLogin": "Agentschap-portaal",
+    "adminDashboard": "Dashboard"
+  },
+  "language": {
+    "label": "Taal",
+    "fr": "Français",
+    "en": "English",
+    "de": "Deutsch",
+    "lb": "Lëtzebuergesch",
+    "nl": "Nederlands"
+  },
+  "footer": {
+    "brand": "Onafhankelijk voetbalagentschap gevestigd in Luxemburg, gespecialiseerd in loopbaanbegeleiding, scouting en de vertegenwoordiging van professionele spelers in heel Europa.",
+    "socials": "Sociale netwerken",
+    "navigation": "Navigatie",
+    "services": "Diensten",
+    "servicesList": {
+      "representation": "Spelersvertegenwoordiging",
+      "contracts": "Contractonderhandelingen",
+      "scouting": "Scouting & werving",
+      "career": "Carrièrebegeleiding"
+    },
+    "contact": "Contact",
+    "legal": {
+      "mentions": "Juridische kennisgeving",
+      "privacy": "Privacy",
+      "cookies": "Cookies"
+    },
+    "copyright": "© {{year}} Rene Football. Alle rechten voorbehouden."
+  },
+  "home": {
+    "hero": {
+      "chip": "Voetbalagentschap",
+      "titlePre": "Elke",
+      "titleAccent": "speler",
+      "titlePost": "vertegenwoordigen alsof hij de enige was.",
+      "paragraph": "FIFA-gelicentieerde agent gevestigd in Luxemburg, actief sinds 2010 en AVG-conform. We werken bewust met een klein aantal spelers tegelijk — zo blijven we nuttig op de lange termijn, vanaf het eerste profcontract tot de volgende stappen.",
+      "ctaPrimary": "Ontdek onze spelers",
+      "ctaSecondary": "Neem contact op",
+      "identityLabel": "Vertegenwoordigde speler",
+      "signedIn": "Getekend in {{year}}"
+    },
+    "stats": {
+      "players": "Actieve spelers",
+      "years": "Jaar ervaring",
+      "clubs": "Vertegenwoordigde clubs",
+      "team": "Teamleden"
+    },
+    "roster": {
+      "eyebrow": "Onze selectie",
+      "title": "De spelers die we dit seizoen volgen.",
+      "viewAll": "Alle spelers bekijken"
+    },
+    "brandVideo": {
+      "eyebrow": "Het agentschap in beweging",
+      "title": "Meer dan een agentschap,",
+      "titleAccent": "een levensproject.",
+      "paragraph": "Onze methode, onze spelers, onze kijk op het vak van agent in één minuut. Even kennismaken voordat we het over uw project hebben.",
+      "videoTitle": "Rene Football, presentatie van het agentschap"
+    },
+    "services": {
+      "eyebrow": "Onze vakgebieden",
+      "title": "Volledige expertise, opgebouwd als een kantoor.",
+      "intro": "Van talentherkenning tot einde carrière wordt elke stap door een klein, zorgvuldig gekozen team gevolgd dat het spel en het sportrecht door en door kent.",
+      "representation": {
+        "title": "Spelersvertegenwoordiging",
+        "text": "Van de academie tot het profniveau, we volgen elke speler met dezelfde aandacht. Bewust weinig mandaten, nooit één te veel."
+      },
+      "contracts": {
+        "title": "Contractonderhandelingen",
+        "text": "We regelen transfers, verlengingen en portretrechten met een eigen juridische begeleiding."
+      },
+      "scouting": {
+        "title": "Scouting & werving",
+        "text": "Scoutingnetwerk in de Benelux, Frankrijk, Duitsland en Nederland. We kijken liever naar een wedstrijd dan naar een fiche."
+      },
+      "career": {
+        "title": "Carrièrebegeleiding",
+        "text": "Contract, imago, opleiding, partnerschappen. We denken in carrières van tien jaar, niet in transferperiodes."
+      }
+    },
+    "why": {
+      "eyebrow": "Waarom een agentschap",
+      "title": "Een profcarrière hangt af van enkele sleutelbeslissingen.",
+      "intro": "De cijfers van het profvoetbal laten zien hoe waardevol een gestructureerde begeleiding is, of het nu gaat om een jonge speler die wil doorbreken of een club die een handtekening onderhandelt.",
+      "stats": {
+        "one": {
+          "label": "van de jonge spelers tekent ooit een profcontract",
+          "detail": "Van de 21,5 miljoen wereldwijd geregistreerde jonge spelers zijn er volgens FIFA slechts ~113.000 prof."
+        },
+        "two": {
+          "label": "van de vertegenwoordigde spelers zijn jongeren, geen ervaren profs",
+          "detail": "CIES Football Observatory: het grootste deel van het werk van een agent gebeurt aan de basis, bij opkomend talent."
+        },
+        "three": {
+          "label": "aan agenten­commissies in 2025",
+          "detail": "Op $13,08 mld aan wereldwijde transfers: de markt valideert een agent alleen op resultaten."
+        }
+      },
+      "sourceLabel": "Bron",
+      "pillars": {
+        "one": {
+          "title": "Gekaderde onderhandeling",
+          "text": "FIFA heeft de commissies sinds 2023 begrensd op 3-5 % van het bruto jaarloon. Een gestructureerde begeleiding gaat op zoek naar de clausules die het verschil maken, in een kader waar improvisatie duur uitpakt."
+        },
+        "two": {
+          "title": "Een carrièreplan, geen transfer",
+          "text": "De jaarlijkse turnover in Duitse academies bedraagt 24,5 %, met minder dan 50 % kans om er drie jaar later nog te zijn. De volgende stap anticiperen vóór het nodig is, verandert het traject."
+        },
+        "three": {
+          "title": "Vroegtijdige identificatie",
+          "text": "Het CIES stelt vast dat de meeste spelers onder begeleiding jong talent zijn: de meerwaarde van een agentschap wordt opgebouwd vóór de eerste profcontracten, niet erna."
+        },
+        "four": {
+          "title": "Één aanspreekpunt voor de club",
+          "text": "Een centraal dossier (spelersfiche, marketing-PDF, geschiedenis) en één vast aanspreekpunt aan agentschapszijde: de club verkort zijn beslissingsproces en verlaagt zijn juridische blootstelling."
+        }
+      },
+      "sources": "Bronnen"
+    },
+    "cta": {
+      "eyebrow": "Contact opnemen",
+      "title": "Speler, club, media?",
+      "subtitle": "Kies uw profiel, we passen het gesprek aan.",
+      "paragraph": "Elk profiel opent de vragen die bij uw situatie passen. Antwoord binnen 48 uur, vertrouwelijk gesprek, vrijblijvend.",
+      "browseAll": "Of blader door het volledige formulier"
+    }
+  },
+  "players": {
+    "seo": {
+      "title": "Onze spelers",
+      "description": "De spelers die we dit seizoen begeleiden. Een bewust kleine selectie, gevolgd door een vast team van begin tot einde van het seizoen."
+    },
+    "hero": {
+      "eyebrow": "Onze selectie",
+      "title": "De spelers die we dit seizoen begeleiden.",
+      "paragraph": "We werken bewust met een klein aantal spelers tegelijk. Voor elke speler hetzelfde team: agent, juridisch adviseur, mentaal coach, van begin tot einde van het seizoen.",
+      "activePlayers": "Actieve spelers",
+      "clubs": "Clubs"
+    },
+    "filters": {
+      "positions": {
+        "Tous": "Alle posities",
+        "Gardien": "Doelman",
+        "Defenseur": "Verdediger",
+        "Milieu": "Middenvelder",
+        "Attaquant": "Aanvaller"
+      },
+      "ages": {
+        "Tous": "Alle leeftijden",
+        "U21": "Onder 21",
+        "21-26": "21-26 jaar",
+        "27+": "27 jaar en ouder"
+      },
+      "searchPlaceholder": "Zoek een speler of club"
+    },
+    "empty": {
+      "title": "Geen speler gevonden.",
+      "paragraph": "Probeer uw criteria uit te breiden of stel de filters opnieuw in.",
+      "reset": "Filters herstellen"
+    }
+  },
+  "about": {
+    "seo": {
+      "title": "Over ons",
+      "description": "Rene Football, voetbalagentschap opgericht door René Jacob Yougbaré in 2010 in Luxemburg. Vertegenwoordiging, scouting, langetermijnbegeleiding."
+    },
+    "hero": {
+      "eyebrow": "Over ons",
+      "title": "Een agentschap op mensenmaat, in Luxemburg.",
+      "paragraph": "Rene Football begeleidt spelers en hun families sinds 2010. We werken liever met een klein aantal mandaten tegelijk: zo kunnen we er zijn wanneer het telt, niet alleen bij een transfer."
+    },
+    "founderQuote": {
+      "eyebrow": "Woord van de oprichter",
+      "quote": "\"Mijn doel is om te voorkomen dat jonge voetballers goede kansen mislopen, en hen te helpen hun carrière methodisch op te bouwen.\"",
+      "paragraph": "Vanuit mijn eigen achtergrond in het profvoetbal heb ik gezien hoe kansen verloren gingen door gebrek aan goede begeleiding. Als agent wil ik vandaag helderheid, serieuze opvolging en een nuttig netwerk aan onze spelers bieden."
+    },
+    "pillars": {
+      "eyebrow": "Onze aanpak",
+      "title": "Wat we doen voor een speler.",
+      "intro": "Liever minder dingen, maar goed. Dit zijn de drie domeinen die we voor elke speler onder mandaat dekken.",
+      "representation": {
+        "title": "Vertegenwoordiging",
+        "text": "Eén agent, één juridisch adviseur en één mentaal coach per speler. Het team blijft klein zodat iedereen kan overleggen wanneer er beslist moet worden."
+      },
+      "scouting": {
+        "title": "Scouting",
+        "text": "Ons scoutingnetwerk dekt de Benelux, Frankrijk, Duitsland en Nederland. We kijken eerst naar wat er op het veld gebeurt, dan pas naar het dossier."
+      },
+      "career": {
+        "title": "Langetermijnbegeleiding",
+        "text": "Contract, imago, opleiding, partnerschappen. We denken in carrières van tien jaar, niet in transferperiodes."
+      }
+    },
+    "staff": {
+      "eyebrow": "Het team",
+      "title": "Een kleine, zorgvuldig gekozen kern.",
+      "intro": "Vier complementaire profielen. Geen tussenpersonen tussen u en de persoon die uw dossier behandelt."
+    },
+    "partners": {
+      "eyebrow": "Onze partners",
+      "title": "Met wie we werken.",
+      "intro": "Agentschapsnetwerken, fysieke voorbereiding, juridisch advies. We omringen ons met partners die dezelfde eisen aan langetermijnbegeleiding delen."
+    },
+    "timeline": {
+      "eyebrow": "Onze geschiedenis",
+      "title": "Vijftien jaar, zonder haast.",
+      "events": {
+        "2010": {
+          "title": "Oprichting van het agentschap",
+          "text": "René Jacob Yougbaré richt Rene Football op in Luxemburg met twee mandaten."
+        },
+        "2015": {
+          "title": "Eerste grote transfer",
+          "text": "Contract van een aanvallende middenvelder in de Belgische eerste klasse, hetzelfde jaar eerste Bundesliga-mandaat."
+        },
+        "2020": {
+          "title": "Opening van de scoutingpool",
+          "text": "Opbouw van een scoutingnetwerk over heel Europa (Benelux, Frankrijk, Duitsland, Nederland)."
+        },
+        "2024": {
+          "title": "Consolidatie van de selectie",
+          "text": "Het agentschap beperkt bewust zijn mandaten om elke speler een persoonlijke opvolging te garanderen."
+        }
+      }
+    },
+    "cta": {
+      "eyebrow": "Samenwerken",
+      "title": "Vertegenwoordigt u een club of een speler?",
+      "paragraph": "Ons team neemt binnen 48 uur contact met u op. Vertrouwelijke uitwisseling, vrijblijvend.",
+      "button": "Start het gesprek"
+    }
+  },
+  "news": {
+    "seo": {
+      "title": "Nieuws",
+      "description": "Transfers, contracten, profielen. Wat er gebeurt rond de spelers die we begeleiden. Gepubliceerd wanneer we iets te zeggen hebben."
+    },
+    "hero": {
+      "eyebrow": "Nieuws",
+      "title": "Transfers, contracten, profielen.",
+      "paragraph": "Wat er gebeurt rond de spelers die we begeleiden: transfers, trainingen, persmomenten. Gepubliceerd wanneer we iets te zeggen hebben."
+    },
+    "categories": {
+      "Tous": "Alle",
+      "Mercato": "Transfermarkt",
+      "Talents": "Talenten",
+      "Profils": "Profielen",
+      "Coulisses": "Achter de schermen",
+      "Agence": "Agentschap"
+    },
+    "empty": {
+      "category": "Nog geen artikelen in deze categorie."
+    }
+  },
+  "notFound": {
+    "eyebrow": "Fout 404",
+    "title": "Deze pagina bestaat niet.",
+    "paragraph": "De link die u volgde is mogelijk verouderd. Keer terug naar de home om onze spelers en nieuws te ontdekken.",
+    "cta": "Terug naar home"
+  },
+  "article": {
+    "backToList": "Alle berichten",
+    "featured": "Uitgelicht",
+    "sidebarTitle": "In het kort",
+    "category": "Categorie",
+    "publishedOn": "Gepubliceerd op",
+    "photos": "Foto's",
+    "clips": "Clips",
+    "notFound": {
+      "title": "Artikel niet gevonden",
+      "paragraph": "Dit artikel is mogelijk verwijderd of de URL is veranderd.",
+      "cta": "Terug naar nieuws"
+    }
+  },
+  "playerProfile": {
+    "backToRoster": "Terug naar selectie",
+    "pdfButton": "PDF-fiche",
+    "yearsUnit": "jaar",
+    "notFound": {
+      "eyebrow": "Speler niet gevonden",
+      "title": "Dit profiel is niet langer beschikbaar.",
+      "paragraph": "De speler die u zoekt is mogelijk uit de publieke selectie verwijderd. Ga terug naar de lijst om de andere profielen te ontdekken die wij vertegenwoordigen."
+    },
+    "sections": {
+      "identite":   { "nav": "Identiteit",   "title": "Spelersidentiteit." },
+      "scout":      { "nav": "Scout",        "title": "Scoutingprofiel." },
+      "saison":     { "nav": "Seizoen",      "title": "Lopend seizoen." },
+      "terrain":    { "nav": "Veld",         "title": "Activiteitszones." },
+      "creation":   { "nav": "Creatie",      "title": "Offensieve creatie." },
+      "defense":    { "nav": "Verdediging",  "title": "Verdedigend werk." },
+      "physique":   { "nav": "Fysiek",       "title": "Fysiek profiel." },
+      "discipline": { "nav": "Discipline",   "title": "Discipline." },
+      "gardien":    { "nav": "Activiteit",   "title": "Activiteit in het strafschopgebied." },
+      "matchs":     { "nav": "Wedstrijdlog", "title": "Recente wedstrijden." },
+      "moments":    { "nav": "Momenten",     "title": "Geannoteerde sleutelmomenten." }
+    },
+    "hero": {
+      "representedPlayer": "Vertegenwoordigde speler",
+      "since": "Sinds {{year}}",
+      "age": "Leeftijd",
+      "height": "Lengte",
+      "preferredFoot": "Sterke voet",
+      "nationality": "Nationaliteit",
+      "currentSeason": "Huidig seizoen",
+      "matchesCount": "{{count}} wedstrijden",
+      "underContract": "Onder contract"
+    },
+    "stickyNav": {
+      "summary": "{{matches}} wedstrijden · {{minutes}} min",
+      "presentationButton": "Presentatie",
+      "sectionsAria": "Profielsecties"
+    },
+    "scrollRail": {
+      "label": "Profiel"
+    },
+    "identity": {
+      "cards": {
+        "category": "Categorie",
+        "position": "Positie",
+        "nationality": "Nationaliteit",
+        "height": "Lengte",
+        "since": "Gevolgd sinds"
+      }
+    },
+    "scout": {
+      "footprint": {
+        "eyebrow": "Statistische voetafdruk",
+        "title": "Zes kernassen voor de positie.",
+        "description": "Genormaliseerd tegen standaard seizoensreferenties."
+      },
+      "percentiles": {
+        "eyebrow": "Positie binnen de categorie",
+        "title": "{{firstName}} vs andere {{category}}s.",
+        "description": "Voor elke statistiek het percentiel binnen de spelerspopulatie van dezelfde categorie.",
+        "best": "100 = beste",
+        "worst": "0 = laatste"
+      }
+    },
+    "season": {
+      "matchesPlayed": "Gespeelde wedstrijden",
+      "cleanSheets": "Clean sheets",
+      "saves": "Reddingen",
+      "goals": "Doelpunten",
+      "assists": "Assists",
+      "minutesPerMatch": "Min / wedstrijd",
+      "playVolume": "Speelvolume",
+      "overAppearances": "Over {{count}} optredens dit seizoen.",
+      "performanceVsExpected": "Prestatie vs verwacht",
+      "goalsMinusXG": "Doelpunten − xG",
+      "assistsMinusXA": "Assists − xA"
+    },
+    "terrain": {
+      "description": "Gemiddelde bezetkaart voor het seizoen. De groenste zones zijn waar {{firstName}} het meest actief is: balcontacten, loopacties en duels samen. De speler valt aan van links naar rechts.",
+      "referencePosition": "Referentiepositie",
+      "preferredFoot": "Sterke voet"
+    },
+    "creation": {
+      "shotAccuracy": "Schotnauwkeurigheid",
+      "conversion": "Conversie (doelpunten / schoten)",
+      "passAccuracy": "% geslaagde passes",
+      "cumulativeXG": "Cumulatieve xG",
+      "cumulativeXA": "Cumulatieve xA",
+      "keyPasses": "Sleutelpasses",
+      "dribblesCompleted": "Geslaagde dribbels"
+    },
+    "keeper": {
+      "cleanSheets": "Clean sheets",
+      "saves": "Reddingen",
+      "passAccuracy": "Geslaagde passes",
+      "duelsWon": "Gewonnen duels"
+    },
+    "defense": {
+      "tackles": "Tackles",
+      "interceptions": "Onderscheppingen",
+      "duelsWon": "Gewonnen duels"
+    },
+    "physique": {
+      "gpsAverage": "Gemiddelden per wedstrijd uit GPS-tracking.",
+      "distancePerMatch": "Afstand / wedstrijd",
+      "sprintsPerMatch": "Sprints / wedstrijd",
+      "topSpeed": "Topsnelheid",
+      "highIntensityRuns": "Hoog-intensieve loopacties"
+    },
+    "discipline": {
+      "yellowCards": "Gele kaarten",
+      "redCards": "Rode kaarten"
+    },
+    "matchs": {
+      "description": "De acht meest recente optredens van de speler, van nieuw naar oud. De curve rechts toont de evolutie van het rapportcijfer (links = ouder, rechts = recenter)."
+    },
+    "moments": {
+      "description": "Snapshots van specifieke momenten geselecteerd door onze scoutingcel: klik op een miniatuur om in te zoomen."
+    },
+    "cta": {
+      "eyebrow": "Bespreek dit profiel",
+      "title": "Interesse in {{firstName}}?",
+      "paragraph": "Ons team antwoordt binnen 48 uur. Kies de weg die past bij uw profiel: het formulier opent al met {{name}} vooraf geselecteerd.",
+      "club": {
+        "label": "Ik ben een club / staff",
+        "hint": "Interesse in deze speler"
+      },
+      "media": {
+        "label": "Ik ben een medium",
+        "hint": "Interview / artikel over deze speler"
+      },
+      "other": "Of een ander verzoek"
+    },
+    "metrics": {
+      "matches_played": "Gespeelde wedstrijden",
+      "minutes_played": "Minuten",
+      "clean_sheets": "Clean sheets",
+      "saves": "Reddingen",
+      "pass_accuracy": "% passes",
+      "goals": "Doelpunten",
+      "assists": "Assists",
+      "xg": "xG",
+      "xa": "xA",
+      "key_passes": "Sleutelpasses",
+      "dribbles_completed": "Geslaagde dribbels",
+      "tackles": "Tackles",
+      "duels_won": "Gewonnen duels",
+      "yellow_cards": "Gele kaarten"
+    },
+    "seo": {
+      "descriptionFallback": "{{name}}, {{role}}{{club}}. Volledig profiel, statistieken en scouting op Rene Football."
+    }
+  },
+  "presentation": {
+    "download": "PDF downloaden",
+    "headerEyebrow": "Rene Football · Spelerpresentatie",
+    "sentBy": "Verzonden door {{agent}}",
+    "generatedOn": "Gegenereerd op {{date}}",
+    "template": "Template {{name}}",
+    "confidential": "Vertrouwelijk document · Rene Football",
+    "backToSite": "Terug naar de Rene Football-website",
+    "gone": "Presentatie niet gevonden",
+    "goneHint": "Deze link is niet meer geldig of de presentatie werd door het agentschap ingetrokken.",
+    "errorTitle": "Er is een fout opgetreden",
+    "errorHint": "De presentatie kon niet worden geladen. Controleer uw verbinding en probeer het opnieuw."
+  },
+  "contact": {
+    "hero": {
+      "eyebrow": "Contact opnemen",
+      "title": "Schrijf ons.",
+      "paragraph": "Kies uw profiel: de vragen passen zich aan zodat we uw verzoek snel begrijpen."
+    },
+    "steps": {
+      "profile": "Profiel",
+      "details": "Details",
+      "coordinates": "Contactgegevens"
+    },
+    "audience": {
+      "title": "U schrijft ons als…",
+      "subtitle": "Kies het profiel dat bij u past. De volgende vragen passen zich aan uw situatie aan, zodat we u sneller kunnen doorverwijzen.",
+      "player": {
+        "label": "Speler / Ouder",
+        "hint": "U wilt bij het agentschap komen of een profiel laten beoordelen."
+      },
+      "club": {
+        "label": "Club / Technische staf",
+        "hint": "Interesse in een speler, profielzoektocht, partnerschap."
+      },
+      "media": {
+        "label": "Media / Journalist",
+        "hint": "Interview, artikel, documentaire."
+      },
+      "other": {
+        "label": "Overige",
+        "hint": "Elke andere vraag."
+      }
+    },
+    "sidebar": {
+      "eyebrow": "Rechtstreeks contact",
+      "title": "Als u liever schrijft of belt.",
+      "email": "E-mail",
+      "phone": "Telefoon",
+      "office": "Kantoor",
+      "officeSubtitle": "Alleen op afspraak.",
+      "replyDelay": "Reactietijd",
+      "replyDelayNote": "Maandag tot en met vrijdag, uitgezonderd feestdagen.",
+      "follow": "Volg ons"
+    },
+    "buttons": {
+      "sending": "Bezig met verzenden…",
+      "submit": "Mijn aanvraag versturen"
+    },
+    "errors": {
+      "submitFailed": "Verzenden mislukt. Probeer het opnieuw of mail ons op renefootball.p@gmail.com."
+    },
+    "success": {
+      "eyebrow": "Aanvraag verzonden",
+      "title": "We komen binnen 48 uur bij u terug.",
+      "bodyPre": "Uw",
+      "bodyPost": "aanvraag is in onze mailbox aangekomen. Ons team behandelt elke aanvraag persoonlijk, we prioriteren op basis van urgentie en profiel.",
+      "resetCta": "Een andere aanvraag versturen",
+      "homeCta": "Terug naar home"
+    }
+  }
+}

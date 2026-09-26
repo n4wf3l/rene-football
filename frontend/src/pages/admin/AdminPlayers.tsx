@@ -516,7 +516,7 @@ function PlayerEditor({ player, isNew, onClose, onSaved, onDelete, mode = 'modal
             "Marketing v1" (fiches agence style Zoran/Camara/Destiny). */}
         <section className="space-y-4">
           <h3 className="font-mono uppercase tracking-[0.18em] text-[0.7rem] text-zinc-500 dark:text-stone-400">
-            Fiche marketing <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">— champs pour le template "Marketing v1"</span>
+            Fiche marketing <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">(champs pour le template "Marketing v1")</span>
           </h3>
           <div className="grid grid-cols-2 gap-3">
             <FieldRow label="Style de jeu" hint="ex. Percutant – Dribbleur">
@@ -528,7 +528,7 @@ function PlayerEditor({ player, isNew, onClose, onSaved, onDelete, mode = 'modal
             <FieldRow label="Nationalité secondaire" hint="pour les binationaux">
               <TextInput value={form.secondary_nationality || ''} onChange={(e) => set('secondary_nationality', e.target.value)} />
             </FieldRow>
-            <FieldRow label="Langues parlées" hint="séparer par virgules — ex. Français, Anglais">
+            <FieldRow label="Langues parlées" hint="séparer par virgules, ex. Français, Anglais">
               <TextInput
                 value={(form.languages_spoken ?? []).join(', ')}
                 onChange={(e) => set('languages_spoken', e.target.value.split(',').map((s) => s.trim()).filter(Boolean))}
@@ -547,7 +547,7 @@ function PlayerEditor({ player, isNew, onClose, onSaved, onDelete, mode = 'modal
               </FieldRow>
             </div>
             <div className="col-span-2">
-              <FieldRow label="Points forts mentaux" hint="séparer par virgules — ex. Confiant, Persévérant, Compétiteur">
+              <FieldRow label="Points forts mentaux" hint="séparer par virgules, ex. Confiant, Persévérant, Compétiteur">
                 <TextInput
                   value={(form.mental_strengths ?? []).join(', ')}
                   onChange={(e) => set('mental_strengths', e.target.value.split(',').map((s) => s.trim()).filter(Boolean))}
@@ -555,7 +555,7 @@ function PlayerEditor({ player, isNew, onClose, onSaved, onDelete, mode = 'modal
                 />
               </FieldRow>
             </div>
-            <FieldRow label="Vient de (club)" hint="chip en haut de la photo — ex. KRC Genk">
+            <FieldRow label="Vient de (club)" hint="chip en haut de la photo, ex. KRC Genk">
               <TextInput value={form.previous_club || ''} onChange={(e) => set('previous_club', e.target.value)} />
             </FieldRow>
             <FieldRow label="Logo « vient de »">
@@ -566,7 +566,7 @@ function PlayerEditor({ player, isNew, onClose, onSaved, onDelete, mode = 'modal
               />
             </FieldRow>
             <div className="col-span-2">
-              <FieldRow label="Galerie photos" hint="URLs séparées par des sauts de ligne — max 6">
+              <FieldRow label="Galerie photos" hint="URLs séparées par des sauts de ligne (max 6)">
                 <textarea
                   rows={3}
                   value={(form.gallery_photos ?? []).join('\n')}

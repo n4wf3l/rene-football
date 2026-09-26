@@ -23,9 +23,11 @@ import {
   Wind,
   Calendar,
 } from '@phosphor-icons/react'
+import { useTranslation } from 'react-i18next'
 import { ApiError, api, pdfUrl } from '../api/client'
 import type { Player } from '../types/player'
 import MeshGradient from '../components/MeshGradient'
+import Seo from '../components/Seo'
 import AnimatedNumber from '../components/AnimatedNumber'
 import Pitch from '../components/Pitch'
 import ScoutReport from '../components/ScoutReport'
@@ -40,36 +42,30 @@ import { heatmapFromPosition, isValidGrid } from '../lib/heatmap'
 import { playerImage } from '../lib/playerImage'
 import { useDarkHero } from '../hooks/useDarkHero'
 
-interface SectionEntry {
-  id: string
-  label: string
-}
+type SectionId =
+  | 'identite'
+  | 'scout'
+  | 'saison'
+  | 'terrain'
+  | 'creation'
+  | 'defense'
+  | 'physique'
+  | 'discipline'
+  | 'gardien'
+  | 'matchs'
+  | 'moments'
 
 type ProfileStatus = 'loading' | 'ready' | 'not-found' | 'error'
 
-const SECTIONS_FIELD: SectionEntry[] = [
-  { id: 'identite',   label: 'Identité' },
-  { id: 'scout',      label: 'Scout' },
-  { id: 'saison',     label: 'Saison' },
-  { id: 'terrain',    label: 'Terrain' },
-  { id: 'creation',   label: 'Création' },
-  { id: 'defense',    label: 'Défense' },
-  { id: 'physique',   label: 'Physique' },
-  { id: 'discipline', label: 'Discipline' },
-  { id: 'matchs',     label: 'Match log' },
-  { id: 'moments',    label: 'Moments' },
-]
-const SECTIONS_KEEPER: SectionEntry[] = [
-  { id: 'identite',   label: 'Identité' },
-  { id: 'scout',      label: 'Scout' },
-  { id: 'saison',     label: 'Saison' },
-  { id: 'terrain',    label: 'Terrain' },
-  { id: 'gardien',    label: 'Activité' },
-  { id: 'physique',   label: 'Physique' },
-  { id: 'discipline', label: 'Discipline' },
-  { id: 'matchs',     label: 'Match log' },
-  { id: 'moments',    label: 'Moments' },
-]
+const SECTIONS_FIELD: readonly SectionId[] = [
+  'identite', 'scout', 'saison', 'terrain', 'creation',
+  'defense', 'physique', 'discipline', 'matchs', 'moments',
+] as const
+
+const SECTIONS_KEEPER: readonly SectionId[] = [
+  'identite', 'scout', 'saison', 'terrain', 'gardien',
+  'physique', 'discipline', 'matchs', 'moments',
+] as const
 
 function safeRatio(num: number, den: number): number {
   if (!den) return 0
@@ -79,29 +75,12 @@ function safeRatio(num: number, den: number): number {
 /* Pick the rows shown in the public-facing PercentileBars by category.
    Field players: ~10 rows centered on creation/defense/discipline.
    Keepers: 5 rows focused on the GK essentials. */
-function percentileMetricsFor(_category: string, isKeeper: boolean): { key: string; label: string }[] {
-  if (isKeeper) {
-    return [
-      { key: 'matches_played', label: 'Matchs joués' },
-      { key: 'minutes_played', label: 'Minutes' },
-      { key: 'clean_sheets',   label: 'Clean sheets' },
-      { key: 'saves',          label: 'Arrêts' },
-      { key: 'pass_accuracy',  label: '% passes' },
-    ]
-  }
-  return [
-    { key: 'matches_played',     label: 'Matchs joués' },
-    { key: 'goals',              label: 'Buts' },
-    { key: 'assists',            label: 'Passes décisives' },
-    { key: 'xg',                 label: 'xG' },
-    { key: 'xa',                 label: 'xA' },
-    { key: 'key_passes',         label: 'Passes clés' },
-    { key: 'pass_accuracy',      label: '% passes' },
-    { key: 'dribbles_completed', label: 'Dribbles réussis' },
-    { key: 'tackles',            label: 'Tacles' },
-    { key: 'duels_won',          label: 'Duels gagnés' },
-    { key: 'yellow_cards',       label: 'Cartons jaunes' },
-  ]
+type TFunc = (k: string, opts?: Record<string, unknown>) => string
+function percentileMetricsFor(_category: string, isKeeper: boolean, t: TFunc): { key: string; label: string }[] {
+  const rows = isKeeper
+    ? ['matches_played', 'minutes_played', 'clean_sheets', 'saves', 'pass_accuracy']
+    : ['matches_played', 'goals', 'assists', 'xg', 'xa', 'key_passes', 'pass_accuracy', 'dribbles_completed', 'tackles', 'duels_won', 'yellow_cards']
+  return rows.map((key) => ({ key, label: t(`playerProfile.metrics.${key}`) }))
 }
 
 interface StatNumberProps {
@@ -155,11 +134,12 @@ function StatBar({ label, raw, pct, suffix = '' }: StatBarProps) {
 }
 
 interface ScrollRailProps {
-  sections: SectionEntry[]
+  sections: readonly SectionId[]
   scrollYProgress: MotionValue<number>
 }
 
 function ScrollRail({ sections, scrollYProgress }: ScrollRailProps) {
+  const { t } = useTranslation()
   const scaleY = useSpring(scrollYProgress, { stiffness: 80, damping: 22, mass: 0.4 })
   return (
     <div
@@ -171,16 +151,16 @@ function ScrollRail({ sections, scrollYProgress }: ScrollRailProps) {
           className="absolute inset-0 origin-top bg-turf-700 dark:bg-turf-300 w-px"
           style={{ scaleY }}
         />
-        {sections.map((s, i) => (
+        {sections.map((id, i) => (
           <span
-            key={s.id}
+            key={id}
             className="absolute -left-[3px] w-1.5 h-1.5 rounded-full bg-stone-300 dark:bg-stone-50/20"
             style={{ top: `${(i / (sections.length - 1)) * 100}%` }}
           />
         ))}
         <div className="absolute -right-2 top-0 translate-x-full -translate-y-1/2">
           <span className="font-mono uppercase tracking-[0.18em] text-[0.6rem] text-zinc-500 dark:text-stone-400 whitespace-nowrap">
-            Profil
+            {t('playerProfile.scrollRail.label')}
           </span>
         </div>
       </div>
@@ -237,24 +217,23 @@ function PlayerSkeleton() {
 
 /* --- 404 / error view --- */
 function NotFoundView() {
+  const { t } = useTranslation()
   return (
     <section className="bg-stone-50 min-h-[70vh] py-24 lg:py-32">
       <div className="container-page max-w-page">
         <div className="max-w-[60ch]">
           <span className="font-mono uppercase tracking-[0.2em] text-xs text-turf-700">
-            Joueur introuvable
+            {t('playerProfile.notFound.eyebrow')}
           </span>
           <h1 className="mt-3 font-display font-semibold text-4xl lg:text-6xl tracking-tightest text-zinc-950 leading-[1.05]">
-            Cette fiche n'est plus disponible.
+            {t('playerProfile.notFound.title')}
           </h1>
           <p className="mt-6 text-base lg:text-lg text-zinc-600 leading-relaxed">
-            Le joueur que vous cherchez a peut-être été retiré du roster
-            public. Revenez à la liste pour découvrir les autres profils
-            que nous représentons.
+            {t('playerProfile.notFound.paragraph')}
           </p>
           <Link to="/joueurs" className="btn btn-outline mt-10">
             <ArrowLeft size={16} weight="bold" />
-            Retour au roster
+            {t('playerProfile.backToRoster')}
           </Link>
         </div>
       </div>
@@ -273,6 +252,7 @@ interface PlayerDetailProps {
 }
 
 function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips = [], presentations = [] }: PlayerDetailProps) {
+  const { t, i18n } = useTranslation()
   const containerRef = useRef<HTMLDivElement | null>(null)
   const isKeeper = player.category === 'Gardien'
 
@@ -323,36 +303,26 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
     moments:    clips.length > 0,
   }
 
-  // Labels used both for the rail and the section eyebrow (no number - added below).
-  const sectionLabels: Record<string, string> = {
-    identite:   'Profil',
-    scout:      'Évaluation',
-    saison:     'Volume',
-    terrain:    'Terrain',
-    creation:   'Création',
-    gardien:    'Activité',
-    defense:    'Défense',
-    physique:   'Physique',
-    discipline: 'Discipline',
-    matchs:     'Match log',
-    moments:    'Moments',
-  }
+  // Short label used on the nav rail (translated at render time).
+  const navLabel = (id: SectionId): string => t(`playerProfile.sections.${id}.nav`)
+  // Full-length section heading (translated at render time).
+  const sectionTitle = (id: SectionId): string => t(`playerProfile.sections.${id}.title`)
 
   // Ordered list of section ids that survive the visibility gate. Drives the
   // nav rail AND the eyebrow numbering, so they stay in sync at all costs.
   const allOrder = isKeeper ? SECTIONS_KEEPER : SECTIONS_FIELD
-  const visibleSections = allOrder.filter((s) => (vis as Record<string, boolean>)[s.id])
+  const visibleSections = allOrder.filter((id) => (vis as Record<string, boolean>)[id])
   const sections = visibleSections
 
   // 1-based, zero-padded number for the eyebrow of a given section id.
   // Returns null when the section isn't visible - caller should not render it.
-  const numberFor = (id: string): string | null => {
-    const idx = visibleSections.findIndex((s) => s.id === id)
+  const numberFor = (id: SectionId): string | null => {
+    const idx = visibleSections.indexOf(id)
     if (idx < 0) return null
     return String(idx + 1).padStart(2, '0')
   }
   // Eyebrow with the current dynamic number, e.g. "03 - Défense".
-  const eyebrow = (id: string): string => `${numberFor(id) ?? '00'} - ${sectionLabels[id] ?? id}`
+  const eyebrow = (id: SectionId): string => `${numberFor(id) ?? '00'} - ${navLabel(id)}`
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -369,6 +339,21 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
 
   return (
     <div ref={containerRef}>
+      <Seo
+        title={player.name}
+        description={
+          player.bio
+            ? player.bio.slice(0, 155)
+            : t('playerProfile.seo.descriptionFallback', {
+                name: player.name,
+                role: player.position ?? player.category,
+                club: player.club ? ` (${player.club})` : '',
+              })
+        }
+        path={`/joueurs/${player.slug}`}
+        ogType="profile"
+        image={player.photo_url ? (player.photo_url.startsWith('http') ? player.photo_url : `https://renefootball.com${player.photo_url}`) : undefined}
+      />
       <ScrollRail sections={sections} scrollYProgress={scrollYProgress} />
 
       {/* Hero */}
@@ -382,7 +367,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
               className="inline-flex items-center gap-2 text-sm text-stone-300 hover:text-stone-50 transition group"
             >
               <ArrowLeft size={16} weight="bold" className="transition-transform group-hover:-translate-x-0.5" />
-              <span>Retour au roster</span>
+              <span>{t('playerProfile.backToRoster')}</span>
             </Link>
           </div>
 
@@ -395,10 +380,10 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
             >
               <div className="flex items-center gap-2 flex-wrap mb-5">
                 <span className="font-mono uppercase tracking-[0.18em] text-[0.65rem] text-turf-300">
-                  Joueur représenté
+                  {t('playerProfile.hero.representedPlayer')}
                 </span>
                 <span className="text-stone-600">·</span>
-                <span className="text-xs text-stone-400">Depuis {player.since}</span>
+                <span className="text-xs text-stone-400">{t('playerProfile.hero.since', { year: player.since })}</span>
               </div>
 
               <h1 className="font-display font-semibold text-stone-50 leading-[1.02] tracking-tightest text-[clamp(2.5rem,8vw,5.5rem)] max-w-[16ch]">
@@ -421,24 +406,24 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
 
               <dl className="mt-10 grid grid-cols-2 sm:grid-cols-4 gap-y-5 gap-x-8 border-t border-stone-50/10 pt-8 max-w-[600px]">
                 <div>
-                  <dt className="text-[0.65rem] uppercase tracking-wider font-mono text-stone-500">Âge</dt>
+                  <dt className="text-[0.65rem] uppercase tracking-wider font-mono text-stone-500">{t('playerProfile.hero.age')}</dt>
                   <dd className="mt-1 font-mono text-xl tabular-nums text-stone-50">{player.age}</dd>
                 </div>
                 {player.height && (
                   <div>
-                    <dt className="text-[0.65rem] uppercase tracking-wider font-mono text-stone-500">Taille</dt>
+                    <dt className="text-[0.65rem] uppercase tracking-wider font-mono text-stone-500">{t('playerProfile.hero.height')}</dt>
                     <dd className="mt-1 font-mono text-xl tabular-nums text-stone-50">{player.height}</dd>
                   </div>
                 )}
                 {player.preferred_foot && (
                   <div>
-                    <dt className="text-[0.65rem] uppercase tracking-wider font-mono text-stone-500">Pied fort</dt>
+                    <dt className="text-[0.65rem] uppercase tracking-wider font-mono text-stone-500">{t('playerProfile.hero.preferredFoot')}</dt>
                     <dd className="mt-1 font-mono text-xl text-stone-50">{player.preferred_foot}</dd>
                   </div>
                 )}
                 {player.nationality && (
                   <div>
-                    <dt className="text-[0.65rem] uppercase tracking-wider font-mono text-stone-500">Nationalité</dt>
+                    <dt className="text-[0.65rem] uppercase tracking-wider font-mono text-stone-500">{t('playerProfile.hero.nationality')}</dt>
                     <dd className="mt-1 font-mono text-xl text-stone-50">{player.nationality}</dd>
                   </div>
                 )}
@@ -469,15 +454,15 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
                 <div className="absolute bottom-5 left-5 right-5 flex items-end justify-between gap-3">
                   <div>
                     <div className="font-mono text-[0.7rem] uppercase tracking-wider text-turf-300">
-                      Saison en cours
+                      {t('playerProfile.hero.currentSeason')}
                     </div>
                     <div className="mt-1 font-mono text-xl text-stone-50 tabular-nums">
-                      {player.matches_played} matchs
+                      {t('playerProfile.hero.matchesCount', { count: player.matches_played })}
                     </div>
                   </div>
                   <div className="flex items-center gap-2 rounded-full bg-stone-50/10 backdrop-blur px-3 py-1.5 border border-stone-50/15">
                     <span className="w-2 h-2 rounded-full bg-turf-300 animate-pulse" />
-                    <span className="text-[0.7rem] text-stone-100">Sous mandat</span>
+                    <span className="text-[0.7rem] text-stone-100">{t('playerProfile.hero.underContract')}</span>
                   </div>
                 </div>
               </div>
@@ -490,7 +475,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
          knows whose stats they're scrolling through. Photo + name + position
          sit on the left, section anchors in the middle, actions on the right. */}
       <nav
-        aria-label="Sections du profil"
+        aria-label={t('playerProfile.stickyNav.sectionsAria')}
         className="sticky nav-sticky z-30 bg-stone-50/90 dark:bg-zinc-950/85 backdrop-blur-md border-b border-stone-200/80 dark:border-stone-50/10"
       >
         {/* Full viewport width (bypass container-page's max-w-page) so the
@@ -523,18 +508,18 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
             </div>
           </div>
 
-          {sections.map((s) => (
+          {sections.map((id) => (
             <a
-              key={s.id}
-              href={`#${s.id}`}
+              key={id}
+              href={`#${id}`}
               className="px-3 py-1.5 rounded-full text-xs font-medium text-zinc-600 hover:text-zinc-950 hover:bg-stone-200/60 dark:text-stone-400 dark:hover:text-stone-50 dark:hover:bg-stone-50/5 transition whitespace-nowrap"
             >
-              {s.label}
+              {navLabel(id)}
             </a>
           ))}
           <div className="ml-auto flex items-center gap-3">
             <span className="hidden lg:inline font-mono uppercase tracking-[0.18em] text-[0.6rem] text-zinc-500 dark:text-stone-400 whitespace-nowrap">
-              {player.matches_played} matchs · {player.minutes_played.toLocaleString('fr-FR')} min
+              {t('playerProfile.stickyNav.summary', { matches: player.matches_played, minutes: player.minutes_played.toLocaleString(i18n.resolvedLanguage) })}
             </span>
             <a
               href={pdfUrl(player.slug)}
@@ -543,7 +528,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
               className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium border border-zinc-300 dark:border-stone-50/15 text-zinc-900 dark:text-stone-100 hover:bg-zinc-900 hover:text-stone-50 hover:border-zinc-900 dark:hover:bg-stone-50/10 dark:hover:border-stone-50/30 transition whitespace-nowrap"
             >
               <FilePdf size={13} weight="regular" />
-              Fiche PDF
+              {t('playerProfile.pdfButton')}
             </a>
             {presentations.slice(0, 3).map((pres) => (
               <a
@@ -555,7 +540,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
                 className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium bg-turf-700 text-stone-50 hover:bg-turf-800 dark:bg-turf-300 dark:text-zinc-950 dark:hover:bg-turf-200 transition whitespace-nowrap"
               >
                 <FilePdf size={13} weight="regular" />
-                Présentation
+                {t('playerProfile.stickyNav.presentationButton')}
               </a>
             ))}
           </div>
@@ -564,18 +549,18 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
 
       {/* Identité - always shown, individual cards filter themselves out when null. */}
       <section className="container-page py-16 lg:py-24">
-        <SectionHeading id="identite" eyebrow={eyebrow('identite')} title="Identité du joueur." />
+        <SectionHeading id="identite" eyebrow={eyebrow('identite')} title={sectionTitle('identite')} />
 
         <div className="grid lg:grid-cols-5 gap-5">
           {([
-            { Icon: Person,     label: 'Catégorie',     value: player.category },
-            { Icon: SoccerBall, label: 'Poste',          value: player.position },
-            { Icon: Flag,       label: 'Nationalité',    value: player.nationality },
-            { Icon: Ruler,      label: 'Taille',         value: player.height },
-            { Icon: Calendar,   label: 'Suivi depuis',   value: player.since },
-          ] as const).filter((card) => card.value !== null && card.value !== undefined && card.value !== '').map(({ Icon, label, value }) => (
+            { Icon: Person,     key: 'category',    label: t('playerProfile.identity.cards.category'),    value: player.category },
+            { Icon: SoccerBall, key: 'position',    label: t('playerProfile.identity.cards.position'),    value: player.position },
+            { Icon: Flag,       key: 'nationality', label: t('playerProfile.identity.cards.nationality'), value: player.nationality },
+            { Icon: Ruler,      key: 'height',      label: t('playerProfile.identity.cards.height'),      value: player.height },
+            { Icon: Calendar,   key: 'since',       label: t('playerProfile.identity.cards.since'),       value: player.since },
+          ] as const).filter((card) => card.value !== null && card.value !== undefined && card.value !== '').map(({ Icon, key, label, value }) => (
             <motion.div
-              key={label}
+              key={key}
               initial={{ opacity: 0, y: 12 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-60px' }}
@@ -604,7 +589,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
       {vis.scout && (
       <section className="bg-white border-y border-stone-200/80 py-16 lg:py-24 dark:bg-zinc-950 dark:border-stone-50/10">
         <div className="container-page">
-          <SectionHeading id="scout" eyebrow={eyebrow('scout')} title="Profil scout." />
+          <SectionHeading id="scout" eyebrow={eyebrow('scout')} title={sectionTitle('scout')} />
           <ScoutReport
             comparisons={player.comparisons}
             strengths={player.strengths}
@@ -617,13 +602,13 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
           <div className="mt-12 lg:mt-16 grid lg:grid-cols-12 gap-6 lg:gap-8 items-stretch">
             <div className="lg:col-span-5 rounded-3xl border border-stone-200/80 dark:border-stone-50/10 bg-stone-50/60 dark:bg-zinc-900/40 p-6 lg:p-8 flex flex-col">
               <div className="font-mono uppercase tracking-[0.18em] text-[0.65rem] text-zinc-500 dark:text-stone-400 mb-2">
-                Empreinte statistique
+                {t('playerProfile.scout.footprint.eyebrow')}
               </div>
               <h3 className="font-display font-semibold text-xl lg:text-2xl tracking-tight text-zinc-950 dark:text-stone-50 leading-tight mb-2">
-                Six axes-clés du poste.
+                {t('playerProfile.scout.footprint.title')}
               </h3>
               <p className="text-xs text-zinc-600 dark:text-stone-400 leading-relaxed mb-4">
-                Normalisé sur des références saison standards.
+                {t('playerProfile.scout.footprint.description')}
               </p>
               <div className="flex-1 flex justify-center items-center">
                 <PlayerRadar players={[player]} size={300} showLegend={false} />
@@ -632,20 +617,20 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
 
             <div className="lg:col-span-7 rounded-3xl border border-stone-200/80 dark:border-stone-50/10 bg-white dark:bg-zinc-900/40 p-6 lg:p-8">
               <div className="font-mono uppercase tracking-[0.18em] text-[0.65rem] text-zinc-500 dark:text-stone-400 mb-2">
-                Position dans la catégorie
+                {t('playerProfile.scout.percentiles.eyebrow')}
               </div>
               <h3 className="font-display font-semibold text-xl lg:text-2xl tracking-tight text-zinc-950 dark:text-stone-50 leading-tight mb-2">
-                {player.name.split(' ')[0]} vs autres {player.category.toLowerCase()}s.
+                {t('playerProfile.scout.percentiles.title', { firstName: player.name.split(' ')[0], category: player.category.toLowerCase() })}
               </h3>
               <p className="text-xs text-zinc-600 dark:text-stone-400 leading-relaxed mb-5">
-                Pour chaque métrique, son pourcentile dans la population des
-                joueurs de la même catégorie. <span className="text-turf-700 dark:text-turf-300 font-medium">100 = meilleur</span>,
-                <span className="text-rose-700 dark:text-rose-300 font-medium ml-1">0 = dernier</span>.
+                {t('playerProfile.scout.percentiles.description')}{' '}
+                <span className="text-turf-700 dark:text-turf-300 font-medium">{t('playerProfile.scout.percentiles.best')}</span>,
+                <span className="text-rose-700 dark:text-rose-300 font-medium ml-1">{t('playerProfile.scout.percentiles.worst')}</span>.
               </p>
               <PercentileBars
                 percentiles={percentiles}
                 populationSize={peersCount}
-                metrics={percentileMetricsFor(player.category, player.category === 'Gardien')}
+                metrics={percentileMetricsFor(player.category, player.category === 'Gardien', t)}
               />
             </div>
           </div>
@@ -657,22 +642,22 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
       {vis.saison && (
       <section className="bg-stone-50 border-b border-stone-200/80 py-16 lg:py-24 dark:bg-zinc-950 dark:border-stone-50/10">
         <div className="container-page">
-          <SectionHeading id="saison" eyebrow={eyebrow('saison')} title="Saison en cours." />
+          <SectionHeading id="saison" eyebrow={eyebrow('saison')} title={sectionTitle('saison')} />
 
           <div className="grid lg:grid-cols-12 gap-6 lg:gap-8">
             <div className="lg:col-span-7 grid grid-cols-2 gap-y-10 gap-x-8 lg:border-r lg:border-stone-200 dark:lg:border-stone-50/10 lg:pr-12">
-              <StatNumber value={player.matches_played} sub="Matchs joués" />
+              <StatNumber value={player.matches_played} sub={t('playerProfile.season.matchesPlayed')} />
               {isKeeper ? (
                 <>
-                  <StatNumber value={player.clean_sheets} sub="Clean sheets" />
-                  <StatNumber value={player.saves} sub="Arrêts" />
-                  <StatNumber value={minutesPerMatch} suffix="′" sub="Min / match" />
+                  <StatNumber value={player.clean_sheets} sub={t('playerProfile.season.cleanSheets')} />
+                  <StatNumber value={player.saves} sub={t('playerProfile.season.saves')} />
+                  <StatNumber value={minutesPerMatch} suffix="′" sub={t('playerProfile.season.minutesPerMatch')} />
                 </>
               ) : (
                 <>
-                  <StatNumber value={player.goals} sub="Buts" />
-                  <StatNumber value={player.assists} sub="Passes décisives" />
-                  <StatNumber value={minutesPerMatch} suffix="′" sub="Min / match" />
+                  <StatNumber value={player.goals} sub={t('playerProfile.season.goals')} />
+                  <StatNumber value={player.assists} sub={t('playerProfile.season.assists')} />
+                  <StatNumber value={minutesPerMatch} suffix="′" sub={t('playerProfile.season.minutesPerMatch')} />
                 </>
               )}
             </div>
@@ -685,31 +670,31 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
                   style={{ background: 'radial-gradient(circle, rgba(30, 64, 175,0.55), transparent 70%)' }}
                 />
                 <div className="font-mono uppercase tracking-[0.18em] text-[0.65rem] text-turf-300">
-                  Volume de jeu
+                  {t('playerProfile.season.playVolume')}
                 </div>
                 <div className="mt-4 font-mono text-4xl lg:text-5xl tabular-nums text-stone-50">
-                  {player.minutes_played.toLocaleString('fr-FR')}
+                  {player.minutes_played.toLocaleString(i18n.resolvedLanguage)}
                   <span className="text-stone-400 text-2xl ml-1">min</span>
                 </div>
                 <div className="mt-2 text-sm text-stone-400">
-                  Sur {player.matches_played} apparitions cette saison.
+                  {t('playerProfile.season.overAppearances', { count: player.matches_played })}
                 </div>
               </div>
 
               {!isKeeper && (
                 <div className="rounded-3xl border border-stone-200/80 dark:border-stone-50/10 bg-white dark:bg-zinc-900/40 p-6 lg:p-8">
                   <div className="font-mono uppercase tracking-[0.18em] text-[0.65rem] text-zinc-500 dark:text-stone-400 mb-4">
-                    Performance vs attendu
+                    {t('playerProfile.season.performanceVsExpected')}
                   </div>
                   <div className="flex items-baseline gap-6">
                     <div>
-                      <div className="text-xs text-zinc-500 dark:text-stone-400 mb-1">Buts − xG</div>
+                      <div className="text-xs text-zinc-500 dark:text-stone-400 mb-1">{t('playerProfile.season.goalsMinusXG')}</div>
                       <div className={`font-mono text-2xl tabular-nums ${Number(xgDelta) >= 0 ? 'text-turf-700 dark:text-turf-300' : 'text-rose-700 dark:text-rose-300'}`}>
                         {Number(xgDelta) >= 0 ? '+' : ''}{xgDelta}
                       </div>
                     </div>
                     <div>
-                      <div className="text-xs text-zinc-500 dark:text-stone-400 mb-1">Passes − xA</div>
+                      <div className="text-xs text-zinc-500 dark:text-stone-400 mb-1">{t('playerProfile.season.assistsMinusXA')}</div>
                       <div className={`font-mono text-2xl tabular-nums ${Number(xaDelta) >= 0 ? 'text-turf-700 dark:text-turf-300' : 'text-rose-700 dark:text-rose-300'}`}>
                         {Number(xaDelta) >= 0 ? '+' : ''}{xaDelta}
                       </div>
@@ -728,22 +713,19 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
       {vis.terrain && (
       <section className="bg-stone-50 dark:bg-zinc-950 border-y border-stone-200/80 dark:border-stone-50/10 py-16 lg:py-24">
         <div className="container-page">
-          <SectionHeading id="terrain" eyebrow={eyebrow('terrain')} title="Zones d'activité." />
+          <SectionHeading id="terrain" eyebrow={eyebrow('terrain')} title={sectionTitle('terrain')} />
           <div className="grid lg:grid-cols-12 gap-8 lg:gap-12">
             <div className="lg:col-span-4 space-y-4">
               <p className="text-zinc-700 dark:text-stone-300 leading-relaxed">
-                Carte d'occupation moyenne sur la saison. Les zones les plus
-                vertes sont celles où {player.name.split(' ')[0]} est le plus
-                actif - touches, courses, duels confondus. Le joueur attaque
-                de gauche à droite.
+                {t('playerProfile.terrain.description', { firstName: player.name.split(' ')[0] })}
               </p>
               <dl className="grid grid-cols-2 gap-4 pt-4 border-t border-stone-200 dark:border-stone-50/10">
                 <div>
-                  <dt className="font-mono uppercase tracking-wider text-[0.65rem] text-zinc-500 dark:text-stone-400">Poste de référence</dt>
+                  <dt className="font-mono uppercase tracking-wider text-[0.65rem] text-zinc-500 dark:text-stone-400">{t('playerProfile.terrain.referencePosition')}</dt>
                   <dd className="mt-1 font-display text-lg text-zinc-950 dark:text-stone-50">{player.position}</dd>
                 </div>
                 <div>
-                  <dt className="font-mono uppercase tracking-wider text-[0.65rem] text-zinc-500 dark:text-stone-400">Pied fort</dt>
+                  <dt className="font-mono uppercase tracking-wider text-[0.65rem] text-zinc-500 dark:text-stone-400">{t('playerProfile.terrain.preferredFoot')}</dt>
                   <dd className="mt-1 font-display text-lg text-zinc-950 dark:text-stone-50">{player.preferred_foot ?? '-'}</dd>
                 </div>
               </dl>
@@ -764,14 +746,14 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
       {/* Création (champ) ou Activité (gardien) - gated by vis.creation/vis.gardien. */}
       {vis.creation ? (
         <section className="container-page py-16 lg:py-24">
-          <SectionHeading id="creation" eyebrow={eyebrow('creation')} title="Création offensive." />
+          <SectionHeading id="creation" eyebrow={eyebrow('creation')} title={sectionTitle('creation')} />
 
           <div className="grid lg:grid-cols-2 gap-10 lg:gap-16">
             <div className="space-y-6">
-              <StatBar label="Précision de tir" raw={shotAccuracy.toFixed(0)} pct={shotAccuracy} suffix="%" />
-              <StatBar label="Conversion (buts / tirs)" raw={conversion.toFixed(1)} pct={conversion} suffix="%" />
+              <StatBar label={t('playerProfile.creation.shotAccuracy')} raw={shotAccuracy.toFixed(0)} pct={shotAccuracy} suffix="%" />
+              <StatBar label={t('playerProfile.creation.conversion')} raw={conversion.toFixed(1)} pct={conversion} suffix="%" />
               <StatBar
-                label="% de passes réussies"
+                label={t('playerProfile.creation.passAccuracy')}
                 raw={Number(player.pass_accuracy ?? 0).toFixed(1)}
                 pct={Number(player.pass_accuracy ?? 0)}
                 suffix="%"
@@ -779,23 +761,23 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
             </div>
             <div className="grid grid-cols-2 gap-6">
               <div>
-                <div className="font-mono uppercase tracking-wider text-[0.65rem] text-zinc-500 dark:text-stone-400">xG cumulé</div>
+                <div className="font-mono uppercase tracking-wider text-[0.65rem] text-zinc-500 dark:text-stone-400">{t('playerProfile.creation.cumulativeXG')}</div>
                 <div className="mt-1 font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">
                   {Number(player.xg ?? 0).toFixed(2)}
                 </div>
               </div>
               <div>
-                <div className="font-mono uppercase tracking-wider text-[0.65rem] text-zinc-500 dark:text-stone-400">xA cumulé</div>
+                <div className="font-mono uppercase tracking-wider text-[0.65rem] text-zinc-500 dark:text-stone-400">{t('playerProfile.creation.cumulativeXA')}</div>
                 <div className="mt-1 font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">
                   {Number(player.xa ?? 0).toFixed(2)}
                 </div>
               </div>
               <div>
-                <div className="font-mono uppercase tracking-wider text-[0.65rem] text-zinc-500 dark:text-stone-400">Passes clés</div>
+                <div className="font-mono uppercase tracking-wider text-[0.65rem] text-zinc-500 dark:text-stone-400">{t('playerProfile.creation.keyPasses')}</div>
                 <div className="mt-1 font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">{player.key_passes}</div>
               </div>
               <div>
-                <div className="font-mono uppercase tracking-wider text-[0.65rem] text-zinc-500 dark:text-stone-400">Dribbles réussis</div>
+                <div className="font-mono uppercase tracking-wider text-[0.65rem] text-zinc-500 dark:text-stone-400">{t('playerProfile.creation.dribblesCompleted')}</div>
                 <div className="mt-1 font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">{player.dribbles_completed}</div>
               </div>
             </div>
@@ -803,18 +785,18 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
         </section>
       ) : vis.gardien ? (
         <section className="container-page py-16 lg:py-24">
-          <SectionHeading id="gardien" eyebrow={eyebrow('gardien')} title="Activité dans la surface." />
+          <SectionHeading id="gardien" eyebrow={eyebrow('gardien')} title={sectionTitle('gardien')} />
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="rounded-2xl border border-stone-200/80 dark:border-stone-50/10 bg-white dark:bg-zinc-900/40 p-6">
               <Shield size={20} weight="regular" className="text-turf-800 dark:text-turf-300" />
               <div className="mt-4 font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">{player.clean_sheets}</div>
-              <div className="mt-1 text-xs text-zinc-500 dark:text-stone-400 font-mono uppercase tracking-wider">Clean sheets</div>
+              <div className="mt-1 text-xs text-zinc-500 dark:text-stone-400 font-mono uppercase tracking-wider">{t('playerProfile.keeper.cleanSheets')}</div>
             </div>
             <div className="rounded-2xl border border-stone-200/80 dark:border-stone-50/10 bg-white dark:bg-zinc-900/40 p-6">
               <Sparkle size={20} weight="regular" className="text-turf-800 dark:text-turf-300" />
               <div className="mt-4 font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">{player.saves}</div>
-              <div className="mt-1 text-xs text-zinc-500 dark:text-stone-400 font-mono uppercase tracking-wider">Arrêts</div>
+              <div className="mt-1 text-xs text-zinc-500 dark:text-stone-400 font-mono uppercase tracking-wider">{t('playerProfile.keeper.saves')}</div>
             </div>
             <div className="rounded-2xl border border-stone-200/80 dark:border-stone-50/10 bg-white dark:bg-zinc-900/40 p-6">
               <ListMagnifyingGlass size={20} weight="regular" className="text-turf-800 dark:text-turf-300" />
@@ -822,12 +804,12 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
                 {Number(player.pass_accuracy ?? 0).toFixed(1)}
                 <span className="text-stone-400 text-xl">%</span>
               </div>
-              <div className="mt-1 text-xs text-zinc-500 dark:text-stone-400 font-mono uppercase tracking-wider">Passes réussies</div>
+              <div className="mt-1 text-xs text-zinc-500 dark:text-stone-400 font-mono uppercase tracking-wider">{t('playerProfile.keeper.passAccuracy')}</div>
             </div>
             <div className="rounded-2xl border border-stone-200/80 dark:border-stone-50/10 bg-white dark:bg-zinc-900/40 p-6">
               <Person size={20} weight="regular" className="text-turf-800 dark:text-turf-300" />
               <div className="mt-4 font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">{player.duels_won}</div>
-              <div className="mt-1 text-xs text-zinc-500 dark:text-stone-400 font-mono uppercase tracking-wider">Duels gagnés</div>
+              <div className="mt-1 text-xs text-zinc-500 dark:text-stone-400 font-mono uppercase tracking-wider">{t('playerProfile.keeper.duelsWon')}</div>
             </div>
           </div>
         </section>
@@ -837,18 +819,18 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
       {vis.defense && (
         <section className="bg-white border-y border-stone-200/80 py-16 lg:py-24 dark:bg-zinc-950 dark:border-stone-50/10">
           <div className="container-page">
-            <SectionHeading id="defense" eyebrow={eyebrow('defense')} title="Travail défensif." />
+            <SectionHeading id="defense" eyebrow={eyebrow('defense')} title={sectionTitle('defense')} />
 
             <div className="grid lg:grid-cols-3 gap-5 lg:gap-6">
               <div className="rounded-3xl border border-stone-200/80 dark:border-stone-50/10 dark:bg-zinc-900/40 p-6 lg:p-8">
                 <Shield size={22} weight="regular" className="text-turf-800 dark:text-turf-300" />
                 <div className="mt-5 font-mono text-4xl tabular-nums text-zinc-950 dark:text-stone-50">{player.tackles}</div>
-                <div className="mt-1 text-xs text-zinc-500 dark:text-stone-400 font-mono uppercase tracking-wider">Tacles</div>
+                <div className="mt-1 text-xs text-zinc-500 dark:text-stone-400 font-mono uppercase tracking-wider">{t('playerProfile.defense.tackles')}</div>
               </div>
               <div className="rounded-3xl border border-stone-200/80 dark:border-stone-50/10 dark:bg-zinc-900/40 p-6 lg:p-8">
                 <ListMagnifyingGlass size={22} weight="regular" className="text-turf-800 dark:text-turf-300" />
                 <div className="mt-5 font-mono text-4xl tabular-nums text-zinc-950 dark:text-stone-50">{player.interceptions}</div>
-                <div className="mt-1 text-xs text-zinc-500 dark:text-stone-400 font-mono uppercase tracking-wider">Interceptions</div>
+                <div className="mt-1 text-xs text-zinc-500 dark:text-stone-400 font-mono uppercase tracking-wider">{t('playerProfile.defense.interceptions')}</div>
               </div>
               {/* Carte d'accent (toujours sombre) - en dark mode on lui donne une bordure
                   subtile et un fond légèrement plus clair que le `section` parent (zinc-950)
@@ -861,7 +843,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
                 />
                 <Person size={22} weight="regular" className="text-turf-300" />
                 <div className="mt-5 font-mono text-4xl tabular-nums text-stone-50">{player.duels_won}</div>
-                <div className="mt-1 text-xs text-stone-400 font-mono uppercase tracking-wider">Duels gagnés</div>
+                <div className="mt-1 text-xs text-stone-400 font-mono uppercase tracking-wider">{t('playerProfile.defense.duelsWon')}</div>
               </div>
             </div>
           </div>
@@ -875,21 +857,21 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
             <SectionHeading
               id="physique"
               eyebrow={eyebrow('physique')}
-              title="Profil physique."
+              title={sectionTitle('physique')}
             />
             <p className="text-sm text-zinc-600 dark:text-stone-400 mb-6 max-w-[60ch]">
-              Moyennes par match issues du tracking GPS.
+              {t('playerProfile.physique.gpsAverage')}
             </p>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {player.distance_avg_km != null && (
                 <div className="rounded-2xl border border-stone-200/80 dark:border-stone-50/10 bg-stone-50/60 dark:bg-zinc-900/40 p-5">
                   <Path size={20} weight="regular" className="text-turf-700 dark:text-turf-300" />
                   <div className="mt-4 font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">
-                    {player.distance_avg_km.toFixed(1).replace('.', ',')}
+                    {player.distance_avg_km.toLocaleString(i18n.resolvedLanguage, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
                     <span className="text-stone-400 dark:text-stone-500 text-base ml-1">km</span>
                   </div>
                   <div className="mt-1 text-xs font-mono uppercase tracking-wider text-zinc-500 dark:text-stone-400">
-                    Distance / match
+                    {t('playerProfile.physique.distancePerMatch')}
                   </div>
                 </div>
               )}
@@ -900,7 +882,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
                     {player.sprints_avg}
                   </div>
                   <div className="mt-1 text-xs font-mono uppercase tracking-wider text-zinc-500 dark:text-stone-400">
-                    Sprints / match
+                    {t('playerProfile.physique.sprintsPerMatch')}
                   </div>
                 </div>
               )}
@@ -908,11 +890,11 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
                 <div className="rounded-2xl border border-stone-200/80 dark:border-stone-50/10 bg-stone-50/60 dark:bg-zinc-900/40 p-5">
                   <Wind size={20} weight="regular" className="text-turf-700 dark:text-turf-300" />
                   <div className="mt-4 font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">
-                    {player.top_speed_kmh.toFixed(1).replace('.', ',')}
+                    {player.top_speed_kmh.toLocaleString(i18n.resolvedLanguage, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
                     <span className="text-stone-400 dark:text-stone-500 text-base ml-1">km/h</span>
                   </div>
                   <div className="mt-1 text-xs font-mono uppercase tracking-wider text-zinc-500 dark:text-stone-400">
-                    Vitesse max
+                    {t('playerProfile.physique.topSpeed')}
                   </div>
                 </div>
               )}
@@ -923,7 +905,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
                     {player.high_intensity_runs_avg}
                   </div>
                   <div className="mt-1 text-xs font-mono uppercase tracking-wider text-zinc-500 dark:text-stone-400">
-                    Courses haute intensité
+                    {t('playerProfile.physique.highIntensityRuns')}
                   </div>
                 </div>
               )}
@@ -939,19 +921,19 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
         <SectionHeading
           id="discipline"
           eyebrow={eyebrow('discipline')}
-          title="Discipline."
+          title={sectionTitle('discipline')}
         />
 
         <div className="grid sm:grid-cols-2 gap-5 max-w-2xl">
           <div className="rounded-2xl border border-amber-200/70 dark:border-amber-400/20 bg-amber-50/40 dark:bg-amber-500/[0.08] p-6">
             <Cards size={20} weight="regular" className="text-amber-700 dark:text-amber-300" />
             <div className="mt-4 font-mono text-3xl tabular-nums text-zinc-950 dark:text-amber-50">{player.yellow_cards}</div>
-            <div className="mt-1 text-xs text-zinc-500 dark:text-amber-200/80 font-mono uppercase tracking-wider">Cartons jaunes</div>
+            <div className="mt-1 text-xs text-zinc-500 dark:text-amber-200/80 font-mono uppercase tracking-wider">{t('playerProfile.discipline.yellowCards')}</div>
           </div>
           <div className="rounded-2xl border border-rose-200/70 dark:border-rose-400/20 bg-rose-50/40 dark:bg-rose-500/[0.08] p-6">
             <Cards size={20} weight="regular" className="text-rose-700 dark:text-rose-300" />
             <div className="mt-4 font-mono text-3xl tabular-nums text-zinc-950 dark:text-rose-50">{player.red_cards}</div>
-            <div className="mt-1 text-xs text-zinc-500 dark:text-rose-200/80 font-mono uppercase tracking-wider">Cartons rouges</div>
+            <div className="mt-1 text-xs text-zinc-500 dark:text-rose-200/80 font-mono uppercase tracking-wider">{t('playerProfile.discipline.redCards')}</div>
           </div>
         </div>
       </section>
@@ -964,11 +946,10 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
             <SectionHeading
               id="matchs"
               eyebrow={eyebrow('matchs')}
-              title="Derniers matchs."
+              title={sectionTitle('matchs')}
             />
             <p className="text-sm text-zinc-600 dark:text-stone-400 mb-6 max-w-[60ch]">
-              Les huit dernières apparitions du joueur, du plus récent au plus
-              ancien. La courbe à droite trace l'évolution de la note (gauche = ancien, droite = récent).
+              {t('playerProfile.matchs.description')}
             </p>
             <AppearancesTable appearances={appearances} />
           </div>
@@ -981,11 +962,10 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
           <SectionHeading
             id="moments"
             eyebrow={eyebrow('moments')}
-            title="Moments clés annotés."
+            title={sectionTitle('moments')}
           />
           <p className="text-sm text-zinc-600 dark:text-stone-400 mb-6 max-w-[60ch]">
-            Captures de moments précis sélectionnés par notre cellule scout -
-            cliquez sur une vignette pour zoomer.
+            {t('playerProfile.moments.description')}
           </p>
           <ClipsGalleryPublic clips={clips} />
         </section>
@@ -998,14 +978,12 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
         <MeshGradient intensity="subtle" />
         <div className="container-page grid lg:grid-cols-12 gap-8 items-end">
           <div className="lg:col-span-7">
-            <span className="eyebrow text-turf-300">Échanger sur ce profil</span>
+            <span className="eyebrow text-turf-300">{t('playerProfile.cta.eyebrow')}</span>
             <h2 className="mt-3 font-display font-semibold text-3xl lg:text-5xl leading-tight tracking-tight">
-              Intéressé par {player.name.split(' ')[0]} ?
+              {t('playerProfile.cta.title', { firstName: player.name.split(' ')[0] })}
             </h2>
             <p className="mt-4 max-w-[55ch] text-stone-400 leading-relaxed">
-              Notre équipe répond sous 48 heures. Choisissez la voie qui
-              correspond à votre profil - le formulaire s'ouvre déjà avec
-              {' '}{player.name} pré-sélectionné.
+              {t('playerProfile.cta.paragraph', { name: player.name })}
             </p>
           </div>
           <div className="lg:col-span-5 lg:justify-self-end flex flex-col gap-2.5 w-full lg:max-w-[380px]">
@@ -1017,8 +995,8 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
                 <Buildings size={16} weight="regular" />
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block font-semibold text-sm">Je suis un club / staff</span>
-                <span className="block text-[0.7rem] text-zinc-600">Intérêt pour ce joueur</span>
+                <span className="block font-semibold text-sm">{t('playerProfile.cta.club.label')}</span>
+                <span className="block text-[0.7rem] text-zinc-600">{t('playerProfile.cta.club.hint')}</span>
               </span>
               <ArrowUpRight
                 size={14}
@@ -1034,8 +1012,8 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
                 <MegaphoneSimple size={16} weight="regular" />
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block font-semibold text-sm">Je suis un média</span>
-                <span className="block text-[0.7rem] text-stone-400">Interview / article sur ce joueur</span>
+                <span className="block font-semibold text-sm">{t('playerProfile.cta.media.label')}</span>
+                <span className="block text-[0.7rem] text-stone-400">{t('playerProfile.cta.media.hint')}</span>
               </span>
               <ArrowUpRight
                 size={14}
@@ -1047,7 +1025,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
               to="/contact"
               className="inline-flex items-center gap-2 mt-1 text-xs uppercase tracking-[0.18em] font-mono text-stone-400 hover:text-stone-50 transition-colors self-start"
             >
-              Ou une autre demande
+              {t('playerProfile.cta.other')}
               <ArrowRight size={11} weight="bold" />
             </Link>
           </div>

@@ -39,6 +39,8 @@ const AdminStaffEdit   = lazy(() => import('./pages/admin/AdminStaffEdit'))
 const AdminPresentations    = lazy(() => import('./pages/admin/AdminPresentations'))
 const AdminPresentationEdit = lazy(() => import('./pages/admin/AdminPresentationEdit'))
 const AdminContact          = lazy(() => import('./pages/admin/AdminContact'))
+const AdminSettings         = lazy(() => import('./pages/admin/AdminSettings'))
+const AdminPartners         = lazy(() => import('./pages/admin/AdminPartners'))
 
 function App() {
   return (
@@ -95,6 +97,8 @@ function App() {
                 <Route path="presentations/nouvelle" element={<AdminPresentationEdit creating />} />
                 <Route path="presentations/:id/edit" element={<AdminPresentationEdit />} />
                 <Route path="contact" element={<AdminContact />} />
+                <Route path="reglages" element={<AdminSettings />} />
+                <Route path="partenaires" element={<AdminPartners />} />
                 <Route path="*" element={<Navigate to="/admin" replace />} />
               </Route>
             </Routes>

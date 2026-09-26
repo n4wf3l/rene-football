@@ -1,23 +1,36 @@
 import type { Icon as PhosphorIcon } from '@phosphor-icons/react'
 import { Link } from 'react-router-dom'
-import { EnvelopeSimple, MapPin, Phone } from '@phosphor-icons/react'
+import { useTranslation } from 'react-i18next'
+import {
+  EnvelopeSimple,
+  FacebookLogo,
+  InstagramLogo,
+  LinkedinLogo,
+  MapPin,
+  Phone,
+  TiktokLogo,
+  XLogo,
+  YoutubeLogo,
+} from '@phosphor-icons/react'
 import BrandLogo from './BrandLogo'
 import { useAuth } from '../auth/AuthContext'
+import { useAppSettings } from '../lib/useAppSettings'
+import type { SocialPlatform } from '../types/settings'
 
-const NAV_LINKS: { to: string; label: string }[] = [
-  { to: '/',           label: 'Accueil' },
-  { to: '/joueurs',    label: 'Joueurs' },
-  { to: '/actualites', label: 'Actualités' },
-  { to: '/a-propos',   label: 'À propos' },
-  { to: '/contact',    label: 'Contact' },
+const NAV_LINKS: { to: string; key: 'nav.home' | 'nav.players' | 'nav.news' | 'nav.about' | 'nav.contact' }[] = [
+  { to: '/',           key: 'nav.home' },
+  { to: '/joueurs',    key: 'nav.players' },
+  { to: '/actualites', key: 'nav.news' },
+  { to: '/a-propos',   key: 'nav.about' },
+  { to: '/contact',    key: 'nav.contact' },
 ]
 
-const SERVICES: string[] = [
-  'Représentation de joueurs',
-  'Négociation de contrats',
-  'Scouting & recrutement',
-  'Gestion de carrière',
-]
+const SERVICE_KEYS = [
+  'footer.servicesList.representation',
+  'footer.servicesList.contracts',
+  'footer.servicesList.scouting',
+  'footer.servicesList.career',
+] as const
 
 interface ContactEntry {
   Icon: PhosphorIcon
@@ -26,15 +39,27 @@ interface ContactEntry {
 }
 
 const CONTACT: ContactEntry[] = [
-  { Icon: EnvelopeSimple, label: 'contact@renefootball.com', href: 'mailto:contact@renefootball.com' },
-  { Icon: Phone,          label: '+352 661 24 18 47',         href: 'tel:+352661241847' },
+  { Icon: EnvelopeSimple, label: 'renefootball.p@gmail.com', href: 'mailto:renefootball.p@gmail.com' },
+  { Icon: Phone,          label: '+352 691 712 574',         href: 'tel:+352691712574' },
   { Icon: MapPin,         label: 'Luxembourg-Ville · Luxembourg', href: null },
 ]
 
+const SOCIAL_META: Array<{ key: SocialPlatform; Icon: PhosphorIcon; label: string }> = [
+  { key: 'instagram', Icon: InstagramLogo, label: 'Instagram' },
+  { key: 'facebook',  Icon: FacebookLogo,  label: 'Facebook'  },
+  { key: 'linkedin',  Icon: LinkedinLogo,  label: 'LinkedIn'  },
+  { key: 'youtube',   Icon: YoutubeLogo,   label: 'YouTube'   },
+  { key: 'tiktok',    Icon: TiktokLogo,    label: 'TikTok'    },
+  { key: 'x',         Icon: XLogo,         label: 'X'         },
+]
+
 function Footer() {
+  const { t } = useTranslation()
   const year = new Date().getFullYear()
   const { user, isAuthenticated } = useAuth()
   const isAdmin = isAuthenticated && Boolean(user?.is_admin)
+  const { settings } = useAppSettings()
+  const socials = SOCIAL_META.filter((s) => Boolean(settings.social_links[s.key]))
 
   return (
     <footer className="bg-stone-100 text-zinc-700 border-t border-stone-200 dark:bg-zinc-950 dark:text-stone-300 dark:border-stone-50/5">
@@ -47,15 +72,32 @@ function Footer() {
             </span>
           </Link>
           <p className="mt-5 max-w-[42ch] text-sm text-zinc-600 dark:text-stone-400 leading-relaxed">
-            Agence de football indépendante basée à Luxembourg, dédiée à la
-            gestion de carrière, au scouting et à la représentation de joueurs
-            professionnels à travers l'Europe.
+            {t('footer.brand')}
           </p>
+
+          {socials.length > 0 && (
+            <ul className="mt-6 flex items-center gap-2" aria-label={t('footer.socials')}>
+              {socials.map(({ key, Icon, label }) => (
+                <li key={key}>
+                  <a
+                    href={settings.social_links[key]}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={label}
+                    title={label}
+                    className="grid place-items-center w-9 h-9 rounded-full border border-stone-300 text-zinc-600 hover:border-turf-700 hover:text-turf-700 dark:border-stone-50/15 dark:text-stone-400 dark:hover:border-turf-300 dark:hover:text-turf-300 transition-colors ease-premium"
+                  >
+                    <Icon size={16} weight="regular" />
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
         <div className="lg:col-span-2">
           <h4 className="font-mono uppercase tracking-[0.18em] text-[0.7rem] text-turf-700 dark:text-turf-300 mb-5">
-            Navigation
+            {t('footer.navigation')}
           </h4>
           <ul className="space-y-3">
             {NAV_LINKS.map((l) => (
@@ -64,7 +106,7 @@ function Footer() {
                   to={l.to}
                   className="text-sm text-zinc-600 hover:text-zinc-950 dark:text-stone-400 dark:hover:text-stone-50 transition-colors duration-200 ease-premium"
                 >
-                  {l.label}
+                  {t(l.key)}
                 </Link>
               </li>
             ))}
@@ -73,12 +115,12 @@ function Footer() {
 
         <div className="lg:col-span-2">
           <h4 className="font-mono uppercase tracking-[0.18em] text-[0.7rem] text-turf-700 dark:text-turf-300 mb-5">
-            Services
+            {t('footer.services')}
           </h4>
           <ul className="space-y-3">
-            {SERVICES.map((s) => (
-              <li key={s} className="text-sm text-zinc-600 dark:text-stone-400">
-                {s}
+            {SERVICE_KEYS.map((k) => (
+              <li key={k} className="text-sm text-zinc-600 dark:text-stone-400">
+                {t(k)}
               </li>
             ))}
           </ul>
@@ -86,7 +128,7 @@ function Footer() {
 
         <div className="lg:col-span-3">
           <h4 className="font-mono uppercase tracking-[0.18em] text-[0.7rem] text-turf-700 dark:text-turf-300 mb-5">
-            Contact
+            {t('footer.contact')}
           </h4>
           <ul className="space-y-3">
             {CONTACT.map(({ Icon, label, href }) => (
@@ -110,22 +152,22 @@ function Footer() {
 
       <div className="border-t border-stone-200 dark:border-stone-50/5">
         <div className="container-page py-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-zinc-500 dark:text-stone-500">
-          <p>© {year} Rene Football. Tous droits réservés.</p>
+          <p>{t('footer.copyright', { year })}</p>
           <div className="flex gap-6">
             <Link to="/mentions-legales" className="hover:text-zinc-900 dark:hover:text-stone-300 transition">
-              Mentions légales
+              {t('footer.legal.mentions')}
             </Link>
             <Link to="/confidentialite" className="hover:text-zinc-900 dark:hover:text-stone-300 transition">
-              Confidentialité
+              {t('footer.legal.privacy')}
             </Link>
             <Link to="/cookies" className="hover:text-zinc-900 dark:hover:text-stone-300 transition">
-              Cookies
+              {t('footer.legal.cookies')}
             </Link>
             <Link
               to={isAdmin ? '/admin' : '/admin/login'}
               className="hover:text-turf-700 dark:hover:text-turf-300 transition"
             >
-              {isAdmin ? 'Tableau de bord' : 'Espace agence'}
+              {isAdmin ? t('nav.adminDashboard') : t('nav.adminLogin')}
             </Link>
           </div>
         </div>
