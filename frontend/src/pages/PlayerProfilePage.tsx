@@ -40,6 +40,7 @@ import type { PlayerClip } from '../types/clip'
 import type { Presentation } from '../types/presentation'
 import { heatmapFromPosition, isValidGrid } from '../lib/heatmap'
 import { playerImage } from '../lib/playerImage'
+import { toPublicUrl } from '../lib/publicUrl'
 import { useDarkHero } from '../hooks/useDarkHero'
 
 type SectionId =
@@ -352,7 +353,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
         }
         path={`/joueurs/${player.slug}`}
         ogType="profile"
-        image={player.photo_url ? (player.photo_url.startsWith('http') ? player.photo_url : `https://renefootball.com${player.photo_url}`) : undefined}
+        image={player.photo_url ? toPublicUrl(player.photo_url) : undefined}
       />
       <ScrollRail sections={sections} scrollYProgress={scrollYProgress} />
 

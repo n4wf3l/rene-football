@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 
+# Vite: keep .env.example in git, ignore local/prod overrides.
+.env
+.env.local
+.env.*.local
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
