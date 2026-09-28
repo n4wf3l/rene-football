@@ -64,6 +64,14 @@ Route::get('/presentations/{token}/meta',          [PresentationController::clas
 Route::post('/contact', [ContactController::class, 'store'])
     ->middleware('throttle:5,1');
 
+// Signed CV download. Reachable only through a temporary URL minted by
+// AdminContactSubmissionController::cvLink() — the `signed` middleware
+// validates the signature and its 15-min expiry. Public route without
+// Sanctum so admins can open the link in a fresh tab.
+Route::get('/contact-submissions/{submission}/cv', [ContactController::class, 'downloadCv'])
+    ->middleware('signed')
+    ->name('contact.cv.download');
+
 // --- Authenticated admin ---
 Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
@@ -105,10 +113,11 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::get('/analysis/benchmark/{slug}',     [AnalysisController::class, 'benchmark']);
 
     // Public contact wizard inbox (audience-typed submissions).
-    Route::get('/contact-submissions',                    [AdminContactSubmissionController::class, 'index']);
-    Route::get('/contact-submissions/{submission}',       [AdminContactSubmissionController::class, 'show']);
+    Route::get('/contact-submissions',                       [AdminContactSubmissionController::class, 'index']);
+    Route::get('/contact-submissions/{submission}',          [AdminContactSubmissionController::class, 'show']);
+    Route::get('/contact-submissions/{submission}/cv-link',  [AdminContactSubmissionController::class, 'cvLink']);
     Route::patch('/contact-submissions/{submission}/status', [AdminContactSubmissionController::class, 'updateStatus']);
-    Route::delete('/contact-submissions/{submission}',    [AdminContactSubmissionController::class, 'destroy']);
+    Route::delete('/contact-submissions/{submission}',       [AdminContactSubmissionController::class, 'destroy']);
 
     // Editable benchmark table (position × age tier × metric).
     Route::get('/benchmarks',                    [AdminBenchmarkController::class, 'index']);

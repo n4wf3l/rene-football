@@ -7,6 +7,8 @@ use App\Models\ContactSubmission;
 use App\Models\Player;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Validation\Rule;
 
 /**
@@ -84,8 +86,37 @@ class AdminContactSubmissionController extends Controller
 
     public function destroy(ContactSubmission $submission): JsonResponse
     {
+        // Wipe the CV blob when purging the row so we don't accumulate
+        // orphaned uploads on disk (RGPD data minimisation).
+        if ($submission->cv_path) {
+            Storage::disk('local')->delete($submission->cv_path);
+            Storage::disk('public')->delete($submission->cv_path); // legacy layout
+        }
         $submission->delete();
         return response()->json(['data' => ['deleted' => true]]);
+    }
+
+    /**
+     * Return a short-lived signed URL to the CV attached to this submission.
+     * The URL points at a public route protected by Laravel's `signed`
+     * middleware: only holders of a signature we minted in this authed
+     * endpoint can download the file, and the signature expires after
+     * 15 minutes. This is the "URLs signées" mechanism advertised in the
+     * privacy policy.
+     */
+    public function cvLink(ContactSubmission $submission): JsonResponse
+    {
+        if (! $submission->cv_path) {
+            return response()->json(['message' => 'Aucun CV joint à cette demande.'], 404);
+        }
+
+        $url = URL::temporarySignedRoute(
+            'contact.cv.download',
+            now()->addMinutes(15),
+            ['submission' => $submission->id],
+        );
+
+        return response()->json(['data' => ['url' => $url, 'expires_in' => 900]]);
     }
 
     /**
@@ -159,7 +190,9 @@ class AdminContactSubmissionController extends Controller
             'payload'    => $safePayload,
             'player'     => $player,
             'status'     => $s->status,
-            'cv_url'     => $s->cv_path ? '/storage/'.$s->cv_path : null,
+            // No direct /storage URL: the frontend calls /cv-link on demand
+            // to receive a 15-minute signed URL (see cvLink()).
+            'has_cv'     => (bool) $s->cv_path,
             'consent_at' => $s->consent_at?->toIso8601String(),
             'created_at' => $s->created_at?->toIso8601String(),
             'ip'         => $s->ip,

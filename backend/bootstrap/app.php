@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\EnsureAdmin;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -35,6 +36,17 @@ return Application::configure(basePath: dirname(__DIR__))
             | Request::HEADER_X_FORWARDED_PROTO
             | Request::HEADER_X_FORWARDED_AWS_ELB
         );
+    })
+    ->withSchedule(function (Schedule $schedule): void {
+        // Daily RGPD retention purge — deletes contact submissions + CV
+        // files older than 12 months (see /confidentialite §5). Runs at
+        // 03:15 UTC to avoid overlap with any morning traffic bursts.
+        // Requires `php artisan schedule:work` (dev) or a cron entry
+        // `* * * * * php artisan schedule:run` in prod.
+        $schedule->command('submissions:purge')
+            ->dailyAt('03:15')
+            ->onOneServer()
+            ->withoutOverlapping();
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // API routes must return a JSON 401 on missing auth. Without this,
