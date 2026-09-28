@@ -15,6 +15,7 @@ import { api, ApiError } from '../../api/client'
 import { invalidateAppSettings } from '../../lib/useAppSettings'
 import type { AdminSettings } from '../../types/settings'
 import Skeleton from '../../components/Skeleton'
+import { useToast } from '../../components/ToastProvider'
 
 interface AdminSettingsResponse { data: AdminSettings }
 
@@ -45,6 +46,7 @@ const INPUT_BASE =
   'w-full rounded-lg border border-stone-300 bg-white text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-900 dark:border-stone-50/15 dark:bg-zinc-900 dark:text-stone-50 dark:placeholder:text-stone-500 dark:focus:border-turf-300 px-3 py-2 text-sm focus:outline-none transition'
 
 export default function AdminSettings() {
+  const toast = useToast()
   const [form, setForm] = useState<AdminSettings>(EMPTY)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -87,6 +89,7 @@ export default function AdminSettings() {
       // Clear the public cache so the footer / contact page refetch on next mount.
       invalidateAppSettings()
       setSavedAt(Date.now())
+      toast.success('Réseaux sociaux enregistrés.')
     } catch (err: unknown) {
       if (err instanceof ApiError && err.status === 422) {
         const flat: Partial<Record<keyof AdminSettings, string>> = {}
@@ -95,6 +98,10 @@ export default function AdminSettings() {
           flat[k as keyof AdminSettings] = Array.isArray(v) ? String(v[0]) : String(v)
         })
         setErrors(flat)
+        toast.error('Certains champs sont invalides. Corrigez et réessayez.')
+      } else {
+        const msg = err instanceof Error ? err.message : 'Enregistrement impossible.'
+        toast.error(msg)
       }
     } finally {
       setSaving(false)

@@ -1,5 +1,6 @@
 import { memo, useEffect } from 'react'
 import { motion, useMotionValue, useTransform, animate } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import {
   ArrowsLeftRight,
   Brain,
@@ -186,6 +187,7 @@ function ScoutReport({
   potentialLabel,
   scoutQuote,
 }: ScoutReportProps) {
+  const { t } = useTranslation()
   const hasAny =
     (comparisons && comparisons.length > 0) ||
     (strengths && strengths.length > 0) ||
@@ -212,7 +214,7 @@ function ScoutReport({
               {scoutQuote}
             </p>
             <div className="relative mt-4 pl-10 font-mono uppercase tracking-[0.18em] text-[0.65rem] text-turf-300">
-              Note de scout · Rene Football
+              {t('scoutReport.quoteAttribution')}
             </div>
           </blockquote>
         )}
@@ -220,7 +222,7 @@ function ScoutReport({
         {comparisons && comparisons.length > 0 && (
           <div>
             <div className="font-mono uppercase tracking-[0.18em] text-[0.65rem] text-zinc-500 dark:text-stone-400 mb-3">
-              Profils de référence
+              {t('scoutReport.comparisonsLabel')}
             </div>
             <ComparisonsRow items={comparisons} />
           </div>
@@ -229,7 +231,7 @@ function ScoutReport({
         {strengths && strengths.length > 0 && (
           <div>
             <div className="font-mono uppercase tracking-[0.18em] text-[0.65rem] text-zinc-500 dark:text-stone-400 mb-3">
-              Points forts identifiés
+              {t('scoutReport.strengthsLabel')}
             </div>
             <StrengthsRow items={strengths} />
           </div>
@@ -240,11 +242,11 @@ function ScoutReport({
       {typeof potentialRating === 'number' && (
         <div className="lg:col-span-4 rounded-3xl border border-stone-200/80 dark:border-stone-50/10 bg-white dark:bg-zinc-900/40 p-6 lg:p-8 flex flex-col items-center justify-center">
           <div className="font-mono uppercase tracking-[0.18em] text-[0.65rem] text-zinc-500 dark:text-stone-400 mb-3">
-            Potentiel
+            {t('scoutReport.potentialLabel')}
           </div>
           <PotentialGauge
             rating={potentialRating}
-            label={potentialLabel ?? 'Évaluation interne'}
+            label={potentialLabel ?? t('scoutReport.defaultRatingLabel')}
           />
         </div>
       )}

@@ -4,6 +4,7 @@ import { FilmSlate, Plus, Trash, X } from '@phosphor-icons/react'
 import { api, ApiError } from '../api/client'
 import type { ClipAnnotation, PlayerClip } from '../types/clip'
 import ClipAnnotator from './ClipAnnotator'
+import { useConfirm } from './ConfirmProvider'
 
 export interface ClipsGalleryAdminProps {
   /** Slug of the player whose clips we manage. When empty (new player not saved yet),
@@ -22,6 +23,7 @@ const FR_DURATION = (sec: number | null): string => {
 }
 
 export default function ClipsGalleryAdmin({ playerSlug }: ClipsGalleryAdminProps) {
+  const confirm = useConfirm()
   const [clips, setClips] = useState<PlayerClip[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -82,7 +84,12 @@ export default function ClipsGalleryAdmin({ playerSlug }: ClipsGalleryAdminProps
   }
 
   const onDelete = async (id: number) => {
-    if (!confirm('Supprimer ce moment ? L\'image sera effacée du serveur.')) return
+    if (!(await confirm({
+      title: 'Supprimer ce moment ?',
+      body: 'L\'image annotée sera effacée du serveur.',
+      confirmLabel: 'Supprimer',
+      danger: true,
+    }))) return
     try {
       await api.delete(`/admin/players/${playerSlug}/clips/${id}`, { auth: true })
       setClips((prev) => prev.filter((c) => c.id !== id))

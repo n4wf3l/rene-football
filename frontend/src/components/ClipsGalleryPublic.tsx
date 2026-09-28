@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { CaretLeft, CaretRight, X } from '@phosphor-icons/react'
+import { useTranslation } from 'react-i18next'
 import type { PlayerClip } from '../types/clip'
 
 export interface ClipsGalleryPublicProps {
@@ -15,6 +16,7 @@ const FR_DURATION = (sec: number | null): string => {
 }
 
 export default function ClipsGalleryPublic({ clips }: ClipsGalleryPublicProps) {
+  const { t } = useTranslation()
   const [openIndex, setOpenIndex] = useState<number | null>(null)
   const open = openIndex != null ? clips[openIndex] : null
 
@@ -82,7 +84,7 @@ export default function ClipsGalleryPublic({ clips }: ClipsGalleryPublicProps) {
           >
             <button
               type="button"
-              aria-label="Fermer"
+              aria-label={t('clipsGallery.close')}
               onClick={(e) => { e.stopPropagation(); setOpenIndex(null) }}
               className="absolute top-4 right-4 grid place-items-center w-10 h-10 rounded-full bg-stone-50/10 hover:bg-stone-50/20 text-stone-50 backdrop-blur transition"
             >
@@ -92,7 +94,7 @@ export default function ClipsGalleryPublic({ clips }: ClipsGalleryPublicProps) {
               <>
                 <button
                   type="button"
-                  aria-label="Moment précédent"
+                  aria-label={t('clipsGallery.previous')}
                   onClick={(e) => { e.stopPropagation(); setOpenIndex((i) => (i == null ? null : (i - 1 + clips.length) % clips.length)) }}
                   className="absolute left-4 top-1/2 -translate-y-1/2 grid place-items-center w-10 h-10 rounded-full bg-stone-50/10 hover:bg-stone-50/20 text-stone-50 backdrop-blur transition"
                 >
@@ -100,7 +102,7 @@ export default function ClipsGalleryPublic({ clips }: ClipsGalleryPublicProps) {
                 </button>
                 <button
                   type="button"
-                  aria-label="Moment suivant"
+                  aria-label={t('clipsGallery.next')}
                   onClick={(e) => { e.stopPropagation(); setOpenIndex((i) => (i == null ? null : (i + 1) % clips.length)) }}
                   className="absolute right-4 top-1/2 -translate-y-1/2 grid place-items-center w-10 h-10 rounded-full bg-stone-50/10 hover:bg-stone-50/20 text-stone-50 backdrop-blur transition"
                 >

@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { House, ArrowSquareOut } from '@phosphor-icons/react'
+import { useTranslation } from 'react-i18next'
 import type { Appearance } from '../types/appearance'
 
 export interface AppearancesTableProps {
@@ -7,12 +8,6 @@ export interface AppearancesTableProps {
   /** Show the rating sparkline header above the table. */
   withSparkline?: boolean
 }
-
-const FR_DATE = new Intl.DateTimeFormat('fr-FR', {
-  day: '2-digit',
-  month: 'short',
-  year: 'numeric',
-})
 
 function ratingClass(value: number | null): string {
   if (value === null) return 'text-zinc-500 dark:text-stone-500'
@@ -76,10 +71,21 @@ export default function AppearancesTable({
   appearances,
   withSparkline = true,
 }: AppearancesTableProps) {
+  const { t, i18n } = useTranslation()
+  const dateFmt = new Intl.DateTimeFormat(i18n.resolvedLanguage, {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  })
+  const formatRating = (v: number) => v.toLocaleString(i18n.resolvedLanguage, {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  })
+
   if (!appearances.length) {
     return (
       <div className="rounded-2xl border border-dashed border-stone-300 dark:border-stone-50/10 bg-white/40 dark:bg-zinc-900/30 px-6 py-10 text-center text-sm text-zinc-600 dark:text-stone-400">
-        Aucun match enregistré pour ce joueur.
+        {t('appearancesTable.empty')}
       </div>
     )
   }
@@ -95,11 +101,11 @@ export default function AppearancesTable({
         <div className="px-5 py-4 border-b border-stone-200 dark:border-stone-50/10 flex flex-wrap items-end justify-between gap-4">
           <div>
             <div className="font-mono uppercase tracking-[0.18em] text-[0.65rem] text-zinc-500 dark:text-stone-400 mb-1">
-              Tendance des notes - {appearances.length} matchs
+              {t('appearancesTable.trend', { count: appearances.length })}
             </div>
             <div className="font-mono text-2xl tabular-nums text-zinc-950 dark:text-stone-50">
-              {avg?.toFixed(1).replace('.', ',')}
-              <span className="text-stone-400 dark:text-stone-500 text-base ml-1">moy.</span>
+              {avg !== null ? formatRating(avg) : '-'}
+              <span className="text-stone-400 dark:text-stone-500 text-base ml-1">{t('appearancesTable.avg')}</span>
             </div>
           </div>
           <RatingSparkline appearances={appearances} />
@@ -110,15 +116,15 @@ export default function AppearancesTable({
         <table className="w-full text-sm">
           <thead className="bg-stone-50 dark:bg-zinc-950/40 border-b border-stone-200 dark:border-stone-50/10">
             <tr className="text-left text-[0.65rem] font-mono uppercase tracking-[0.16em] text-zinc-500 dark:text-stone-400">
-              <th className="px-4 py-2.5">Date</th>
-              <th className="px-4 py-2.5">Compétition</th>
-              <th className="px-4 py-2.5">Adversaire</th>
-              <th className="px-3 py-2.5 text-right">Score</th>
-              <th className="px-3 py-2.5 text-right">Min</th>
-              <th className="px-3 py-2.5 text-right">B</th>
-              <th className="px-3 py-2.5 text-right">PD</th>
-              <th className="px-3 py-2.5 text-right">Tirs</th>
-              <th className="px-4 py-2.5 text-right">Note</th>
+              <th className="px-4 py-2.5">{t('appearancesTable.headers.date')}</th>
+              <th className="px-4 py-2.5">{t('appearancesTable.headers.competition')}</th>
+              <th className="px-4 py-2.5">{t('appearancesTable.headers.opponent')}</th>
+              <th className="px-3 py-2.5 text-right">{t('appearancesTable.headers.score')}</th>
+              <th className="px-3 py-2.5 text-right">{t('appearancesTable.headers.minutes')}</th>
+              <th className="px-3 py-2.5 text-right">{t('appearancesTable.headers.goals')}</th>
+              <th className="px-3 py-2.5 text-right">{t('appearancesTable.headers.assists')}</th>
+              <th className="px-3 py-2.5 text-right">{t('appearancesTable.headers.shots')}</th>
+              <th className="px-4 py-2.5 text-right">{t('appearancesTable.headers.rating')}</th>
             </tr>
           </thead>
           <tbody>
@@ -129,7 +135,7 @@ export default function AppearancesTable({
               >
                 <td className="px-4 py-3 text-zinc-700 dark:text-stone-300 whitespace-nowrap">
                   <span className="font-mono text-xs">
-                    {FR_DATE.format(new Date(a.match_date))}
+                    {dateFmt.format(new Date(a.match_date))}
                   </span>
                 </td>
                 <td className="px-4 py-3 text-zinc-600 dark:text-stone-400 text-xs">
@@ -161,7 +167,7 @@ export default function AppearancesTable({
                   {a.shots > 0 ? `${a.shots_on_target}/${a.shots}` : ''}
                 </td>
                 <td className={`px-4 py-3 text-right font-mono tabular-nums ${ratingClass(a.rating)}`}>
-                  {a.rating !== null ? a.rating.toFixed(1).replace('.', ',') : '-'}
+                  {a.rating !== null ? formatRating(a.rating) : '-'}
                 </td>
               </tr>
             ))}

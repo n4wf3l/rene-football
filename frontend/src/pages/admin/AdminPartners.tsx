@@ -6,6 +6,7 @@ import { api, ApiError } from '../../api/client'
 import { invalidatePartnersCache } from '../../lib/usePublicPartners'
 import type { Partner } from '../../types/partner'
 import Skeleton from '../../components/Skeleton'
+import { useConfirm } from '../../components/ConfirmProvider'
 
 interface ListResponse { data: Partner[] }
 interface OneResponse  { data: Partner }
@@ -32,6 +33,7 @@ const INPUT =
   'w-full rounded-lg border border-stone-300 bg-white text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-900 dark:border-stone-50/15 dark:bg-zinc-900 dark:text-stone-50 dark:placeholder:text-stone-500 dark:focus:border-turf-300 px-3 py-2 text-sm focus:outline-none transition'
 
 export default function AdminPartners() {
+  const confirm = useConfirm()
   const [partners, setPartners] = useState<Partner[]>([])
   const [loading, setLoading] = useState(true)
   const [editingSlug, setEditingSlug] = useState<string | null>(null) // null = list, 'new' = create form, other = edit
@@ -131,7 +133,12 @@ export default function AdminPartners() {
   }
 
   const removePartner = async (p: Partner) => {
-    if (!confirm(`Supprimer « ${p.name} » ?`)) return
+    if (!(await confirm({
+      title: `Supprimer « ${p.name} » ?`,
+      body: 'Le partenaire sera retiré du site public.',
+      confirmLabel: 'Supprimer',
+      danger: true,
+    }))) return
     try {
       await api.delete(`/admin/partners/${p.slug}`, { auth: true })
       invalidatePartnersCache()
@@ -144,7 +151,12 @@ export default function AdminPartners() {
 
   const removeLogo = async (p: Partner) => {
     if (!p.logo_url) return
-    if (!confirm(`Retirer le logo de « ${p.name} » ?`)) return
+    if (!(await confirm({
+      title: `Retirer le logo de « ${p.name} » ?`,
+      body: 'Le logo sera effacé du serveur. Vous pourrez en téléverser un nouveau plus tard.',
+      confirmLabel: 'Retirer',
+      danger: true,
+    }))) return
     try {
       const fd = new FormData()
       fd.append('logo_remove', '1')

@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 
 export interface PercentileBarsProps {
   /** Map metric_key → 0..100 percentile (already inverted for "lower is better" metrics). */
@@ -18,12 +19,12 @@ function tone(value: number) {
   return 'bg-rose-700'
 }
 
-function label(value: number) {
-  if (value >= 90) return 'Élite'
-  if (value >= 75) return 'Top'
-  if (value >= 50) return 'Au-dessus'
-  if (value >= 25) return 'Sous'
-  return 'Bas'
+function toneKey(value: number): 'elite' | 'top' | 'above' | 'below' | 'bottom' {
+  if (value >= 90) return 'elite'
+  if (value >= 75) return 'top'
+  if (value >= 50) return 'above'
+  if (value >= 25) return 'below'
+  return 'bottom'
 }
 
 /**
@@ -37,10 +38,12 @@ export default function PercentileBars({
   populationSize,
   className = '',
 }: PercentileBarsProps) {
+  const { t } = useTranslation()
+
   if (!percentiles) {
     return (
       <div className="text-xs text-zinc-500 dark:text-stone-500 italic">
-        Percentiles indisponibles.
+        {t('percentileBars.unavailable')}
       </div>
     )
   }
@@ -49,7 +52,7 @@ export default function PercentileBars({
     <div className={`space-y-3 ${className}`}>
       {populationSize !== undefined && (
         <div className="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-zinc-500 dark:text-stone-500">
-          Référence : {populationSize} joueur{populationSize > 1 ? 's' : ''} du même poste
+          {t('percentileBars.reference', { count: populationSize })}
         </div>
       )}
       <ul className="space-y-2.5">
@@ -75,7 +78,7 @@ export default function PercentileBars({
                 {v.toFixed(0)}
                 <span className="text-zinc-500 dark:text-stone-500 text-[0.65rem] ml-0.5">%</span>
                 <div className="text-[0.6rem] uppercase tracking-wider text-zinc-500 dark:text-stone-500">
-                  {label(v)}
+                  {t(`percentileBars.tones.${toneKey(v)}`)}
                 </div>
               </span>
             </li>

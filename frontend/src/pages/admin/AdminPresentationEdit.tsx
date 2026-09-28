@@ -27,6 +27,7 @@ import PlayerSingleSelect from '../../components/PlayerSingleSelect'
 import PresentationPreview from '../../components/PresentationPreview'
 import Skeleton from '../../components/Skeleton'
 import WorkInProgressBanner from '../../components/admin/WorkInProgressBanner'
+import { useConfirm } from '../../components/ConfirmProvider'
 
 interface PlayersResponse { data: (Player & { id: number })[] }
 interface PresentationResponse { data: Presentation }
@@ -103,6 +104,7 @@ interface FormState {
 }
 
 export default function AdminPresentationEdit({ creating = false }: { creating?: boolean }) {
+  const confirm = useConfirm()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
 
@@ -314,7 +316,12 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
 
   const onClearAsset = async () => {
     if (!existing?.id) return
-    if (!confirm('Retirer la fiche externe ? Le PDF sera à nouveau généré depuis le template.')) return
+    if (!(await confirm({
+      title: 'Retirer la fiche externe ?',
+      body: 'Le PDF sera à nouveau généré depuis le template par défaut.',
+      confirmLabel: 'Retirer',
+      danger: true,
+    }))) return
     try {
       const res = await api.delete<PresentationResponse>(`/admin/presentations/${existing.id}/asset`, { auth: true })
       setExisting(res.data)
@@ -474,7 +481,12 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
 
   const onDelete = async () => {
     if (!existing) return
-    if (!confirm(`Supprimer définitivement « ${existing.title} » ?`)) return
+    if (!(await confirm({
+      title: `Supprimer « ${existing.title} » ?`,
+      body: 'Le lien de partage cessera de fonctionner immédiatement.',
+      confirmLabel: 'Supprimer',
+      danger: true,
+    }))) return
     try {
       await api.delete(`/admin/presentations/${existing.id}`, { auth: true })
       navigate('/admin/presentations', { state: { toast: 'Présentation supprimée.' } })

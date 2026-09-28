@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { ArrowLeft } from '@phosphor-icons/react'
+import { useTranslation } from 'react-i18next'
 
 interface PlaceholderPageProps {
   title: string
@@ -7,11 +8,12 @@ interface PlaceholderPageProps {
 }
 
 function PlaceholderPage({ title, description }: PlaceholderPageProps) {
+  const { t } = useTranslation()
   return (
     <section className="bg-stone-50 min-h-[70vh] py-24 lg:py-32">
       <div className="container-page max-w-page">
         <div className="max-w-[60ch]">
-          <span className="eyebrow">Bientôt disponible</span>
+          <span className="eyebrow">{t('placeholder.eyebrow')}</span>
           <h1 className="mt-3 font-display font-semibold text-4xl lg:text-6xl tracking-tightest text-zinc-950 leading-[1.05]">
             {title}
           </h1>
@@ -20,7 +22,7 @@ function PlaceholderPage({ title, description }: PlaceholderPageProps) {
           </p>
           <Link to="/" className="btn btn-outline mt-10">
             <ArrowLeft size={16} weight="bold" />
-            Retour à l'accueil
+            {t('placeholder.backHome')}
           </Link>
         </div>
       </div>

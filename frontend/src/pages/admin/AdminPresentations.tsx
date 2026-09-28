@@ -15,6 +15,7 @@ import { api } from '../../api/client'
 import type { Presentation } from '../../types/presentation'
 import Skeleton from '../../components/Skeleton'
 import WorkInProgressBanner from '../../components/admin/WorkInProgressBanner'
+import { useConfirm } from '../../components/ConfirmProvider'
 
 interface PresentationListResponse { data: Presentation[] }
 interface ToastState { kind: 'success' | 'error'; message: string }
@@ -64,6 +65,7 @@ function fmtDate(value: string | null | undefined): string {
 }
 
 export default function AdminPresentations() {
+  const confirm = useConfirm()
   const navigate = useNavigate()
   const location = useLocation()
   const [rows, setRows] = useState<Presentation[]>([])
@@ -116,7 +118,12 @@ export default function AdminPresentations() {
   }
 
   const onDelete = async (p: Presentation) => {
-    if (!confirm(`Supprimer définitivement la présentation « ${p.title} » ?`)) return
+    if (!(await confirm({
+      title: `Supprimer la présentation « ${p.title} » ?`,
+      body: 'Le lien de partage cessera de fonctionner immédiatement.',
+      confirmLabel: 'Supprimer',
+      danger: true,
+    }))) return
     try {
       await api.delete(`/admin/presentations/${p.id}`, { auth: true })
       await reload()

@@ -204,6 +204,7 @@ interface MegaPanelProps {
 }
 
 const MegaPanel = memo(function MegaPanel({ open, onClose, onMouseEnter, onMouseLeave }: MegaPanelProps) {
+  const { t } = useTranslation()
   const { players } = usePublicPlayers()
   const showcase = pickShowcase(players, 3)
   const total = players.length
@@ -272,7 +273,7 @@ const MegaPanel = memo(function MegaPanel({ open, onClose, onMouseEnter, onMouse
               className="relative z-10 flex items-center justify-between px-5 py-4 border-t border-stone-900/10 dark:border-stone-50/10 text-sm text-zinc-800 hover:text-zinc-950 hover:bg-zinc-900/5 dark:text-stone-200 dark:hover:text-stone-50 dark:hover:bg-stone-50/5 transition group"
             >
               <span className="flex items-center gap-2">
-                <span>Voir tous nos joueurs</span>
+                <span>{t('home.roster.viewAll')}</span>
                 <span className="font-mono text-[0.7rem] text-zinc-500 dark:text-stone-500 tabular-nums">({total})</span>
               </span>
               <ArrowUpRight
@@ -538,7 +539,7 @@ function Header() {
             <button
               type="button"
               className="inline-flex items-center justify-center w-10 h-10 rounded-xl text-zinc-900 hover:bg-zinc-900/5 dark:text-stone-50 dark:hover:bg-stone-50/5 transition"
-              aria-label={open ? 'Fermer le menu' : 'Ouvrir le menu'}
+              aria-label={t(open ? 'nav.mobile.closeMenu' : 'nav.mobile.openMenu')}
               aria-expanded={open}
               onClick={() => setOpen((v) => !v)}
             >

@@ -10,7 +10,10 @@
     "search": "Zoeken",
     "allF": "Alle",
     "allM": "Alle",
-    "clear": "Wissen"
+    "clear": "Wissen",
+    "cancel": "Annuleren",
+    "confirm": "Bevestigen",
+    "delete": "Verwijderen"
   },
   "nav": {
     "home": "Home",
@@ -19,7 +22,11 @@
     "about": "Over ons",
     "contact": "Contact",
     "adminLogin": "Agentschap-portaal",
-    "adminDashboard": "Dashboard"
+    "adminDashboard": "Dashboard",
+    "mobile": {
+      "openMenu": "Menu openen",
+      "closeMenu": "Menu sluiten"
+    }
   },
   "language": {
     "label": "Taal",
@@ -287,6 +294,11 @@
     "publishedOn": "Gepubliceerd op",
     "photos": "Foto's",
     "clips": "Clips",
+    "lightbox": {
+      "close": "Sluiten",
+      "previous": "Vorige foto",
+      "next": "Volgende foto"
+    },
     "notFound": {
       "title": "Artikel niet gevonden",
       "paragraph": "Dit artikel is mogelijk verwijderd of de URL is veranderd.",
@@ -459,11 +471,104 @@
     "errorTitle": "Er is een fout opgetreden",
     "errorHint": "De presentatie kon niet worden geladen. Controleer uw verbinding en probeer het opnieuw."
   },
+  "placeholder": {
+    "eyebrow": "Binnenkort beschikbaar",
+    "backHome": "Terug naar home"
+  },
+  "playerRadar": {
+    "aria": "Kwaliteits-radarprofiel",
+    "eliteBenchmark": "Elite-referentie",
+    "axes": {
+      "goals": "Doelpunten",
+      "xg": "xG",
+      "shotsOnTarget": "Schoten op doel",
+      "dribbles": "Dribbels",
+      "keyPasses": "Sleutelpasses",
+      "assists": "Assists",
+      "passAccuracy": "% passes",
+      "tackles": "Tackles",
+      "interceptions": "Onderscheppingen",
+      "duelsWon": "Duels gew.",
+      "cleanSheets": "Clean sh.",
+      "matches": "Wedstrijden",
+      "saves": "Reddingen",
+      "minutes": "Minuten"
+    }
+  },
+  "percentileBars": {
+    "unavailable": "Percentielen niet beschikbaar.",
+    "reference_one":   "Referentie: {{count}} speler op dezelfde positie",
+    "reference_other": "Referentie: {{count}} spelers op dezelfde positie",
+    "tones": {
+      "elite":  "Elite",
+      "top":    "Top",
+      "above":  "Boven",
+      "below":  "Onder",
+      "bottom": "Onderaan"
+    }
+  },
+  "clipsGallery": {
+    "close": "Sluiten",
+    "previous": "Vorig moment",
+    "next": "Volgend moment"
+  },
+  "scoutReport": {
+    "quoteAttribution": "Scouting-notitie · Rene Football",
+    "comparisonsLabel": "Referentieprofielen",
+    "strengthsLabel": "Geïdentificeerde sterktes",
+    "potentialLabel": "Potentieel",
+    "defaultRatingLabel": "Interne beoordeling"
+  },
+  "appearancesTable": {
+    "empty": "Geen wedstrijden geregistreerd voor deze speler.",
+    "trend": "Trend van de rapportcijfers - {{count}} wedstrijden",
+    "avg": "gem.",
+    "headers": {
+      "date": "Datum",
+      "competition": "Competitie",
+      "opponent": "Tegenstander",
+      "score": "Score",
+      "minutes": "Min",
+      "goals": "D",
+      "assists": "A",
+      "shots": "Schoten",
+      "rating": "Cijfer"
+    }
+  },
+  "cookieNotice": {
+    "regionAria": "Cookie-informatie",
+    "closeAria": "Melding sluiten",
+    "eyebrow": "Privacy",
+    "title": "Geen tracking-cookies, geen analytics.",
+    "body": "We gebruiken enkel de strikt noodzakelijke lokale opslag (themavoorkeur, admin-sessie). Geen reclamecookies, geen trackers van derden, geen profilering. Details in het <cookies>cookiebeleid</cookies> en in het <privacy>privacybeleid</privacy>.",
+    "acceptCta": "Begrepen",
+    "learnMoreCta": "Meer weten"
+  },
+  "legal": {
+    "eyebrow": "Juridische informatie",
+    "navAria": "Juridische pagina's",
+    "updatedAt": "Laatst bijgewerkt: {{date}}",
+    "authoritativeNotice": "De Franse versie van dit document is bindend. De andere taalversies worden louter ter informatie verstrekt.",
+    "nav": {
+      "mentions": "Juridische kennisgeving",
+      "privacy": "Privacy",
+      "cookies": "Cookies"
+    },
+    "mentions": { "title": "Juridische kennisgeving" },
+    "privacy":  { "title": "Privacybeleid" },
+    "cookies":  { "title": "Cookies & trackers" }
+  },
   "contact": {
+    "seo": {
+      "description": "Speler, ouder, club of media: neem contact op met Rene Football. Voetbalagentschap gevestigd in Luxemburg, FIFA-gelicentieerde agent sinds 2010."
+    },
     "hero": {
       "eyebrow": "Contact opnemen",
-      "title": "Schrijf ons.",
-      "paragraph": "Kies uw profiel: de vragen passen zich aan zodat we uw verzoek snel begrijpen."
+      "title": "Laten we uw project bespreken.",
+      "paragraph": "Speler, familie, profclub of journalist: enkele gerichte vragen en ons team antwoordt binnen 48 uur. Vertrouwelijk gesprek, vrijblijvend."
+    },
+    "fieldLabel": {
+      "optional": "(optioneel)"
     },
     "steps": {
       "profile": "Profiel",
@@ -506,7 +611,125 @@
       "submit": "Mijn aanvraag versturen"
     },
     "errors": {
-      "submitFailed": "Verzenden mislukt. Probeer het opnieuw of mail ons op renefootball.p@gmail.com."
+      "submitFailed": "Verzenden mislukt. Probeer het opnieuw of mail ons op renefootball.p@gmail.com.",
+      "throttled": "Te veel aanvragen verzonden. Wacht een minuut voordat u het opnieuw probeert."
+    },
+    "forms": {
+      "joueur": {
+        "intent": {
+          "label": "Wat is uw doel?",
+          "options": {
+            "join": "Bij het agentschap komen",
+            "renew": "Een begeleiding verlengen",
+            "advice": "Advies / oriëntatie",
+            "other": "Overige"
+          }
+        },
+        "playerName": { "label": "Naam van de speler", "placeholder": "Voornaam Achternaam" },
+        "dob":        { "label": "Geboortedatum", "placeholder": "dd/mm/jjjj" },
+        "position":   { "label": "Hoofdpositie", "placeholder": "Aanvaller, middenvelder, verdediger…" },
+        "club":       { "label": "Huidige club", "placeholder": "Naam van de club" },
+        "level": {
+          "label": "Niveau",
+          "options": {
+            "youth": "Jeugd / Academie",
+            "amateur": "Amateur",
+            "semi_pro": "Semi-prof",
+            "pro": "Professioneel"
+          }
+        },
+        "video":     { "label": "Video / highlights (URL)", "placeholder": "https://youtu.be/…  of  drive.google.com/…" },
+        "objective": { "label": "Doel op middellange termijn", "placeholder": "Bij een Europese academie aansluiten, prof worden op 18…" },
+        "cv":        { "label": "CV / dossier (PDF, JPG, PNG - max 6 MB)", "placeholder": "Klik om een bestand toe te voegen" }
+      },
+      "club": {
+        "name": { "label": "Naam van de club", "placeholder": "Bv. RSC Anderlecht" },
+        "role": {
+          "label": "Uw rol",
+          "placeholder": "Kies…",
+          "options": {
+            "coach": "Trainer",
+            "sporting_director": "Sportief directeur",
+            "scout": "Scout / Recruiter",
+            "president": "Voorzitter",
+            "other": "Overige"
+          }
+        },
+        "interest": {
+          "label": "Onderwerp van uw aanvraag",
+          "options": {
+            "player": "Interesse in een speler",
+            "profile": "Op zoek naar een profiel",
+            "partnership": "Partnerschap / samenwerking",
+            "other": "Overige"
+          }
+        },
+        "player": {
+          "label": "Beoogde speler",
+          "placeholder": "Een speler uit de selectie…",
+          "emptyLabel": "Voorlopig zijn er geen spelers gepubliceerd.",
+          "hint": "Staat de speler niet in de lijst? Geef de naam hieronder op."
+        },
+        "otherPlayer":    { "label": "Andere speler (vrije tekst)", "placeholder": "Naam van een niet-vermelde speler" },
+        "neededPosition": { "label": "Gezochte positie", "placeholder": "Bv. linkervleugelspeler" },
+        "ageMin":         "Min. leeftijd",
+        "ageMax":         "Max. leeftijd",
+        "budget":         { "label": "Budget / financieel kader", "placeholder": "Bv. 100-250k€ / jaar, of onderhandelbaar" }
+      },
+      "media": {
+        "name": { "label": "Naam van het medium", "placeholder": "Bv. L'Équipe, RTL, DAZN…" },
+        "role": {
+          "label": "Uw rol",
+          "placeholder": "Kies…",
+          "options": {
+            "journalist": "Journalist",
+            "editor": "Hoofdredacteur",
+            "producer": "Producent / Regisseur",
+            "other": "Overige"
+          }
+        },
+        "purpose": {
+          "label": "Onderwerp van de aanvraag",
+          "options": {
+            "interview_player": "Interview met een speler",
+            "article": "Artikel / dossier",
+            "documentary": "Documentaire",
+            "other": "Overige"
+          }
+        },
+        "player":      { "label": "Gewenste speler", "placeholder": "Een speler uit de selectie…", "emptyLabel": "Voorlopig zijn er geen spelers gepubliceerd." },
+        "otherPlayer": { "label": "Andere speler (vrije tekst)", "placeholder": "Bv. een speler die niet door ons vertegenwoordigd wordt" },
+        "deadline":    { "label": "Deadline voor publicatie", "placeholder": "dd/mm/jjjj" }
+      },
+      "autre": {
+        "subject": { "label": "Onderwerp van uw aanvraag", "placeholder": "Vat uw aanvraag samen in één regel" }
+      },
+      "coords": {
+        "name":    { "label": "Uw naam", "placeholder": "Voornaam Achternaam" },
+        "email":   { "label": "E-mail", "placeholder": "u@example.com" },
+        "phone":   { "label": "Telefoon", "placeholder": "+352 661 24 18 47" },
+        "message": { "label": "Uw bericht", "placeholder": "Beschrijf uw aanvraag. Hoe preciezer, hoe beter we u kunnen doorverwijzen." }
+      }
+    },
+    "consent": {
+      "text": "Ik ga ermee akkoord dat mijn gegevens door Rene Football worden gebruikt om mijn aanvraag te behandelen.",
+      "privacyLink": "Privacybeleid",
+      "privacyNote": "Uw gegevens worden nooit met derden gedeeld."
+    },
+    "validation": {
+      "intent": "Kies een doel.",
+      "playerName": "Geef de naam van de speler op.",
+      "videoUrl": "Ongeldige URL.",
+      "clubName": "Geef de naam van de club op.",
+      "role": "Preciseer uw rol.",
+      "interest": "Selecteer een onderwerp.",
+      "mediaName": "Geef de naam van het medium op.",
+      "purpose": "Selecteer een onderwerp.",
+      "subject": "Vat uw aanvraag samen.",
+      "contactName": "Geef uw volledige naam op.",
+      "contactEmail": "Ongeldig e-mailadres.",
+      "message": "Beschrijf uw aanvraag (min. 10 tekens).",
+      "consent": "U moet akkoord gaan met de verwerking van uw gegevens."
     },
     "success": {
       "eyebrow": "Aanvraag verzonden",

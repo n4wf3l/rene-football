@@ -14,6 +14,7 @@ import {
 import { api } from '../../api/client'
 import type { StaffMember } from '../../types/staff'
 import Skeleton from '../../components/Skeleton'
+import { useConfirm } from '../../components/ConfirmProvider'
 
 interface StaffListResponse { data: StaffMember[] }
 interface ToastState { kind: 'success' | 'error'; message: string }
@@ -39,6 +40,7 @@ function Toast({ kind, message, onDismiss }: ToastState & { onDismiss: () => voi
 }
 
 export default function AdminStaff() {
+  const confirm = useConfirm()
   const navigate = useNavigate()
   const location = useLocation()
   const [members, setMembers] = useState<StaffMember[]>([])
@@ -71,7 +73,12 @@ export default function AdminStaff() {
   }, [location.state])
 
   const onDelete = async (m: StaffMember) => {
-    if (!confirm(`Supprimer définitivement « ${m.name} » ?`)) return
+    if (!(await confirm({
+      title: `Supprimer « ${m.name} » ?`,
+      body: 'Ce membre du staff sera retiré du site public.',
+      confirmLabel: 'Supprimer',
+      danger: true,
+    }))) return
     try {
       await api.delete(`/admin/staff/${m.slug}`, { auth: true })
       await reload()

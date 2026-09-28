@@ -67,6 +67,7 @@ interface GalleryProps {
 
 /** Local lightbox for the photo gallery (separate from the clips lightbox). */
 function Gallery({ images }: GalleryProps) {
+  const { t } = useTranslation()
   const [openIndex, setOpenIndex] = useState<number | null>(null)
   const open = openIndex != null ? images[openIndex] : null
 
@@ -121,7 +122,7 @@ function Gallery({ images }: GalleryProps) {
           >
             <button
               type="button"
-              aria-label="Fermer"
+              aria-label={t('article.lightbox.close')}
               onClick={(e) => { e.stopPropagation(); setOpenIndex(null) }}
               className="absolute top-4 right-4 grid place-items-center w-10 h-10 rounded-full bg-stone-50/10 hover:bg-stone-50/20 text-stone-50 backdrop-blur transition"
             >
@@ -131,7 +132,7 @@ function Gallery({ images }: GalleryProps) {
               <>
                 <button
                   type="button"
-                  aria-label="Photo précédente"
+                  aria-label={t('article.lightbox.previous')}
                   onClick={(e) => { e.stopPropagation(); setOpenIndex((i) => (i == null ? null : (i - 1 + images.length) % images.length)) }}
                   className="absolute left-4 top-1/2 -translate-y-1/2 grid place-items-center w-10 h-10 rounded-full bg-stone-50/10 hover:bg-stone-50/20 text-stone-50 backdrop-blur transition"
                 >
@@ -139,7 +140,7 @@ function Gallery({ images }: GalleryProps) {
                 </button>
                 <button
                   type="button"
-                  aria-label="Photo suivante"
+                  aria-label={t('article.lightbox.next')}
                   onClick={(e) => { e.stopPropagation(); setOpenIndex((i) => (i == null ? null : (i + 1) % images.length)) }}
                   className="absolute right-4 top-1/2 -translate-y-1/2 grid place-items-center w-10 h-10 rounded-full bg-stone-50/10 hover:bg-stone-50/20 text-stone-50 backdrop-blur transition"
                 >
