@@ -20,6 +20,7 @@ import Skeleton from '../components/Skeleton'
 import ClipsGalleryPublic from '../components/ClipsGalleryPublic'
 import { api, ApiError } from '../api/client'
 import { playerImage } from '../lib/playerImage'
+import { toPublicUrl } from '../lib/publicUrl'
 import { useDarkHero } from '../hooks/useDarkHero'
 import type { Article, ArticleImage } from '../types/article'
 
@@ -252,7 +253,7 @@ export default function ArticleDetailPage() {
         description={article.excerpt || `${article.title} — actualité Rene Football, agence de football au Luxembourg.`}
         path={`/actualites/${article.slug}`}
         ogType="article"
-        image={cover.startsWith('http') ? cover : `https://renefootball.com${cover}`}
+        image={cover ? toPublicUrl(cover) : undefined}
       />
       {/* Hero with cover */}
       <section className="relative overflow-hidden text-stone-100">

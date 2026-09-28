@@ -1,4 +1,5 @@
 import { Helmet } from 'react-helmet-async'
+import { PUBLIC_BASE_URL, toPublicUrl } from '../lib/publicUrl'
 
 interface SeoProps {
   /** Page-specific title. The " · Rene Football" suffix is appended
@@ -21,8 +22,7 @@ interface SeoProps {
   noindex?: boolean
 }
 
-const BASE_URL = 'https://renefootball.com'
-const DEFAULT_IMAGE = `${BASE_URL}/logo-black.png`
+const DEFAULT_IMAGE = `${PUBLIC_BASE_URL}/logo-black.png`
 
 /**
  * Per-route SEO block. Emits Open Graph + Twitter Card + canonical + robots
@@ -41,8 +41,8 @@ export default function Seo({
 }: SeoProps) {
   const fullTitle = bareTitle ? title : `${title} · Rene Football`
   const url = path
-    ? (path.startsWith('http') ? path : `${BASE_URL}${path.startsWith('/') ? path : `/${path}`}`)
-    : (typeof window !== 'undefined' ? window.location.href.split('#')[0].split('?')[0] : BASE_URL)
+    ? toPublicUrl(path)
+    : (typeof window !== 'undefined' ? window.location.href.split('#')[0].split('?')[0] : PUBLIC_BASE_URL)
 
   return (
     <Helmet prioritizeSeoTags>
