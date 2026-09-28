@@ -15,6 +15,7 @@ import {
 } from '@phosphor-icons/react'
 import { api, ApiError } from '../../api/client'
 import { useConfirm } from '../../components/ConfirmProvider'
+import { useToast } from '../../components/ToastProvider'
 
 /* -------------------------------------------------------------------------- */
 /*  Types matching the admin controller payload                               */
@@ -49,7 +50,10 @@ interface SubmissionDetail extends SubmissionSummary {
   message: string
   payload: Record<string, unknown>
   player: Player | null
-  cv_url: string | null
+  // No direct URL any more — the backend mints a 15-min signed URL on demand
+  // (fetched via the /cv-link endpoint) so the CV never sits behind a
+  // guessable /storage/* path.
+  has_cv: boolean
   consent_at: string | null
   ip: string | null
   user_agent: string | null
@@ -120,6 +124,7 @@ function formatDate(iso: string | null): string {
 
 function AdminContact() {
   const confirm = useConfirm()
+  const toast = useToast()
   const [rows, setRows] = useState<SubmissionSummary[]>([])
   const [counts, setCounts] = useState<Record<Status, number>>({ new: 0, read: 0, handled: 0, archived: 0 })
   const [total, setTotal] = useState(0)
@@ -182,6 +187,24 @@ function AdminContact() {
       await load()
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Mise à jour impossible.')
+    }
+  }
+
+  /**
+   * Fetch a temporary signed URL for the CV attached to a submission, then
+   * open it in a new tab. The URL is valid for 15 minutes and expires
+   * server-side — it can be safely closed without leaving anything
+   * addressable behind. No direct /storage path is ever exposed.
+   */
+  const downloadCv = async (id: number) => {
+    try {
+      const res = await api.get<{ data: { url: string } }>(
+        `/admin/contact-submissions/${id}/cv-link`,
+        { auth: true },
+      )
+      window.open(res.data.url, '_blank', 'noopener,noreferrer')
+    } catch (e) {
+      toast.error(e instanceof ApiError ? e.message : 'Téléchargement impossible.')
     }
   }
 
@@ -333,6 +356,7 @@ function AdminContact() {
               submission={selected}
               onStatus={(s) => updateStatus(selected.id, s)}
               onDelete={() => deleteSubmission(selected.id)}
+              onDownloadCv={() => downloadCv(selected.id)}
               onClose={() => setSelected(null)}
             />
           )}
@@ -350,11 +374,13 @@ function SubmissionDetailPanel({
   submission,
   onStatus,
   onDelete,
+  onDownloadCv,
   onClose,
 }: {
   submission: SubmissionDetail
   onStatus: (s: Status) => void
   onDelete: () => void
+  onDownloadCv: () => void
   onClose: () => void
 }) {
   const meta = REASON_META[submission.reason]
@@ -456,17 +482,16 @@ function SubmissionDetailPanel({
         </div>
       </div>
 
-      {/* CV */}
-      {submission.cv_url && (
-        <a
-          href={submission.cv_url}
-          target="_blank"
-          rel="noopener noreferrer"
+      {/* CV — opened via a 15-min signed URL fetched on click. */}
+      {submission.has_cv && (
+        <button
+          type="button"
+          onClick={onDownloadCv}
           className="mt-5 inline-flex items-center gap-2 rounded-xl border border-stone-300 dark:border-stone-50/15 px-3 py-2 text-sm text-zinc-800 dark:text-stone-100 hover:bg-stone-50 dark:hover:bg-stone-50/5"
         >
           <DownloadSimple size={14} weight="bold" />
           Télécharger le CV
-        </a>
+        </button>
       )}
 
       {/* Actions */}
