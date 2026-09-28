@@ -549,14 +549,53 @@
     "navAria": "Rechtlech Säiten",
     "updatedAt": "Lescht Aktualiséierung: {{date}}",
     "authoritativeNotice": "Déi franséisch Versioun vun dësem Dokument mécht Foi. Déi aner Sproochversioune ginn nëmmen zu Informatiounszwecker geliwwert.",
+    "fullFrenchBelow": "Komplett Versioun (Franséisch) hei ënnendrënner",
     "nav": {
       "mentions": "Impressum",
       "privacy": "Vertraulechkeet",
       "cookies": "Cookies"
     },
-    "mentions": { "title": "Impressum" },
-    "privacy":  { "title": "Vertraulechkeetspolitik" },
-    "cookies":  { "title": "Cookies & Tracer" }
+    "mentions": {
+      "title": "Impressum",
+      "summary": {
+        "title": "Kuerz zesummegefaasst",
+        "bullets": [
+          "Rene Football ass eng Fussballagence mat Sëtz zu Lëtzebuerg. Verantwortlechen fir d'Publikatioun: René Ajari.",
+          "Kontakt: contact@renefootball.com · +352 661 24 18 47.",
+          "All Inhalt vun der Websäit (Fotoen, Spillerdaten, PDFen, Artikelen) gehéiert Rene Football. Keng Wiederverwendung ouni schrëftlech Erlaabnis.",
+          "D'Websäit leeft ausschliisslech iwwer HTTPS; d'Server stinn an der Europäescher Unioun.",
+          "Uwendbaar Recht: Lëtzebuerg. Streidereien fale gëllt bei de Lëtzebuerger Geriichter."
+        ]
+      }
+    },
+    "privacy":  {
+      "title": "Vertraulechkeetspolitik",
+      "summary": {
+        "title": "Kuerz zesummegefaasst",
+        "bullets": [
+          "Mir sammelen nëmme wat Dir iwwer d'Kontaktformulaire schéckt (Numm, E-Mail, Telefon, Message, profillspezifesch Felder, fakultative Lieweslaf) plus Är IP an de User-Agent géint Spam.",
+          "Keng Analytik, keng Reklamm-Cookien, keng Tracker vun Drëttpersounen, keng Profiléierung.",
+          "D'Donnéeë sinn nëmme fir d'Ekipp vu Rene Football an direkt technesch Dënschtleeschter (Hosting, E-Mail) zougänglech. Ni verkaaft oder gedeelt fir Marketing.",
+          "Drëtt Servicer mat Browserzougrëff: Google Fonts (nëmmen IP), YouTube am Privacy-Modus (kee Cookie ier Dir op Play klickt), flagcdn.com.",
+          "Späicherdauer: 12 Méint fir onbeäntwert Ufroen, Kontraktdauer + 5 Joer bei lafende Bezéiungen.",
+          "DSGVO-Rechter (Zougrëff, Berichtegung, Läschen, Portabilitéit, Widerspréch): schreift op contact@renefootball.com mat Betreff RGPD. Äntwert bannent engem Mount.",
+          "Reklamatiounen: CNPD Lëtzebuerg — 15 boulevard du Jazz, L-4370 Belvaux — cnpd.public.lu."
+        ]
+      }
+    },
+    "cookies":  {
+      "title": "Cookies & Tracer",
+      "summary": {
+        "title": "Kuerz zesummegefaasst",
+        "bullets": [
+          "Dës Websäit setzt keng Tracking-, Analytik- oder Reklamm-Cookien.",
+          "Mir benotzen nëmmen de strikt noutwennege lokale Späicher: Theme-Präferenz, Admin-Session-Token (falls agemeldt), fortgeklickt Tutorialen.",
+          "Fir dës brauch ee keng Zoustëmmung — si sinn no der CNPD-Direktiv ausgenee — mä mir dokumentéieren se fir voll Transparenz.",
+          "Drëtt Servicer mat Browserzougrëff: Google Fonts (nëmmen IP, kee Cookie), YouTube am Privacy-Enhanced Modus (kee Cookie ier Dir op Play klickt), flagcdn.com fir Fändel-Ikonen.",
+          "Dir kënnt de lokale Späicher zu all Moment iwwer d'Browsereinstellungen läschen. D'Läsche vum Admin-Token loggt Iech aus dem Back-Office aus."
+        ]
+      }
+    }
   },
   "contact": {
     "seo": {

@@ -28,6 +28,7 @@ import TagPicker from '../../components/TagPicker'
 import ClipsGalleryAdmin from '../../components/ClipsGalleryAdmin'
 import { type HeatmapGrid, emptyGrid, heatmapFromPosition, isValidGrid } from '../../lib/heatmap'
 import { useConfirm } from '../../components/ConfirmProvider'
+import { useToast } from '../../components/ToastProvider'
 
 type AdminPlayer = Player & { id?: number }
 type PlayerFormState = Partial<AdminPlayer>
@@ -154,35 +155,6 @@ function SelectInput({ value, onChange, options, ...rest }: SelectInputProps) {
         <option key={opt} value={opt}>{opt}</option>
       ))}
     </select>
-  )
-}
-
-interface ToastState {
-  kind: 'success' | 'error'
-  message: string
-}
-
-interface ToastProps extends ToastState {
-  onDismiss: () => void
-}
-
-function Toast({ kind = 'success', message, onDismiss }: ToastProps) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 12 }}
-      className={`fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-diffusion text-sm ${
-        kind === 'success' ? 'bg-turf-800 text-stone-50' : 'bg-red-600 text-white'
-      }`}
-      role="status"
-    >
-      <CheckCircle size={16} weight="bold" />
-      <span>{message}</span>
-      <button type="button" onClick={onDismiss} className="ml-2 opacity-70 hover:opacity-100">
-        <XIcon size={14} weight="bold" />
-      </button>
-    </motion.div>
   )
 }
 
@@ -988,6 +960,7 @@ function MiniKpi({ icon: Icon, label, value, tone = 'neutral' }: MiniKpiProps) {
 
 function AdminPlayers() {
   const confirm = useConfirm()
+  const toast = useToast()
   const [players, setPlayers] = useState<AdminPlayer[]>([])
   const [loading, setLoading] = useState(true)
   const [query, setQuery] = useState('')
@@ -1021,7 +994,6 @@ function AdminPlayers() {
     if (editorMode === 'page') navigate('/admin/joueurs/nouveau')
     else setCreating(true)
   }
-  const [toast, setToast] = useState<ToastState | null>(null)
   const [togglingSlug, setTogglingSlug] = useState<string | null>(null)
 
   const reload = () => {
@@ -1143,9 +1115,9 @@ function AdminPlayers() {
     }
   }
 
-  const showToast = (kind: ToastState['kind'], message: string) => {
-    setToast({ kind, message })
-    setTimeout(() => setToast(null), 3500)
+  const showToast = (kind: 'success' | 'error', message: string) => {
+    if (kind === 'success') toast.success(message)
+    else toast.error(message)
   }
 
   const onSaved = async (saved: AdminPlayer, kind: SaveKind) => {
@@ -1510,10 +1482,6 @@ function AdminPlayers() {
             />
           </>
         )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {toast && <Toast {...toast} onDismiss={() => setToast(null)} />}
       </AnimatePresence>
     </div>
   )

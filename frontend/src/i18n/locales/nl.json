@@ -549,14 +549,53 @@
     "navAria": "Juridische pagina's",
     "updatedAt": "Laatst bijgewerkt: {{date}}",
     "authoritativeNotice": "De Franse versie van dit document is bindend. De andere taalversies worden louter ter informatie verstrekt.",
+    "fullFrenchBelow": "Volledige versie (Frans) hieronder",
     "nav": {
       "mentions": "Juridische kennisgeving",
       "privacy": "Privacy",
       "cookies": "Cookies"
     },
-    "mentions": { "title": "Juridische kennisgeving" },
-    "privacy":  { "title": "Privacybeleid" },
-    "cookies":  { "title": "Cookies & trackers" }
+    "mentions": {
+      "title": "Juridische kennisgeving",
+      "summary": {
+        "title": "In het kort",
+        "bullets": [
+          "Rene Football is een voetbalagentschap gevestigd in Luxemburg. Publicatieverantwoordelijke: René Ajari.",
+          "Contact: contact@renefootball.com · +352 661 24 18 47.",
+          "Alle inhoud van de site (foto's, spelersdata, PDF's, artikelen) behoort toe aan Rene Football. Geen hergebruik zonder schriftelijke toestemming.",
+          "De site draait uitsluitend via HTTPS; servers bevinden zich in de Europese Unie.",
+          "Toepasselijk recht: Luxemburg. Geschillen vallen onder de bevoegdheid van de Luxemburgse rechtbanken."
+        ]
+      }
+    },
+    "privacy":  {
+      "title": "Privacybeleid",
+      "summary": {
+        "title": "In het kort",
+        "bullets": [
+          "Wij verzamelen enkel wat u via het contactformulier verstrekt (naam, e-mail, telefoon, bericht, profielspecifieke velden, optioneel CV) plus uw IP en user-agent tegen spam.",
+          "Geen analytics, geen reclamecookies, geen trackers van derden, geen profilering.",
+          "De data zijn enkel toegankelijk voor het team van Rene Football en directe technische dienstverleners (hosting, e-mail). Nooit verkocht of gedeeld voor marketing.",
+          "Derde partijen met browsertoegang: Google Fonts (enkel IP), YouTube in privacy-modus (geen cookie vóór klik op Play), flagcdn.com.",
+          "Bewaring: 12 maanden voor onbeantwoorde aanvragen, contractduur + 5 jaar bij lopende relaties.",
+          "AVG-rechten (inzage, rectificatie, wissing, portabiliteit, bezwaar): schrijf naar contact@renefootball.com met onderwerp RGPD. Antwoord binnen één maand.",
+          "Klachten: CNPD Luxemburg — 15 boulevard du Jazz, L-4370 Belvaux — cnpd.public.lu."
+        ]
+      }
+    },
+    "cookies":  {
+      "title": "Cookies & trackers",
+      "summary": {
+        "title": "In het kort",
+        "bullets": [
+          "Deze site plaatst geen tracking-, analytics- of reclamecookies.",
+          "We gebruiken enkel strikt noodzakelijke lokale opslag: themavoorkeur, admin-sessietoken (indien ingelogd), gesloten tutorials.",
+          "Voor deze is geen toestemming vereist — ze zijn vrijgesteld volgens CNPD-richtlijnen — maar we documenteren ze voor volledige transparantie.",
+          "Derden met browserbereik: Google Fonts (enkel IP, geen cookie), YouTube in privacy-enhanced modus (geen cookie vóór klik op Play), flagcdn.com voor vlagpictogrammen.",
+          "U kunt de lokale opslag op elk moment wissen via uw browserinstellingen. Het wissen van het admin-token logt u uit het back-office."
+        ]
+      }
+    }
   },
   "contact": {
     "seo": {

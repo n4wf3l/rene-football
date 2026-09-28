@@ -52,6 +52,7 @@ import { analysisTutorialSteps } from '../../components/tutorials/analysisTutori
 import PlayerSingleSelect from '../../components/PlayerSingleSelect'
 import ClipsGalleryAdmin from '../../components/ClipsGalleryAdmin'
 import { type HeatmapGrid, heatmapFromPosition, isValidGrid } from '../../lib/heatmap'
+import { useToast } from '../../components/ToastProvider'
 
 type ChartTypeKey = 'scatter' | 'bar' | 'line'
 type AxisAccept = 'numeric' | 'categorical' | 'both'
@@ -242,6 +243,7 @@ function isMetricMissing(p: Player, key: string, perMatchKeys: Set<string>, scou
 
 function AdminAnalysis() {
   const navigate = useNavigate()
+  const toast = useToast()
   const [players, setPlayers] = useState<Player[]>([])
   const [metrics, setMetrics] = useState<AnalysisMetrics>({ numeric: [], categorical: [] })
   const [loading, setLoading] = useState(true)
@@ -1324,7 +1326,6 @@ function ComparisonView({ players, selectedSlugs, onChangeSlugs }: ComparisonVie
   /* Wrap radar in a div ref so we can grab the SVG and rasterize it for
      the PNG export (copy-to-clipboard + download). */
   const radarWrapRef = useRef<HTMLDivElement>(null)
-  const [pngToast, setPngToast] = useState<string | null>(null)
 
   /* Benchmark silhouette for the radar: pulled from the first selected
      player's (category × age tier) profile. Non-blocking - the radar renders
@@ -1404,7 +1405,7 @@ function ComparisonView({ players, selectedSlugs, onChangeSlugs }: ComparisonVie
               const ClipboardItemCtor = (window as unknown as { ClipboardItem?: typeof ClipboardItem }).ClipboardItem
               if (ClipboardItemCtor && navigator.clipboard?.write) {
                 await navigator.clipboard.write([new ClipboardItemCtor({ 'image/png': blob })])
-                setPngToast('Radar copié dans le presse-papiers.')
+                toast.success('Radar copié dans le presse-papiers.')
               } else {
                 throw new Error('clipboard unavailable')
               }
@@ -1415,7 +1416,7 @@ function ComparisonView({ players, selectedSlugs, onChangeSlugs }: ComparisonVie
               a.href = dlUrl; a.download = filename
               document.body.appendChild(a); a.click(); document.body.removeChild(a)
               setTimeout(() => URL.revokeObjectURL(dlUrl), 10_000)
-              setPngToast('Radar téléchargé (presse-papiers indisponible).')
+              toast.success('Radar téléchargé (presse-papiers indisponible).')
             }
           } else {
             const dlUrl = URL.createObjectURL(blob)
@@ -1423,9 +1424,8 @@ function ComparisonView({ players, selectedSlugs, onChangeSlugs }: ComparisonVie
             a.href = dlUrl; a.download = filename
             document.body.appendChild(a); a.click(); document.body.removeChild(a)
             setTimeout(() => URL.revokeObjectURL(dlUrl), 10_000)
-            setPngToast('Radar téléchargé.')
+            toast.success('Radar téléchargé.')
           }
-          setTimeout(() => setPngToast(null), 3200)
           resolve()
         } catch (e) {
           reject(e)
@@ -1436,8 +1436,7 @@ function ComparisonView({ players, selectedSlugs, onChangeSlugs }: ComparisonVie
       img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('svg load failed')) }
       img.src = url
     }).catch(() => {
-      setPngToast('Export du radar impossible.')
-      setTimeout(() => setPngToast(null), 3200)
+      toast.error('Export du radar impossible.')
     })
   }
 
@@ -1552,11 +1551,6 @@ function ComparisonView({ players, selectedSlugs, onChangeSlugs }: ComparisonVie
                 Axes choisis selon le poste de <span className="font-medium">{selectedPlayers[0].name}</span> ({selectedPlayers[0].category}).
                 {benchmark && ' La silhouette pointillée représente le profil elite de référence.'}
               </p>
-              {pngToast && (
-                <div className="mt-3 text-center text-[0.7rem] font-medium text-turf-700 dark:text-turf-300">
-                  {pngToast}
-                </div>
-              )}
             </div>
 
             {/* Legend cards - lient chaque couleur du radar à son joueur.

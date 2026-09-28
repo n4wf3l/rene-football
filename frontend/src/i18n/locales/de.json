@@ -549,14 +549,53 @@
     "navAria": "Rechtliche Seiten",
     "updatedAt": "Letzte Aktualisierung: {{date}}",
     "authoritativeNotice": "Die französische Fassung dieses Dokuments ist maßgeblich. Die anderen Sprachfassungen dienen ausschließlich zu Informationszwecken.",
+    "fullFrenchBelow": "Vollständige Fassung (Französisch) unten",
     "nav": {
       "mentions": "Impressum",
       "privacy": "Datenschutz",
       "cookies": "Cookies"
     },
-    "mentions": { "title": "Impressum" },
-    "privacy":  { "title": "Datenschutzerklärung" },
-    "cookies":  { "title": "Cookies & Tracker" }
+    "mentions": {
+      "title": "Impressum",
+      "summary": {
+        "title": "Kurzfassung",
+        "bullets": [
+          "Rene Football ist eine in Luxemburg ansässige Fußball-Agentur. Publikationsverantwortlicher: René Ajari.",
+          "Kontakt: contact@renefootball.com · +352 661 24 18 47.",
+          "Alle Inhalte der Website (Fotos, Spielerdaten, PDFs, Artikel) gehören Rene Football. Keine Wiederverwendung ohne schriftliche Genehmigung.",
+          "Die Website läuft ausschließlich über HTTPS; Server stehen in der Europäischen Union.",
+          "Anwendbares Recht: Luxemburg. Für Streitigkeiten sind die luxemburgischen Gerichte zuständig."
+        ]
+      }
+    },
+    "privacy":  {
+      "title": "Datenschutzerklärung",
+      "summary": {
+        "title": "Kurzfassung",
+        "bullets": [
+          "Wir erheben nur, was Sie über das Kontaktformular übermitteln (Name, E-Mail, Telefon, Nachricht, profilspezifische Felder, optionaler Lebenslauf) sowie Ihre IP und den User-Agent zum Anti-Spam-Schutz.",
+          "Keine Analytik, keine Werbe-Cookies, keine Drittanbieter-Tracker, kein Profiling.",
+          "Zugriff auf die Daten haben nur das Team von Rene Football und direkte technische Dienstleister (Hosting, E-Mail). Nie verkauft oder für Marketing weitergegeben.",
+          "Drittdienste mit Browser-Zugriff: Google Fonts (nur IP), YouTube im Privacy-Modus (kein Cookie vor dem Play-Klick), flagcdn.com.",
+          "Speicherdauer: 12 Monate für unbeantwortete Anfragen, Vertragsdauer + 5 Jahre bei laufenden Beziehungen.",
+          "DSGVO-Rechte (Auskunft, Berichtigung, Löschung, Portabilität, Widerspruch): schreiben Sie an contact@renefootball.com mit Betreff RGPD. Antwort innerhalb eines Monats.",
+          "Beschwerden: CNPD Luxemburg — 15 boulevard du Jazz, L-4370 Belvaux — cnpd.public.lu."
+        ]
+      }
+    },
+    "cookies":  {
+      "title": "Cookies & Tracker",
+      "summary": {
+        "title": "Kurzfassung",
+        "bullets": [
+          "Diese Website setzt keine Tracking-, Analytik- oder Werbe-Cookies.",
+          "Wir verwenden nur den strikt erforderlichen lokalen Speicher: Theme-Präferenz, Admin-Session-Token (falls angemeldet), Tutorial-Abweisungen.",
+          "Für diese ist keine Einwilligung nötig — sie sind laut CNPD-Leitfaden ausgenommen — wir dokumentieren sie aber für volle Transparenz.",
+          "Drittdienste mit Browser-Zugriff: Google Fonts (nur IP, kein Cookie), YouTube im Privacy-Enhanced-Modus (kein Cookie vor Play-Klick), flagcdn.com für Flaggen-Icons.",
+          "Sie können den lokalen Speicher jederzeit über die Browser-Einstellungen löschen. Das Löschen des Admin-Tokens loggt Sie aus dem Back-Office aus."
+        ]
+      }
+    }
   },
   "contact": {
     "seo": {

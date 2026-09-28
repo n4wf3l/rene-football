@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
 import {
-  CheckCircle,
   ImageSquare,
   MagnifyingGlass,
   PencilSimpleLine,
@@ -10,7 +8,6 @@ import {
   SoccerBall,
   Star,
   Trash,
-  X as XIcon,
 } from '@phosphor-icons/react'
 import { api } from '../../api/client'
 import type { Article, ArticleCategory } from '../../types/article'
@@ -18,34 +15,10 @@ import { ARTICLE_CATEGORIES } from '../../types/article'
 import Skeleton from '../../components/Skeleton'
 import { playerImage } from '../../lib/playerImage'
 import { useConfirm } from '../../components/ConfirmProvider'
+import { useToast } from '../../components/ToastProvider'
 
 interface ArticleListResponse {
   data: Article[]
-}
-
-interface ToastState {
-  kind: 'success' | 'error'
-  message: string
-}
-
-function Toast({ kind, message, onDismiss }: ToastState & { onDismiss: () => void }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 12 }}
-      className={`fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-diffusion text-sm ${
-        kind === 'success' ? 'bg-turf-800 text-stone-50' : 'bg-red-600 text-white'
-      }`}
-      role="status"
-    >
-      <CheckCircle size={16} weight="bold" />
-      <span>{message}</span>
-      <button type="button" onClick={onDismiss} className="ml-2 opacity-70 hover:opacity-100">
-        <XIcon size={14} weight="bold" />
-      </button>
-    </motion.div>
-  )
 }
 
 function fmtDate(value: string | null): string {
@@ -61,13 +34,13 @@ type StatusFilter = 'Tous' | 'online' | 'offline'
 
 export default function AdminArticles() {
   const confirm = useConfirm()
+  const toast = useToast()
   const navigate = useNavigate()
   const [articles, setArticles] = useState<Article[]>([])
   const [loading, setLoading] = useState(true)
   const [query, setQuery] = useState('')
   const [categoryFilter, setCategoryFilter] = useState<ArticleCategory | 'Tous'>('Tous')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('Tous')
-  const [toast, setToast] = useState<ToastState | null>(null)
   const [togglingSlug, setTogglingSlug] = useState<string | null>(null)
 
   const reload = () => {
@@ -79,9 +52,9 @@ export default function AdminArticles() {
 
   useEffect(() => { reload() }, [])
 
-  const showToast = (kind: ToastState['kind'], message: string) => {
-    setToast({ kind, message })
-    setTimeout(() => setToast(null), 3500)
+  const showToast = (kind: 'success' | 'error', message: string) => {
+    if (kind === 'success') toast.success(message)
+    else toast.error(message)
   }
 
   // Pick up a toast handed off by the editor via navigation state, then clear
@@ -348,8 +321,6 @@ export default function AdminArticles() {
           </tbody>
         </table>
       </div>
-
-      {toast && <Toast {...toast} onDismiss={() => setToast(null)} />}
     </div>
   )
 }

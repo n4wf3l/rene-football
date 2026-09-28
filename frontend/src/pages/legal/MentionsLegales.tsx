@@ -10,6 +10,7 @@ export default function MentionsLegales() {
     <LegalLayout
       titleKey="legal.mentions.title"
       updatedAt="25 septembre 2026"
+      summaryKey="legal.mentions.summary"
       intro={
         <>
           Conformément à la <a href="https://cnpd.public.lu" target="_blank" rel="noreferrer">CNPD</a>{' '}

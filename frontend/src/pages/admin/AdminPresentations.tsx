@@ -2,43 +2,21 @@ import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
-  CheckCircle,
   Copy,
   Eye,
   FilePdf,
   PencilSimpleLine,
   Plus,
   Trash,
-  X as XIcon,
 } from '@phosphor-icons/react'
 import { api } from '../../api/client'
 import type { Presentation } from '../../types/presentation'
 import Skeleton from '../../components/Skeleton'
 import WorkInProgressBanner from '../../components/admin/WorkInProgressBanner'
 import { useConfirm } from '../../components/ConfirmProvider'
+import { useToast } from '../../components/ToastProvider'
 
 interface PresentationListResponse { data: Presentation[] }
-interface ToastState { kind: 'success' | 'error'; message: string }
-
-function Toast({ kind, message, onDismiss }: ToastState & { onDismiss: () => void }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 12 }}
-      className={`fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-diffusion text-sm ${
-        kind === 'success' ? 'bg-turf-800 text-stone-50' : 'bg-red-600 text-white'
-      }`}
-      role="status"
-    >
-      <CheckCircle size={16} weight="bold" />
-      <span>{message}</span>
-      <button type="button" onClick={onDismiss} className="ml-2 opacity-70 hover:opacity-100">
-        <XIcon size={14} weight="bold" />
-      </button>
-    </motion.div>
-  )
-}
 
 const TEMPLATE_LABEL: Record<string, string> = {
   classic:   'Carte d\'identité',
@@ -66,11 +44,11 @@ function fmtDate(value: string | null | undefined): string {
 
 export default function AdminPresentations() {
   const confirm = useConfirm()
+  const toast = useToast()
   const navigate = useNavigate()
   const location = useLocation()
   const [rows, setRows] = useState<Presentation[]>([])
   const [loading, setLoading] = useState(true)
-  const [toast, setToast] = useState<ToastState | null>(null)
 
   const reload = () => {
     setLoading(true)
@@ -81,9 +59,9 @@ export default function AdminPresentations() {
 
   useEffect(() => { reload() }, [])
 
-  const showToast = (kind: ToastState['kind'], message: string) => {
-    setToast({ kind, message })
-    setTimeout(() => setToast(null), 3500)
+  const showToast = (kind: 'success' | 'error', message: string) => {
+    if (kind === 'success') toast.success(message)
+    else toast.error(message)
   }
 
   useEffect(() => {
@@ -308,8 +286,6 @@ export default function AdminPresentations() {
           })}
         </div>
       )}
-
-      {toast && <Toast {...toast} onDismiss={() => setToast(null)} />}
     </div>
   )
 }
