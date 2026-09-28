@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { ArrowSquareOut, CheckCircle, X as XIcon, Warning, ArrowsClockwise } from '@phosphor-icons/react'
 import { scoutingApi } from '../../../lib/scoutingApi'
 import type { ScoutingPlayerDetail, ScoutingStatus } from '../../../types/scouting'
 import { STATUS_LABEL } from '../../../types/scouting'
 import Skeleton from '../../Skeleton'
 import { CompletenessBar, ScoreBadge, StatusBadge, NextActionBadge } from '../badges'
-import Toast, { type ToastState } from '../../Toast'
+import { useToast } from '../../ToastProvider'
 
 interface Props { slug: string; onClose: () => void }
 
@@ -24,10 +24,10 @@ const TABS: { key: Tab; label: string }[] = [
 ]
 
 function PlayerDrawer({ slug, onClose }: Props) {
+  const toast = useToast()
   const [detail, setDetail] = useState<ScoutingPlayerDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<Tab>('resume')
-  const [toast, setToast] = useState<ToastState | null>(null)
   const [saving, setSaving] = useState(false)
 
   const reload = async () => {
@@ -39,9 +39,9 @@ function PlayerDrawer({ slug, onClose }: Props) {
 
   useEffect(() => { reload().catch(() => setLoading(false)); /* eslint-disable-next-line */ }, [slug])
 
-  const showToast = (kind: ToastState['kind'], message: string) => {
-    setToast({ kind, message })
-    setTimeout(() => setToast(null), 3000)
+  const showToast = (kind: 'success' | 'error', message: string) => {
+    if (kind === 'success') toast.success(message)
+    else toast.error(message)
   }
 
   const patch = async (body: Parameters<typeof scoutingApi.patchPlayer>[1]) => {
@@ -155,10 +155,6 @@ function PlayerDrawer({ slug, onClose }: Props) {
           )}
         </div>
       </motion.aside>
-
-      <AnimatePresence>
-        {toast && <Toast {...toast} onDismiss={() => setToast(null)} />}
-      </AnimatePresence>
     </>
   )
 }

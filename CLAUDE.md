@@ -59,9 +59,8 @@ Auto-dismiss après ~4 s, dismissable via la croix. Rendu unique au niveau
 racine, pas besoin de gérer d'état local.
 
 **Ne pas** re-implémenter un composant Toast local : utiliser le hook
-global. Les composants locaux `Toast` historiques
-([components/Toast.tsx](frontend/src/components/Toast.tsx)) sont dépréciés,
-migrer vers `useToast()` quand tu passes dessus.
+global. L'ancien composant `Toast.tsx` a été supprimé — toute nouvelle
+notification passe par `useToast()`.
 
 ## 3. i18n — Toujours vérifier les 5 locales
 
