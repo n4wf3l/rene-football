@@ -116,4 +116,12 @@ Règles :
 
 ## 6. Comptes de démo
 
-Admin de test : `admin@rene-football.test` / `admin1234` (voir seeder).
+Admin de test local : `admin@rene-football.test` / `admin1234`. Créé par
+[`DemoAccountsSeeder`](backend/database/seeders/DemoAccountsSeeder.php),
+auto-invoqué par `DatabaseSeeder` **uniquement en `APP_ENV=local`**. Le
+seeder throw une exception si on tente de le lancer en production —
+l'admin prod se crée manuellement via tinker avec un mot de passe fort
+(cf [DEPLOYMENT.md](DEPLOYMENT.md) §2).
+
+3 autres comptes de démo pour tester les rôles scouting : `chef1234`,
+`youth1234`, `scout1234` (emails `chef@` / `jeunes@` / `scout@rene-football.test`).

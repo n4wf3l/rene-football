@@ -6,7 +6,7 @@ les vérifications qui n'ont pas d'équivalent automatisé côté tests.
 ## 0. Pré-flight (à froid)
 
 - [ ] Suite de tests **backend** verte : `cd backend && php artisan test`
-  - Attendu : `57 passed` (à date). Un test rouge = on ne push pas.
+  - Attendu : `61 passed` (à date, dont 4 tests de non-régression sécurité). Un test rouge = on ne push pas.
 - [ ] **Frontend typecheck** vert : `cd frontend && npx tsc --noEmit`
 - [ ] Aucun `console.log` / `dd()` / `dump()` oublié :
   ```powershell
@@ -35,11 +35,18 @@ Créer / mettre à jour `.env` sur le serveur. Valeurs critiques :
 | `MAIL_FROM_ADDRESS` | `noreply@renefootball.com` | domaine vérifié SPF/DKIM |
 | `MAIL_FROM_NAME` | `Rene Football` | |
 | `CONTACT_RECIPIENT` | `contact@renefootball.com` | destinataire des notifications de demande |
-| `SANCTUM_STATEFUL_DOMAINS` | `renefootball.com,www.renefootball.com` | pas d'espaces |
+| `CORS_ALLOWED_ORIGINS` | `https://renefootball.com,https://www.renefootball.com` | whitelist stricte (défaut dev = localhost) |
+| `SANCTUM_EXPIRATION_MINUTES` | `10080` | TTL des tokens admin (7 j). Override si nécessaire |
+| `SESSION_SECURE_COOKIE` | `true` | cookie transmis en HTTPS uniquement |
+| `SESSION_HTTP_ONLY` | `true` | inaccessible depuis JavaScript |
+| `SESSION_SAME_SITE` | `lax` | bloque cross-site sauf top-nav |
 | `SESSION_DOMAIN` | `.renefootball.com` | avec le point initial |
 | `FILESYSTEM_DISK` | `public` | ou `s3` si stockage distant |
 
+**Note sur Sanctum** : le SPA utilise des Bearer tokens (localStorage), pas la SPA-cookie mode. `SANCTUM_STATEFUL_DOMAINS` n'a donc pas d'effet pratique et peut rester vide.
+
 Vérifier : `php artisan config:show app.env` doit répondre `production`.
+Le boot refusera de démarrer si `APP_DEBUG=true` en production (guard `AppServiceProvider::assertSafeProductionConfig()`).
 
 ## 2. Migrations & seeds
 
@@ -51,18 +58,19 @@ Vérifier : `php artisan config:show app.env` doit répondre `production`.
   ```bash
   php artisan migrate --force
   ```
-- [ ] **Seed de l'utilisateur admin** (si première install ou reset compte) :
+- [ ] **NE JAMAIS lancer** `php artisan db:seed` en prod. `DatabaseSeeder` auto-invoquerait `DemoAccountsSeeder` uniquement si `APP_ENV=local` (guard runtime), mais les seeders de contenu (players / articles / staff démo) écraseraient tes vraies données. `DemoAccountsSeeder` throw explicitement une exception si on tente de le lancer en prod, mais mieux vaut ne pas s'y frotter.
+- [ ] **Créer l'admin manuellement** via tinker (première install ou reset) :
   ```bash
   php artisan tinker
   >>> App\Models\User::create([
   ...   'name' => 'Admin',
   ...   'email' => 'admin@renefootball.com',
-  ...   'password' => Hash::make('MOT_DE_PASSE_FORT'),
+  ...   'password' => Hash::make('MOT_DE_PASSE_FORT'),  // ≥ 16 chars, aléatoire
   ...   'is_admin' => true,
   ...   'email_verified_at' => now(),
   ... ]);
   ```
-  Puis changer le mot de passe côté admin dès la première connexion.
+  Puis le rotate à la prochaine occasion.
 - [ ] `php artisan storage:link` — pour que `/storage/*` serve les uploads (photos joueurs, CV, logos partenaires).
 
 ## 3. Cache & optimisation
@@ -92,7 +100,7 @@ nécessite de rejouer `php artisan config:clear && php artisan config:cache`.
   add_header Referrer-Policy "strict-origin-when-cross-origin" always;
   add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
   ```
-- [ ] `CORS` — si le frontend est sur un domaine différent, mettre à jour `config/cors.php` (`allowed_origins`) et `SANCTUM_STATEFUL_DOMAINS`.
+- [ ] `CORS` — la whitelist est pilotée par `CORS_ALLOWED_ORIGINS` (voir §1). En archi single-domain (§5), le CORS n'entre pas en jeu pour le SPA lui-même (même origine) — cette variable ne compte que si tu ajoutes des consommateurs tiers.
 - [ ] Rate limiting : la route `/api/contact` est déjà en `throttle:5,1`. Vérifier qu'aucune autre route publique sensible n'est en accès libre illimité.
 
 ## 5. Frontend React — architecture single-domain
