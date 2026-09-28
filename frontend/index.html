@@ -17,9 +17,13 @@
     <meta name="format-detection" content="telephone=no" />
     <link rel="canonical" href="https://renefootball.com/" />
 
-    <!-- Icons -->
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" type="image/png" href="/logo-black.png" />
+    <!-- Icons — real Rene Football monogram. Black on light tabs,
+         white on dark tabs (per prefers-color-scheme). Apple touch icon
+         defaults to the black variant so iOS home-screen thumbnails read
+         on the standard light shortcut background. -->
+    <link rel="icon" type="image/png" sizes="500x500" href="/logo-black.png" media="(prefers-color-scheme: light)" />
+    <link rel="icon" type="image/png" sizes="500x500" href="/logo-white.png" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" type="image/png" sizes="500x500" href="/logo-black.png" />
     <link rel="apple-touch-icon" href="/logo-black.png" />
 
     <!-- Open Graph (Facebook, LinkedIn, WhatsApp, Slack, iMessage…) -->
