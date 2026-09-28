@@ -9,7 +9,7 @@ import LegalLayout from './LegalLayout'
 export default function Cookies() {
   return (
     <LegalLayout
-      title="Cookies &amp; traceurs"
+      titleKey="legal.cookies.title"
       updatedAt="25 septembre 2026"
       intro={
         <>

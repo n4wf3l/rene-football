@@ -6,6 +6,7 @@ import { CheckCircle, Person, Trash, X as XIcon } from '@phosphor-icons/react'
 import { api, ApiError } from '../../api/client'
 import type { StaffMember } from '../../types/staff'
 import Skeleton from '../../components/Skeleton'
+import { useConfirm } from '../../components/ConfirmProvider'
 
 type StaffFormState = Partial<StaffMember>
 
@@ -45,6 +46,7 @@ function Toast({ kind, message, onDismiss }: ToastState & { onDismiss: () => voi
 }
 
 export default function AdminStaffEdit({ creating = false }: { creating?: boolean }) {
+  const confirm = useConfirm()
   const { slug } = useParams<{ slug: string }>()
   const navigate = useNavigate()
 
@@ -147,7 +149,12 @@ export default function AdminStaffEdit({ creating = false }: { creating?: boolea
 
   const onDelete = async () => {
     if (!form?.slug) return
-    if (!confirm(`Supprimer définitivement « ${form.name} » ?`)) return
+    if (!(await confirm({
+      title: `Supprimer « ${form.name} » ?`,
+      body: 'Ce membre du staff sera retiré du site public.',
+      confirmLabel: 'Supprimer',
+      danger: true,
+    }))) return
     try {
       await api.delete(`/admin/staff/${form.slug}`, { auth: true })
       navigate('/admin/equipe', { state: { toast: 'Membre supprimé.' } })

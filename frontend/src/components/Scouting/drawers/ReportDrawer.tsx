@@ -15,10 +15,12 @@ import Skeleton from '../../Skeleton'
 import Toast, { type ToastState } from '../../Toast'
 import { ReportStatusBadge } from '../badges'
 import ReportActionModal, { type ReportAction, type ReportActionResult } from '../ReportActionModal'
+import { useConfirm } from '../../ConfirmProvider'
 
 interface Props { id: number; onClose: () => void }
 
 function ReportDrawer({ id, onClose }: Props) {
+  const confirm = useConfirm()
   const [report, setReport] = useState<ScoutingReport | null>(null)
   const [loading, setLoading] = useState(true)
   const [toast, setToast] = useState<ToastState | null>(null)
@@ -456,14 +458,18 @@ function ActionCard({ tone, icon: Icon, title, description, cta, onClick, busy }
 }
 
 function ArchiveLink({ onClick, busy, label = 'Archiver le rapport' }: { onClick: () => void; busy?: boolean; label?: string }) {
+  const confirm = useConfirm()
   return (
     <button
       type="button"
-      onClick={() => {
+      onClick={async () => {
         if (busy) return
-        if (confirm('Archiver ce rapport ? Il sera retiré des files actives mais reste consultable dans l\'historique.')) {
-          onClick()
-        }
+        const ok = await confirm({
+          title: 'Archiver ce rapport ?',
+          body: 'Il sera retiré des files actives mais reste consultable dans l\'historique.',
+          confirmLabel: 'Archiver',
+        })
+        if (ok) onClick()
       }}
       disabled={busy}
       className="inline-flex items-center gap-1.5 text-[0.72rem] text-zinc-500 hover:text-zinc-800 dark:text-stone-400 dark:hover:text-stone-100 transition disabled:opacity-50"

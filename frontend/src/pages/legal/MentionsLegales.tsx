@@ -8,7 +8,7 @@ import LegalLayout from './LegalLayout'
 export default function MentionsLegales() {
   return (
     <LegalLayout
-      title="Mentions légales"
+      titleKey="legal.mentions.title"
       updatedAt="25 septembre 2026"
       intro={
         <>

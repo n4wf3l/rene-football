@@ -10,7 +10,10 @@
     "search": "Sichen",
     "allF": "All",
     "allM": "All",
-    "clear": "Läschen"
+    "clear": "Läschen",
+    "cancel": "Ofbriechen",
+    "confirm": "Confirméieren",
+    "delete": "Läschen"
   },
   "nav": {
     "home": "Haaptsäit",
@@ -19,7 +22,11 @@
     "about": "Iwwer eis",
     "contact": "Kontakt",
     "adminLogin": "Agence-Beräich",
-    "adminDashboard": "Dashboard"
+    "adminDashboard": "Dashboard",
+    "mobile": {
+      "openMenu": "Menü opmaachen",
+      "closeMenu": "Menü zoumaachen"
+    }
   },
   "language": {
     "label": "Sprooch",
@@ -287,6 +294,11 @@
     "publishedOn": "Verëffentlecht den",
     "photos": "Fotoen",
     "clips": "Clipen",
+    "lightbox": {
+      "close": "Zoumaachen",
+      "previous": "Virescht Foto",
+      "next": "Nächst Foto"
+    },
     "notFound": {
       "title": "Artikel net fonnt",
       "paragraph": "Dësen Artikel gouf vläicht ewechgeholl oder seng URL huet sech geännert.",
@@ -459,11 +471,104 @@
     "errorTitle": "E Feeler ass opgetrueden",
     "errorHint": "D'Presentatioun konnt net gelueden ginn. Kontrolléiert Är Verbindung a probéiert et nach eng Kéier."
   },
+  "placeholder": {
+    "eyebrow": "Deemnächst disponibel",
+    "backHome": "Zréck op d'Haaptsäit"
+  },
+  "playerRadar": {
+    "aria": "Qualitéits-Radar-Profil",
+    "eliteBenchmark": "Elite-Referenz",
+    "axes": {
+      "goals": "Goaler",
+      "xg": "xG",
+      "shotsOnTarget": "Schéiss op d'Goal",
+      "dribbles": "Dribblingen",
+      "keyPasses": "Schlësselpäss",
+      "assists": "Passgeber",
+      "passAccuracy": "% Päss",
+      "tackles": "Tacklingen",
+      "interceptions": "Ofgefaange Bäll",
+      "duelsWon": "Duellen gewonnen",
+      "cleanSheets": "Clean sh.",
+      "matches": "Matcher",
+      "saves": "Paraden",
+      "minutes": "Minutten"
+    }
+  },
+  "percentileBars": {
+    "unavailable": "Perzentiler net verfügbar.",
+    "reference_one":   "Referenz: {{count}} Spiller op der selwechter Positioun",
+    "reference_other": "Referenz: {{count}} Spiller op der selwechter Positioun",
+    "tones": {
+      "elite":  "Elite",
+      "top":    "Top",
+      "above":  "Iwwer",
+      "below":  "Ënner",
+      "bottom": "Ënnen"
+    }
+  },
+  "clipsGallery": {
+    "close": "Zoumaachen",
+    "previous": "Viregte Moment",
+    "next": "Nächste Moment"
+  },
+  "scoutReport": {
+    "quoteAttribution": "Scouting-Note · Rene Football",
+    "comparisonsLabel": "Referenzprofiler",
+    "strengthsLabel": "Identifizéiert Stäerkten",
+    "potentialLabel": "Potenzial",
+    "defaultRatingLabel": "Intern Bewäertung"
+  },
+  "appearancesTable": {
+    "empty": "Keng Matcher fir dëse Spiller registréiert.",
+    "trend": "Notentrend - {{count}} Matcher",
+    "avg": "Duerchschn.",
+    "headers": {
+      "date": "Datum",
+      "competition": "Kompetitioun",
+      "opponent": "Géigner",
+      "score": "Score",
+      "minutes": "Min",
+      "goals": "G",
+      "assists": "P",
+      "shots": "Schéiss",
+      "rating": "Note"
+    }
+  },
+  "cookieNotice": {
+    "regionAria": "Cookie-Informatioun",
+    "closeAria": "Bandeau zoumaachen",
+    "eyebrow": "Privatsphär",
+    "title": "Keng Tracking-Cookien, keng Analytik.",
+    "body": "Mir benotze nëmmen de strikt noutwennegen lokale Späicher (Theme-Präferenz, Admin-Session). Keng Reklamm-Cookien, keng Tracker vun Drëttpersounen, keng Profiléierung. Detailer an der <cookies>Cookie-Politik</cookies> an an der <privacy>Vertraulechkeetspolitik</privacy>.",
+    "acceptCta": "Verstanen",
+    "learnMoreCta": "Méi wëssen"
+  },
+  "legal": {
+    "eyebrow": "Rechtlech Informatiounen",
+    "navAria": "Rechtlech Säiten",
+    "updatedAt": "Lescht Aktualiséierung: {{date}}",
+    "authoritativeNotice": "Déi franséisch Versioun vun dësem Dokument mécht Foi. Déi aner Sproochversioune ginn nëmmen zu Informatiounszwecker geliwwert.",
+    "nav": {
+      "mentions": "Impressum",
+      "privacy": "Vertraulechkeet",
+      "cookies": "Cookies"
+    },
+    "mentions": { "title": "Impressum" },
+    "privacy":  { "title": "Vertraulechkeetspolitik" },
+    "cookies":  { "title": "Cookies & Tracer" }
+  },
   "contact": {
+    "seo": {
+      "description": "Spiller, Elteren, Veräin oder Medien: kontaktéiert Rene Football. Fussballagence mat Sëtz zu Lëtzebuerg, FIFA-lizenzéierten Agent zënter 2010."
+    },
     "hero": {
       "eyebrow": "Kontakt ophuelen",
-      "title": "Schreift eis.",
-      "paragraph": "Wielt Äert Profil: d'Froen passen sech un, fir datt mir Är Ufro schnell verstinn."
+      "title": "Loosst eis iwwer Äert Projet schwätzen.",
+      "paragraph": "Spiller, Famill, Profiveräin oder Journalist: e puer geziilte Froen, an eis Ekipp mellt sech bannent 48 Stonnen. Vertraulechen Austausch, ouni Engagement."
+    },
+    "fieldLabel": {
+      "optional": "(fakultativ)"
     },
     "steps": {
       "profile": "Profil",
@@ -506,7 +611,125 @@
       "submit": "Meng Ufro schécken"
     },
     "errors": {
-      "submitFailed": "Schécken huet net funktionéiert. Probéiert et nach eng Kéier oder schreift eis op renefootball.p@gmail.com."
+      "submitFailed": "Schécken huet net funktionéiert. Probéiert et nach eng Kéier oder schreift eis op renefootball.p@gmail.com.",
+      "throttled": "Ze vill Ufroe geschéckt. Waart eng Minutt, ier Dir et nach eng Kéier probéiert."
+    },
+    "forms": {
+      "joueur": {
+        "intent": {
+          "label": "Wat ass Äert Zil?",
+          "options": {
+            "join": "Der Agence bäitrieden",
+            "renew": "Eng Betreiung verlängeren",
+            "advice": "Beroodung / Orientéierung",
+            "other": "Anerer"
+          }
+        },
+        "playerName": { "label": "Numm vum Spiller", "placeholder": "Virnumm Nofnumm" },
+        "dob":        { "label": "Gebuertsdatum", "placeholder": "dd/mm/jjjj" },
+        "position":   { "label": "Haaptpositioun", "placeholder": "Stiermer, Mëttelfeld, Verdeedeger…" },
+        "club":       { "label": "Aktuelle Veräin", "placeholder": "Numm vum Veräin" },
+        "level": {
+          "label": "Niveau",
+          "options": {
+            "youth": "Jugend / Akademie",
+            "amateur": "Amateur",
+            "semi_pro": "Semi-pro",
+            "pro": "Professionell"
+          }
+        },
+        "video":     { "label": "Video / Highlights (URL)", "placeholder": "https://youtu.be/…  oder  drive.google.com/…" },
+        "objective": { "label": "Zil op mëttel Fräscht", "placeholder": "An eng europäesch Akademie kommen, mat 18 Pro ginn…" },
+        "cv":        { "label": "CV / Dossier (PDF, JPG, PNG - max 6 MB)", "placeholder": "Klickt fir eng Datei unzefügen" }
+      },
+      "club": {
+        "name": { "label": "Numm vum Veräin", "placeholder": "Z. B. RSC Anderlecht" },
+        "role": {
+          "label": "Är Roll",
+          "placeholder": "Wielen…",
+          "options": {
+            "coach": "Trainer",
+            "sporting_director": "Sportlechen Direkter",
+            "scout": "Scout / Recruiter",
+            "president": "President",
+            "other": "Anerer"
+          }
+        },
+        "interest": {
+          "label": "Objet vun Ärer Ufro",
+          "options": {
+            "player": "Interesse un engem Spiller",
+            "profile": "Profillsich",
+            "partnership": "Partnerschaft / Kooperatioun",
+            "other": "Anerer"
+          }
+        },
+        "player": {
+          "label": "Gezielten Spiller",
+          "placeholder": "E Spiller aus dem Kader…",
+          "emptyLabel": "Momentan sinn nach keng Spiller publizéiert.",
+          "hint": "Net an der Lëscht? Gitt de Numm hei ënnen un."
+        },
+        "otherPlayer":    { "label": "Anere Spiller (fräien Text)", "placeholder": "Numm vun engem net gelëschten Spiller" },
+        "neededPosition": { "label": "Gesichte Positioun", "placeholder": "Z. B. lénken Ailier" },
+        "ageMin":         "Min. Alter",
+        "ageMax":         "Max. Alter",
+        "budget":         { "label": "Budget / finanzielle Kader", "placeholder": "Z. B. 100-250k€ / Joer, oder ze verhandelen" }
+      },
+      "media": {
+        "name": { "label": "Numm vum Medium", "placeholder": "Z. B. L'Équipe, RTL, DAZN…" },
+        "role": {
+          "label": "Är Roll",
+          "placeholder": "Wielen…",
+          "options": {
+            "journalist": "Journalist",
+            "editor": "Chefredaktor",
+            "producer": "Produzent / Regisseur",
+            "other": "Anerer"
+          }
+        },
+        "purpose": {
+          "label": "Objet vun der Ufro",
+          "options": {
+            "interview_player": "Interview mat engem Spiller",
+            "article": "Artikel / Dossier",
+            "documentary": "Dokumentatioun",
+            "other": "Anerer"
+          }
+        },
+        "player":      { "label": "Gewënschten Spiller", "placeholder": "E Spiller aus dem Kader…", "emptyLabel": "Momentan sinn nach keng Spiller publizéiert." },
+        "otherPlayer": { "label": "Anere Spiller (fräien Text)", "placeholder": "Z. B. e Spiller deen net vun eis vertrueden ass" },
+        "deadline":    { "label": "Bouclage-Deadline", "placeholder": "dd/mm/jjjj" }
+      },
+      "autre": {
+        "subject": { "label": "Sujet vun Ärer Ufro", "placeholder": "Faasst Är Ufro an enger Zeil zesummen" }
+      },
+      "coords": {
+        "name":    { "label": "Äre Numm", "placeholder": "Virnumm Nofnumm" },
+        "email":   { "label": "E-Mail", "placeholder": "dir@example.com" },
+        "phone":   { "label": "Telefon", "placeholder": "+352 661 24 18 47" },
+        "message": { "label": "Är Message", "placeholder": "Beschreift Är Ufro. Wat méi präzis, wat besser mir Iech kënnen orientéieren." }
+      }
+    },
+    "consent": {
+      "text": "Ech si domat d'accord, datt meng Donnéeë vu Rene Football fir d'Beäntweren vu menger Ufro benotzt ginn.",
+      "privacyLink": "Vertraulechkeetspolitik",
+      "privacyNote": "Är Donnéeë ginn ni un Drëttpersoune weiderginn."
+    },
+    "validation": {
+      "intent": "Wielt e Zil.",
+      "playerName": "Gitt de Numm vum Spiller un.",
+      "videoUrl": "Ongëlteg URL.",
+      "clubName": "Gitt de Numm vum Veräin un.",
+      "role": "Präziséiert Är Roll.",
+      "interest": "Wielt en Objet aus.",
+      "mediaName": "Gitt de Numm vum Medium un.",
+      "purpose": "Wielt en Objet aus.",
+      "subject": "Faasst Är Ufro zesummen.",
+      "contactName": "Gitt Äre kompletten Numm un.",
+      "contactEmail": "Ongëlteg E-Mail-Adress.",
+      "message": "Beschreift Är Ufro (mindestens 10 Zeechen).",
+      "consent": "Dir musst der Veraarbechtung vun Äre Donnéeën zoustëmmen."
     },
     "success": {
       "eyebrow": "Ufro geschéckt",

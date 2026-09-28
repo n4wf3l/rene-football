@@ -99,10 +99,11 @@ const inputBase =
   'w-full rounded-xl border bg-white text-zinc-900 placeholder:text-zinc-400 dark:bg-zinc-900 dark:text-stone-100 dark:placeholder:text-stone-500 dark:border-stone-50/15 dark:focus:border-turf-300 px-4 py-3 text-sm transition focus:outline-none focus:ring-2 focus:ring-turf-700/20 dark:focus:ring-turf-300/20'
 
 function FieldLabel({ htmlFor, children, optional }: { htmlFor: string; children: ReactNode; optional?: boolean }) {
+  const { t } = useTranslation()
   return (
     <label htmlFor={htmlFor} className="block text-sm font-medium text-zinc-900 dark:text-stone-100 mb-2">
       {children}
-      {optional && <span className="ml-2 font-normal text-zinc-400 dark:text-stone-500 text-xs">(facultatif)</span>}
+      {optional && <span className="ml-2 font-normal text-zinc-400 dark:text-stone-500 text-xs">{t('contact.fieldLabel.optional')}</span>}
     </label>
   )
 }
@@ -182,23 +183,31 @@ interface StepAudienceFormProps {
 }
 
 function StepJoueur({ form, errors, onPayloadChange, onCvChange }: StepAudienceFormProps) {
+  const { t } = useTranslation()
+  const intentOptions: Array<{ v: NonNullable<ContactForm['payload']['intent']>; l: string }> = [
+    { v: 'join',   l: t('contact.forms.joueur.intent.options.join') },
+    { v: 'renew',  l: t('contact.forms.joueur.intent.options.renew') },
+    { v: 'advice', l: t('contact.forms.joueur.intent.options.advice') },
+    { v: 'other',  l: t('contact.forms.joueur.intent.options.other') },
+  ]
+  const levelOptions: Array<{ v: NonNullable<ContactForm['payload']['level']>; l: string }> = [
+    { v: 'youth',    l: t('contact.forms.joueur.level.options.youth') },
+    { v: 'amateur',  l: t('contact.forms.joueur.level.options.amateur') },
+    { v: 'semi_pro', l: t('contact.forms.joueur.level.options.semi_pro') },
+    { v: 'pro',      l: t('contact.forms.joueur.level.options.pro') },
+  ]
   return (
     <div className="space-y-6">
       <div>
-        <FieldLabel htmlFor="pl-intent">Quel est votre objectif ?</FieldLabel>
+        <FieldLabel htmlFor="pl-intent">{t('contact.forms.joueur.intent.label')}</FieldLabel>
         <div className="grid grid-cols-2 gap-2">
-          {[
-            { v: 'join',   l: 'Rejoindre l’agence' },
-            { v: 'renew',  l: 'Prolonger un accompagnement' },
-            { v: 'advice', l: 'Un conseil / une orientation' },
-            { v: 'other',  l: 'Autre' },
-          ].map(({ v, l }) => {
+          {intentOptions.map(({ v, l }) => {
             const active = form.payload.intent === v
             return (
               <button
                 key={v}
                 type="button"
-                onClick={() => onPayloadChange('intent', v as ContactForm['payload']['intent'])}
+                onClick={() => onPayloadChange('intent', v)}
                 className={`px-3 py-2.5 rounded-xl text-sm border transition-colors ease-premium ${
                   active
                     ? 'bg-zinc-950 border-zinc-950 text-stone-50 dark:bg-stone-50 dark:border-stone-50 dark:text-zinc-950'
@@ -215,70 +224,65 @@ function StepJoueur({ form, errors, onPayloadChange, onCvChange }: StepAudienceF
 
       <div className="grid sm:grid-cols-2 gap-5">
         <div>
-          <FieldLabel htmlFor="pl-name">Nom du joueur</FieldLabel>
+          <FieldLabel htmlFor="pl-name">{t('contact.forms.joueur.playerName.label')}</FieldLabel>
           <input
             id="pl-name"
             type="text"
             value={form.payload.player_name ?? ''}
             onChange={(e) => onPayloadChange('player_name', e.target.value)}
             className={`${inputBase} ${errors['payload.player_name'] ? 'border-rose-400' : 'border-stone-300 focus:border-turf-700'}`}
-            placeholder="Prénom Nom"
+            placeholder={t('contact.forms.joueur.playerName.placeholder')}
           />
           <FieldError message={errors['payload.player_name']} />
         </div>
         <div>
-          <FieldLabel htmlFor="pl-dob" optional>Date de naissance</FieldLabel>
+          <FieldLabel htmlFor="pl-dob" optional>{t('contact.forms.joueur.dob.label')}</FieldLabel>
           <DateInput
             id="pl-dob"
             value={form.payload.date_of_birth ?? ''}
             onChange={(v) => onPayloadChange('date_of_birth', v)}
             min="1990-01-01"
             max={new Date().toISOString().slice(0, 10)}
-            placeholder="jj/mm/aaaa"
+            placeholder={t('contact.forms.joueur.dob.placeholder')}
           />
         </div>
       </div>
 
       <div className="grid sm:grid-cols-2 gap-5">
         <div>
-          <FieldLabel htmlFor="pl-position" optional>Poste principal</FieldLabel>
+          <FieldLabel htmlFor="pl-position" optional>{t('contact.forms.joueur.position.label')}</FieldLabel>
           <input
             id="pl-position"
             type="text"
             value={form.payload.position ?? ''}
             onChange={(e) => onPayloadChange('position', e.target.value)}
             className={`${inputBase} border-stone-300 focus:border-turf-700`}
-            placeholder="Attaquant, milieu, défenseur…"
+            placeholder={t('contact.forms.joueur.position.placeholder')}
           />
         </div>
         <div>
-          <FieldLabel htmlFor="pl-club" optional>Club actuel</FieldLabel>
+          <FieldLabel htmlFor="pl-club" optional>{t('contact.forms.joueur.club.label')}</FieldLabel>
           <input
             id="pl-club"
             type="text"
             value={form.payload.current_club ?? ''}
             onChange={(e) => onPayloadChange('current_club', e.target.value)}
             className={`${inputBase} border-stone-300 focus:border-turf-700`}
-            placeholder="Nom du club"
+            placeholder={t('contact.forms.joueur.club.placeholder')}
           />
         </div>
       </div>
 
       <div>
-        <FieldLabel htmlFor="pl-level" optional>Niveau</FieldLabel>
+        <FieldLabel htmlFor="pl-level" optional>{t('contact.forms.joueur.level.label')}</FieldLabel>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          {[
-            { v: 'youth',    l: 'Jeune / Académie' },
-            { v: 'amateur',  l: 'Amateur' },
-            { v: 'semi_pro', l: 'Semi-pro' },
-            { v: 'pro',      l: 'Professionnel' },
-          ].map(({ v, l }) => {
+          {levelOptions.map(({ v, l }) => {
             const active = form.payload.level === v
             return (
               <button
                 key={v}
                 type="button"
-                onClick={() => onPayloadChange('level', v as ContactForm['payload']['level'])}
+                onClick={() => onPayloadChange('level', v)}
                 className={`px-3 py-2.5 rounded-xl text-xs sm:text-sm border transition-colors ease-premium ${
                   active
                     ? 'bg-zinc-950 border-zinc-950 text-stone-50 dark:bg-stone-50 dark:border-stone-50 dark:text-zinc-950'
@@ -293,39 +297,39 @@ function StepJoueur({ form, errors, onPayloadChange, onCvChange }: StepAudienceF
       </div>
 
       <div>
-        <FieldLabel htmlFor="pl-video" optional>Vidéo / highlights (URL)</FieldLabel>
+        <FieldLabel htmlFor="pl-video" optional>{t('contact.forms.joueur.video.label')}</FieldLabel>
         <input
           id="pl-video"
           type="url"
           value={form.payload.video_url ?? ''}
           onChange={(e) => onPayloadChange('video_url', e.target.value)}
           className={`${inputBase} ${errors['payload.video_url'] ? 'border-rose-400' : 'border-stone-300 focus:border-turf-700'}`}
-          placeholder="https://youtu.be/…  ou  drive.google.com/…"
+          placeholder={t('contact.forms.joueur.video.placeholder')}
         />
         <FieldError message={errors['payload.video_url']} />
       </div>
 
       <div>
-        <FieldLabel htmlFor="pl-objective" optional>Objectif à moyen terme</FieldLabel>
+        <FieldLabel htmlFor="pl-objective" optional>{t('contact.forms.joueur.objective.label')}</FieldLabel>
         <textarea
           id="pl-objective"
           rows={3}
           value={form.payload.objective ?? ''}
           onChange={(e) => onPayloadChange('objective', e.target.value)}
           className={`${inputBase} resize-y min-h-[90px] border-stone-300 focus:border-turf-700`}
-          placeholder="Rejoindre une académie européenne, passer pro à 18 ans…"
+          placeholder={t('contact.forms.joueur.objective.placeholder')}
         />
       </div>
 
       <div>
-        <FieldLabel htmlFor="pl-cv" optional>CV / dossier (PDF, JPG, PNG - 6 Mo max)</FieldLabel>
+        <FieldLabel htmlFor="pl-cv" optional>{t('contact.forms.joueur.cv.label')}</FieldLabel>
         <label
           htmlFor="pl-cv"
           className="flex items-center gap-3 rounded-xl border border-dashed border-stone-300 dark:border-stone-50/15 bg-stone-50/60 dark:bg-zinc-900/60 px-4 py-3 text-sm cursor-pointer hover:border-stone-500 dark:hover:border-stone-50/40 transition-colors"
         >
           <PaperclipHorizontal size={16} weight="regular" className="text-zinc-500 dark:text-stone-400" />
           <span className="text-zinc-700 dark:text-stone-300 truncate">
-            {form.cv ? form.cv.name : 'Cliquez pour joindre un fichier'}
+            {form.cv ? form.cv.name : t('contact.forms.joueur.cv.placeholder')}
           </span>
           <input
             id="pl-cv"
@@ -346,36 +350,43 @@ interface ClubOrMediaProps extends StepAudienceFormProps {
 }
 
 function StepClub({ form, errors, onPayloadChange, roster }: ClubOrMediaProps) {
+  const { t } = useTranslation()
   const interest = form.payload.interest ?? 'player'
+  const interestOptions: Array<{ v: NonNullable<ContactForm['payload']['interest']>; l: string }> = [
+    { v: 'player',      l: t('contact.forms.club.interest.options.player') },
+    { v: 'profile',     l: t('contact.forms.club.interest.options.profile') },
+    { v: 'partnership', l: t('contact.forms.club.interest.options.partnership') },
+    { v: 'other',       l: t('contact.forms.club.interest.options.other') },
+  ]
   return (
     <div className="space-y-6">
       <div className="grid sm:grid-cols-2 gap-5">
         <div>
-          <FieldLabel htmlFor="cl-name">Nom du club</FieldLabel>
+          <FieldLabel htmlFor="cl-name">{t('contact.forms.club.name.label')}</FieldLabel>
           <input
             id="cl-name"
             type="text"
             value={form.payload.club_name ?? ''}
             onChange={(e) => onPayloadChange('club_name', e.target.value)}
             className={`${inputBase} ${errors['payload.club_name'] ? 'border-rose-400' : 'border-stone-300 focus:border-turf-700'}`}
-            placeholder="Ex : RSC Anderlecht"
+            placeholder={t('contact.forms.club.name.placeholder')}
           />
           <FieldError message={errors['payload.club_name']} />
         </div>
         <div>
-          <FieldLabel htmlFor="cl-role">Votre rôle</FieldLabel>
+          <FieldLabel htmlFor="cl-role">{t('contact.forms.club.role.label')}</FieldLabel>
           <Select
             id="cl-role"
             value={form.payload.role ?? ''}
             onChange={(v) => onPayloadChange('role', v as ContactForm['payload']['role'])}
             invalid={Boolean(errors['payload.role'])}
-            placeholder="Choisir…"
+            placeholder={t('contact.forms.club.role.placeholder')}
             options={[
-              { value: 'coach',              label: 'Entraîneur' },
-              { value: 'sporting_director',  label: 'Directeur sportif' },
-              { value: 'scout',              label: 'Scout / Recruteur' },
-              { value: 'president',          label: 'Président' },
-              { value: 'other',              label: 'Autre' },
+              { value: 'coach',              label: t('contact.forms.club.role.options.coach') },
+              { value: 'sporting_director',  label: t('contact.forms.club.role.options.sporting_director') },
+              { value: 'scout',              label: t('contact.forms.club.role.options.scout') },
+              { value: 'president',          label: t('contact.forms.club.role.options.president') },
+              { value: 'other',              label: t('contact.forms.club.role.options.other') },
             ]}
           />
           <FieldError message={errors['payload.role']} />
@@ -383,20 +394,15 @@ function StepClub({ form, errors, onPayloadChange, roster }: ClubOrMediaProps) {
       </div>
 
       <div>
-        <FieldLabel htmlFor="cl-interest">Objet de votre demande</FieldLabel>
+        <FieldLabel htmlFor="cl-interest">{t('contact.forms.club.interest.label')}</FieldLabel>
         <div className="grid grid-cols-2 gap-2">
-          {[
-            { v: 'player',      l: 'Intérêt pour un joueur' },
-            { v: 'profile',     l: 'Recherche d’un profil' },
-            { v: 'partnership', l: 'Partenariat / collaboration' },
-            { v: 'other',       l: 'Autre' },
-          ].map(({ v, l }) => {
+          {interestOptions.map(({ v, l }) => {
             const active = interest === v
             return (
               <button
                 key={v}
                 type="button"
-                onClick={() => onPayloadChange('interest', v as ContactForm['payload']['interest'])}
+                onClick={() => onPayloadChange('interest', v)}
                 className={`px-3 py-2.5 rounded-xl text-sm border transition-colors ease-premium ${
                   active
                     ? 'bg-zinc-950 border-zinc-950 text-stone-50 dark:bg-stone-50 dark:border-stone-50 dark:text-zinc-950'
@@ -415,31 +421,31 @@ function StepClub({ form, errors, onPayloadChange, roster }: ClubOrMediaProps) {
       {interest === 'player' && (
         <div className="space-y-5 rounded-2xl border border-stone-200 dark:border-stone-50/10 p-5 bg-stone-50/40 dark:bg-zinc-950/40">
           <div>
-            <FieldLabel htmlFor="cl-player">Joueur ciblé</FieldLabel>
+            <FieldLabel htmlFor="cl-player">{t('contact.forms.club.player.label')}</FieldLabel>
             <Select
               id="cl-player"
               value={form.payload.player_id != null ? String(form.payload.player_id) : ''}
               onChange={(v) => onPayloadChange('player_id', v === '' ? null : Number(v))}
-              placeholder="Un joueur du roster…"
-              emptyLabel="Aucun joueur publié pour le moment."
+              placeholder={t('contact.forms.club.player.placeholder')}
+              emptyLabel={t('contact.forms.club.player.emptyLabel')}
               options={roster.map((p) => ({
                 value: String(p.id),
                 label: `${p.name}${p.position ? ` · ${p.position}` : ''}${p.club ? ` · ${p.club}` : ''}`,
               }))}
             />
             <p className="mt-2 text-xs text-zinc-500 dark:text-stone-500">
-              Le joueur ne figure pas dans la liste ? Précisez son nom ci-dessous.
+              {t('contact.forms.club.player.hint')}
             </p>
           </div>
           <div>
-            <FieldLabel htmlFor="cl-player-name" optional>Autre joueur (nom libre)</FieldLabel>
+            <FieldLabel htmlFor="cl-player-name" optional>{t('contact.forms.club.otherPlayer.label')}</FieldLabel>
             <input
               id="cl-player-name"
               type="text"
               value={form.payload.player_name ?? ''}
               onChange={(e) => onPayloadChange('player_name', e.target.value)}
               className={`${inputBase} border-stone-300 focus:border-turf-700`}
-              placeholder="Nom du joueur non listé"
+              placeholder={t('contact.forms.club.otherPlayer.placeholder')}
             />
           </div>
         </div>
@@ -448,18 +454,18 @@ function StepClub({ form, errors, onPayloadChange, roster }: ClubOrMediaProps) {
       {interest === 'profile' && (
         <div className="grid sm:grid-cols-3 gap-4 rounded-2xl border border-stone-200 dark:border-stone-50/10 p-5 bg-stone-50/40 dark:bg-zinc-950/40">
           <div className="sm:col-span-1">
-            <FieldLabel htmlFor="cl-need-pos">Poste recherché</FieldLabel>
+            <FieldLabel htmlFor="cl-need-pos">{t('contact.forms.club.neededPosition.label')}</FieldLabel>
             <input
               id="cl-need-pos"
               type="text"
               value={form.payload.needed_position ?? ''}
               onChange={(e) => onPayloadChange('needed_position', e.target.value)}
               className={`${inputBase} border-stone-300 focus:border-turf-700`}
-              placeholder="Ex : Ailier gauche"
+              placeholder={t('contact.forms.club.neededPosition.placeholder')}
             />
           </div>
           <div>
-            <FieldLabel htmlFor="cl-age-min" optional>Âge min</FieldLabel>
+            <FieldLabel htmlFor="cl-age-min" optional>{t('contact.forms.club.ageMin')}</FieldLabel>
             <input
               id="cl-age-min"
               type="number" min={12} max={45}
@@ -469,7 +475,7 @@ function StepClub({ form, errors, onPayloadChange, roster }: ClubOrMediaProps) {
             />
           </div>
           <div>
-            <FieldLabel htmlFor="cl-age-max" optional>Âge max</FieldLabel>
+            <FieldLabel htmlFor="cl-age-max" optional>{t('contact.forms.club.ageMax')}</FieldLabel>
             <input
               id="cl-age-max"
               type="number" min={12} max={45}
@@ -479,14 +485,14 @@ function StepClub({ form, errors, onPayloadChange, roster }: ClubOrMediaProps) {
             />
           </div>
           <div className="sm:col-span-3">
-            <FieldLabel htmlFor="cl-budget" optional>Budget / cadre financier</FieldLabel>
+            <FieldLabel htmlFor="cl-budget" optional>{t('contact.forms.club.budget.label')}</FieldLabel>
             <input
               id="cl-budget"
               type="text"
               value={form.payload.budget ?? ''}
               onChange={(e) => onPayloadChange('budget', e.target.value)}
               className={`${inputBase} border-stone-300 focus:border-turf-700`}
-              placeholder="Ex : 100-250k€ / an, ou libre à négocier"
+              placeholder={t('contact.forms.club.budget.placeholder')}
             />
           </div>
         </div>
@@ -496,35 +502,42 @@ function StepClub({ form, errors, onPayloadChange, roster }: ClubOrMediaProps) {
 }
 
 function StepMedias({ form, errors, onPayloadChange, roster }: ClubOrMediaProps) {
+  const { t } = useTranslation()
   const wantsPlayer = form.payload.purpose === 'interview_player'
+  const purposeOptions: Array<{ v: NonNullable<ContactForm['payload']['purpose']>; l: string }> = [
+    { v: 'interview_player', l: t('contact.forms.media.purpose.options.interview_player') },
+    { v: 'article',          l: t('contact.forms.media.purpose.options.article') },
+    { v: 'documentary',      l: t('contact.forms.media.purpose.options.documentary') },
+    { v: 'other',            l: t('contact.forms.media.purpose.options.other') },
+  ]
   return (
     <div className="space-y-6">
       <div className="grid sm:grid-cols-2 gap-5">
         <div>
-          <FieldLabel htmlFor="md-name">Nom du média</FieldLabel>
+          <FieldLabel htmlFor="md-name">{t('contact.forms.media.name.label')}</FieldLabel>
           <input
             id="md-name"
             type="text"
             value={form.payload.media_name ?? ''}
             onChange={(e) => onPayloadChange('media_name', e.target.value)}
             className={`${inputBase} ${errors['payload.media_name'] ? 'border-rose-400' : 'border-stone-300 focus:border-turf-700'}`}
-            placeholder="Ex : L’Équipe, RTL, DAZN…"
+            placeholder={t('contact.forms.media.name.placeholder')}
           />
           <FieldError message={errors['payload.media_name']} />
         </div>
         <div>
-          <FieldLabel htmlFor="md-role">Votre rôle</FieldLabel>
+          <FieldLabel htmlFor="md-role">{t('contact.forms.media.role.label')}</FieldLabel>
           <Select
             id="md-role"
             value={form.payload.role ?? ''}
             onChange={(v) => onPayloadChange('role', v as ContactForm['payload']['role'])}
             invalid={Boolean(errors['payload.role'])}
-            placeholder="Choisir…"
+            placeholder={t('contact.forms.media.role.placeholder')}
             options={[
-              { value: 'journalist', label: 'Journaliste' },
-              { value: 'editor',     label: 'Rédacteur en chef' },
-              { value: 'producer',   label: 'Producteur / Réalisateur' },
-              { value: 'other',      label: 'Autre' },
+              { value: 'journalist', label: t('contact.forms.media.role.options.journalist') },
+              { value: 'editor',     label: t('contact.forms.media.role.options.editor') },
+              { value: 'producer',   label: t('contact.forms.media.role.options.producer') },
+              { value: 'other',      label: t('contact.forms.media.role.options.other') },
             ]}
           />
           <FieldError message={errors['payload.role']} />
@@ -532,20 +545,15 @@ function StepMedias({ form, errors, onPayloadChange, roster }: ClubOrMediaProps)
       </div>
 
       <div>
-        <FieldLabel htmlFor="md-purpose">Objet de la demande</FieldLabel>
+        <FieldLabel htmlFor="md-purpose">{t('contact.forms.media.purpose.label')}</FieldLabel>
         <div className="grid grid-cols-2 gap-2">
-          {[
-            { v: 'interview_player', l: 'Interview d’un joueur' },
-            { v: 'article',          l: 'Article / dossier' },
-            { v: 'documentary',      l: 'Documentaire' },
-            { v: 'other',            l: 'Autre' },
-          ].map(({ v, l }) => {
+          {purposeOptions.map(({ v, l }) => {
             const active = form.payload.purpose === v
             return (
               <button
                 key={v}
                 type="button"
-                onClick={() => onPayloadChange('purpose', v as ContactForm['payload']['purpose'])}
+                onClick={() => onPayloadChange('purpose', v)}
                 className={`px-3 py-2.5 rounded-xl text-sm border transition-colors ease-premium ${
                   active
                     ? 'bg-zinc-950 border-zinc-950 text-stone-50 dark:bg-stone-50 dark:border-stone-50 dark:text-zinc-950'
@@ -563,13 +571,13 @@ function StepMedias({ form, errors, onPayloadChange, roster }: ClubOrMediaProps)
       {wantsPlayer && (
         <div className="space-y-4 rounded-2xl border border-stone-200 dark:border-stone-50/10 p-5 bg-stone-50/40 dark:bg-zinc-950/40">
           <div>
-            <FieldLabel htmlFor="md-player">Joueur souhaité</FieldLabel>
+            <FieldLabel htmlFor="md-player">{t('contact.forms.media.player.label')}</FieldLabel>
             <Select
               id="md-player"
               value={form.payload.player_id != null ? String(form.payload.player_id) : ''}
               onChange={(v) => onPayloadChange('player_id', v === '' ? null : Number(v))}
-              placeholder="Un joueur du roster…"
-              emptyLabel="Aucun joueur publié pour le moment."
+              placeholder={t('contact.forms.media.player.placeholder')}
+              emptyLabel={t('contact.forms.media.player.emptyLabel')}
               options={roster.map((p) => ({
                 value: String(p.id),
                 label: `${p.name}${p.position ? ` · ${p.position}` : ''}`,
@@ -577,28 +585,28 @@ function StepMedias({ form, errors, onPayloadChange, roster }: ClubOrMediaProps)
             />
           </div>
           <div>
-            <FieldLabel htmlFor="md-player-name" optional>Autre joueur (nom libre)</FieldLabel>
+            <FieldLabel htmlFor="md-player-name" optional>{t('contact.forms.media.otherPlayer.label')}</FieldLabel>
             <input
               id="md-player-name"
               type="text"
               value={form.payload.player_name ?? ''}
               onChange={(e) => onPayloadChange('player_name', e.target.value)}
               className={`${inputBase} border-stone-300 focus:border-turf-700`}
-              placeholder="Ex : joueur non représenté par nous"
+              placeholder={t('contact.forms.media.otherPlayer.placeholder')}
             />
           </div>
         </div>
       )}
 
       <div>
-        <FieldLabel htmlFor="md-deadline" optional>Deadline de bouclage</FieldLabel>
+        <FieldLabel htmlFor="md-deadline" optional>{t('contact.forms.media.deadline.label')}</FieldLabel>
         <div className="max-w-[280px]">
           <DateInput
             id="md-deadline"
             value={form.payload.deadline ?? ''}
             onChange={(v) => onPayloadChange('deadline', v)}
             min={new Date().toISOString().slice(0, 10)}
-            placeholder="jj/mm/aaaa"
+            placeholder={t('contact.forms.media.deadline.placeholder')}
           />
         </div>
       </div>
@@ -607,16 +615,17 @@ function StepMedias({ form, errors, onPayloadChange, roster }: ClubOrMediaProps)
 }
 
 function StepAutre({ form, errors, onPayloadChange }: StepAudienceFormProps) {
+  const { t } = useTranslation()
   return (
     <div>
-      <FieldLabel htmlFor="ot-subject">Sujet de votre demande</FieldLabel>
+      <FieldLabel htmlFor="ot-subject">{t('contact.forms.autre.subject.label')}</FieldLabel>
       <input
         id="ot-subject"
         type="text"
         value={form.payload.subject ?? ''}
         onChange={(e) => onPayloadChange('subject', e.target.value)}
         className={`${inputBase} ${errors['payload.subject'] ? 'border-rose-400' : 'border-stone-300 focus:border-turf-700'}`}
-        placeholder="Résumez votre demande en une ligne"
+        placeholder={t('contact.forms.autre.subject.placeholder')}
       />
       <FieldError message={errors['payload.subject']} />
     </div>
@@ -634,11 +643,12 @@ interface StepCoordsProps {
 }
 
 function StepCoords({ form, errors, onFieldChange }: StepCoordsProps) {
+  const { t } = useTranslation()
   return (
     <div className="space-y-5">
       <div className="grid sm:grid-cols-2 gap-5">
         <div>
-          <FieldLabel htmlFor="contact-name">Votre nom</FieldLabel>
+          <FieldLabel htmlFor="contact-name">{t('contact.forms.coords.name.label')}</FieldLabel>
           <input
             id="contact-name"
             type="text"
@@ -646,12 +656,12 @@ function StepCoords({ form, errors, onFieldChange }: StepCoordsProps) {
             value={form.name}
             onChange={(e) => onFieldChange('name', e.target.value)}
             className={`${inputBase} ${errors.name ? 'border-rose-400' : 'border-stone-300 focus:border-turf-700'}`}
-            placeholder="Prénom Nom"
+            placeholder={t('contact.forms.coords.name.placeholder')}
           />
           <FieldError message={errors.name} />
         </div>
         <div>
-          <FieldLabel htmlFor="contact-email">Email</FieldLabel>
+          <FieldLabel htmlFor="contact-email">{t('contact.forms.coords.email.label')}</FieldLabel>
           <input
             id="contact-email"
             type="email"
@@ -659,14 +669,14 @@ function StepCoords({ form, errors, onFieldChange }: StepCoordsProps) {
             value={form.email}
             onChange={(e) => onFieldChange('email', e.target.value)}
             className={`${inputBase} ${errors.email ? 'border-rose-400' : 'border-stone-300 focus:border-turf-700'}`}
-            placeholder="vous@example.com"
+            placeholder={t('contact.forms.coords.email.placeholder')}
           />
           <FieldError message={errors.email} />
         </div>
       </div>
 
       <div>
-        <FieldLabel htmlFor="contact-phone" optional>Téléphone</FieldLabel>
+        <FieldLabel htmlFor="contact-phone" optional>{t('contact.forms.coords.phone.label')}</FieldLabel>
         <input
           id="contact-phone"
           type="tel"
@@ -674,19 +684,19 @@ function StepCoords({ form, errors, onFieldChange }: StepCoordsProps) {
           value={form.phone}
           onChange={(e) => onFieldChange('phone', e.target.value)}
           className={`${inputBase} border-stone-300 focus:border-turf-700`}
-          placeholder="+352 661 24 18 47"
+          placeholder={t('contact.forms.coords.phone.placeholder')}
         />
       </div>
 
       <div>
-        <FieldLabel htmlFor="contact-message">Votre message</FieldLabel>
+        <FieldLabel htmlFor="contact-message">{t('contact.forms.coords.message.label')}</FieldLabel>
         <textarea
           id="contact-message"
           rows={6}
           value={form.message}
           onChange={(e) => onFieldChange('message', e.target.value)}
           className={`${inputBase} resize-y min-h-[140px] ${errors.message ? 'border-rose-400' : 'border-stone-300 focus:border-turf-700'}`}
-          placeholder="Détaillez votre demande. Plus c'est précis, mieux nous pourrons vous orienter."
+          placeholder={t('contact.forms.coords.message.placeholder')}
         />
         <FieldError message={errors.message} />
       </div>
@@ -706,13 +716,12 @@ function StepCoords({ form, errors, onFieldChange }: StepCoordsProps) {
           className="mt-0.5 w-4 h-4 rounded border-stone-300 text-turf-800 focus:ring-turf-700/30 accent-turf-800 dark:accent-turf-300"
         />
         <span className="text-sm text-zinc-700 dark:text-stone-300 leading-relaxed">
-          J'accepte que mes données soient utilisées par Rene Football pour
-          traiter ma demande.
+          {t('contact.consent.text')}
           <br />
           <Link to="/confidentialite" className="text-turf-800 dark:text-turf-300 underline underline-offset-2">
-            Politique de confidentialité
+            {t('contact.consent.privacyLink')}
           </Link>
-          <span className="text-zinc-500 dark:text-stone-500"> · Vos données ne sont jamais transmises à des tiers.</span>
+          <span className="text-zinc-500 dark:text-stone-500"> · {t('contact.consent.privacyNote')}</span>
         </span>
       </label>
       <FieldError message={errors.consent} />
@@ -802,29 +811,29 @@ function ContactPage() {
     const e: ContactErrors = {}
     const p = form.payload
     if (form.reason === 'joueur') {
-      if (!p.intent) e['payload.intent'] = 'Choisissez un objectif.'
-      if (!p.player_name || p.player_name.trim().length < 2) e['payload.player_name'] = 'Indiquez le nom du joueur.'
-      if (p.video_url && !/^https?:\/\//i.test(p.video_url)) e['payload.video_url'] = 'URL invalide.'
+      if (!p.intent) e['payload.intent'] = t('contact.validation.intent')
+      if (!p.player_name || p.player_name.trim().length < 2) e['payload.player_name'] = t('contact.validation.playerName')
+      if (p.video_url && !/^https?:\/\//i.test(p.video_url)) e['payload.video_url'] = t('contact.validation.videoUrl')
     } else if (form.reason === 'club') {
-      if (!p.club_name || p.club_name.trim().length < 2) e['payload.club_name'] = 'Indiquez le nom du club.'
-      if (!p.role) e['payload.role'] = 'Précisez votre rôle.'
-      if (!p.interest) e['payload.interest'] = 'Sélectionnez l’objet.'
+      if (!p.club_name || p.club_name.trim().length < 2) e['payload.club_name'] = t('contact.validation.clubName')
+      if (!p.role) e['payload.role'] = t('contact.validation.role')
+      if (!p.interest) e['payload.interest'] = t('contact.validation.interest')
     } else if (form.reason === 'medias') {
-      if (!p.media_name || p.media_name.trim().length < 2) e['payload.media_name'] = 'Indiquez le nom du média.'
-      if (!p.role) e['payload.role'] = 'Précisez votre rôle.'
-      if (!p.purpose) e['payload.purpose'] = 'Sélectionnez l’objet.'
+      if (!p.media_name || p.media_name.trim().length < 2) e['payload.media_name'] = t('contact.validation.mediaName')
+      if (!p.role) e['payload.role'] = t('contact.validation.role')
+      if (!p.purpose) e['payload.purpose'] = t('contact.validation.purpose')
     } else {
-      if (!p.subject || p.subject.trim().length < 3) e['payload.subject'] = 'Résumez votre demande.'
+      if (!p.subject || p.subject.trim().length < 3) e['payload.subject'] = t('contact.validation.subject')
     }
     return e
   }
 
   const validateStep3 = (): ContactErrors => {
     const e: ContactErrors = {}
-    if (!form.name || form.name.trim().length < 2) e.name = 'Indiquez votre nom complet.'
-    if (!form.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = 'Adresse email invalide.'
-    if (!form.message || form.message.trim().length < 10) e.message = 'Détaillez votre demande (10 caractères min).'
-    if (!form.consent) e.consent = 'Vous devez accepter le traitement de vos données.'
+    if (!form.name || form.name.trim().length < 2) e.name = t('contact.validation.contactName')
+    if (!form.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = t('contact.validation.contactEmail')
+    if (!form.message || form.message.trim().length < 10) e.message = t('contact.validation.message')
+    if (!form.consent) e.consent = t('contact.validation.consent')
     return e
   }
 
@@ -906,8 +915,8 @@ function ContactPage() {
   return (
     <>
       <Seo
-        title="Contact"
-        description="Joueur, parent, club ou média : contactez Rene Football. Agence de football basée au Luxembourg, agent FIFA licencié depuis 2010."
+        title={t('nav.contact')}
+        description={t('contact.seo.description')}
         path="/contact"
       />
       {/* Hero */}
@@ -915,15 +924,13 @@ function ContactPage() {
         <MeshGradient intensity="medium" />
         <div className="container-page pt-16 pb-10 lg:pt-24 lg:pb-14">
           <span className="font-mono uppercase tracking-[0.18em] text-[0.65rem] text-turf-300">
-            Prendre contact
+            {t('contact.hero.eyebrow')}
           </span>
           <h1 className="mt-3 font-display font-semibold text-4xl lg:text-6xl tracking-tightest leading-[1.05] text-stone-50 max-w-[20ch]">
-            Échangeons sur votre projet.
+            {t('contact.hero.title')}
           </h1>
           <p className="mt-6 max-w-[58ch] text-base lg:text-lg text-stone-400 leading-relaxed">
-            Joueur, famille, club professionnel ou journaliste : quelques
-            questions ciblées, et notre équipe revient vers vous sous 48
-            heures. Échange confidentiel, sans engagement.
+            {t('contact.hero.paragraph')}
           </p>
         </div>
       </section>
@@ -942,7 +949,7 @@ function ContactPage() {
               <ErrorBanner message={t('contact.errors.submitFailed')} />
             )}
             {status === 'throttled' && (
-              <ErrorBanner tone="warning" message="Trop de demandes envoyées. Patientez une minute avant de réessayer." />
+              <ErrorBanner tone="warning" message={t('contact.errors.throttled')} />
             )}
 
             <AnimatePresence mode="wait" initial={false}>

@@ -14,6 +14,7 @@ import {
   User,
 } from '@phosphor-icons/react'
 import { api, ApiError } from '../../api/client'
+import { useConfirm } from '../../components/ConfirmProvider'
 
 /* -------------------------------------------------------------------------- */
 /*  Types matching the admin controller payload                               */
@@ -118,6 +119,7 @@ function formatDate(iso: string | null): string {
 /* -------------------------------------------------------------------------- */
 
 function AdminContact() {
+  const confirm = useConfirm()
   const [rows, setRows] = useState<SubmissionSummary[]>([])
   const [counts, setCounts] = useState<Record<Status, number>>({ new: 0, read: 0, handled: 0, archived: 0 })
   const [total, setTotal] = useState(0)
@@ -184,7 +186,12 @@ function AdminContact() {
   }
 
   const deleteSubmission = async (id: number) => {
-    if (!confirm('Supprimer définitivement cette demande ?')) return
+    if (!(await confirm({
+      title: 'Supprimer cette demande ?',
+      body: 'La demande sera retirée du back-office. Cette action est définitive.',
+      confirmLabel: 'Supprimer',
+      danger: true,
+    }))) return
     try {
       await api.delete(`/admin/contact-submissions/${id}`, { auth: true })
       setSelected(null)

@@ -10,7 +10,10 @@
     "search": "Suchen",
     "allF": "Alle",
     "allM": "Alle",
-    "clear": "Leeren"
+    "clear": "Leeren",
+    "cancel": "Abbrechen",
+    "confirm": "Bestätigen",
+    "delete": "Löschen"
   },
   "nav": {
     "home": "Startseite",
@@ -19,7 +22,11 @@
     "about": "Über uns",
     "contact": "Kontakt",
     "adminLogin": "Agentur-Bereich",
-    "adminDashboard": "Dashboard"
+    "adminDashboard": "Dashboard",
+    "mobile": {
+      "openMenu": "Menü öffnen",
+      "closeMenu": "Menü schließen"
+    }
   },
   "language": {
     "label": "Sprache",
@@ -287,6 +294,11 @@
     "publishedOn": "Veröffentlicht am",
     "photos": "Fotos",
     "clips": "Clips",
+    "lightbox": {
+      "close": "Schließen",
+      "previous": "Vorheriges Foto",
+      "next": "Nächstes Foto"
+    },
     "notFound": {
       "title": "Artikel nicht gefunden",
       "paragraph": "Dieser Beitrag wurde möglicherweise entfernt oder seine URL geändert.",
@@ -459,11 +471,104 @@
     "errorTitle": "Ein Fehler ist aufgetreten",
     "errorHint": "Die Präsentation konnte nicht geladen werden. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut."
   },
+  "placeholder": {
+    "eyebrow": "Demnächst verfügbar",
+    "backHome": "Zurück zur Startseite"
+  },
+  "playerRadar": {
+    "aria": "Qualitäts-Radar-Profil",
+    "eliteBenchmark": "Elite-Referenz",
+    "axes": {
+      "goals": "Tore",
+      "xg": "xG",
+      "shotsOnTarget": "Schüsse aufs Tor",
+      "dribbles": "Dribblings",
+      "keyPasses": "Schlüsselpässe",
+      "assists": "Vorlagen",
+      "passAccuracy": "% Pässe",
+      "tackles": "Tacklings",
+      "interceptions": "Abfangen",
+      "duelsWon": "Duelle gew.",
+      "cleanSheets": "Zu-null",
+      "matches": "Spiele",
+      "saves": "Paraden",
+      "minutes": "Minuten"
+    }
+  },
+  "percentileBars": {
+    "unavailable": "Perzentile nicht verfügbar.",
+    "reference_one":   "Referenz: {{count}} Spieler auf derselben Position",
+    "reference_other": "Referenz: {{count}} Spieler auf derselben Position",
+    "tones": {
+      "elite":  "Elite",
+      "top":    "Top",
+      "above":  "Über",
+      "below":  "Unter",
+      "bottom": "Unten"
+    }
+  },
+  "clipsGallery": {
+    "close": "Schließen",
+    "previous": "Vorheriger Moment",
+    "next": "Nächster Moment"
+  },
+  "scoutReport": {
+    "quoteAttribution": "Scouting-Notiz · Rene Football",
+    "comparisonsLabel": "Referenzprofile",
+    "strengthsLabel": "Erkannte Stärken",
+    "potentialLabel": "Potenzial",
+    "defaultRatingLabel": "Interne Bewertung"
+  },
+  "appearancesTable": {
+    "empty": "Keine Spiele für diesen Spieler erfasst.",
+    "trend": "Notentrend - {{count}} Spiele",
+    "avg": "Ø",
+    "headers": {
+      "date": "Datum",
+      "competition": "Wettbewerb",
+      "opponent": "Gegner",
+      "score": "Ergebnis",
+      "minutes": "Min",
+      "goals": "T",
+      "assists": "V",
+      "shots": "Schüsse",
+      "rating": "Note"
+    }
+  },
+  "cookieNotice": {
+    "regionAria": "Cookie-Hinweis",
+    "closeAria": "Hinweis schließen",
+    "eyebrow": "Privatsphäre",
+    "title": "Keine Tracking-Cookies, keine Analytics.",
+    "body": "Wir verwenden nur den unbedingt erforderlichen lokalen Speicher (Theme-Präferenz, Admin-Session). Keine Werbe-Cookies, keine Drittanbieter-Tracker, kein Profiling. Details in der <cookies>Cookie-Richtlinie</cookies> und in der <privacy>Datenschutzerklärung</privacy>.",
+    "acceptCta": "Verstanden",
+    "learnMoreCta": "Mehr erfahren"
+  },
+  "legal": {
+    "eyebrow": "Rechtliche Hinweise",
+    "navAria": "Rechtliche Seiten",
+    "updatedAt": "Letzte Aktualisierung: {{date}}",
+    "authoritativeNotice": "Die französische Fassung dieses Dokuments ist maßgeblich. Die anderen Sprachfassungen dienen ausschließlich zu Informationszwecken.",
+    "nav": {
+      "mentions": "Impressum",
+      "privacy": "Datenschutz",
+      "cookies": "Cookies"
+    },
+    "mentions": { "title": "Impressum" },
+    "privacy":  { "title": "Datenschutzerklärung" },
+    "cookies":  { "title": "Cookies & Tracker" }
+  },
   "contact": {
+    "seo": {
+      "description": "Spieler, Eltern, Verein oder Medien: Kontaktieren Sie Rene Football. Fußball-Agentur mit Sitz in Luxemburg, FIFA-lizenzierter Agent seit 2010."
+    },
     "hero": {
       "eyebrow": "Kontakt aufnehmen",
-      "title": "Schreiben Sie uns.",
-      "paragraph": "Wählen Sie Ihr Profil aus: Die Fragen passen sich an, damit wir Ihre Anfrage schnell verstehen."
+      "title": "Sprechen wir über Ihr Projekt.",
+      "paragraph": "Spieler, Familie, Profiverein oder Journalist: ein paar gezielte Fragen, und unser Team meldet sich innerhalb von 48 Stunden. Vertraulicher Austausch, unverbindlich."
+    },
+    "fieldLabel": {
+      "optional": "(optional)"
     },
     "steps": {
       "profile": "Profil",
@@ -506,7 +611,125 @@
       "submit": "Anfrage senden"
     },
     "errors": {
-      "submitFailed": "Senden fehlgeschlagen. Versuchen Sie es erneut oder schreiben Sie an renefootball.p@gmail.com."
+      "submitFailed": "Senden fehlgeschlagen. Versuchen Sie es erneut oder schreiben Sie an renefootball.p@gmail.com.",
+      "throttled": "Zu viele Anfragen gesendet. Bitte warten Sie eine Minute und versuchen Sie es erneut."
+    },
+    "forms": {
+      "joueur": {
+        "intent": {
+          "label": "Was ist Ihr Ziel?",
+          "options": {
+            "join": "Der Agentur beitreten",
+            "renew": "Eine Betreuung verlängern",
+            "advice": "Beratung / Orientierung",
+            "other": "Sonstiges"
+          }
+        },
+        "playerName": { "label": "Name des Spielers", "placeholder": "Vorname Nachname" },
+        "dob":        { "label": "Geburtsdatum", "placeholder": "tt/mm/jjjj" },
+        "position":   { "label": "Hauptposition", "placeholder": "Stürmer, Mittelfeld, Verteidiger…" },
+        "club":       { "label": "Aktueller Verein", "placeholder": "Vereinsname" },
+        "level": {
+          "label": "Niveau",
+          "options": {
+            "youth": "Jugend / Akademie",
+            "amateur": "Amateur",
+            "semi_pro": "Semi-pro",
+            "pro": "Profi"
+          }
+        },
+        "video":     { "label": "Video / Highlights (URL)", "placeholder": "https://youtu.be/…  oder  drive.google.com/…" },
+        "objective": { "label": "Mittelfristiges Ziel", "placeholder": "In eine europäische Akademie wechseln, mit 18 Profi werden…" },
+        "cv":        { "label": "Lebenslauf / Dossier (PDF, JPG, PNG - max. 6 MB)", "placeholder": "Klicken, um eine Datei anzuhängen" }
+      },
+      "club": {
+        "name": { "label": "Vereinsname", "placeholder": "z. B. RSC Anderlecht" },
+        "role": {
+          "label": "Ihre Rolle",
+          "placeholder": "Auswählen…",
+          "options": {
+            "coach": "Trainer",
+            "sporting_director": "Sportdirektor",
+            "scout": "Scout / Recruiter",
+            "president": "Präsident",
+            "other": "Sonstiges"
+          }
+        },
+        "interest": {
+          "label": "Anliegen Ihrer Anfrage",
+          "options": {
+            "player": "Interesse an einem Spieler",
+            "profile": "Profilsuche",
+            "partnership": "Partnerschaft / Kooperation",
+            "other": "Sonstiges"
+          }
+        },
+        "player": {
+          "label": "Gewünschter Spieler",
+          "placeholder": "Ein Spieler aus dem Kader…",
+          "emptyLabel": "Aktuell sind keine Spieler veröffentlicht.",
+          "hint": "Nicht in der Liste? Geben Sie den Namen unten ein."
+        },
+        "otherPlayer":    { "label": "Anderer Spieler (Freitext)", "placeholder": "Name eines nicht gelisteten Spielers" },
+        "neededPosition": { "label": "Gesuchte Position", "placeholder": "z. B. linker Flügel" },
+        "ageMin":         "Min. Alter",
+        "ageMax":         "Max. Alter",
+        "budget":         { "label": "Budget / Finanzieller Rahmen", "placeholder": "z. B. 100-250k€ / Jahr, oder verhandelbar" }
+      },
+      "media": {
+        "name": { "label": "Name des Mediums", "placeholder": "z. B. L'Équipe, RTL, DAZN…" },
+        "role": {
+          "label": "Ihre Rolle",
+          "placeholder": "Auswählen…",
+          "options": {
+            "journalist": "Journalist",
+            "editor": "Chefredakteur",
+            "producer": "Produzent / Regisseur",
+            "other": "Sonstiges"
+          }
+        },
+        "purpose": {
+          "label": "Anliegen der Anfrage",
+          "options": {
+            "interview_player": "Interview mit einem Spieler",
+            "article": "Artikel / Reportage",
+            "documentary": "Dokumentation",
+            "other": "Sonstiges"
+          }
+        },
+        "player":      { "label": "Gewünschter Spieler", "placeholder": "Ein Spieler aus dem Kader…", "emptyLabel": "Aktuell sind keine Spieler veröffentlicht." },
+        "otherPlayer": { "label": "Anderer Spieler (Freitext)", "placeholder": "z. B. ein Spieler, der nicht von uns vertreten wird" },
+        "deadline":    { "label": "Redaktionsschluss", "placeholder": "tt/mm/jjjj" }
+      },
+      "autre": {
+        "subject": { "label": "Betreff Ihrer Anfrage", "placeholder": "Fassen Sie Ihre Anfrage in einer Zeile zusammen" }
+      },
+      "coords": {
+        "name":    { "label": "Ihr Name", "placeholder": "Vorname Nachname" },
+        "email":   { "label": "E-Mail", "placeholder": "sie@example.com" },
+        "phone":   { "label": "Telefon", "placeholder": "+352 661 24 18 47" },
+        "message": { "label": "Ihre Nachricht", "placeholder": "Beschreiben Sie Ihre Anfrage. Je genauer, desto besser können wir Sie weiterleiten." }
+      }
+    },
+    "consent": {
+      "text": "Ich stimme zu, dass meine Daten von Rene Football zur Bearbeitung meiner Anfrage verwendet werden.",
+      "privacyLink": "Datenschutzerklärung",
+      "privacyNote": "Ihre Daten werden nie an Dritte weitergegeben."
+    },
+    "validation": {
+      "intent": "Wählen Sie ein Ziel.",
+      "playerName": "Geben Sie den Namen des Spielers an.",
+      "videoUrl": "Ungültige URL.",
+      "clubName": "Geben Sie den Vereinsnamen an.",
+      "role": "Präzisieren Sie Ihre Rolle.",
+      "interest": "Wählen Sie ein Anliegen aus.",
+      "mediaName": "Geben Sie den Namen des Mediums an.",
+      "purpose": "Wählen Sie ein Anliegen aus.",
+      "subject": "Fassen Sie Ihre Anfrage zusammen.",
+      "contactName": "Geben Sie Ihren vollständigen Namen an.",
+      "contactEmail": "Ungültige E-Mail-Adresse.",
+      "message": "Beschreiben Sie Ihre Anfrage (mind. 10 Zeichen).",
+      "consent": "Sie müssen der Verarbeitung Ihrer Daten zustimmen."
     },
     "success": {
       "eyebrow": "Anfrage gesendet",

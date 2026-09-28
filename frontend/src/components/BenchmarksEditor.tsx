@@ -4,6 +4,7 @@ import {
   ArrowClockwise, CheckCircle, PencilSimpleLine, Plus, Trash, WarningCircle, X as XIcon,
 } from '@phosphor-icons/react'
 import { api, ApiError } from '../api/client'
+import { useConfirm } from './ConfirmProvider'
 
 /**
  * Editable position × age-tier × metric benchmark table. Backed by
@@ -65,6 +66,7 @@ const emptyDraft = (defaults: Partial<Draft> = {}): Draft => ({
 })
 
 export default function BenchmarksEditor({ open, onClose, onMutated }: Props) {
+  const confirm = useConfirm()
   const [payload, setPayload] = useState<Payload['data'] | null>(null)
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -133,7 +135,12 @@ export default function BenchmarksEditor({ open, onClose, onMutated }: Props) {
   }
 
   const deleteRow = async (id: number) => {
-    if (!confirm('Supprimer cet override ? La valeur par défaut reprendra effet.')) return
+    if (!(await confirm({
+      title: 'Supprimer cet override ?',
+      body: 'La valeur par défaut reprendra effet immédiatement.',
+      confirmLabel: 'Supprimer',
+      danger: true,
+    }))) return
     setSaving(true); setError(null)
     try {
       await api.delete(`/admin/benchmarks/${id}`, { auth: true })
@@ -147,7 +154,12 @@ export default function BenchmarksEditor({ open, onClose, onMutated }: Props) {
   }
 
   const resetAll = async () => {
-    if (!confirm('Restaurer toutes les valeurs par défaut ? Vos overrides seront écrasés par le fichier seed.')) return
+    if (!(await confirm({
+      title: 'Restaurer toutes les valeurs par défaut ?',
+      body: 'Vos overrides seront écrasés par le fichier seed. Cette action est irréversible.',
+      confirmLabel: 'Restaurer',
+      danger: true,
+    }))) return
     setResetting(true); setError(null)
     try {
       await api.post('/admin/benchmarks/reset', {}, { auth: true })

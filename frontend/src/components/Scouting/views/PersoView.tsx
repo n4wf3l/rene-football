@@ -7,6 +7,7 @@ import {
 import { api, ApiError } from '../../../api/client'
 import type { ScoutProspect, ScoutWorkspace } from '../../../types/scouting'
 import Skeleton from '../../Skeleton'
+import { useConfirm } from '../../ConfirmProvider'
 
 /**
  * Scout's personal workspace ("boîte perso").
@@ -110,6 +111,7 @@ function fromDraft(d: ProspectDraft): Record<string, unknown> {
 const INPUT = 'w-full rounded-md border border-stone-300 dark:border-stone-50/15 bg-white dark:bg-zinc-900 px-2 py-1.5 text-sm focus:outline-none focus:border-zinc-900 dark:focus:border-turf-300'
 
 export default function PersoView() {
+  const confirm = useConfirm()
   const [workspace, setWorkspace] = useState<ScoutWorkspace | null>(null)
   const [prospects, setProspects] = useState<ScoutProspect[]>([])
   const [loading, setLoading] = useState(true)
@@ -189,7 +191,12 @@ export default function PersoView() {
   }
 
   const removeProspect = async (p: ScoutProspect) => {
-    if (!confirm(`Supprimer définitivement « ${p.name} » ?`)) return
+    if (!(await confirm({
+      title: `Supprimer « ${p.name} » ?`,
+      body: 'Ce prospect sera retiré de votre workspace perso.',
+      confirmLabel: 'Supprimer',
+      danger: true,
+    }))) return
     try {
       await api.delete(`/admin/scouting/prospects/${p.id}`, { auth: true })
       await load()

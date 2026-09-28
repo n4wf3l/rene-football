@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { CookieIcon, Info, X } from '@phosphor-icons/react'
+import { Trans, useTranslation } from 'react-i18next'
 
 /**
  * Lightweight transparency notice, not a consent banner - because we ship
@@ -36,6 +37,7 @@ function isAckStillValid(): boolean {
 }
 
 export default function CookieNotice() {
+  const { t } = useTranslation()
   // Hydration-safe: false on server, real check on client mount so SSR
   // doesn't flash the banner before hydration decides.
   const [open, setOpen] = useState(false)
@@ -59,7 +61,7 @@ export default function CookieNotice() {
       {open && (
         <motion.aside
           role="region"
-          aria-label="Information sur les cookies"
+          aria-label={t('cookieNotice.regionAria')}
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{    opacity: 0, y: 16 }}
@@ -70,7 +72,7 @@ export default function CookieNotice() {
             <button
               type="button"
               onClick={ack}
-              aria-label="Fermer le bandeau"
+              aria-label={t('cookieNotice.closeAria')}
               className="absolute top-3 right-3 grid place-items-center w-7 h-7 rounded-lg text-stone-400 hover:text-stone-50 hover:bg-stone-50/5 transition-colors"
             >
               <X size={14} weight="bold" />
@@ -82,24 +84,19 @@ export default function CookieNotice() {
               </span>
               <div className="min-w-0">
                 <div className="text-[0.62rem] uppercase tracking-[0.22em] font-mono text-turf-300 mb-1">
-                  Vie privée
+                  {t('cookieNotice.eyebrow')}
                 </div>
                 <div className="font-display font-semibold text-sm text-stone-50">
-                  Aucun cookie de suivi, aucune analytique.
+                  {t('cookieNotice.title')}
                 </div>
                 <p className="mt-2 text-xs text-stone-400 leading-relaxed">
-                  Nous n'utilisons que le stockage local strictement
-                  nécessaire (préférence de thème, session admin). Aucun
-                  cookie publicitaire, aucun tracker tiers, aucun profilage.
-                  Voir la{' '}
-                  <Link to="/cookies" className="text-turf-300 hover:text-turf-200 underline underline-offset-2">
-                    politique cookies
-                  </Link>
-                  {' '}et la{' '}
-                  <Link to="/confidentialite" className="text-turf-300 hover:text-turf-200 underline underline-offset-2">
-                    politique de confidentialité
-                  </Link>
-                  {' '}pour le détail.
+                  <Trans
+                    i18nKey="cookieNotice.body"
+                    components={{
+                      cookies:  <Link to="/cookies" className="text-turf-300 hover:text-turf-200 underline underline-offset-2" />,
+                      privacy:  <Link to="/confidentialite" className="text-turf-300 hover:text-turf-200 underline underline-offset-2" />,
+                    }}
+                  />
                 </p>
 
                 <div className="mt-4 flex flex-wrap gap-2">
@@ -108,14 +105,14 @@ export default function CookieNotice() {
                     onClick={ack}
                     className="inline-flex items-center gap-1.5 rounded-lg bg-stone-50 text-zinc-950 hover:bg-stone-200 text-xs font-semibold px-3.5 py-2 transition-colors"
                   >
-                    Compris
+                    {t('cookieNotice.acceptCta')}
                   </button>
                   <Link
                     to="/cookies"
                     className="inline-flex items-center gap-1.5 rounded-lg border border-stone-50/15 text-stone-200 hover:bg-stone-50/5 text-xs font-medium px-3.5 py-2 transition-colors"
                   >
                     <Info size={12} weight="regular" />
-                    En savoir plus
+                    {t('cookieNotice.learnMoreCta')}
                   </Link>
                 </div>
               </div>

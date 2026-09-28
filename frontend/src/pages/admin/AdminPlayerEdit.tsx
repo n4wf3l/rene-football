@@ -9,6 +9,7 @@ import {
   type SaveKind,
 } from './AdminPlayers'
 import Skeleton from '../../components/Skeleton'
+import { useConfirm } from '../../components/ConfirmProvider'
 
 interface AdminPlayerResponse { data: AdminPlayer }
 
@@ -19,6 +20,7 @@ interface AdminPlayerResponse { data: AdminPlayer }
  * (`/admin/joueurs/:slug/edit`) via the same component.
  */
 export default function AdminPlayerEdit({ creating = false }: { creating?: boolean }) {
+  const confirm = useConfirm()
   const { slug } = useParams<{ slug: string }>()
   const navigate = useNavigate()
   const [player, setPlayer] = useState<PlayerFormState | null>(null)
@@ -61,7 +63,13 @@ export default function AdminPlayerEdit({ creating = false }: { creating?: boole
   }
 
   const onDelete = async (p: PlayerFormState) => {
-    if (!p.slug || !confirm(`Supprimer ${p.name} ?`)) return
+    if (!p.slug) return
+    if (!(await confirm({
+      title: `Supprimer « ${p.name} » ?`,
+      body: 'Cette action est définitive et retirera le joueur du roster public.',
+      confirmLabel: 'Supprimer',
+      danger: true,
+    }))) return
     try {
       await api.delete(`/admin/players/${p.slug}`, { auth: true })
       navigate('/admin/joueurs')

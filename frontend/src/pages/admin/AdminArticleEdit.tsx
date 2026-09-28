@@ -18,6 +18,7 @@ import type { Player } from '../../types/player'
 import type { PlayerClip } from '../../types/clip'
 import Skeleton from '../../components/Skeleton'
 import PlayerSingleSelect from '../../components/PlayerSingleSelect'
+import { useConfirm } from '../../components/ConfirmProvider'
 
 type ArticleFormState = Partial<Article>
 
@@ -103,6 +104,7 @@ function toDateInput(value: string | null | undefined): string {
 }
 
 export default function AdminArticleEdit({ creating = false }: { creating?: boolean }) {
+  const confirm = useConfirm()
   const { slug } = useParams<{ slug: string }>()
   const navigate = useNavigate()
 
@@ -321,7 +323,12 @@ export default function AdminArticleEdit({ creating = false }: { creating?: bool
 
   const onDelete = async () => {
     if (!form?.slug) return
-    if (!confirm(`Supprimer définitivement l'article « ${form.title} » ?`)) return
+    if (!(await confirm({
+      title: `Supprimer l'article « ${form.title} » ?`,
+      body: 'Cette action est définitive. L\'article ne sera plus consultable.',
+      confirmLabel: 'Supprimer',
+      danger: true,
+    }))) return
     try {
       await api.delete(`/admin/articles/${form.slug}`, { auth: true })
       navigate('/admin/articles')

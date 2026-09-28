@@ -17,6 +17,7 @@ import type { Article, ArticleCategory } from '../../types/article'
 import { ARTICLE_CATEGORIES } from '../../types/article'
 import Skeleton from '../../components/Skeleton'
 import { playerImage } from '../../lib/playerImage'
+import { useConfirm } from '../../components/ConfirmProvider'
 
 interface ArticleListResponse {
   data: Article[]
@@ -59,6 +60,7 @@ function fmtDate(value: string | null): string {
 type StatusFilter = 'Tous' | 'online' | 'offline'
 
 export default function AdminArticles() {
+  const confirm = useConfirm()
   const navigate = useNavigate()
   const [articles, setArticles] = useState<Article[]>([])
   const [loading, setLoading] = useState(true)
@@ -109,7 +111,12 @@ export default function AdminArticles() {
   }, [articles, query, categoryFilter, statusFilter])
 
   const onDelete = async (article: Article) => {
-    if (!confirm(`Supprimer définitivement l'article « ${article.title} » ?`)) return
+    if (!(await confirm({
+      title: `Supprimer l'article « ${article.title} » ?`,
+      body: 'Cette action est définitive. L\'article ne sera plus consultable.',
+      confirmLabel: 'Supprimer',
+      danger: true,
+    }))) return
     try {
       await api.delete(`/admin/articles/${article.slug}`, { auth: true })
       await reload()

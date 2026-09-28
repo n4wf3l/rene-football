@@ -27,6 +27,7 @@ import Skeleton from '../../components/Skeleton'
 import TagPicker from '../../components/TagPicker'
 import ClipsGalleryAdmin from '../../components/ClipsGalleryAdmin'
 import { type HeatmapGrid, emptyGrid, heatmapFromPosition, isValidGrid } from '../../lib/heatmap'
+import { useConfirm } from '../../components/ConfirmProvider'
 
 type AdminPlayer = Player & { id?: number }
 type PlayerFormState = Partial<AdminPlayer>
@@ -986,6 +987,7 @@ function MiniKpi({ icon: Icon, label, value, tone = 'neutral' }: MiniKpiProps) {
 }
 
 function AdminPlayers() {
+  const confirm = useConfirm()
   const [players, setPlayers] = useState<AdminPlayer[]>([])
   const [loading, setLoading] = useState(true)
   const [query, setQuery] = useState('')
@@ -1154,7 +1156,12 @@ function AdminPlayers() {
   }
 
   const onDelete = async (player: PlayerFormState) => {
-    if (!confirm(`Supprimer définitivement « ${player.name} » ?`)) return
+    if (!(await confirm({
+      title: `Supprimer « ${player.name} » ?`,
+      body: 'Cette action est définitive et retirera le joueur du roster public.',
+      confirmLabel: 'Supprimer',
+      danger: true,
+    }))) return
     try {
       await api.delete(`/admin/players/${player.slug}`, { auth: true })
       setEditing(null)

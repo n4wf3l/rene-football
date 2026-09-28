@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import type { Player, PlayerCategory } from '../types/player'
 
 export interface RadarAxis {
@@ -24,40 +25,42 @@ export interface PlayerRadarProps {
   benchmark?: { label?: string; values: Partial<Record<keyof Player, number>> } | null
 }
 
-/* ---- Per-category axes - six dimensions that matter for the position. ---- */
+/* ---- Per-category axes - six dimensions that matter for the position. ----
+   `label` holds the i18n key stem under `playerRadar.axes.*`, resolved at
+   render time so the radar polygon respects the active locale. */
 const ATTACKER_AXES: RadarAxis[] = [
-  { key: 'goals',              label: 'Buts',          max: 25 },
-  { key: 'xg',                 label: 'xG',            max: 18 },
-  { key: 'shots_on_target',    label: 'Tirs cadrés',   max: 50 },
-  { key: 'dribbles_completed', label: 'Dribbles',      max: 80 },
-  { key: 'key_passes',         label: 'Passes clés',   max: 60 },
-  { key: 'assists',            label: 'Passes déc.',   max: 15 },
+  { key: 'goals',              label: 'goals',            max: 25 },
+  { key: 'xg',                 label: 'xg',               max: 18 },
+  { key: 'shots_on_target',    label: 'shotsOnTarget',    max: 50 },
+  { key: 'dribbles_completed', label: 'dribbles',         max: 80 },
+  { key: 'key_passes',         label: 'keyPasses',        max: 60 },
+  { key: 'assists',            label: 'assists',          max: 15 },
 ]
 
 const MIDFIELD_AXES: RadarAxis[] = [
-  { key: 'key_passes',         label: 'Passes clés',   max: 60 },
-  { key: 'pass_accuracy',      label: '% passes',      max: 100 },
-  { key: 'dribbles_completed', label: 'Dribbles',      max: 80 },
-  { key: 'tackles',            label: 'Tacles',        max: 80 },
-  { key: 'interceptions',      label: 'Interceptions', max: 60 },
-  { key: 'assists',            label: 'Passes déc.',   max: 15 },
+  { key: 'key_passes',         label: 'keyPasses',        max: 60 },
+  { key: 'pass_accuracy',      label: 'passAccuracy',     max: 100 },
+  { key: 'dribbles_completed', label: 'dribbles',         max: 80 },
+  { key: 'tackles',            label: 'tackles',          max: 80 },
+  { key: 'interceptions',      label: 'interceptions',    max: 60 },
+  { key: 'assists',            label: 'assists',          max: 15 },
 ]
 
 const DEFENDER_AXES: RadarAxis[] = [
-  { key: 'tackles',            label: 'Tacles',        max: 80 },
-  { key: 'interceptions',      label: 'Interceptions', max: 60 },
-  { key: 'duels_won',          label: 'Duels gagnés',  max: 100 },
-  { key: 'pass_accuracy',      label: '% passes',      max: 100 },
-  { key: 'clean_sheets',       label: 'Clean sh.',     max: 15 },
-  { key: 'matches_played',     label: 'Matchs',        max: 38 },
+  { key: 'tackles',            label: 'tackles',          max: 80 },
+  { key: 'interceptions',      label: 'interceptions',    max: 60 },
+  { key: 'duels_won',          label: 'duelsWon',         max: 100 },
+  { key: 'pass_accuracy',      label: 'passAccuracy',     max: 100 },
+  { key: 'clean_sheets',       label: 'cleanSheets',      max: 15 },
+  { key: 'matches_played',     label: 'matches',          max: 38 },
 ]
 
 const KEEPER_AXES: RadarAxis[] = [
-  { key: 'saves',              label: 'Arrêts',        max: 150 },
-  { key: 'clean_sheets',       label: 'Clean sh.',     max: 15 },
-  { key: 'pass_accuracy',      label: '% passes',      max: 100 },
-  { key: 'matches_played',     label: 'Matchs',        max: 38 },
-  { key: 'minutes_played',     label: 'Minutes',       max: 3500 },
+  { key: 'saves',              label: 'saves',            max: 150 },
+  { key: 'clean_sheets',       label: 'cleanSheets',      max: 15 },
+  { key: 'pass_accuracy',      label: 'passAccuracy',     max: 100 },
+  { key: 'matches_played',     label: 'matches',          max: 38 },
+  { key: 'minutes_played',     label: 'minutes',          max: 3500 },
 ]
 
 function axesFor(category: string | undefined): RadarAxis[] {
@@ -92,6 +95,7 @@ export default function PlayerRadar({
   showLegend = true,
   benchmark = null,
 }: PlayerRadarProps) {
+  const { t } = useTranslation()
   if (!players.length) return null
 
   // Auto-pick axes from the first player's category if not explicitly given.
@@ -146,7 +150,7 @@ export default function PlayerRadar({
         height={size}
         viewBox={`0 0 ${size} ${size}`}
         role="img"
-        aria-label="Profil radar des qualités"
+        aria-label={t('playerRadar.aria')}
       >
         {/* Grid rings */}
         {gridLevels.map((lvl) => (
@@ -233,7 +237,7 @@ export default function PlayerRadar({
               dominantBaseline="middle"
               className="text-zinc-600 dark:text-stone-400 uppercase tracking-wider"
             >
-              {axis.label}
+              {t(`playerRadar.axes.${axis.label}`, axis.label)}
             </text>
           )
         })}
@@ -252,7 +256,7 @@ export default function PlayerRadar({
               <svg width="14" height="8" aria-hidden="true">
                 <line x1="0" y1="4" x2="14" y2="4" stroke="currentColor" strokeWidth="1.5" strokeDasharray="4 3" />
               </svg>
-              <span className="font-medium italic">{benchmark.label ?? 'Référence elite'}</span>
+              <span className="font-medium italic">{benchmark.label ?? t('playerRadar.eliteBenchmark')}</span>
             </li>
           )}
         </ul>

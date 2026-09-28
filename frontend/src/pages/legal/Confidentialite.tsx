@@ -8,7 +8,7 @@ import LegalLayout from './LegalLayout'
 export default function Confidentialite() {
   return (
     <LegalLayout
-      title="Politique de confidentialité"
+      titleKey="legal.privacy.title"
       updatedAt="25 septembre 2026"
       intro={
         <>
