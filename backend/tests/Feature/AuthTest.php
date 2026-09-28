@@ -128,4 +128,43 @@ class AuthTest extends TestCase
             ->getJson('/api/admin/me')
             ->assertStatus(403);
     }
+
+    /* ---- Security hardening (added post-audit) ---- */
+
+    public function test_login_rate_limits_ip_after_10_attempts_per_minute(): void
+    {
+        \Illuminate\Support\Facades\RateLimiter::clear('ip:127.0.0.1');
+
+        // 10 legitimate 422s allowed…
+        for ($i = 0; $i < 10; $i++) {
+            $this->postJson('/api/admin/login', [
+                'email' => "attacker{$i}@example.com",
+                'password' => 'wrong',
+            ])->assertStatus(422);
+        }
+
+        // 11th within the same minute → 429.
+        $this->postJson('/api/admin/login', [
+            'email' => 'attacker11@example.com',
+            'password' => 'wrong',
+        ])->assertStatus(429);
+    }
+
+    public function test_login_rate_limits_per_email_after_5_attempts(): void
+    {
+        \Illuminate\Support\Facades\RateLimiter::clear('email:target@example.com');
+        \Illuminate\Support\Facades\RateLimiter::clear('ip:127.0.0.1');
+
+        for ($i = 0; $i < 5; $i++) {
+            $this->postJson('/api/admin/login', [
+                'email' => 'target@example.com',
+                'password' => "wrong{$i}",
+            ])->assertStatus(422);
+        }
+
+        $this->postJson('/api/admin/login', [
+            'email' => 'target@example.com',
+            'password' => 'wrong-again',
+        ])->assertStatus(429);
+    }
 }

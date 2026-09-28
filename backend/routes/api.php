@@ -39,7 +39,12 @@ use App\Http\Controllers\Api\StaffController;
 use Illuminate\Support\Facades\Route;
 
 // --- Public ---
-Route::post('/admin/login', [AuthController::class, 'login']);
+// Login is rate-limited to slow down brute-force attempts. 10 attempts per
+// minute is roomy for a legitimate typo-loop but hard-caps automated tools.
+// The named limiter (`login`) also throttles by email (see AppServiceProvider)
+// so a shared NAT doesn't lock everyone out.
+Route::post('/admin/login', [AuthController::class, 'login'])
+    ->middleware('throttle:login');
 
 Route::get('/players', [PlayerController::class, 'index']);
 Route::get('/players/{player:slug}', [PlayerController::class, 'show']);

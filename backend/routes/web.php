@@ -12,6 +12,14 @@ use Illuminate\Support\Facades\Route;
  * inline HTML instead of views).
  */
 Route::get('/', function (Request $request) {
+    // In production this backend URL should never leak internal wiring
+    // (dev DB browser link, Vite port, API endpoint list) to visitors or
+    // bots — return a minimal 404-equivalent instead. The API and the
+    // public SPA are served from their own hosts.
+    if (app()->environment('production')) {
+        abort(404);
+    }
+
     if ($request->expectsJson() || $request->wantsJson()) {
         return response()->json([
             'service' => 'rene-football-api',

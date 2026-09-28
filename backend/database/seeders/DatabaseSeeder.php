@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use Database\Seeders\Scouting\ClubDnaProfileSeeder;
 use Database\Seeders\Scouting\FootballMatchSeeder;
 use Database\Seeders\Scouting\PlayerRiskSeeder;
@@ -13,62 +12,28 @@ use Database\Seeders\Scouting\ScoutingPlayerPatchSeeder;
 use Database\Seeders\Scouting\ScoutingReportSeeder;
 use Database\Seeders\Scouting\ShortlistSeeder;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 
+/**
+ * Content seeder — players, articles, staff, scouting cockpit demo data,
+ * reference marketing fiches. Runs on `php artisan db:seed`.
+ *
+ * NOTE: the demo user accounts (admin@rene-football.test etc., all with
+ * weak passwords baked into git history) live in {@see DemoAccountsSeeder}
+ * and are NOT invoked here. To seed local demo accounts run:
+ *     php artisan db:seed --class=DemoAccountsSeeder
+ * In production the admin is created manually via tinker with a strong
+ * password — see DEPLOYMENT.md §2.
+ */
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // Owner / super-admin - covers everything, default fallback for routing.
-        User::updateOrCreate(
-            ['email' => 'admin@rene-football.test'],
-            [
-                'name' => 'Admin Rene',
-                'password' => Hash::make('admin1234'),
-                'is_admin' => true,
-                'is_head_of_scouting' => false,
-                'scouting_scope' => null,
-            ]
-        );
-
-        // Chef de recrutement - destinataire par défaut des rapports Pro.
-        // Mot de passe : chef1234
-        User::updateOrCreate(
-            ['email' => 'chef@rene-football.test'],
-            [
-                'name' => 'Léa Chef-Recrutement',
-                'password' => Hash::make('chef1234'),
-                'is_admin' => true,
-                'is_head_of_scouting' => true,
-                'scouting_scope' => ['Pro'],
-            ]
-        );
-
-        // Responsable jeunes - destinataire des rapports U19 et U23.
-        // Mot de passe : youth1234
-        User::updateOrCreate(
-            ['email' => 'jeunes@rene-football.test'],
-            [
-                'name' => 'Marc Resp-Jeunes',
-                'password' => Hash::make('youth1234'),
-                'is_admin' => true,
-                'is_head_of_scouting' => true,
-                'scouting_scope' => ['U19', 'U23'],
-            ]
-        );
-
-        // Scout terrain - auteur des rapports, pas validateur.
-        // Mot de passe : scout1234
-        User::updateOrCreate(
-            ['email' => 'scout@rene-football.test'],
-            [
-                'name' => 'Sam Scout',
-                'password' => Hash::make('scout1234'),
-                'is_admin' => true,
-                'is_head_of_scouting' => false,
-                'scouting_scope' => null,
-            ]
-        );
+        // Local dev convenience: auto-seed the demo accounts too so
+        // `php artisan db:seed` in dev keeps working exactly as before.
+        // In staging/prod this branch is skipped.
+        if (app()->environment('local')) {
+            $this->call(DemoAccountsSeeder::class);
+        }
 
         // Core players + match history first - scouting seeders below depend on them.
         $this->call([

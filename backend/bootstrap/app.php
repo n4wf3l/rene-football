@@ -18,6 +18,23 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => EnsureAdmin::class,
         ]);
+
+        // Behind nginx / Cloudflare / any reverse proxy, the client IP
+        // sits in X-Forwarded-For. Without trustProxies() every request
+        // looks like it comes from the proxy → rate limits, IP logs and
+        // request()->ip() would all be wrong.
+        //
+        // `at: '*'` trusts whatever proxy forwarded the request. Safe as
+        // long as the app is genuinely behind a proxy in prod (which is
+        // our deploy model). If we ever expose PHP-FPM directly to the
+        // public internet, tighten `at:` to a CIDR list.
+        $middleware->trustProxies(at: '*', headers:
+            Request::HEADER_X_FORWARDED_FOR
+            | Request::HEADER_X_FORWARDED_HOST
+            | Request::HEADER_X_FORWARDED_PORT
+            | Request::HEADER_X_FORWARDED_PROTO
+            | Request::HEADER_X_FORWARDED_AWS_ELB
+        );
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // API routes must return a JSON 401 on missing auth. Without this,

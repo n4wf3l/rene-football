@@ -44,13 +44,15 @@ return [
     | Expiration Minutes
     |--------------------------------------------------------------------------
     |
-    | This value controls the number of minutes until an issued token will be
-    | considered expired. This will override any values set in the token's
-    | "expires_at" attribute, but first-party sessions are not affected.
+    | Number of minutes until an issued personal access token is considered
+    | expired. `null` means "never" — never use that in production, a leaked
+    | token would stay valid forever. 7 days matches typical admin session
+    | length while limiting blast radius of a leaked laptop / browser.
+    | Frontend catches 401 → re-login prompt.
     |
     */
 
-    'expiration' => null,
+    'expiration' => (int) env('SANCTUM_EXPIRATION_MINUTES', 60 * 24 * 7),
 
     /*
     |--------------------------------------------------------------------------
