@@ -12,18 +12,18 @@ import {
 import { scoutingApi } from '../../../lib/scoutingApi'
 import type { ScoutingReport, ScoutingReportTransition } from '../../../types/scouting'
 import Skeleton from '../../Skeleton'
-import Toast, { type ToastState } from '../../Toast'
 import { ReportStatusBadge } from '../badges'
 import ReportActionModal, { type ReportAction, type ReportActionResult } from '../ReportActionModal'
 import { useConfirm } from '../../ConfirmProvider'
+import { useToast } from '../../ToastProvider'
 
 interface Props { id: number; onClose: () => void }
 
 function ReportDrawer({ id, onClose }: Props) {
   const confirm = useConfirm()
+  const toast = useToast()
   const [report, setReport] = useState<ScoutingReport | null>(null)
   const [loading, setLoading] = useState(true)
-  const [toast, setToast] = useState<ToastState | null>(null)
   const [busy, setBusy] = useState(false)
   const [modal, setModal] = useState<ReportAction | null>(null)
 
@@ -40,9 +40,9 @@ function ReportDrawer({ id, onClose }: Props) {
     // eslint-disable-next-line
   }, [id])
 
-  const showToast = (kind: ToastState['kind'], message: string) => {
-    setToast({ kind, message })
-    setTimeout(() => setToast(null), 3000)
+  const showToast = (kind: 'success' | 'error', message: string) => {
+    if (kind === 'success') toast.success(message)
+    else toast.error(message)
   }
 
   /** Executes the API call associated with the modal action, handles loading + toast. */
@@ -226,10 +226,6 @@ function ReportDrawer({ id, onClose }: Props) {
             onConfirm={(result) => runAction(modal, result)}
           />
         )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {toast && <Toast {...toast} onDismiss={() => setToast(null)} />}
       </AnimatePresence>
     </>
   )
