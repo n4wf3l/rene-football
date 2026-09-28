@@ -28,6 +28,7 @@ import PresentationPreview from '../../components/PresentationPreview'
 import Skeleton from '../../components/Skeleton'
 import WorkInProgressBanner from '../../components/admin/WorkInProgressBanner'
 import { useConfirm } from '../../components/ConfirmProvider'
+import { useToast } from '../../components/ToastProvider'
 
 interface PlayersResponse { data: (Player & { id: number })[] }
 interface PresentationResponse { data: Presentation }
@@ -58,28 +59,6 @@ const MARKETING_THEMES: Array<{ value: 'violet' | 'navy' | 'black-gold' | 'black
 const INPUT_BASE =
   'w-full rounded-lg border border-stone-300 bg-white text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-900 dark:border-stone-50/15 dark:bg-zinc-900 dark:text-stone-50 dark:placeholder:text-stone-500 dark:focus:border-turf-300 px-3 py-2 text-sm focus:outline-none transition'
 
-interface ToastState { kind: 'success' | 'error'; message: string }
-
-function Toast({ kind, message, onDismiss }: ToastState & { onDismiss: () => void }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 12 }}
-      className={`fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-diffusion text-sm ${
-        kind === 'success' ? 'bg-turf-800 text-stone-50' : 'bg-red-600 text-white'
-      }`}
-      role="status"
-    >
-      <CheckCircle size={16} weight="bold" />
-      <span>{message}</span>
-      <button type="button" onClick={onDismiss} className="ml-2 opacity-70 hover:opacity-100">
-        <XIcon size={14} weight="bold" />
-      </button>
-    </motion.div>
-  )
-}
-
 const DEFAULT_OPTIONS: PresentationOptions = {
   accent_color: '#1e40af',
   secondary_color: '#93c5fd',
@@ -105,6 +84,7 @@ interface FormState {
 
 export default function AdminPresentationEdit({ creating = false }: { creating?: boolean }) {
   const confirm = useConfirm()
+  const toast = useToast()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
 
@@ -119,7 +99,6 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
   const [loading, setLoading] = useState(!creating)
   const [saving, setSaving] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const [toast, setToast] = useState<ToastState | null>(null)
 
   const [players, setPlayers] = useState<(Player & { id: number })[]>([])
   const [templates, setTemplates] = useState<PresentationTemplate[]>([])
@@ -210,9 +189,9 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
 
   // --- helpers ------------------------------------------------------------
 
-  const showToast = (kind: ToastState['kind'], message: string) => {
-    setToast({ kind, message })
-    setTimeout(() => setToast(null), 3500)
+  const showToast = (kind: 'success' | 'error', message: string) => {
+    if (kind === 'success') toast.success(message)
+    else toast.error(message)
   }
 
   const setOpt = <K extends keyof PresentationOptions>(k: K, v: PresentationOptions[K]) => {
@@ -1672,7 +1651,6 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
         </div>
       </div>
 
-      {toast && <Toast {...toast} onDismiss={() => setToast(null)} />}
       <PdfGenerationOverlay open={generatingPdf} />
     </div>
   )

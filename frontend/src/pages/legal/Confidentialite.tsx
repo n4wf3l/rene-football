@@ -10,6 +10,7 @@ export default function Confidentialite() {
     <LegalLayout
       titleKey="legal.privacy.title"
       updatedAt="25 septembre 2026"
+      summaryKey="legal.privacy.summary"
       intro={
         <>
           Rene Football (« nous ») respecte votre vie privée et protège les

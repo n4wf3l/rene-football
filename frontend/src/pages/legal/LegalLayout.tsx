@@ -22,12 +22,19 @@ interface LegalLayoutProps {
   titleKey: string
   updatedAt: string
   intro?: ReactNode
+  /** Optional i18n key stem for a translated executive summary shown to
+   *  non-FR visitors above the (authoritative) French body. The stem
+   *  should point to an object exposing `.title` and `.bullets` (array). */
+  summaryKey?: string
   children: ReactNode
 }
 
-export default function LegalLayout({ titleKey, updatedAt, intro, children }: LegalLayoutProps) {
+export default function LegalLayout({ titleKey, updatedAt, intro, summaryKey, children }: LegalLayoutProps) {
   const { t, i18n } = useTranslation()
   const authoritative = i18n.resolvedLanguage !== 'fr'
+  const bullets = summaryKey && authoritative
+    ? (t(`${summaryKey}.bullets`, { returnObjects: true, defaultValue: [] }) as string[])
+    : []
   return (
     <section className="bg-stone-50 dark:bg-zinc-950 py-16 lg:py-24">
       <div className="container-page grid lg:grid-cols-12 gap-10 items-start">
@@ -59,6 +66,21 @@ export default function LegalLayout({ titleKey, updatedAt, intro, children }: Le
             <div className="mt-6 rounded-2xl border border-amber-200/70 bg-amber-50/60 dark:border-amber-400/20 dark:bg-amber-500/[0.08] p-4 text-sm text-amber-900 dark:text-amber-200 leading-relaxed">
               {t('legal.authoritativeNotice')}
             </div>
+          )}
+          {summaryKey && authoritative && bullets.length > 0 && (
+            <section className="mt-6 rounded-2xl border border-stone-200/80 dark:border-stone-50/10 bg-white dark:bg-zinc-900/40 p-5 lg:p-6">
+              <h2 className="font-display font-semibold text-lg text-zinc-950 dark:text-stone-50 mb-3">
+                {t(`${summaryKey}.title`)}
+              </h2>
+              <ul className="list-disc pl-5 space-y-1.5 text-sm text-zinc-700 dark:text-stone-300 leading-relaxed">
+                {bullets.map((b, i) => (
+                  <li key={i}>{b}</li>
+                ))}
+              </ul>
+              <div className="mt-4 pt-3 border-t border-stone-200/60 dark:border-stone-50/10 text-[0.7rem] font-mono uppercase tracking-[0.16em] text-zinc-500 dark:text-stone-500">
+                {t('legal.fullFrenchBelow')}
+              </div>
+            </section>
           )}
           {intro && <div className="mt-6 text-base lg:text-lg text-zinc-600 dark:text-stone-400 leading-relaxed">{intro}</div>}
           <div className="mt-10 space-y-10 text-sm text-zinc-700 dark:text-stone-300 leading-relaxed [&_h2]:font-display [&_h2]:font-semibold [&_h2]:text-xl [&_h2]:tracking-tight [&_h2]:text-zinc-950 dark:[&_h2]:text-stone-50 [&_h2]:mb-3 [&_h3]:font-semibold [&_h3]:text-base [&_h3]:text-zinc-950 dark:[&_h3]:text-stone-50 [&_h3]:mb-2 [&_h3]:mt-4 [&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1 [&_li]:leading-relaxed [&_a]:text-turf-800 dark:[&_a]:text-turf-300 [&_a]:underline [&_a]:underline-offset-2 [&_dl]:mt-2 [&_dt]:font-medium [&_dt]:text-zinc-950 dark:[&_dt]:text-stone-100 [&_dd]:text-zinc-600 dark:[&_dd]:text-stone-400 [&_dd]:mb-2 [&_code]:font-mono [&_code]:text-[0.85em] [&_code]:text-turf-800 dark:[&_code]:text-turf-300 [&_code]:bg-turf-50 dark:[&_code]:bg-turf-500/10 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded">

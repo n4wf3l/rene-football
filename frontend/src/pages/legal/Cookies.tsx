@@ -11,6 +11,7 @@ export default function Cookies() {
     <LegalLayout
       titleKey="legal.cookies.title"
       updatedAt="25 septembre 2026"
+      summaryKey="legal.cookies.summary"
       intro={
         <>
           Notre site ne dépose <strong>aucun cookie de suivi, d'analytique

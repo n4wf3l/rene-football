@@ -10,7 +10,6 @@ import {
   Trash,
   X as XIcon,
 } from '@phosphor-icons/react'
-import { motion } from 'framer-motion'
 import { api, ApiError } from '../../api/client'
 import type { Article, ArticleImage, ArticleCategory } from '../../types/article'
 import { ARTICLE_CATEGORIES } from '../../types/article'
@@ -19,6 +18,7 @@ import type { PlayerClip } from '../../types/clip'
 import Skeleton from '../../components/Skeleton'
 import PlayerSingleSelect from '../../components/PlayerSingleSelect'
 import { useConfirm } from '../../components/ConfirmProvider'
+import { useToast } from '../../components/ToastProvider'
 
 type ArticleFormState = Partial<Article>
 
@@ -64,28 +64,6 @@ function FieldRow({ label, hint, children, error }: FieldRowProps) {
 const INPUT_BASE =
   'w-full rounded-lg border border-stone-300 bg-white text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-900 dark:border-stone-50/15 dark:bg-zinc-900 dark:text-stone-50 dark:placeholder:text-stone-500 dark:focus:border-turf-300 px-3 py-2 text-sm focus:outline-none transition'
 
-interface ToastState { kind: 'success' | 'error'; message: string }
-
-function Toast({ kind, message, onDismiss }: ToastState & { onDismiss: () => void }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 12 }}
-      className={`fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-diffusion text-sm ${
-        kind === 'success' ? 'bg-turf-800 text-stone-50' : 'bg-red-600 text-white'
-      }`}
-      role="status"
-    >
-      <CheckCircle size={16} weight="bold" />
-      <span>{message}</span>
-      <button type="button" onClick={onDismiss} className="ml-2 opacity-70 hover:opacity-100">
-        <XIcon size={14} weight="bold" />
-      </button>
-    </motion.div>
-  )
-}
-
 /** Local-side staged uploads for new gallery images (file + caption + preview URL). */
 interface StagedImage {
   id: string
@@ -105,6 +83,7 @@ function toDateInput(value: string | null | undefined): string {
 
 export default function AdminArticleEdit({ creating = false }: { creating?: boolean }) {
   const confirm = useConfirm()
+  const toast = useToast()
   const { slug } = useParams<{ slug: string }>()
   const navigate = useNavigate()
 
@@ -112,7 +91,6 @@ export default function AdminArticleEdit({ creating = false }: { creating?: bool
   const [loading, setLoading] = useState(!creating)
   const [saving, setSaving] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const [toast, setToast] = useState<ToastState | null>(null)
 
   // Cover file state - separate from form so we can show a preview without
   // mutating the persisted cover_url until save.
@@ -191,9 +169,9 @@ export default function AdminArticleEdit({ creating = false }: { creating?: bool
   const set = <K extends keyof ArticleFormState>(key: K, value: ArticleFormState[K]) =>
     setForm((f) => (f ? ({ ...f, [key]: value } as ArticleFormState) : f))
 
-  const showToast = (kind: ToastState['kind'], message: string) => {
-    setToast({ kind, message })
-    setTimeout(() => setToast(null), 3500)
+  const showToast = (kind: 'success' | 'error', message: string) => {
+    if (kind === 'success') toast.success(message)
+    else toast.error(message)
   }
 
   // -------------------- gallery helpers --------------------
@@ -786,8 +764,6 @@ export default function AdminArticleEdit({ creating = false }: { creating?: bool
           </button>
         </div>
       </form>
-
-      {toast && <Toast {...toast} onDismiss={() => setToast(null)} />}
     </div>
   )
 }

@@ -549,6 +549,7 @@
     "navAria": "Pages légales",
     "updatedAt": "Dernière mise à jour : {{date}}",
     "authoritativeNotice": "La version française de ce document fait foi. Les autres versions sont fournies à titre informatif.",
+    "fullFrenchBelow": "Version complète (français) ci-dessous",
     "nav": {
       "mentions": "Mentions légales",
       "privacy": "Confidentialité",
