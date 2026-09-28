@@ -118,7 +118,11 @@ class AdminPartnerController extends Controller
             'name'          => [$req, 'string', 'max:160'],
             'role'          => ['nullable', 'string', 'max:200'],
             'logo_url'      => ['nullable', 'string', 'max:500'],
-            'logo'          => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp,svg', 'max:4096'],
+            // SVG intentionally excluded — SVG files can carry inline <script>
+            // and would execute in-origin when served from /storage/partners/*.
+            // If a vendor sends us their logo in SVG, we ask them for a PNG
+            // export (or run it through an SVG sanitizer offline first).
+            'logo'          => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:4096'],
             'logo_remove'   => ['nullable', 'boolean'],
             'website_url'   => ['nullable', 'string', 'max:500', 'url:http,https'],
             'country_code'  => ['nullable', 'string', 'max:4'],
