@@ -178,7 +178,7 @@ export default function DateInput({
           onBlur={commitTyped}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          className="flex-1 min-w-0 bg-transparent border-0 px-1 py-1.5 text-sm text-zinc-900 dark:text-stone-100 placeholder:text-zinc-400 dark:placeholder:text-stone-500 focus:outline-none disabled:cursor-not-allowed"
+          className="flex-1 min-w-0 bg-transparent border-0 px-1 py-1.5 text-base sm:text-sm text-zinc-900 dark:text-stone-100 placeholder:text-zinc-400 dark:placeholder:text-stone-500 focus:outline-none disabled:cursor-not-allowed"
         />
         {selected && !disabled && (
           <button

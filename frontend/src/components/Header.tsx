@@ -538,7 +538,7 @@ function Header() {
             <ThemeToggle variant="rail" />
             <button
               type="button"
-              className="inline-flex items-center justify-center w-10 h-10 rounded-xl text-zinc-900 hover:bg-zinc-900/5 dark:text-stone-50 dark:hover:bg-stone-50/5 transition"
+              className="inline-flex items-center justify-center w-11 h-11 rounded-xl text-zinc-900 hover:bg-zinc-900/5 dark:text-stone-50 dark:hover:bg-stone-50/5 transition"
               aria-label={t(open ? 'nav.mobile.closeMenu' : 'nav.mobile.openMenu')}
               aria-expanded={open}
               onClick={() => setOpen((v) => !v)}

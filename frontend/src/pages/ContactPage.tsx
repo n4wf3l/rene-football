@@ -95,8 +95,13 @@ function labelForReason(r: ContactReason, t: (key: string) => string): string {
 /*  Reusable field primitives                                                 */
 /* -------------------------------------------------------------------------- */
 
+// `text-base sm:text-sm` = 16px on mobile, 14px from tablet up. The mobile
+// 16px is deliberate: iOS Safari auto-zooms the page whenever the focused
+// input's font-size is < 16px, which breaks the layout on every field tap.
+// From sm+, viewports aren't affected by the zoom-on-focus behaviour, so we
+// go back to the compact 14px for visual density.
 const inputBase =
-  'w-full rounded-xl border bg-white text-zinc-900 placeholder:text-zinc-400 dark:bg-zinc-900 dark:text-stone-100 dark:placeholder:text-stone-500 dark:border-stone-50/15 dark:focus:border-turf-300 px-4 py-3 text-sm transition focus:outline-none focus:ring-2 focus:ring-turf-700/20 dark:focus:ring-turf-300/20'
+  'w-full rounded-xl border bg-white text-zinc-900 placeholder:text-zinc-400 dark:bg-zinc-900 dark:text-stone-100 dark:placeholder:text-stone-500 dark:border-stone-50/15 dark:focus:border-turf-300 px-4 py-3 text-base sm:text-sm transition focus:outline-none focus:ring-2 focus:ring-turf-700/20 dark:focus:ring-turf-300/20'
 
 function FieldLabel({ htmlFor, children, optional }: { htmlFor: string; children: ReactNode; optional?: boolean }) {
   const { t } = useTranslation()

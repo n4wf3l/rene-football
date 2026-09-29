@@ -223,7 +223,7 @@ function ActualitesPage() {
                 key={c}
                 type="button"
                 onClick={() => setCategory(c)}
-                className={`relative px-4 py-1.5 rounded-full text-sm transition-colors duration-200 ease-premium whitespace-nowrap ${
+                className={`relative px-4 py-2.5 sm:py-1.5 rounded-full text-sm transition-colors duration-200 ease-premium whitespace-nowrap ${
                   active
                     ? 'text-stone-50'
                     : 'text-zinc-700 dark:text-stone-300 hover:text-zinc-950 dark:hover:text-stone-50'

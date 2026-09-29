@@ -242,7 +242,7 @@ function PlayersPage() {
                   key={p}
                   type="button"
                   onClick={() => setPosition(p)}
-                  className={`relative px-4 py-1.5 rounded-full text-sm transition-colors duration-200 ease-premium ${
+                  className={`relative px-4 py-2.5 sm:py-1.5 rounded-full text-sm transition-colors duration-200 ease-premium ${
                     active
                       ? 'text-stone-50 dark:text-zinc-950'
                       : 'text-zinc-700 hover:text-zinc-950 dark:text-stone-300 dark:hover:text-stone-50'
@@ -271,7 +271,7 @@ function PlayersPage() {
                   key={key}
                   type="button"
                   onClick={() => setAge(key)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors duration-200 ease-premium ${
+                  className={`px-3 py-2 sm:py-1.5 rounded-full text-xs font-medium border transition-colors duration-200 ease-premium ${
                     active
                       ? 'bg-turf-800 border-turf-800 text-stone-50'
                       : 'bg-transparent border-stone-300 text-zinc-700 hover:border-zinc-500 hover:text-zinc-950 dark:border-stone-50/15 dark:text-stone-300 dark:hover:border-stone-50/40 dark:hover:text-stone-50'
@@ -294,7 +294,7 @@ function PlayersPage() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={t('players.filters.searchPlaceholder')}
-              className="w-full lg:w-72 pl-10 pr-9 py-2 rounded-full border border-stone-300 bg-white text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-zinc-900 transition dark:bg-zinc-900 dark:border-stone-50/15 dark:text-stone-50 dark:placeholder:text-stone-500 dark:focus:border-turf-300"
+              className="w-full lg:w-72 pl-10 pr-9 py-2 rounded-full border border-stone-300 bg-white text-base sm:text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-zinc-900 transition dark:bg-zinc-900 dark:border-stone-50/15 dark:text-stone-50 dark:placeholder:text-stone-500 dark:focus:border-turf-300"
             />
             {query && (
               <button

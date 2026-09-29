@@ -79,7 +79,7 @@ export default function CookieNotice() {
               type="button"
               onClick={ack}
               aria-label={t('cookieNotice.closeAria')}
-              className="absolute top-3 right-3 grid place-items-center w-7 h-7 rounded-lg text-stone-400 hover:text-stone-50 hover:bg-stone-50/5 transition-colors"
+              className="absolute top-2 right-2 grid place-items-center w-11 h-11 sm:w-8 sm:h-8 sm:top-3 sm:right-3 rounded-lg text-stone-400 hover:text-stone-50 hover:bg-stone-50/5 transition-colors"
             >
               <X size={14} weight="bold" />
             </button>
