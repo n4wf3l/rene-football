@@ -47,7 +47,16 @@ interface TimelineRailProps {
 }
 
 function TimelineRail({ targetRef }: TimelineRailProps) {
-  const { scrollYProgress } = useScroll({ target: targetRef, offset: ['start 0.5' as const, 'end 0.5' as const] })
+  // `layoutEffect: false` defers measurement to useEffect so the target ref
+  // is attached to the DOM by the time useScroll reads it. Without this,
+  // Framer Motion logs a "ref not yet hydrated" warning on the very first
+  // render because refs from parent components resolve after the child's
+  // useLayoutEffect.
+  const { scrollYProgress } = useScroll({
+    target: targetRef,
+    offset: ['start 0.5' as const, 'end 0.5' as const],
+    layoutEffect: false,
+  })
   const scaleY = useSpring(scrollYProgress, { stiffness: 120, damping: 26, mass: 0.4 })
   const c1 = useTransform(scrollYProgress, [0, 0.5, 1], ['#93c5fd', '#3b82f6', '#1d4ed8'])
   const c2 = useTransform(scrollYProgress, [0, 0.5, 1], ['#60a5fa', '#1e40af', '#0f2664'])
