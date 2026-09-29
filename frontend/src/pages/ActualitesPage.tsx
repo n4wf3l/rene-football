@@ -215,7 +215,7 @@ function ActualitesPage() {
 
       {/* Filter bar */}
       <section className="sticky nav-sticky z-30 bg-stone-50/90 dark:bg-zinc-950/85 backdrop-blur-md border-b border-stone-200/80 dark:border-stone-50/10">
-        <div className="container-page py-4 flex items-center gap-2 overflow-x-auto">
+        <div className="container-page py-4 flex items-center gap-2 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
           {CATEGORIES.map((c) => {
             const active = category === c
             return (

@@ -941,7 +941,7 @@ function ContactPage() {
           <form
             noValidate
             onSubmit={handleSubmit}
-            className="lg:col-span-7 rounded-3xl bg-white border border-stone-200/80 dark:bg-zinc-900 dark:border-stone-50/10 p-6 sm:p-8 lg:p-10 shadow-diffusion"
+            className="lg:col-span-7 rounded-3xl bg-white border border-stone-200/80 dark:bg-zinc-900 dark:border-stone-50/10 p-4 sm:p-8 lg:p-10 shadow-diffusion"
           >
             <ProgressBar step={step} reason={form.reason} />
 

@@ -51,6 +51,12 @@ function FooterNav() {
           exit={{ y: 40, opacity: 0, scale: 0.9 }}
           transition={{ type: 'spring', stiffness: 260, damping: 26 }}
           className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 grid place-items-center w-11 h-11 rounded-full bg-turf-800 text-stone-50 hover:bg-turf-700 transition-colors shadow-[0_16px_32px_-12px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.14)]"
+          style={{
+            // Add iOS home-indicator safe area on top of the Tailwind bottom
+            // offset — env() resolves to 0 on non-notch devices so this is a
+            // no-op there and doesn't regress desktop spacing.
+            marginBottom: 'env(safe-area-inset-bottom)',
+          }}
         >
           <ArrowUp size={17} weight="bold" />
         </motion.button>
