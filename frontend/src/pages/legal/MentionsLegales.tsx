@@ -9,7 +9,7 @@ export default function MentionsLegales() {
   return (
     <LegalLayout
       titleKey="legal.mentions.title"
-      updatedAt="25 septembre 2026"
+      updatedAt="29 septembre 2026"
       summaryKey="legal.mentions.summary"
       intro={
         <>
@@ -46,10 +46,22 @@ export default function MentionsLegales() {
       <section>
         <h2>Hébergement</h2>
         <dl>
-          <dt>Hébergeur du site</dt>
-          <dd>À compléter avant mise en production (nom + adresse du prestataire).</dd>
+          <dt>Hébergeur</dt>
+          <dd>
+            Hostinger International Ltd, 61 Lordou Vironos Street, 6023
+            Larnaca, Chypre. Site :{' '}
+            <a href="https://www.hostinger.com" target="_blank" rel="noreferrer">
+              www.hostinger.com
+            </a>.
+          </dd>
           <dt>Localisation des serveurs</dt>
-          <dd>Union européenne.</dd>
+          <dd>Union européenne (centre de données Hostinger).</dd>
+          <dt>Contact hébergeur pour un signalement de contenu illicite</dt>
+          <dd>
+            <a href="https://www.hostinger.com/abuse" target="_blank" rel="noreferrer">
+              hostinger.com/abuse
+            </a>
+          </dd>
         </dl>
       </section>
 
