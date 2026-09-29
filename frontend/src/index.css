@@ -64,6 +64,25 @@
       scroll-behavior: auto !important;
     }
   }
+
+  /* A11y focus-visible fallback.
+     Many components in this codebase set `focus:outline-none` to suppress
+     the browser default, then rely on component-local rings. But when a
+     dev misses that step the element becomes silently non-focusable for
+     keyboard users — a WCAG 2.4.7 violation. This baseline restores a
+     turf-blue ring for any focusable element that reaches keyboard focus
+     without providing its own outline. It's `:focus-visible` (not
+     `:focus`) so mouse clicks stay clean; only real keyboard/switch
+     navigation lights it up. */
+  :focus-visible {
+    outline: 2px solid rgb(30 64 175);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  /* Elements that already ship a ring/outline via focus:ring-* keep their
+     custom look — the base outline is drawn only when nothing else took
+     over. Adding `outline-none` on `:focus-visible` for those is the
+     component's responsibility. */
 }
 
 @layer components {

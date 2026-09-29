@@ -20,12 +20,14 @@ function ThemeToggle({ variant = 'header', className = '' }: ThemeToggleProps) {
   const isDark = theme === 'dark'
   const Icon = isDark ? Sun : Moon
 
+  // Mobile hit areas bumped to w-11/h-11 (44px) to meet the WCAG 2.2 AA
+  // touch-target minimum. Desktop stays at 36/40 to preserve visual density.
   const base =
     variant === 'header'
-      ? 'inline-grid place-items-center w-9 h-9 rounded-full text-zinc-700 dark:text-stone-200 hover:bg-stone-200/60 dark:hover:bg-stone-50/10 transition-colors'
+      ? 'inline-grid place-items-center w-11 h-11 sm:w-9 sm:h-9 rounded-full text-zinc-700 dark:text-stone-200 hover:bg-stone-200/60 dark:hover:bg-stone-50/10 transition-colors'
       : variant === 'rail'
-      ? 'group relative grid place-items-center w-10 h-10 rounded-xl text-stone-400 hover:text-stone-50 hover:bg-stone-50/5 transition-colors'
-      : 'group relative grid place-items-center w-10 h-10 rounded-xl text-stone-300 hover:text-stone-50 hover:bg-stone-50/5 transition-colors'
+      ? 'group relative grid place-items-center w-11 h-11 sm:w-10 sm:h-10 rounded-xl text-stone-400 hover:text-stone-50 hover:bg-stone-50/5 transition-colors'
+      : 'group relative grid place-items-center w-11 h-11 sm:w-10 sm:h-10 rounded-xl text-stone-300 hover:text-stone-50 hover:bg-stone-50/5 transition-colors'
 
   return (
     <button
