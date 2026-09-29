@@ -283,8 +283,10 @@ function HomePage() {
         {/* Strict full-viewport hero on lg+: content stays inside one screen at any
            resolution. On mobile we let it grow naturally (a tall stacked layout
            would never fit a 100dvh box anyway). Title + portrait sizes are
-           viewport-aware (clamp + max-h dvh) so they never push content out. */}
-        <div className="container-page grid lg:grid-cols-12 gap-8 lg:gap-10 items-center pt-12 pb-12 lg:pt-16 lg:pb-12 min-h-[calc(100dvh-3rem)] lg:h-[calc(100dvh-3rem)]">
+           viewport-aware (clamp + max-h dvh) so they never push content out.
+           `pt-24` on mobile clears the ~64px fixed navbar (was pt-12, which
+           parked the eyebrow chip visually behind the header on phones). */}
+        <div className="container-page grid lg:grid-cols-12 gap-8 lg:gap-10 items-center pt-24 pb-12 lg:pt-16 lg:pb-12 min-h-[calc(100dvh-4rem)] lg:h-[calc(100dvh-3rem)]">
           <motion.div
             className="lg:col-span-7"
             initial="hidden"
