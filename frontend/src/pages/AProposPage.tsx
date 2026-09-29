@@ -124,7 +124,7 @@ function AProposPage() {
             if (heroStats.length === 0) return null
             return (
               <div className="lg:col-span-5 lg:justify-self-end self-end">
-                <div className="grid grid-cols-2 gap-y-6 gap-x-10 border-t border-stone-900/10 dark:border-stone-50/10 pt-8">
+                <div className="grid grid-cols-2 gap-y-6 gap-x-4 sm:gap-x-10 border-t border-stone-900/10 dark:border-stone-50/10 pt-8">
                   {heroStats.map((s) => (
                     <div key={s.label}>
                       <div className="font-mono text-3xl text-zinc-950 dark:text-stone-50 tabular-nums inline-flex items-baseline">

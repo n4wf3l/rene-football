@@ -67,6 +67,12 @@ export default function CookieNotice() {
           exit={{    opacity: 0, y: 16 }}
           transition={{ type: 'spring', stiffness: 200, damping: 26 }}
           className="fixed inset-x-3 bottom-3 z-50 md:inset-x-auto md:left-4 md:right-auto md:bottom-4 md:max-w-[440px]"
+          style={{
+            // Add iOS home-indicator safe area on top of the Tailwind bottom
+            // offset — env() resolves to 0 on non-notch devices so it's a
+            // no-op elsewhere.
+            marginBottom: 'env(safe-area-inset-bottom)',
+          }}
         >
           <div className="relative rounded-2xl bg-zinc-950 text-stone-100 border border-stone-50/10 shadow-[0_30px_60px_-20px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.06)] p-5 pr-4">
             <button
