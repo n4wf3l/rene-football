@@ -30,6 +30,7 @@
   },
   "language": {
     "label": "Langue",
+    "chooseLabel": "Choisissez votre langue",
     "fr": "Français",
     "en": "English",
     "de": "Deutsch",
