@@ -9,7 +9,7 @@ export default function Confidentialite() {
   return (
     <LegalLayout
       titleKey="legal.privacy.title"
-      updatedAt="25 septembre 2026"
+      updatedAt="29 septembre 2026"
       summaryKey="legal.privacy.summary"
       intro={
         <>
@@ -133,10 +133,21 @@ export default function Confidentialite() {
         <h2>4. Destinataires</h2>
         <p>
           Vos données sont accessibles uniquement à l'équipe de Rene
-          Football et à ses prestataires techniques directs (hébergement,
-          messagerie). Nous ne vendons, ne louons et ne partageons vos
-          données avec aucun tiers à des fins commerciales.
+          Football et à ses prestataires techniques directs. Nous ne
+          vendons, ne louons et ne partageons vos données avec aucun tiers
+          à des fins commerciales.
         </p>
+        <h3>4.1 Prestataires techniques</h3>
+        <dl>
+          <dt>Hébergement du site et de la base de données</dt>
+          <dd>
+            <strong>Hostinger International Ltd</strong> (61 Lordou Vironos
+            Street, 6023 Larnaca, Chypre) — centre de données situé dans
+            l'Union européenne. Contrat de sous-traitance au sens de
+            l'article 28 RGPD.
+          </dd>
+        </dl>
+        <h3>4.2 Transferts hors Union européenne</h3>
         <p>
           Les seuls transferts hors de l'Union européenne susceptibles
           d'intervenir concernent :
@@ -227,11 +238,16 @@ export default function Confidentialite() {
       <section>
         <h2>8. Sécurité</h2>
         <p>
-          Le site fonctionne exclusivement en HTTPS. Les téléversements
-          (CV) sont stockés sur des serveurs européens, filtrés par
-          extension et taille, et servis via des URLs signées. Les
-          données du back-office sont protégées par une authentification
-          Sanctum et un contrôle d'accès basé sur les rôles.
+          Le site fonctionne exclusivement en HTTPS. L'ensemble des
+          données (base et fichiers) est hébergé chez Hostinger dans un
+          centre de données de l'Union européenne. Les CV téléversés sont
+          filtrés par extension et taille (6 Mo max), stockés en dehors
+          de la racine web publique, et servis uniquement via des URL
+          signées à durée de vie limitée (15 minutes) accessibles depuis
+          le back-office. Aucun chemin direct de type{' '}
+          <code>/storage/…</code> n'expose ces fichiers. Les accès admin
+          sont protégés par une authentification Sanctum et un contrôle
+          d'accès basé sur les rôles.
         </p>
       </section>
 
