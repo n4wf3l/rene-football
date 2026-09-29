@@ -19,14 +19,23 @@ use Illuminate\Support\Facades\Hash;
  */
 class DemoAccountsSeeder extends Seeder
 {
+    /**
+     * Environments where seeding weak demo credentials is safe.
+     * Anything else (production, staging, preview, …) throws.
+     */
+    private const ALLOWED_ENVS = ['local', 'testing'];
+
     public function run(): void
     {
-        // Refuse to run in production — these credentials are public
-        // knowledge in the repo, they must never touch a prod database.
-        if (app()->environment('production')) {
+        // Strict allow-list: refuse to run outside local/testing. Previous
+        // guard only blocked `production`, which meant a `staging` or
+        // `preview` environment could silently create these credentials
+        // — they are in git history so anyone reading the repo can log in.
+        $env = app()->environment();
+        if (! in_array($env, self::ALLOWED_ENVS, true)) {
             throw new \RuntimeException(
-                'DemoAccountsSeeder ne doit jamais tourner en production. '
-                .'Utilisez tinker pour créer un admin avec un mot de passe fort.'
+                "DemoAccountsSeeder ne peut tourner qu'en local ou testing (env courant: {$env}). "
+                .'Pour créer un admin en prod/staging, utilisez tinker avec un mot de passe fort — voir DEPLOYMENT.md §2.'
             );
         }
 

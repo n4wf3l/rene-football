@@ -58,7 +58,7 @@ Le boot refusera de démarrer si `APP_DEBUG=true` en production (guard `AppServi
   ```bash
   php artisan migrate --force
   ```
-- [ ] **NE JAMAIS lancer** `php artisan db:seed` en prod. `DatabaseSeeder` auto-invoquerait `DemoAccountsSeeder` uniquement si `APP_ENV=local` (guard runtime), mais les seeders de contenu (players / articles / staff démo) écraseraient tes vraies données. `DemoAccountsSeeder` throw explicitement une exception si on tente de le lancer en prod, mais mieux vaut ne pas s'y frotter.
+- [ ] **NE JAMAIS lancer** `php artisan db:seed` en prod. `DatabaseSeeder` auto-invoquerait `DemoAccountsSeeder` uniquement si `APP_ENV=local` (guard runtime), mais les seeders de contenu (players / articles / staff démo) écraseraient tes vraies données. `DemoAccountsSeeder` refuse maintenant explicitement de tourner ailleurs qu'en `local` ou `testing` (allow-list stricte : `production`, `staging`, `preview`, tout autre valeur → `RuntimeException`). Mieux vaut quand même ne pas s'y frotter.
 - [ ] **Créer l'admin manuellement** via tinker (première install ou reset) :
   ```bash
   php artisan tinker

@@ -229,7 +229,7 @@ export default function Confidentialite() {
           <dt>Adresse postale</dt>
           <dd>15, boulevard du Jazz, L-4370 Belvaux, Luxembourg</dd>
           <dt>Téléphone</dt>
-          <dd><a href="tel:+35226101260">+352 26 10 12 60</a></dd>
+          <dd><a href="tel:+35226106001">+352 26 10 60 -1</a></dd>
           <dt>Site</dt>
           <dd><a href="https://cnpd.public.lu" target="_blank" rel="noreferrer">cnpd.public.lu</a></dd>
         </dl>
