@@ -34,7 +34,7 @@ export default function MentionsLegales() {
           <dt>Siège social</dt>
           <dd>Luxembourg-Ville, Grand-Duché de Luxembourg.</dd>
           <dt>Directeur de la publication</dt>
-          <dd>René Ajari.</dd>
+          <dd>À compléter avant mise en production.</dd>
           <dt>Contact</dt>
           <dd>
             <a href="mailto:contact@renefootball.com">contact@renefootball.com</a> ·{' '}
