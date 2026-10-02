@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { Icon as PhosphorIcon } from '@phosphor-icons/react'
-import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   ArrowSquareOut,
@@ -25,6 +25,7 @@ import { useAuth } from '../auth/AuthContext'
 import { api } from '../api/client'
 import ThemeToggle from '../theme/ThemeToggle'
 import BrandLogo from '../components/BrandLogo'
+import LanguageSwitcher from '../components/LanguageSwitcher'
 import PageTransition from '../components/PageTransition'
 
 const SIDEBAR_STATE_KEY = 'rene_admin_sidebar_open'
@@ -201,31 +202,38 @@ function Sidebar({ onCloseMobile, onCollapseDesktop }: SidebarProps) {
             badge={item.badgeKey ? badges[item.badgeKey] : null}
           />
         ))}
-
-        <div className="px-3 mt-6 mb-2 text-[0.6rem] font-mono uppercase tracking-[0.2em] text-zinc-400 dark:text-stone-500">
-          Site public
-        </div>
-        <Link
-          to="/"
-          onClick={onCloseMobile}
-          className="group flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-colors duration-200 ease-premium text-zinc-600 hover:bg-stone-200/50 hover:text-zinc-950 dark:text-stone-400 dark:hover:bg-stone-50/5 dark:hover:text-stone-100"
-        >
-          <ArrowSquareOut size={18} weight="regular" />
-          <span>Voir la landing page</span>
-        </Link>
       </nav>
 
       <div className="border-t border-stone-200 dark:border-stone-50/10 p-4">
+        {/* User identity row — avatar + name + email */}
         <div className="flex items-center gap-3 mb-3">
-          <div className="grid place-items-center w-9 h-9 rounded-full bg-stone-200 text-zinc-700 dark:bg-stone-50/10 dark:text-stone-100 text-xs font-medium">
+          <div className="grid place-items-center w-9 h-9 rounded-full bg-stone-200 text-zinc-700 dark:bg-stone-50/10 dark:text-stone-100 text-xs font-medium shrink-0">
             {(user?.name || '?').slice(0, 2).toUpperCase()}
           </div>
-          <div className="leading-tight overflow-hidden flex-1">
+          <div className="leading-tight overflow-hidden flex-1 min-w-0">
             <div className="text-sm text-zinc-900 dark:text-stone-100 truncate">{user?.name}</div>
             <div className="text-[0.65rem] font-mono text-zinc-500 dark:text-stone-500 truncate">{user?.email}</div>
           </div>
-          <ThemeToggle variant="header" className="!w-8 !h-8" />
         </div>
+
+        {/* Utility row — language, theme, view-public-site. Grouped here
+            instead of sprinkled through the nav so the sidebar body stays
+            focused on actual back-office destinations. */}
+        <div className="flex items-center justify-between gap-2 mb-3 rounded-xl border border-stone-200 dark:border-stone-50/10 bg-stone-50/60 dark:bg-stone-50/[0.02] px-2 py-1.5">
+          <LanguageSwitcher variant="chip" direction="up" />
+          <ThemeToggle variant="header" className="!w-8 !h-8" />
+          <a
+            href="/"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Voir le site public (nouvel onglet)"
+            title="Voir le site public (nouvel onglet)"
+            className="grid place-items-center w-8 h-8 rounded-full text-zinc-600 hover:text-zinc-900 hover:bg-zinc-900/5 dark:text-stone-400 dark:hover:text-stone-50 dark:hover:bg-stone-50/5 transition-colors"
+          >
+            <ArrowSquareOut size={14} weight="regular" />
+          </a>
+        </div>
+
         <button
           type="button"
           onClick={handleLogout}

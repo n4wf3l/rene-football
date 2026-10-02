@@ -8,6 +8,10 @@ import { SUPPORTED_LOCALES, type SupportedLocale } from '../i18n'
 interface LanguageSwitcherProps {
   /** Style variant: `chip` for the desktop navbar, `full` for the mobile drawer. */
   variant?: 'chip' | 'full'
+  /** Chip-only : whether the dropdown opens below (default) or above the
+   *  trigger. Use `up` when the switcher sits in a sidebar footer so the
+   *  menu doesn't overflow the viewport bottom. */
+  direction?: 'down' | 'up'
 }
 
 const SHORT_CODE: Record<SupportedLocale, string> = {
@@ -27,7 +31,7 @@ const SHORT_CODE: Record<SupportedLocale, string> = {
  *              language becomes a large tap target (5 x ~72 px cards) instead
  *              of a native `<select>` sheet that hides the visual identity.
  */
-export default function LanguageSwitcher({ variant = 'chip' }: LanguageSwitcherProps) {
+export default function LanguageSwitcher({ variant = 'chip', direction = 'down' }: LanguageSwitcherProps) {
   const { i18n, t } = useTranslation()
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement | null>(null)
@@ -202,11 +206,13 @@ export default function LanguageSwitcher({ variant = 'chip' }: LanguageSwitcherP
           <motion.ul
             role="listbox"
             aria-label={t('language.label')}
-            initial={{ opacity: 0, y: -6, scale: 0.98 }}
+            initial={{ opacity: 0, y: direction === 'up' ? 6 : -6, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -6, scale: 0.98 }}
+            exit={{ opacity: 0, y: direction === 'up' ? 6 : -6, scale: 0.98 }}
             transition={{ type: 'spring', stiffness: 320, damping: 26 }}
-            className="absolute right-0 top-full mt-2 w-44 rounded-xl border border-stone-200 bg-white/95 backdrop-blur-xl shadow-diffusion dark:border-stone-50/10 dark:bg-zinc-950/95 overflow-hidden z-50"
+            className={`absolute right-0 w-44 rounded-xl border border-stone-200 bg-white/95 backdrop-blur-xl shadow-diffusion dark:border-stone-50/10 dark:bg-zinc-950/95 overflow-hidden z-50 ${
+              direction === 'up' ? 'bottom-full mb-2' : 'top-full mt-2'
+            }`}
           >
             {SUPPORTED_LOCALES.map((lng) => {
               const active = lng === current
