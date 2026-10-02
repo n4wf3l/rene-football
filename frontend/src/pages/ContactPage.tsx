@@ -871,6 +871,13 @@ function ContactPage() {
   const { players } = usePublicPlayers()
   const { settings } = useAppSettings()
   const contactSocials = CONTACT_SOCIAL_META.filter((s) => Boolean(settings.social_links[s.key]))
+  // Soft fallbacks — keep the sidebar + banner coherent even before the
+  // admin filled in the Réglages page. Overridden by any value coming from
+  // /api/settings as soon as it's saved.
+  const agencyEmail = settings.contact.email ?? 'contact@renefootball.com'
+  const agencyPhone = settings.contact.phone ?? '+352 691 712 574'
+  const agencyCity  = settings.contact.office_city ?? 'Luxembourg-Ville · Luxembourg'
+  const agencyTelUri = `tel:${agencyPhone.replace(/[\s()-]/g, '')}`
   const roster = useMemo(() =>
     players.map((p) => ({ id: p.id, name: p.name, club: p.club, position: p.position })),
   [players])
@@ -1082,9 +1089,9 @@ function ContactPage() {
             <div className="font-semibold mb-1">{t('contact.pendingTitle')}</div>
             <div>
               {t('contact.pendingBody')}{' '}
-              <a href="mailto:contact@renefootball.com" className="underline underline-offset-2 font-medium">contact@renefootball.com</a>{' '}
+              <a href={`mailto:${agencyEmail}`} className="underline underline-offset-2 font-medium">{agencyEmail}</a>{' '}
               {t('contact.pendingOr')}{' '}
-              <a href="tel:+352691712574" className="underline underline-offset-2 font-medium font-mono">+352 691 712 574</a>.
+              <a href={agencyTelUri} className="underline underline-offset-2 font-medium font-mono">{agencyPhone}</a>.
             </div>
           </div>
         </div>
@@ -1206,8 +1213,8 @@ function ContactPage() {
                   </span>
                   <div>
                     <div className="text-[0.65rem] uppercase tracking-wider font-mono text-stone-400">{t('contact.sidebar.email')}</div>
-                    <a href="mailto:renefootball.p@gmail.com" className="text-stone-100 hover:text-stone-50 transition">
-                      renefootball.p@gmail.com
+                    <a href={`mailto:${agencyEmail}`} className="text-stone-100 hover:text-stone-50 transition break-all">
+                      {agencyEmail}
                     </a>
                   </div>
                 </li>
@@ -1217,8 +1224,8 @@ function ContactPage() {
                   </span>
                   <div>
                     <div className="text-[0.65rem] uppercase tracking-wider font-mono text-stone-400">{t('contact.sidebar.phone')}</div>
-                    <a href="tel:+352691712574" className="font-mono text-stone-100 hover:text-stone-50 transition tabular-nums">
-                      +352 691 712 574
+                    <a href={agencyTelUri} className="font-mono text-stone-100 hover:text-stone-50 transition tabular-nums">
+                      {agencyPhone}
                     </a>
                   </div>
                 </li>
@@ -1228,7 +1235,7 @@ function ContactPage() {
                   </span>
                   <div>
                     <div className="text-[0.65rem] uppercase tracking-wider font-mono text-stone-400">{t('contact.sidebar.office')}</div>
-                    <div className="text-stone-100">Luxembourg-Ville · Luxembourg</div>
+                    <div className="text-stone-100">{agencyCity}</div>
                     <div className="text-xs text-stone-400 mt-0.5">{t('contact.sidebar.officeSubtitle')}</div>
                   </div>
                 </li>

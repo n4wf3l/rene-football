@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { useAppSettings } from '../../lib/useAppSettings'
 
 /**
  * Shared shell for the 3 legal pages so they read consistently and share a
@@ -31,9 +32,17 @@ interface LegalLayoutProps {
 
 export default function LegalLayout({ titleKey, updatedAt, intro, summaryKey, children }: LegalLayoutProps) {
   const { t, i18n } = useTranslation()
+  const { settings } = useAppSettings()
   const authoritative = i18n.resolvedLanguage !== 'fr'
+  // Interpolation values exposed to every bullet so a locale can write
+  // "Contact: {{email}} · {{phone}}." and get the live values from the
+  // admin-managed Réglages page.
+  const interpolation = {
+    email: settings.contact.email ?? 'contact@renefootball.com',
+    phone: settings.contact.phone ?? '+352 691 712 574',
+  }
   const bullets = summaryKey && authoritative
-    ? (t(`${summaryKey}.bullets`, { returnObjects: true, defaultValue: [] }) as string[])
+    ? (t(`${summaryKey}.bullets`, { returnObjects: true, defaultValue: [], ...interpolation }) as string[])
     : []
   return (
     <section className="bg-stone-50 dark:bg-zinc-950 py-16 lg:py-24">

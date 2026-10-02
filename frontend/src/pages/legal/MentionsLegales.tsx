@@ -1,16 +1,34 @@
 import { useTranslation } from 'react-i18next'
 import LegalLayout from './LegalLayout'
+import { useAppSettings } from '../../lib/useAppSettings'
 
 /**
- * Agency is in the middle of its administrative registration (SARL/SA/
- * indépendant to be confirmed, RCS/TVA pending). Instead of blocking the
- * site launch we expose a visible banner stating the pending state and
- * invite users to contact the agency directly for anything urgent.
- * The placeholder values ("En cours d'enregistrement administratif") are
- * updated to reflect the pending status in a user-facing way.
+ * Mentions légales — valeurs issues de /api/settings depuis que l'admin peut
+ * les éditer dans la section Réglages. Chaque champ est null-safe : tant que
+ * la valeur n'est pas remplie côté admin, on affiche "En cours
+ * d'enregistrement" (identité juridique) ou le défaut raisonnable
+ * (contact : contact@renefootball.com / +352 691 712 574). La bannière ambre
+ * en haut de page reste tant qu'au moins un champ légal est manquant.
  */
+const FALLBACK_EMAIL = 'contact@renefootball.com'
+const FALLBACK_PHONE = '+352 691 712 574'
+const FALLBACK_CITY  = 'Luxembourg-Ville, Grand-Duché de Luxembourg'
+const FALLBACK_DIRECTOR = 'René Jacob Yougbaré, fondateur de Rene Football'
+const PENDING = 'En cours d\'enregistrement.'
+
 export default function MentionsLegales() {
   const { t } = useTranslation()
+  const { settings } = useAppSettings()
+  const { legal, contact } = settings
+
+  const email = contact.email ?? FALLBACK_EMAIL
+  const phone = contact.phone ?? FALLBACK_PHONE
+  const telUri = `tel:${phone.replace(/[\s()-]/g, '')}`
+  const city  = contact.office_city ?? FALLBACK_CITY
+
+  // The pending banner shows as long as at least one legal field is empty.
+  const legalPending = !legal.legal_form || !legal.rcs_number || !legal.vat_number || !legal.registered_office_address
+
   return (
     <LegalLayout
       titleKey="legal.mentions.title"
@@ -18,10 +36,12 @@ export default function MentionsLegales() {
       summaryKey="legal.mentions.summary"
       intro={
         <>
-          <div className="mb-6 rounded-2xl border border-amber-300/70 bg-amber-50 dark:border-amber-400/30 dark:bg-amber-500/[0.08] p-4 text-sm text-amber-900 dark:text-amber-200 leading-relaxed">
-            <div className="font-semibold mb-1">{t('legal.mentions.pendingTitle')}</div>
-            <div>{t('legal.mentions.pendingBody')}</div>
-          </div>
+          {legalPending && (
+            <div className="mb-6 rounded-2xl border border-amber-300/70 bg-amber-50 dark:border-amber-400/30 dark:bg-amber-500/[0.08] p-4 text-sm text-amber-900 dark:text-amber-200 leading-relaxed">
+              <div className="font-semibold mb-1">{t('legal.mentions.pendingTitle')}</div>
+              <div>{t('legal.mentions.pendingBody')}</div>
+            </div>
+          )}
           Conformément à la <a href="https://cnpd.public.lu" target="_blank" rel="noreferrer">CNPD</a>{' '}
           (Commission nationale pour la protection des données) et à la loi
           luxembourgeoise, cette page identifie l'éditeur du site, son
@@ -35,19 +55,19 @@ export default function MentionsLegales() {
           <dt>Dénomination</dt>
           <dd>Rene Football</dd>
           <dt>Forme juridique</dt>
-          <dd>En cours d'enregistrement administratif.</dd>
+          <dd>{legal.legal_form ?? PENDING}</dd>
           <dt>Numéro RCS Luxembourg</dt>
-          <dd>En cours d'enregistrement.</dd>
+          <dd>{legal.rcs_number ?? PENDING}</dd>
           <dt>Numéro TVA intracommunautaire</dt>
-          <dd>En cours d'enregistrement.</dd>
+          <dd>{legal.vat_number ?? PENDING}</dd>
           <dt>Siège social</dt>
-          <dd>Luxembourg-Ville, Grand-Duché de Luxembourg.</dd>
+          <dd>{legal.registered_office_address ?? city}</dd>
           <dt>Directeur de la publication</dt>
-          <dd>René Jacob Yougbaré, fondateur de Rene Football.</dd>
+          <dd>{legal.publication_director ?? FALLBACK_DIRECTOR}</dd>
           <dt>Contact</dt>
           <dd>
-            <a href="mailto:contact@renefootball.com">contact@renefootball.com</a> ·{' '}
-            <a href="tel:+352691712574">+352 691 712 574</a>
+            <a href={`mailto:${email}`}>{email}</a> ·{' '}
+            <a href={telUri}>{phone}</a>
           </dd>
         </dl>
       </section>
