@@ -20,6 +20,16 @@ interface LanguageSwitcherProps {
    *  container (admin sidebar utility row), otherwise the menu overflows
    *  off-screen on the left. */
   align?: 'start' | 'end'
+  /** Chip-only : locks the switcher to a single locale. The other locales
+   *  are still listed in the dropdown but rendered disabled (greyed,
+   *  non-interactive). Signals to the user that translations exist
+   *  without pretending the current surface (e.g. the admin back-office)
+   *  supports them. */
+  lockedTo?: SupportedLocale
+  /** Explanatory note shown at the bottom of the dropdown when `lockedTo`
+   *  is set. Hardcoded by the caller so the LanguageSwitcher stays
+   *  context-agnostic. */
+  lockedNote?: string
 }
 
 const SHORT_CODE: Record<SupportedLocale, string> = {
@@ -39,7 +49,13 @@ const SHORT_CODE: Record<SupportedLocale, string> = {
  *              language becomes a large tap target (5 x ~72 px cards) instead
  *              of a native `<select>` sheet that hides the visual identity.
  */
-export default function LanguageSwitcher({ variant = 'chip', direction = 'down', align = 'end' }: LanguageSwitcherProps) {
+export default function LanguageSwitcher({
+  variant = 'chip',
+  direction = 'down',
+  align = 'end',
+  lockedTo,
+  lockedNote,
+}: LanguageSwitcherProps) {
   const { i18n, t } = useTranslation()
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement | null>(null)
@@ -224,16 +240,21 @@ export default function LanguageSwitcher({ variant = 'chip', direction = 'down',
           >
             {SUPPORTED_LOCALES.map((lng) => {
               const active = lng === current
+              const locked = Boolean(lockedTo) && lng !== lockedTo
               return (
                 <li key={lng}>
                   <button
                     type="button"
                     role="option"
                     aria-selected={active}
-                    onClick={() => pick(lng)}
+                    aria-disabled={locked || undefined}
+                    disabled={locked}
+                    onClick={() => { if (!locked) pick(lng) }}
                     className={`w-full flex items-center justify-between gap-2 px-3 py-2 text-sm text-left transition-colors ${
                       active
                         ? 'bg-turf-50 text-turf-800 dark:bg-turf-800/20 dark:text-turf-200'
+                        : locked
+                        ? 'text-zinc-400 dark:text-stone-600 cursor-not-allowed'
                         : 'text-zinc-700 hover:bg-stone-100 dark:text-stone-300 dark:hover:bg-stone-50/5'
                     }`}
                   >
@@ -243,6 +264,11 @@ export default function LanguageSwitcher({ variant = 'chip', direction = 'down',
                 </li>
               )
             })}
+            {lockedTo && lockedNote && (
+              <li className="border-t border-stone-200 dark:border-stone-50/10 px-3 py-2 text-[0.65rem] leading-snug text-zinc-500 dark:text-stone-500">
+                {lockedNote}
+              </li>
+            )}
           </motion.ul>
         )}
       </AnimatePresence>
