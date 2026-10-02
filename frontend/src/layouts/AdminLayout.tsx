@@ -27,6 +27,8 @@ import ThemeToggle from '../theme/ThemeToggle'
 import BrandLogo from '../components/BrandLogo'
 import LanguageSwitcher from '../components/LanguageSwitcher'
 import PageTransition from '../components/PageTransition'
+import AdminStatusBar from '../components/admin/AdminStatusBar'
+import type { AdminStatusBarBadges } from '../components/admin/AdminStatusBar'
 
 const SIDEBAR_STATE_KEY = 'rene_admin_sidebar_open'
 
@@ -117,41 +119,14 @@ interface SidebarProps {
   onCloseMobile?: () => void
   /** Desktop collapse (chevron in the header). */
   onCollapseDesktop?: () => void
+  /** Pending counts for the sidebar badges, polled by the parent layout
+   *  and shared with AdminStatusBar (single source of truth, single fetch). */
+  badges: Record<BadgeKey, number>
 }
 
-function Sidebar({ onCloseMobile, onCollapseDesktop }: SidebarProps) {
+function Sidebar({ onCloseMobile, onCollapseDesktop, badges }: SidebarProps) {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
-  const location = useLocation()
-  const [badges, setBadges] = useState<Record<BadgeKey, number>>({ scouting: 0, contact: 0 })
-
-  /**
-   * Lightweight inbox poll for the sidebar badge.
-   * - Fires once on mount.
-   * - Refires whenever the route changes (cheap, gives the impression of "live").
-   * - 401-tolerant so the layout doesn't blow up if the token expires mid-session.
-   */
-  useEffect(() => {
-    let cancelled = false
-    api.get<{ to_validate: number; my_reports_needing_changes: number }>('/admin/scouting/inbox', { auth: true })
-      .then((d) => {
-        if (cancelled) return
-        const count = (d?.to_validate ?? 0) + (d?.my_reports_needing_changes ?? 0)
-        setBadges((prev) => ({ ...prev, scouting: count }))
-      })
-      .catch(() => { /* silently ignore - badge falls back to 0 */ })
-
-    // Contact inbox: count "new" (unread) submissions - cheapest possible
-    // read via the standard index endpoint filtered by status.
-    api.get<{ meta?: { counts?: Record<string, number> } }>('/admin/contact-submissions?per_page=1&status=new', { auth: true })
-      .then((d) => {
-        if (cancelled) return
-        const count = d?.meta?.counts?.new ?? 0
-        setBadges((prev) => ({ ...prev, contact: count }))
-      })
-      .catch(() => { /* silently ignore */ })
-    return () => { cancelled = true }
-  }, [location.pathname])
 
   const handleLogout = async () => {
     await logout()
@@ -316,7 +291,40 @@ function isFocusRoute(pathname: string): boolean {
 function AdminLayout() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [desktopOpen, setDesktopOpen] = useState<boolean>(() => readInitialDesktopOpen())
+  const [badges, setBadges] = useState<Record<BadgeKey, number>>({ scouting: 0, contact: 0 })
   const location = useLocation()
+
+  /**
+   * Shared inbox poll for the sidebar badges AND the top status bar.
+   * Lifted here so there's a single fetch per route change instead of
+   * each consumer polling its own copy.
+   *
+   *  - Fires once on mount.
+   *  - Refires whenever the route changes (cheap, gives the impression of "live").
+   *  - 401-tolerant so the layout doesn't blow up if the token expires mid-session.
+   */
+  useEffect(() => {
+    let cancelled = false
+    api.get<{ to_validate: number; my_reports_needing_changes: number }>('/admin/scouting/inbox', { auth: true })
+      .then((d) => {
+        if (cancelled) return
+        const count = (d?.to_validate ?? 0) + (d?.my_reports_needing_changes ?? 0)
+        setBadges((prev) => ({ ...prev, scouting: count }))
+      })
+      .catch(() => { /* silently ignore - badge falls back to 0 */ })
+
+    api.get<{ meta?: { counts?: Record<string, number> } }>('/admin/contact-submissions?per_page=1&status=new', { auth: true })
+      .then((d) => {
+        if (cancelled) return
+        const count = d?.meta?.counts?.new ?? 0
+        setBadges((prev) => ({ ...prev, contact: count }))
+      })
+      .catch(() => { /* silently ignore */ })
+    return () => { cancelled = true }
+  }, [location.pathname])
+
+  const statusBarBadges: AdminStatusBarBadges = badges
+  const inFocusRoute = isFocusRoute(location.pathname)
 
   // Persist user-driven open/close (but skip when we're on a focus route - the
   // collapse there is route-driven, not user-driven, and shouldn't overwrite
@@ -351,7 +359,7 @@ function AdminLayout() {
             transition={{ type: 'spring', stiffness: 260, damping: 32 }}
             className="hidden lg:block sticky top-0 h-[100dvh] overflow-hidden shrink-0"
           >
-            <Sidebar onCollapseDesktop={() => setDesktopOpen(false)} />
+            <Sidebar onCollapseDesktop={() => setDesktopOpen(false)} badges={badges} />
           </motion.div>
         )}
       </AnimatePresence>
@@ -378,7 +386,7 @@ function AdminLayout() {
               transition={{ type: 'spring', stiffness: 300, damping: 32 }}
               className="relative h-full"
             >
-              <Sidebar onCloseMobile={() => setMobileOpen(false)} />
+              <Sidebar onCloseMobile={() => setMobileOpen(false)} badges={badges} />
             </motion.div>
           </div>
         )}
@@ -399,6 +407,11 @@ function AdminLayout() {
           </div>
           <ThemeToggle variant="header" className="!w-8 !h-8" />
         </header>
+
+        {/* Desktop-only status bar : wayfinding + chips cliquables vers les
+            inboxes qui ont du contenu en attente. Masqué sur les focus-routes
+            (éditeurs) pour maximiser la zone de travail. */}
+        {!inFocusRoute && <AdminStatusBar badges={statusBarBadges} />}
 
         <main className="flex-1 min-w-0">
           <PageTransition>
