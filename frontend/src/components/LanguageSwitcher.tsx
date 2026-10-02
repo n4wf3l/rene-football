@@ -12,6 +12,14 @@ interface LanguageSwitcherProps {
    *  trigger. Use `up` when the switcher sits in a sidebar footer so the
    *  menu doesn't overflow the viewport bottom. */
   direction?: 'down' | 'up'
+  /** Chip-only : horizontal alignment of the dropdown relative to the
+   *  trigger. `end` (default, right-0) anchors the menu's right edge to
+   *  the trigger's right edge — appropriate when the trigger is on the
+   *  right of its container (public nav). `start` (left-0) anchors to
+   *  the left — needed when the trigger sits on the left side of its
+   *  container (admin sidebar utility row), otherwise the menu overflows
+   *  off-screen on the left. */
+  align?: 'start' | 'end'
 }
 
 const SHORT_CODE: Record<SupportedLocale, string> = {
@@ -31,7 +39,7 @@ const SHORT_CODE: Record<SupportedLocale, string> = {
  *              language becomes a large tap target (5 x ~72 px cards) instead
  *              of a native `<select>` sheet that hides the visual identity.
  */
-export default function LanguageSwitcher({ variant = 'chip', direction = 'down' }: LanguageSwitcherProps) {
+export default function LanguageSwitcher({ variant = 'chip', direction = 'down', align = 'end' }: LanguageSwitcherProps) {
   const { i18n, t } = useTranslation()
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement | null>(null)
@@ -210,9 +218,9 @@ export default function LanguageSwitcher({ variant = 'chip', direction = 'down' 
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: direction === 'up' ? 6 : -6, scale: 0.98 }}
             transition={{ type: 'spring', stiffness: 320, damping: 26 }}
-            className={`absolute right-0 w-44 rounded-xl border border-stone-200 bg-white/95 backdrop-blur-xl shadow-diffusion dark:border-stone-50/10 dark:bg-zinc-950/95 overflow-hidden z-50 ${
+            className={`absolute w-44 rounded-xl border border-stone-200 bg-white/95 backdrop-blur-xl shadow-diffusion dark:border-stone-50/10 dark:bg-zinc-950/95 overflow-hidden z-50 ${
               direction === 'up' ? 'bottom-full mb-2' : 'top-full mt-2'
-            }`}
+            } ${align === 'start' ? 'left-0' : 'right-0'}`}
           >
             {SUPPORTED_LOCALES.map((lng) => {
               const active = lng === current

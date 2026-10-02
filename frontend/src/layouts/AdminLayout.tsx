@@ -220,7 +220,7 @@ function Sidebar({ onCloseMobile, onCollapseDesktop }: SidebarProps) {
             instead of sprinkled through the nav so the sidebar body stays
             focused on actual back-office destinations. */}
         <div className="flex items-center justify-between gap-2 mb-3 rounded-xl border border-stone-200 dark:border-stone-50/10 bg-stone-50/60 dark:bg-stone-50/[0.02] px-2 py-1.5">
-          <LanguageSwitcher variant="chip" direction="up" />
+          <LanguageSwitcher variant="chip" direction="up" align="start" />
           <ThemeToggle variant="header" className="!w-8 !h-8" />
           <a
             href="/"
