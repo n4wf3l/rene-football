@@ -26,12 +26,16 @@ class ContactController extends Controller
     public function store(Request $request): JsonResponse
     {
         $baseRules = [
-            'reason'  => ['required', Rule::in(['joueur', 'club', 'medias', 'autre'])],
-            'name'    => ['required', 'string', 'min:2', 'max:120'],
-            'email'   => ['required', 'email:rfc', 'max:160'],
-            'phone'   => ['nullable', 'string', 'max:40'],
-            'message' => ['required', 'string', 'min:10', 'max:5000'],
-            'consent' => ['required', 'accepted'],
+            'reason'           => ['required', Rule::in(['joueur', 'club', 'medias', 'autre'])],
+            'name'             => ['required', 'string', 'min:2', 'max:120'],
+            'email'            => ['required', 'email:rfc', 'max:160'],
+            'phone'            => ['nullable', 'string', 'max:40'],
+            'message'          => ['required', 'string', 'min:10', 'max:5000'],
+            'consent'          => ['required', 'accepted'],
+            // Secondary consent required only when the joueur form is submitted
+            // by a guardian — enforced via required_if below. Keeping it in
+            // base rules so Laravel's validator always sees the key.
+            'guardian_consent' => ['nullable', 'accepted'],
         ];
 
         // Payload rules per audience - kept flat with dot notation so
@@ -39,6 +43,15 @@ class ContactController extends Controller
         $reason = (string) $request->input('reason');
         $payloadRules = match ($reason) {
             'joueur' => [
+                // Gate RGPD + protection des mineurs : identifie qui remplit
+                // le formulaire. Si "guardian", on exige lien + nom du mineur
+                // + second consentement explicite.
+                'payload.submitter_type'          => ['required', Rule::in(['self', 'guardian'])],
+                'payload.guardian_relation'       => ['required_if:payload.submitter_type,guardian', Rule::in(['parent', 'tutor', 'other'])],
+                'payload.guardian_relation_other' => ['nullable', 'required_if:payload.guardian_relation,other', 'string', 'max:120'],
+                'payload.minor_name'              => ['required_if:payload.submitter_type,guardian', 'string', 'max:120'],
+                'guardian_consent'                => ['required_if:payload.submitter_type,guardian', 'accepted'],
+
                 'payload.intent'         => ['required', Rule::in(['join', 'renew', 'advice', 'other'])],
                 'payload.player_name'    => ['required', 'string', 'max:120'],
                 'payload.date_of_birth'  => ['nullable', 'date', 'before:today'],

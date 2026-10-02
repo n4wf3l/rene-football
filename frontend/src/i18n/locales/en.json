@@ -562,7 +562,7 @@
         "title": "In short",
         "bullets": [
           "Rene Football is a Luxembourg-based football agency.",
-          "Contact: contact@renefootball.com · +352 661 24 18 47.",
+          "Contact: contact@renefootball.com · +352 691 712 574.",
           "All site content (photos, player data, PDFs, articles) belongs to Rene Football. No reuse without written permission.",
           "The site runs over HTTPS; servers are located in the European Union.",
           "Governing law: Luxembourg. Any dispute falls under Luxembourg courts."
@@ -656,6 +656,31 @@
     },
     "forms": {
       "joueur": {
+        "submitter": {
+          "label": "Who is filling out this form?",
+          "helper": "For legal reasons (GDPR + child protection), requests concerning a player under 18 must be submitted by a parent or legal guardian.",
+          "options": {
+            "self": "I am the player (18 or older)",
+            "guardian": "I am a parent / legal guardian"
+          }
+        },
+        "guardianRelation": {
+          "label": "Relationship to the player",
+          "placeholder": "Choose…",
+          "options": {
+            "parent": "Father / Mother",
+            "tutor": "Legal guardian",
+            "other": "Other"
+          }
+        },
+        "guardianRelationOther": {
+          "label": "Please specify",
+          "placeholder": "e.g. grandparent, uncle, legal representative…"
+        },
+        "minorName": {
+          "label": "First and last name of the minor",
+          "placeholder": "First Last"
+        },
         "intent": {
           "label": "What's your goal?",
           "options": {
@@ -747,14 +772,15 @@
       "coords": {
         "name":    { "label": "Your name", "placeholder": "First name Last name" },
         "email":   { "label": "Email", "placeholder": "you@example.com" },
-        "phone":   { "label": "Phone", "placeholder": "+352 661 24 18 47" },
+        "phone":   { "label": "Phone", "placeholder": "+352 691 712 574" },
         "message": { "label": "Your message", "placeholder": "Give details about your request. The more precise, the better we can point you in the right direction." }
       }
     },
     "consent": {
       "text": "I agree that my data is processed by Rene Football to handle my request.",
       "privacyLink": "Privacy policy",
-      "privacyNote": "Your data is never shared with third parties."
+      "privacyNote": "Your data is never shared with third parties.",
+      "guardianText": "I confirm that I am the parent or legal guardian of the minor player mentioned above and I expressly authorise the submission of their personal data to Rene Football for this request."
     },
     "validation": {
       "intent": "Choose a goal.",
@@ -769,7 +795,12 @@
       "contactName": "Enter your full name.",
       "contactEmail": "Invalid email address.",
       "message": "Give more detail (10 characters min).",
-      "consent": "You must agree to the processing of your data."
+      "consent": "You must agree to the processing of your data.",
+      "submitterType": "Specify who is filling out this form.",
+      "guardianRelation": "Specify your relationship to the player.",
+      "guardianRelationOther": "Please specify your relationship.",
+      "minorName": "Enter the first and last name of the minor.",
+      "guardianConsent": "You must confirm that you are the parent or legal guardian to submit a minor's data."
     },
     "success": {
       "eyebrow": "Request sent",

@@ -78,6 +78,7 @@ const emptyForm: ContactForm = {
   phone: '',
   message: '',
   consent: false,
+  guardian_consent: false,
   payload: {},
   cv: null,
 }
@@ -201,8 +202,94 @@ function StepJoueur({ form, errors, onPayloadChange, onCvChange }: StepAudienceF
     { v: 'semi_pro', l: t('contact.forms.joueur.level.options.semi_pro') },
     { v: 'pro',      l: t('contact.forms.joueur.level.options.pro') },
   ]
+  const submitterOptions: Array<{ v: NonNullable<ContactForm['payload']['submitter_type']>; l: string }> = [
+    { v: 'self',     l: t('contact.forms.joueur.submitter.options.self') },
+    { v: 'guardian', l: t('contact.forms.joueur.submitter.options.guardian') },
+  ]
+  const guardianRelationOptions: Array<{ v: NonNullable<ContactForm['payload']['guardian_relation']>; l: string }> = [
+    { v: 'parent', l: t('contact.forms.joueur.guardianRelation.options.parent') },
+    { v: 'tutor',  l: t('contact.forms.joueur.guardianRelation.options.tutor') },
+    { v: 'other',  l: t('contact.forms.joueur.guardianRelation.options.other') },
+  ]
+  const isGuardian = form.payload.submitter_type === 'guardian'
+  const guardianIsOther = form.payload.guardian_relation === 'other'
   return (
     <div className="space-y-6">
+      {/* Gate RGPD + protection des mineurs : on force la personne qui remplit
+          à se déclarer avant tout. Un mineur ne peut pas soumettre lui-même ;
+          seul un parent / tuteur légal peut, et doit s'identifier. */}
+      <div>
+        <FieldLabel htmlFor="pl-submitter">{t('contact.forms.joueur.submitter.label')}</FieldLabel>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {submitterOptions.map(({ v, l }) => {
+            const active = form.payload.submitter_type === v
+            return (
+              <button
+                key={v}
+                type="button"
+                onClick={() => onPayloadChange('submitter_type', v)}
+                className={`px-3 py-2.5 rounded-xl text-sm border transition-colors ease-premium ${
+                  active
+                    ? 'bg-zinc-950 border-zinc-950 text-stone-50 dark:bg-stone-50 dark:border-stone-50 dark:text-zinc-950'
+                    : 'bg-white border-stone-300 text-zinc-700 hover:border-zinc-500 dark:bg-zinc-900 dark:border-stone-50/15 dark:text-stone-300 dark:hover:border-stone-50/40'
+                }`}
+              >
+                {l}
+              </button>
+            )
+          })}
+        </div>
+        <p className="mt-2 text-xs text-zinc-500 dark:text-stone-500 leading-relaxed">
+          {t('contact.forms.joueur.submitter.helper')}
+        </p>
+        <FieldError message={errors['payload.submitter_type']} />
+      </div>
+
+      {isGuardian && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50/60 dark:border-amber-300/20 dark:bg-amber-500/5 p-4 space-y-4">
+          <div className="grid sm:grid-cols-2 gap-5">
+            <div>
+              <FieldLabel htmlFor="pl-guardian-relation">{t('contact.forms.joueur.guardianRelation.label')}</FieldLabel>
+              <Select
+                id="pl-guardian-relation"
+                value={form.payload.guardian_relation ?? ''}
+                onChange={(v) => onPayloadChange('guardian_relation', (v || undefined) as NonNullable<ContactForm['payload']['guardian_relation']> | undefined)}
+                options={guardianRelationOptions.map(({ v, l }) => ({ value: v, label: l }))}
+                placeholder={t('contact.forms.joueur.guardianRelation.placeholder')}
+                invalid={Boolean(errors['payload.guardian_relation'])}
+              />
+              <FieldError message={errors['payload.guardian_relation']} />
+            </div>
+            <div>
+              <FieldLabel htmlFor="pl-minor-name">{t('contact.forms.joueur.minorName.label')}</FieldLabel>
+              <input
+                id="pl-minor-name"
+                type="text"
+                value={form.payload.minor_name ?? ''}
+                onChange={(e) => onPayloadChange('minor_name', e.target.value)}
+                className={`${inputBase} ${errors['payload.minor_name'] ? 'border-rose-400' : 'border-stone-300 focus:border-turf-700'}`}
+                placeholder={t('contact.forms.joueur.minorName.placeholder')}
+              />
+              <FieldError message={errors['payload.minor_name']} />
+            </div>
+          </div>
+          {guardianIsOther && (
+            <div>
+              <FieldLabel htmlFor="pl-guardian-other">{t('contact.forms.joueur.guardianRelationOther.label')}</FieldLabel>
+              <input
+                id="pl-guardian-other"
+                type="text"
+                value={form.payload.guardian_relation_other ?? ''}
+                onChange={(e) => onPayloadChange('guardian_relation_other', e.target.value)}
+                className={`${inputBase} ${errors['payload.guardian_relation_other'] ? 'border-rose-400' : 'border-stone-300 focus:border-turf-700'}`}
+                placeholder={t('contact.forms.joueur.guardianRelationOther.placeholder')}
+              />
+              <FieldError message={errors['payload.guardian_relation_other']} />
+            </div>
+          )}
+        </div>
+      )}
+
       <div>
         <FieldLabel htmlFor="pl-intent">{t('contact.forms.joueur.intent.label')}</FieldLabel>
         <div className="grid grid-cols-2 gap-2">
@@ -730,6 +817,33 @@ function StepCoords({ form, errors, onFieldChange }: StepCoordsProps) {
         </span>
       </label>
       <FieldError message={errors.consent} />
+
+      {/* Secondary explicit guardian authorisation. Only shown when the
+          parcours is "joueur" and the submitter declared themselves as a
+          parent/legal guardian — RGPD + child-protection requirement. */}
+      {form.reason === 'joueur' && form.payload.submitter_type === 'guardian' && (
+        <>
+          <label
+            className={`flex gap-3 items-start cursor-pointer rounded-xl border p-4 transition ${
+              errors.guardian_consent
+                ? 'border-rose-300 bg-rose-50/40 dark:border-rose-500/40 dark:bg-rose-500/10'
+                : 'border-amber-200 bg-amber-50/50 hover:border-amber-300 dark:border-amber-300/20 dark:bg-amber-500/5 dark:hover:border-amber-300/40'
+            }`}
+          >
+            <input
+              id="contact-guardian-consent"
+              type="checkbox"
+              checked={form.guardian_consent}
+              onChange={(e) => onFieldChange('guardian_consent', e.target.checked as ContactForm['guardian_consent'])}
+              className="mt-0.5 w-4 h-4 rounded border-stone-300 text-turf-800 focus:ring-turf-700/30 accent-turf-800 dark:accent-turf-300"
+            />
+            <span className="text-sm text-zinc-700 dark:text-stone-300 leading-relaxed">
+              {t('contact.consent.guardianText')}
+            </span>
+          </label>
+          <FieldError message={errors.guardian_consent} />
+        </>
+      )}
     </div>
   )
 }
@@ -816,6 +930,15 @@ function ContactPage() {
     const e: ContactErrors = {}
     const p = form.payload
     if (form.reason === 'joueur') {
+      // Gate RGPD/mineurs : qui remplit, et si tuteur → lien + nom du mineur.
+      if (!p.submitter_type) e['payload.submitter_type'] = t('contact.validation.submitterType')
+      if (p.submitter_type === 'guardian') {
+        if (!p.guardian_relation) e['payload.guardian_relation'] = t('contact.validation.guardianRelation')
+        if (p.guardian_relation === 'other' && (!p.guardian_relation_other || p.guardian_relation_other.trim().length < 2)) {
+          e['payload.guardian_relation_other'] = t('contact.validation.guardianRelationOther')
+        }
+        if (!p.minor_name || p.minor_name.trim().length < 2) e['payload.minor_name'] = t('contact.validation.minorName')
+      }
       if (!p.intent) e['payload.intent'] = t('contact.validation.intent')
       if (!p.player_name || p.player_name.trim().length < 2) e['payload.player_name'] = t('contact.validation.playerName')
       if (p.video_url && !/^https?:\/\//i.test(p.video_url)) e['payload.video_url'] = t('contact.validation.videoUrl')
@@ -839,6 +962,11 @@ function ContactPage() {
     if (!form.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = t('contact.validation.contactEmail')
     if (!form.message || form.message.trim().length < 10) e.message = t('contact.validation.message')
     if (!form.consent) e.consent = t('contact.validation.consent')
+    // Secondary guardian authorisation — required when the submitter is a
+    // parent/legal guardian submitting a minor's data.
+    if (form.reason === 'joueur' && form.payload.submitter_type === 'guardian' && !form.guardian_consent) {
+      e.guardian_consent = t('contact.validation.guardianConsent')
+    }
     return e
   }
 
@@ -882,6 +1010,10 @@ function ContactPage() {
       if (form.phone) fd.append('phone', form.phone)
       fd.append('message', form.message)
       fd.append('consent', form.consent ? '1' : '0')
+      // Guardian consent is only meaningful on the joueur-with-guardian path.
+      if (form.reason === 'joueur' && form.payload.submitter_type === 'guardian') {
+        fd.append('guardian_consent', form.guardian_consent ? '1' : '0')
+      }
       Object.entries(form.payload).forEach(([k, v]) => {
         if (v === undefined || v === null || v === '') return
         fd.append(`payload[${k}]`, String(v))

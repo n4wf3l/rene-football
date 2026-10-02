@@ -618,6 +618,31 @@
     },
     "forms": {
       "joueur": {
+        "submitter": {
+          "label": "Qui remplit ce formulaire ?",
+          "helper": "Pour des raisons légales (RGPD + protection des mineurs), les demandes concernant un joueur de moins de 18 ans doivent être soumises par un parent ou tuteur légal.",
+          "options": {
+            "self": "Je suis le joueur (18 ans ou plus)",
+            "guardian": "Je suis parent / tuteur légal"
+          }
+        },
+        "guardianRelation": {
+          "label": "Lien avec le joueur",
+          "placeholder": "Choisir…",
+          "options": {
+            "parent": "Père / Mère",
+            "tutor": "Tuteur légal",
+            "other": "Autre"
+          }
+        },
+        "guardianRelationOther": {
+          "label": "Précisez votre lien",
+          "placeholder": "Ex : grand-père, oncle, référent légal…"
+        },
+        "minorName": {
+          "label": "Prénom et nom du joueur mineur",
+          "placeholder": "Prénom Nom"
+        },
         "intent": {
           "label": "Quel est votre objectif ?",
           "options": {
@@ -709,14 +734,15 @@
       "coords": {
         "name":    { "label": "Votre nom", "placeholder": "Prénom Nom" },
         "email":   { "label": "Email", "placeholder": "vous@example.com" },
-        "phone":   { "label": "Téléphone", "placeholder": "+352 661 24 18 47" },
+        "phone":   { "label": "Téléphone", "placeholder": "+352 691 712 574" },
         "message": { "label": "Votre message", "placeholder": "Détaillez votre demande. Plus c'est précis, mieux nous pourrons vous orienter." }
       }
     },
     "consent": {
       "text": "J'accepte que mes données soient utilisées par Rene Football pour traiter ma demande.",
       "privacyLink": "Politique de confidentialité",
-      "privacyNote": "Vos données ne sont jamais transmises à des tiers."
+      "privacyNote": "Vos données ne sont jamais transmises à des tiers.",
+      "guardianText": "Je confirme être le parent ou tuteur légal du joueur mineur mentionné ci-dessus et j'autorise expressément la soumission de ses données personnelles à Rene Football dans le cadre de cette demande."
     },
     "validation": {
       "intent": "Choisissez un objectif.",
@@ -731,7 +757,12 @@
       "contactName": "Indiquez votre nom complet.",
       "contactEmail": "Adresse email invalide.",
       "message": "Détaillez votre demande (10 caractères min).",
-      "consent": "Vous devez accepter le traitement de vos données."
+      "consent": "Vous devez accepter le traitement de vos données.",
+      "submitterType": "Précisez qui remplit ce formulaire.",
+      "guardianRelation": "Précisez votre lien avec le joueur.",
+      "guardianRelationOther": "Précisez votre lien.",
+      "minorName": "Indiquez le prénom et nom du joueur mineur.",
+      "guardianConsent": "Vous devez confirmer être parent ou tuteur légal pour soumettre les données d'un mineur."
     },
     "success": {
       "eyebrow": "Demande envoyée",

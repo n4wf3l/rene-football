@@ -34,11 +34,11 @@ export default function MentionsLegales() {
           <dt>Siège social</dt>
           <dd>Luxembourg-Ville, Grand-Duché de Luxembourg.</dd>
           <dt>Directeur de la publication</dt>
-          <dd>À compléter avant mise en production.</dd>
+          <dd>René Jacob Yougbaré, fondateur de Rene Football.</dd>
           <dt>Contact</dt>
           <dd>
             <a href="mailto:contact@renefootball.com">contact@renefootball.com</a> ·{' '}
-            <a href="tel:+352661241847">+352 661 24 18 47</a>
+            <a href="tel:+352691712574">+352 691 712 574</a>
           </dd>
         </dl>
       </section>

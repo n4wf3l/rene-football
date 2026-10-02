@@ -8,6 +8,13 @@ export type MediaRole = 'journalist' | 'editor' | 'producer' | 'other'
 export type MediaPurpose = 'interview_player' | 'article' | 'documentary' | 'other'
 
 /**
+ * Who is filling the Joueur form. GDPR + child-protection : a minor's data
+ * cannot be submitted by anyone other than the parent / legal guardian.
+ */
+export type SubmitterType = 'self' | 'guardian'
+export type GuardianRelation = 'parent' | 'tutor' | 'other'
+
+/**
  * Payload keys are stored inside a JSON blob server-side but kept typed here
  * so the wizard steps get proper autocomplete. Only the fields relevant to
  * the picked audience are actually filled - the rest stay empty strings.
@@ -22,6 +29,11 @@ export interface ContactPayload {
   level?: PlayerLevel
   video_url?: string
   objective?: string
+  // joueur — gate parental (RGPD + protection des mineurs)
+  submitter_type?: SubmitterType
+  guardian_relation?: GuardianRelation
+  guardian_relation_other?: string
+  minor_name?: string
   // club
   club_name?: string
   role?: ClubRole | MediaRole
@@ -46,6 +58,9 @@ export interface ContactForm {
   phone: string
   message: string
   consent: boolean
+  /** Secondary consent required only when `payload.submitter_type === 'guardian'`
+   *  — the parent/legal guardian explicitly authorises submission of the minor's data. */
+  guardian_consent: boolean
   payload: ContactPayload
   cv?: File | null
 }
