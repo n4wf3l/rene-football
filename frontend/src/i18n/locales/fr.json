@@ -556,7 +556,11 @@
       "privacy": "Confidentialité",
       "cookies": "Cookies"
     },
-    "mentions": { "title": "Mentions légales" },
+    "mentions": {
+      "title": "Mentions légales",
+      "pendingTitle": "Agence en cours d'enregistrement administratif",
+      "pendingBody": "Rene Football est actuellement en cours d'enregistrement officiel au Luxembourg. Les mentions légales définitives (forme juridique, RCS, TVA) seront mises à jour dès validation. Pour toute question d'ici là, écrivez à contact@renefootball.com."
+    },
     "privacy":  { "title": "Politique de confidentialité" },
     "cookies":  { "title": "Cookies & traceurs" }
   },
@@ -564,6 +568,9 @@
     "seo": {
       "description": "Joueur, parent, club ou média : contactez Rene Football. Agence de football basée au Luxembourg, agent FIFA licencié depuis 2010."
     },
+    "pendingTitle": "Mise en place de l'adresse email en cours",
+    "pendingBody": "Votre demande sera bien enregistrée via ce formulaire et traitée sous 48 heures ouvrées. Pour toute demande urgente, écrivez directement à",
+    "pendingOr": "ou appelez le",
     "hero": {
       "eyebrow": "Prendre contact",
       "title": "Échangeons sur votre projet.",

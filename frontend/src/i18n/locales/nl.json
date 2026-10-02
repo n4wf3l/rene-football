@@ -558,6 +558,8 @@
     },
     "mentions": {
       "title": "Juridische kennisgeving",
+      "pendingTitle": "Agentschap wordt momenteel officieel geregistreerd",
+      "pendingBody": "Rene Football is bezig met de officiële registratie in Luxemburg. De definitieve juridische gegevens (rechtsvorm, KBO-nummer, btw-nummer) worden bijgewerkt zodra de registratie is gevalideerd. Neem tot die tijd contact op via contact@renefootball.com voor eventuele vragen.",
       "summary": {
         "title": "In het kort",
         "bullets": [
@@ -599,6 +601,9 @@
     }
   },
   "contact": {
+    "pendingTitle": "Instellen van het agentschap-e-mailadres loopt",
+    "pendingBody": "Uw aanvraag wordt via dit formulier veilig geregistreerd en binnen 48 werkuren beantwoord. Voor dringende vragen kunt u rechtstreeks schrijven naar",
+    "pendingOr": "of bellen",
     "seo": {
       "description": "Speler, ouder, club of media: neem contact op met Rene Football. Voetbalagentschap gevestigd in Luxemburg, FIFA-gelicentieerde agent sinds 2010."
     },
