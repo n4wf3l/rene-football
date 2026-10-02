@@ -19,6 +19,11 @@ class ContactSubmissionTest extends TestCase
     {
         parent::setUp();
         Mail::fake();
+        // Both disks are faked because CVs now land on `local` (private disk,
+        // served via signed URL by ContactController::downloadCv) but a
+        // legacy fallback on `public` is kept — the tests below exercise the
+        // current `local` path.
+        Storage::fake('local');
         Storage::fake('public');
         // The route uses throttle:5,1 (5 requests / minute / IP). Reset it
         // between tests so the last suite run doesn't leak rate limits.
@@ -35,10 +40,13 @@ class ContactSubmissionTest extends TestCase
             'message' => 'Bonjour, je souhaite rejoindre l\'agence.',
             'consent' => '1',
             'payload' => [
-                'intent'      => 'join',
-                'player_name' => 'Alex Martin',
-                'position'    => 'Milieu offensif',
-                'level'       => 'amateur',
+                // Default submitter_type = adult player; the RGPD gate added
+                // in 2026-09-30 makes this required for the joueur parcours.
+                'submitter_type' => 'self',
+                'intent'         => 'join',
+                'player_name'    => 'Alex Martin',
+                'position'       => 'Milieu offensif',
+                'level'          => 'amateur',
             ],
         ], $overrides);
     }
@@ -97,12 +105,54 @@ class ContactSubmissionTest extends TestCase
     public function test_joueur_intent_is_required_and_enumerated(): void
     {
         $this->postJson('/api/contact', $this->playerPayload([
-            'payload' => ['player_name' => 'Alex'],
+            'payload' => ['submitter_type' => 'self', 'player_name' => 'Alex'],
         ]))->assertStatus(422)->assertJsonValidationErrors(['payload.intent']);
 
         $this->postJson('/api/contact', $this->playerPayload([
-            'payload' => ['intent' => 'bogus', 'player_name' => 'Alex'],
+            'payload' => ['submitter_type' => 'self', 'intent' => 'bogus', 'player_name' => 'Alex'],
         ]))->assertStatus(422)->assertJsonValidationErrors(['payload.intent']);
+    }
+
+    public function test_joueur_submitter_type_is_required(): void
+    {
+        $this->postJson('/api/contact', $this->playerPayload([
+            'payload' => [
+                'intent' => 'join',
+                'player_name' => 'Alex Martin',
+            ], // deliberately missing submitter_type
+        ]))->assertStatus(422)->assertJsonValidationErrors(['payload.submitter_type']);
+    }
+
+    public function test_guardian_submission_requires_relation_minor_name_and_consent(): void
+    {
+        // Guardian without relation / minor_name / guardian_consent → rejected
+        // with all 3 field errors reported for the wizard.
+        $this->postJson('/api/contact', $this->playerPayload([
+            'payload' => [
+                'submitter_type' => 'guardian',
+                'intent'         => 'join',
+                'player_name'    => 'Jeune Prometteur',
+            ],
+            // guardian_consent omitted on purpose
+        ]))
+            ->assertStatus(422)
+            ->assertJsonValidationErrors([
+                'payload.guardian_relation',
+                'payload.minor_name',
+                'guardian_consent',
+            ]);
+
+        // Happy path : guardian with the full set.
+        $this->postJson('/api/contact', $this->playerPayload([
+            'payload' => [
+                'submitter_type'    => 'guardian',
+                'guardian_relation' => 'parent',
+                'minor_name'        => 'Jeune Prometteur',
+                'intent'            => 'join',
+                'player_name'       => 'Jeune Prometteur',
+            ],
+            'guardian_consent' => '1',
+        ]))->assertStatus(201);
     }
 
     public function test_club_submission_validates_role_and_interest(): void
@@ -188,8 +238,12 @@ class ContactSubmissionTest extends TestCase
         $this->assertSame($player->id, $submission->payload['player_id']);
     }
 
-    public function test_cv_upload_is_stored_on_public_disk(): void
+    public function test_cv_upload_is_stored_on_private_disk(): void
     {
+        // Since the signed-URL hardening (2026-09-28), CVs land on the
+        // private `local` disk — accessible only through the admin signed
+        // URL endpoint. No `/storage/cvs/...` path is ever exposed to the
+        // client.
         $cv = UploadedFile::fake()->create('cv.pdf', 200, 'application/pdf');
 
         $this->postJson('/api/contact', array_merge($this->playerPayload(), ['cv' => $cv]))
@@ -197,7 +251,8 @@ class ContactSubmissionTest extends TestCase
 
         $submission = ContactSubmission::first();
         $this->assertNotNull($submission->cv_path);
-        Storage::disk('public')->assertExists($submission->cv_path);
+        Storage::disk('local')->assertExists($submission->cv_path);
+        Storage::disk('public')->assertMissing($submission->cv_path);
     }
 
     public function test_cv_upload_rejects_disallowed_extension(): void
