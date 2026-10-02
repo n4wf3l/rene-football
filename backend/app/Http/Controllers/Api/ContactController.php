@@ -26,16 +26,12 @@ class ContactController extends Controller
     public function store(Request $request): JsonResponse
     {
         $baseRules = [
-            'reason'           => ['required', Rule::in(['joueur', 'club', 'medias', 'autre'])],
-            'name'             => ['required', 'string', 'min:2', 'max:120'],
-            'email'            => ['required', 'email:rfc', 'max:160'],
-            'phone'            => ['nullable', 'string', 'max:40'],
-            'message'          => ['required', 'string', 'min:10', 'max:5000'],
-            'consent'          => ['required', 'accepted'],
-            // Secondary consent required only when the joueur form is submitted
-            // by a guardian — enforced via required_if below. Keeping it in
-            // base rules so Laravel's validator always sees the key.
-            'guardian_consent' => ['nullable', 'accepted'],
+            'reason'  => ['required', Rule::in(['joueur', 'club', 'medias', 'autre'])],
+            'name'    => ['required', 'string', 'min:2', 'max:120'],
+            'email'   => ['required', 'email:rfc', 'max:160'],
+            'phone'   => ['nullable', 'string', 'max:40'],
+            'message' => ['required', 'string', 'min:10', 'max:5000'],
+            'consent' => ['required', 'accepted'],
         ];
 
         // Payload rules per audience - kept flat with dot notation so
@@ -50,7 +46,12 @@ class ContactController extends Controller
                 'payload.guardian_relation'       => ['required_if:payload.submitter_type,guardian', Rule::in(['parent', 'tutor', 'other'])],
                 'payload.guardian_relation_other' => ['nullable', 'required_if:payload.guardian_relation,other', 'string', 'max:120'],
                 'payload.minor_name'              => ['required_if:payload.submitter_type,guardian', 'string', 'max:120'],
-                'guardian_consent'                => ['required_if:payload.submitter_type,guardian', 'accepted'],
+                // `accepted_if` runs the "accepted" check only when the
+                // condition is true (guardian) and treats a missing value as
+                // "not accepted" → single rule covers both the required and
+                // the acceptance checks without double-running `accepted` on
+                // self-submissions where the field is simply absent.
+                'guardian_consent'                => ['accepted_if:payload.submitter_type,guardian'],
 
                 'payload.intent'         => ['required', Rule::in(['join', 'renew', 'advice', 'other'])],
                 'payload.player_name'    => ['required', 'string', 'max:120'],
