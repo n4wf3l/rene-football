@@ -1,18 +1,27 @@
+import { useTranslation } from 'react-i18next'
 import LegalLayout from './LegalLayout'
 
 /**
- * Placeholder identity fields (RCS, siège social) are marked TODO so the
- * agency fills them in before ship. Every other field is agency-verified
- * from the wizard footer (email + phone + Luxembourg location).
+ * Agency is in the middle of its administrative registration (SARL/SA/
+ * indépendant to be confirmed, RCS/TVA pending). Instead of blocking the
+ * site launch we expose a visible banner stating the pending state and
+ * invite users to contact the agency directly for anything urgent.
+ * The placeholder values ("En cours d'enregistrement administratif") are
+ * updated to reflect the pending status in a user-facing way.
  */
 export default function MentionsLegales() {
+  const { t } = useTranslation()
   return (
     <LegalLayout
       titleKey="legal.mentions.title"
-      updatedAt="29 septembre 2026"
+      updatedAt="30 septembre 2026"
       summaryKey="legal.mentions.summary"
       intro={
         <>
+          <div className="mb-6 rounded-2xl border border-amber-300/70 bg-amber-50 dark:border-amber-400/30 dark:bg-amber-500/[0.08] p-4 text-sm text-amber-900 dark:text-amber-200 leading-relaxed">
+            <div className="font-semibold mb-1">{t('legal.mentions.pendingTitle')}</div>
+            <div>{t('legal.mentions.pendingBody')}</div>
+          </div>
           Conformément à la <a href="https://cnpd.public.lu" target="_blank" rel="noreferrer">CNPD</a>{' '}
           (Commission nationale pour la protection des données) et à la loi
           luxembourgeoise, cette page identifie l'éditeur du site, son
@@ -26,11 +35,11 @@ export default function MentionsLegales() {
           <dt>Dénomination</dt>
           <dd>Rene Football</dd>
           <dt>Forme juridique</dt>
-          <dd>À compléter avant mise en production (SARL / SA / indépendant).</dd>
+          <dd>En cours d'enregistrement administratif.</dd>
           <dt>Numéro RCS Luxembourg</dt>
-          <dd>À compléter.</dd>
+          <dd>En cours d'enregistrement.</dd>
           <dt>Numéro TVA intracommunautaire</dt>
-          <dd>À compléter (format LU + 8 chiffres).</dd>
+          <dd>En cours d'enregistrement.</dd>
           <dt>Siège social</dt>
           <dd>Luxembourg-Ville, Grand-Duché de Luxembourg.</dd>
           <dt>Directeur de la publication</dt>

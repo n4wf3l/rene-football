@@ -558,6 +558,8 @@
     },
     "mentions": {
       "title": "Impressum",
+      "pendingTitle": "Agence gëtt momentan offiziell registréiert",
+      "pendingBody": "Rene Football ass am Prozess vun der offizieller Registréierung zu Lëtzebuerg. Déi definitiv juristesch Informatiounen (Rechtsform, Handelsregister-Nummer, TVA) ginn aktualiséiert, soubal d'Registréierung bestätegt ass. Fir Froen bis dohinner, schreift op contact@renefootball.com.",
       "summary": {
         "title": "Kuerz zesummegefaasst",
         "bullets": [
@@ -599,6 +601,9 @@
     }
   },
   "contact": {
+    "pendingTitle": "D'Agence-E-Mail gëtt grad agestallt",
+    "pendingBody": "Är Ufro gëtt iwwer dëse Formulaire sécher registréiert a bannent 48 Aarbechtsstonne beäntwert. Fir dréngend Froen, schreift w.e.g. direkt op",
+    "pendingOr": "oder rufft un",
     "seo": {
       "description": "Spiller, Elteren, Veräin oder Medien: kontaktéiert Rene Football. Fussballagence mat Sëtz zu Lëtzebuerg, FIFA-lizenzéierten Agent zënter 2010."
     },

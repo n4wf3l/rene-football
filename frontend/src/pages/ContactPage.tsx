@@ -1073,6 +1073,21 @@ function ContactPage() {
       </section>
 
       <section className="bg-stone-50 dark:bg-zinc-950 py-14 lg:py-20">
+        <div className="container-page">
+          {/* Pre-launch soft notice : while the agency inbox is being
+              provisioned at Hostinger, submissions are still captured in
+              the admin dashboard but we want users to have a direct contact
+              fallback visible in case of urgency. Non-blocking. */}
+          <div className="mb-8 rounded-2xl border border-amber-200/70 bg-amber-50/70 dark:border-amber-400/20 dark:bg-amber-500/[0.08] p-4 text-sm text-amber-900 dark:text-amber-200 leading-relaxed">
+            <div className="font-semibold mb-1">{t('contact.pendingTitle')}</div>
+            <div>
+              {t('contact.pendingBody')}{' '}
+              <a href="mailto:contact@renefootball.com" className="underline underline-offset-2 font-medium">contact@renefootball.com</a>{' '}
+              {t('contact.pendingOr')}{' '}
+              <a href="tel:+352691712574" className="underline underline-offset-2 font-medium font-mono">+352 691 712 574</a>.
+            </div>
+          </div>
+        </div>
         <div className="container-page grid lg:grid-cols-12 gap-10 lg:gap-16 items-start">
           {/* WIZARD */}
           <form

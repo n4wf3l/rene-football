@@ -558,6 +558,8 @@
     },
     "mentions": {
       "title": "Legal notice",
+      "pendingTitle": "Agency currently being officially registered",
+      "pendingBody": "Rene Football is in the process of its official registration in Luxembourg. The final legal information (legal form, trade registry number, VAT) will be updated as soon as the registration is validated. In the meantime, please write to contact@renefootball.com for any question.",
       "summary": {
         "title": "In short",
         "bullets": [
@@ -599,6 +601,9 @@
     }
   },
   "contact": {
+    "pendingTitle": "Agency email being set up",
+    "pendingBody": "Your request is still safely recorded through this form and will be answered within 48 business hours. For anything urgent, please write directly to",
+    "pendingOr": "or call",
     "seo": {
       "description": "Player, parent, club or media: get in touch with Rene Football. A Luxembourg-based football agency, FIFA-licensed agent since 2010."
     },
