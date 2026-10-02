@@ -562,7 +562,7 @@
         "title": "In het kort",
         "bullets": [
           "Rene Football is een voetbalagentschap gevestigd in Luxemburg.",
-          "Contact: contact@renefootball.com · +352 661 24 18 47.",
+          "Contact: contact@renefootball.com · +352 691 712 574.",
           "Alle inhoud van de site (foto's, spelersdata, PDF's, artikelen) behoort toe aan Rene Football. Geen hergebruik zonder schriftelijke toestemming.",
           "De site draait uitsluitend via HTTPS; servers bevinden zich in de Europese Unie.",
           "Toepasselijk recht: Luxemburg. Geschillen vallen onder de bevoegdheid van de Luxemburgse rechtbanken."
@@ -656,6 +656,31 @@
     },
     "forms": {
       "joueur": {
+        "submitter": {
+          "label": "Wie vult dit formulier in?",
+          "helper": "Om juridische redenen (AVG + bescherming van minderjarigen) moeten aanvragen voor een speler jonger dan 18 jaar worden ingediend door een ouder of wettelijke voogd.",
+          "options": {
+            "self": "Ik ben de speler (18 jaar of ouder)",
+            "guardian": "Ik ben ouder / wettelijke voogd"
+          }
+        },
+        "guardianRelation": {
+          "label": "Relatie tot de speler",
+          "placeholder": "Kies…",
+          "options": {
+            "parent": "Vader / Moeder",
+            "tutor": "Wettelijke voogd",
+            "other": "Andere"
+          }
+        },
+        "guardianRelationOther": {
+          "label": "Specificeer uw relatie",
+          "placeholder": "Bijv. grootouder, oom, wettelijke vertegenwoordiger…"
+        },
+        "minorName": {
+          "label": "Voor- en achternaam van de minderjarige",
+          "placeholder": "Voornaam Achternaam"
+        },
         "intent": {
           "label": "Wat is uw doel?",
           "options": {
@@ -747,14 +772,15 @@
       "coords": {
         "name":    { "label": "Uw naam", "placeholder": "Voornaam Achternaam" },
         "email":   { "label": "E-mail", "placeholder": "u@example.com" },
-        "phone":   { "label": "Telefoon", "placeholder": "+352 661 24 18 47" },
+        "phone":   { "label": "Telefoon", "placeholder": "+352 691 712 574" },
         "message": { "label": "Uw bericht", "placeholder": "Beschrijf uw aanvraag. Hoe preciezer, hoe beter we u kunnen doorverwijzen." }
       }
     },
     "consent": {
       "text": "Ik ga ermee akkoord dat mijn gegevens door Rene Football worden gebruikt om mijn aanvraag te behandelen.",
       "privacyLink": "Privacybeleid",
-      "privacyNote": "Uw gegevens worden nooit met derden gedeeld."
+      "privacyNote": "Uw gegevens worden nooit met derden gedeeld.",
+      "guardianText": "Ik bevestig dat ik de ouder of wettelijke voogd ben van de hierboven genoemde minderjarige speler en geef uitdrukkelijk toestemming voor het verzenden van zijn/haar persoonsgegevens naar Rene Football in het kader van deze aanvraag."
     },
     "validation": {
       "intent": "Kies een doel.",
@@ -769,7 +795,12 @@
       "contactName": "Geef uw volledige naam op.",
       "contactEmail": "Ongeldig e-mailadres.",
       "message": "Beschrijf uw aanvraag (min. 10 tekens).",
-      "consent": "U moet akkoord gaan met de verwerking van uw gegevens."
+      "consent": "U moet akkoord gaan met de verwerking van uw gegevens.",
+      "submitterType": "Geef aan wie dit formulier invult.",
+      "guardianRelation": "Geef uw relatie tot de speler op.",
+      "guardianRelationOther": "Specificeer uw relatie.",
+      "minorName": "Geef de voor- en achternaam van de minderjarige op.",
+      "guardianConsent": "U moet bevestigen dat u ouder of wettelijke voogd bent om de gegevens van een minderjarige in te dienen."
     },
     "success": {
       "eyebrow": "Aanvraag verzonden",

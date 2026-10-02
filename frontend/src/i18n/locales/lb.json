@@ -562,7 +562,7 @@
         "title": "Kuerz zesummegefaasst",
         "bullets": [
           "Rene Football ass eng Fussballagence mat Sëtz zu Lëtzebuerg.",
-          "Kontakt: contact@renefootball.com · +352 661 24 18 47.",
+          "Kontakt: contact@renefootball.com · +352 691 712 574.",
           "All Inhalt vun der Websäit (Fotoen, Spillerdaten, PDFen, Artikelen) gehéiert Rene Football. Keng Wiederverwendung ouni schrëftlech Erlaabnis.",
           "D'Websäit leeft ausschliisslech iwwer HTTPS; d'Server stinn an der Europäescher Unioun.",
           "Uwendbaar Recht: Lëtzebuerg. Streidereien fale gëllt bei de Lëtzebuerger Geriichter."
@@ -656,6 +656,31 @@
     },
     "forms": {
       "joueur": {
+        "submitter": {
+          "label": "Wien fëllt dëse Formulaire aus?",
+          "helper": "Aus juristesche Grënn (RGPD + Minnerjähregerschutz) musse Ufroe fir e Spiller ënner 18 Joer vun engem Elterendeel oder gesetzleche Vuedert gemaach ginn.",
+          "options": {
+            "self": "Ech sinn de Spiller (18 Joer oder méi)",
+            "guardian": "Ech sinn Elterendeel / gesetzleche Vuedert"
+          }
+        },
+        "guardianRelation": {
+          "label": "Verhältnis mam Spiller",
+          "placeholder": "Wielen…",
+          "options": {
+            "parent": "Papp / Mamm",
+            "tutor": "Gesetzleche Vuedert",
+            "other": "Aner"
+          }
+        },
+        "guardianRelationOther": {
+          "label": "Präziséiert",
+          "placeholder": "Z. B. Grousspapp, Monni, legale Vertrieder…"
+        },
+        "minorName": {
+          "label": "Virnumm an Numm vum Minnerjährege",
+          "placeholder": "Virnumm Numm"
+        },
         "intent": {
           "label": "Wat ass Äert Zil?",
           "options": {
@@ -747,14 +772,15 @@
       "coords": {
         "name":    { "label": "Äre Numm", "placeholder": "Virnumm Nofnumm" },
         "email":   { "label": "E-Mail", "placeholder": "dir@example.com" },
-        "phone":   { "label": "Telefon", "placeholder": "+352 661 24 18 47" },
+        "phone":   { "label": "Telefon", "placeholder": "+352 691 712 574" },
         "message": { "label": "Är Message", "placeholder": "Beschreift Är Ufro. Wat méi präzis, wat besser mir Iech kënnen orientéieren." }
       }
     },
     "consent": {
       "text": "Ech si domat d'accord, datt meng Donnéeë vu Rene Football fir d'Beäntweren vu menger Ufro benotzt ginn.",
       "privacyLink": "Vertraulechkeetspolitik",
-      "privacyNote": "Är Donnéeë ginn ni un Drëttpersoune weiderginn."
+      "privacyNote": "Är Donnéeë ginn ni un Drëttpersoune weiderginn.",
+      "guardianText": "Ech bestätegen, datt ech den Elterendeel oder gesetzleche Vuedert vum uewe genannten minnerjährege Spiller sinn, an ech erlaben ausdrécklech d'Iwwersenden vu sengen perséinleche Donnéeën u Rene Football am Kader vun dëser Ufro."
     },
     "validation": {
       "intent": "Wielt e Zil.",
@@ -769,7 +795,12 @@
       "contactName": "Gitt Äre kompletten Numm un.",
       "contactEmail": "Ongëlteg E-Mail-Adress.",
       "message": "Beschreift Är Ufro (mindestens 10 Zeechen).",
-      "consent": "Dir musst der Veraarbechtung vun Äre Donnéeën zoustëmmen."
+      "consent": "Dir musst der Veraarbechtung vun Äre Donnéeën zoustëmmen.",
+      "submitterType": "Gitt un, wien dëse Formulaire ausfëllt.",
+      "guardianRelation": "Gitt Äre Verhältnis mam Spiller un.",
+      "guardianRelationOther": "Präziséiert Äert Verhältnis.",
+      "minorName": "Gitt Virnumm an Numm vum Minnerjährege un.",
+      "guardianConsent": "Dir musst bestätegen, datt Dir Elterendeel oder gesetzleche Vuedert sidd, fir d'Donnéeë vun engem Minnerjährege anzereechen."
     },
     "success": {
       "eyebrow": "Ufro geschéckt",
