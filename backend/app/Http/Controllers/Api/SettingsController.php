@@ -9,9 +9,15 @@ use Illuminate\Http\JsonResponse;
 class SettingsController extends Controller
 {
     /**
-     * Public settings endpoint. Returns only what the frontend needs on the
-     * public site (social URLs, filtered to non-empty). Never exposes admin
-     * / internal fields.
+     * Public settings endpoint. Returns :
+     *   - `social_links` : the filtered social URL map (empty entries dropped)
+     *   - `contact`      : email, phone and office city for the footer /
+     *                      contact page sidebar / legal pages
+     *   - `legal`        : forme juridique, RCS, TVA, siège, directeur de
+     *                      publication — rendered on /mentions-legales with
+     *                      a soft fallback for null values
+     *
+     * No admin-only field is ever exposed here.
      */
     public function show(): JsonResponse
     {
@@ -19,6 +25,8 @@ class SettingsController extends Controller
         return response()->json([
             'data' => [
                 'social_links' => $s->socialLinks(),
+                'contact'      => $s->publicContact(),
+                'legal'        => $s->publicLegal(),
             ],
         ]);
     }

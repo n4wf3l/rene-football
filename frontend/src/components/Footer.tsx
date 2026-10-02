@@ -38,11 +38,12 @@ interface ContactEntry {
   href: string | null
 }
 
-const CONTACT: ContactEntry[] = [
-  { Icon: EnvelopeSimple, label: 'renefootball.p@gmail.com', href: 'mailto:renefootball.p@gmail.com' },
-  { Icon: Phone,          label: '+352 691 712 574',         href: 'tel:+352691712574' },
-  { Icon: MapPin,         label: 'Luxembourg-Ville · Luxembourg', href: null },
-]
+/** Soft defaults — kept so the footer never looks half-empty even before the
+ *  admin has populated the Réglages page. Overridden as soon as a value lands
+ *  in /api/settings. */
+const DEFAULT_EMAIL = 'contact@renefootball.com'
+const DEFAULT_PHONE = '+352 691 712 574'
+const DEFAULT_CITY  = 'Luxembourg-Ville · Luxembourg'
 
 const SOCIAL_META: Array<{ key: SocialPlatform; Icon: PhosphorIcon; label: string }> = [
   { key: 'instagram', Icon: InstagramLogo, label: 'Instagram' },
@@ -60,6 +61,17 @@ function Footer() {
   const isAdmin = isAuthenticated && Boolean(user?.is_admin)
   const { settings } = useAppSettings()
   const socials = SOCIAL_META.filter((s) => Boolean(settings.social_links[s.key]))
+
+  const email = settings.contact.email ?? DEFAULT_EMAIL
+  const phone = settings.contact.phone ?? DEFAULT_PHONE
+  const city  = settings.contact.office_city ?? DEFAULT_CITY
+  const telUri = `tel:${phone.replace(/[\s()-]/g, '')}`
+
+  const contactEntries: ContactEntry[] = [
+    { Icon: EnvelopeSimple, label: email, href: `mailto:${email}` },
+    { Icon: Phone,          label: phone, href: telUri },
+    { Icon: MapPin,         label: city,  href: null },
+  ]
 
   return (
     <footer className="bg-stone-100 text-zinc-700 border-t border-stone-200 dark:bg-zinc-950 dark:text-stone-300 dark:border-stone-50/5">
@@ -131,7 +143,7 @@ function Footer() {
             {t('footer.contact')}
           </h4>
           <ul className="space-y-3">
-            {CONTACT.map(({ Icon, label, href }) => (
+            {contactEntries.map(({ Icon, label, href }) => (
               <li key={label} className="flex items-center gap-2.5 text-sm text-zinc-600 dark:text-stone-400">
                 <Icon size={15} weight="regular" className="text-zinc-400 dark:text-stone-500 shrink-0" />
                 {href ? (

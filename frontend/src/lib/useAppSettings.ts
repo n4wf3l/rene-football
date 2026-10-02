@@ -4,7 +4,17 @@ import type { PublicSettings } from '../types/settings'
 
 interface SettingsResponse { data: PublicSettings }
 
-const EMPTY: PublicSettings = { social_links: {} }
+const EMPTY: PublicSettings = {
+  social_links: {},
+  contact: { email: null, phone: null, office_city: null },
+  legal: {
+    legal_form: null,
+    rcs_number: null,
+    vat_number: null,
+    registered_office_address: null,
+    publication_director: null,
+  },
+}
 
 let cache: PublicSettings | null = null
 let inflight: Promise<PublicSettings> | null = null

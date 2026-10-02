@@ -564,7 +564,7 @@
         "title": "In het kort",
         "bullets": [
           "Rene Football is een voetbalagentschap gevestigd in Luxemburg.",
-          "Contact: contact@renefootball.com · +352 691 712 574.",
+          "Contact: {{email}} · {{phone}}.",
           "Alle inhoud van de site (foto's, spelersdata, PDF's, artikelen) behoort toe aan Rene Football. Geen hergebruik zonder schriftelijke toestemming.",
           "De site draait uitsluitend via HTTPS; servers bevinden zich in de Europese Unie.",
           "Toepasselijk recht: Luxemburg. Geschillen vallen onder de bevoegdheid van de Luxemburgse rechtbanken."

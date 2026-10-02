@@ -564,7 +564,7 @@
         "title": "In short",
         "bullets": [
           "Rene Football is a Luxembourg-based football agency.",
-          "Contact: contact@renefootball.com · +352 691 712 574.",
+          "Contact: {{email}} · {{phone}}.",
           "All site content (photos, player data, PDFs, articles) belongs to Rene Football. No reuse without written permission.",
           "The site runs over HTTPS; servers are located in the European Union.",
           "Governing law: Luxembourg. Any dispute falls under Luxembourg courts."
