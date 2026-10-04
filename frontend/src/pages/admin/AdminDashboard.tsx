@@ -10,6 +10,7 @@ import {
   CheckCircle,
   ClipboardText,
   ClockClockwise,
+  Eye,
   FilePdf,
   FilePlus,
   HandWaving,
@@ -19,12 +20,11 @@ import {
   Plus,
   Pulse,
   SealCheck,
-  SoccerBall,
   Sparkle,
-  Trophy,
+  Timer,
   UploadSimple,
   UserCirclePlus,
-  Users,
+  UserPlus,
   Warning,
   WarningCircle,
   X as XIcon,
@@ -90,6 +90,53 @@ const BADGE_TONES: Record<BadgeTone, string> = {
   turf:    'bg-turf-50 text-turf-700 border border-turf-200/70 dark:bg-turf-900/30 dark:text-turf-200 dark:border-turf-400/20',
   amber:   'bg-amber-50 text-amber-700 border border-amber-200/70 dark:bg-amber-500/10 dark:text-amber-200 dark:border-amber-400/20',
   neutral: 'bg-stone-100 text-zinc-600 border border-stone-200 dark:bg-stone-50/[0.06] dark:text-stone-300 dark:border-stone-50/10',
+}
+
+/* ─────────────────────────── Visits placeholder tile ───────────────────────────
+ * Occupe la place d'une case KPI classique mais avec un design "en construction" :
+ * fond rayé subtil, badge "Bientôt" et texte explicatif court. Le site n'a aucun
+ * tracker (zero cookie, zero analytics) — un module compteur server-side anonyme
+ * compatible CNPD est documenté dans docs/analytics-roadmap.md. Ce placeholder
+ * fait vivre l'intention sans mentir sur l'état actuel.
+ */
+function VisitsPlaceholderTile() {
+  return (
+    <div className="rounded-2xl bg-gradient-to-br from-white via-stone-50/60 to-stone-50 dark:from-zinc-900/80 dark:via-zinc-900/60 dark:to-zinc-900/40 border border-dashed border-stone-300 dark:border-stone-50/15 p-5 flex flex-col justify-between min-h-[164px] relative overflow-hidden">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-10 -right-10 w-32 h-32 rounded-full bg-turf-500/5 blur-2xl"
+      />
+      <div className="relative">
+        <div className="flex items-start justify-between gap-2">
+          <span className={EYEBROW}>Visites plateforme</span>
+          <span className="grid place-items-center w-8 h-8 rounded-lg bg-stone-100 text-zinc-500 dark:bg-stone-50/5 dark:text-stone-400">
+            <Eye size={15} weight="duotone" />
+          </span>
+        </div>
+        <div className="mt-3 font-display font-semibold text-2xl leading-none tracking-tight text-zinc-400 dark:text-stone-500 tabular-nums">
+          — / 7 j
+        </div>
+        <p className="mt-2 text-xs text-zinc-500 dark:text-stone-400 leading-relaxed">
+          Module compteur server-side sans cookie en préparation (CNPD-compliant).
+        </p>
+      </div>
+      <div className="relative mt-3 flex items-center justify-between gap-2">
+        <span className="text-[0.625rem] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200/70 dark:bg-amber-500/10 dark:text-amber-200 dark:border-amber-400/20">
+          Bientôt
+        </span>
+        <a
+          href="https://github.com/n4wf3l/rene-football/issues/1"
+          target="_blank"
+          rel="noreferrer noopener"
+          className="inline-flex items-center gap-1 text-[0.65rem] font-mono uppercase tracking-wider text-zinc-500 hover:text-turf-700 dark:text-stone-400 dark:hover:text-turf-200 transition-colors"
+          title="Voir la roadmap de la fonctionnalité"
+        >
+          Roadmap
+          <ArrowUpRight size={11} weight="bold" />
+        </a>
+      </div>
+    </div>
+  )
 }
 
 function StatTile({ icon: Icon, label, value, hint, sub, badge }: StatTileProps) {
@@ -689,38 +736,35 @@ function AdminDashboard() {
       {/* ─────────── "Par où commencer" onboarding band ─────────── */}
       {showGetStarted && <GetStartedBand onDismiss={dismissGetStarted} />}
 
-      {/* ─────────── KPI grid ─────────── */}
+      {/* ─────────── Pulse row — vraies infos actionnables à la connexion ───────────
+          Les stats de joueurs cumulées (buts, matchs, passes...) sont intéressantes
+          dans la page Data analyse — pas sur le dashboard d'arrivée. Ici on remonte
+          ce qui aide l'admin à décider quoi faire *maintenant* : traffic du site,
+          signatures récentes, activité scouting, et dernière mise à jour globale. */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <VisitsPlaceholderTile />
         <StatTile
-          icon={Users}
-          label="Joueurs"
-          value={players.length}
-          hint={`${stats.clubs} clubs représentés`}
-          sub={stats.updatedRecently > 0 ? `${stats.updatedRecently} mis à jour < 7 j.` : undefined}
-          badge={stats.addedThisMonth > 0 ? { text: `+${stats.addedThisMonth} ce mois`, tone: 'turf' } : undefined}
+          icon={UserPlus}
+          label="Signatures (30 j)"
+          value={stats.addedThisMonth}
+          hint={stats.addedThisMonth === 0 ? 'Aucun nouveau profil ce mois' : stats.addedThisMonth === 1 ? '1 nouveau joueur ajouté' : `${stats.addedThisMonth} nouveaux joueurs ajoutés`}
+          sub={stats.updatedRecently > 0 ? `${stats.updatedRecently} fiche${stats.updatedRecently > 1 ? 's' : ''} mise${stats.updatedRecently > 1 ? 's' : ''} à jour < 7 j.` : undefined}
+          badge={stats.addedThisMonth > 0 ? { text: 'En hausse', tone: 'turf' } : undefined}
         />
         <StatTile
-          icon={SoccerBall}
-          label="Matchs joués"
-          value={stats.totalMatches}
-          hint="Toutes compétitions"
-          sub={`Moyenne ${(stats.totalMatches / Math.max(1, players.length)).toFixed(1)} / joueur`}
-          badge={{ text: 'À jour', tone: 'neutral' }}
+          icon={Binoculars}
+          label="Activité scouting"
+          value={scouting?.recent_reports?.length ?? 0}
+          hint="Rapports touchés récemment"
+          sub={scouting?.kpi.reports_to_validate ? `${scouting.kpi.reports_to_validate} en attente de validation` : 'Rien à valider'}
+          badge={scouting?.kpi.reports_to_validate ? { text: 'À valider', tone: 'amber' } : undefined}
         />
         <StatTile
-          icon={Trophy}
-          label="Buts cumulés"
-          value={stats.totalGoals}
-          hint={`Moyenne ${stats.goalsPerMatch} / match`}
-          sub={`Top buteur · ${lastName(stats.topScorer.name)}`}
-          badge={stats.xgVsGoals > 0.5 ? { text: `xG +${stats.xgVsGoals.toFixed(1)}`, tone: 'turf' } : stats.xgVsGoals < -0.5 ? { text: `xG ${stats.xgVsGoals.toFixed(1)}`, tone: 'amber' } : undefined}
-        />
-        <StatTile
-          icon={ChartLineUp}
-          label="Passes décisives"
-          value={stats.totalAssists}
-          hint={`${stats.totalKeyPasses} passes clés cumulées`}
-          sub={`Top passeur · ${lastName(stats.topAssist.name)}`}
+          icon={Timer}
+          label="Dernière mise à jour"
+          value={lastUpdateLabel}
+          hint={`${players.length} fiches suivies au total`}
+          sub={stats.clubs > 0 ? `${stats.clubs} clubs représentés` : undefined}
         />
       </div>
 
