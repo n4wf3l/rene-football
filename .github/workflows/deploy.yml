@@ -174,6 +174,15 @@ jobs:
           sed "s/__MAINT_SECRET__/${MAINT_SECRET}/g" \
             .github/hostinger/_extract.php.template > staging/public_html/_extract.php
           echo "_extract.php generated ($(wc -c < staging/public_html/_extract.php) bytes)"
+          # Vérifie que le placeholder a bien été substitué (ne doit pas apparaître)
+          if grep -q '__MAINT_SECRET__' staging/public_html/_extract.php; then
+            echo "::error::__MAINT_SECRET__ placeholder non substitué dans _extract.php"
+            exit 1
+          fi
+          # Diagnostic : affiche la longueur de la string $expected pour vérifier
+          # qu'il n'y a pas de char invisible (le secret fait 64 chars hex).
+          EXPECTED_LEN=$(grep -o "trim('[^']*')" staging/public_html/_extract.php | head -1 | awk -F"'" '{print length($2)}')
+          echo "Longueur du secret substitué: ${EXPECTED_LEN} chars (attendu: 64)"
 
       # -------- FTPS deploy (small payload — ~50 MB zip + ~50 React files) --------
       # Hostinger shared : la racine FTP par défaut (/home/u439221818/) n'est
@@ -194,7 +203,7 @@ jobs:
           protocol: ftps
           local-dir: ./staging/
           server-dir: /domains/renefootball.com/
-          state-name: .ftp-deploy-renefb.json
+          state-name: .ftp-deploy-renefb-v2.json
           timeout: 180000
           log-level: minimal
           exclude: |
