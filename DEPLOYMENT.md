@@ -398,10 +398,59 @@ Jamais commitées dans le repo.
 | `SESSION_SECURE_COOKIE` | `true` |
 | `SESSION_DOMAIN` | `.renefootball.com` |
 | `FILESYSTEM_DISK` | `local` (CVs privés, servis via URL signée) |
+| `SENTRY_LARAVEL_DSN` | DSN Sentry côté backend. Vide = Sentry inactif. |
+| `SENTRY_TRACES_SAMPLE_RATE` | `0.1` (10 % des requêtes tracées). Monter en cas de debug. |
+| `SENTRY_SEND_DEFAULT_PII` | `false` (RGPD : jamais d'IP/UA/cookies auto). |
+| `SENTRY_RELEASE` | auto-rempli au build (= `github.sha`). |
+
+Côté frontend, 2 secrets supplémentaires à ajouter dans GitHub (Settings →
+Secrets and variables → Actions) :
+- `VITE_SENTRY_DSN` : DSN Sentry du projet React. Visible dans le JS public,
+  pas un secret dur, mais tenu dans GH Secrets pour pouvoir le changer sans
+  redéployer manuellement.
+- (pas de secret pour la version — le workflow injecte `github.sha` dans
+  `VITE_APP_VERSION`.)
 
 ---
 
-## 6. Références
+## 6. Activer Sentry (observabilité)
+
+Sentry est **câblé mais inactif** par défaut. Pour l'allumer :
+
+1. Créer un compte sur https://sentry.io (free tier suffit : 5k events/mois).
+2. Créer **deux projets** dans la même organisation :
+   - Un projet **Laravel** → récupérer son DSN
+   - Un projet **React** → récupérer son DSN
+3. Dans GitHub → Settings → Secrets → Actions, ajouter :
+   - `SENTRY_LARAVEL_DSN` = DSN du projet Laravel
+   - `VITE_SENTRY_DSN` = DSN du projet React
+4. `git push origin main` sur n'importe quelle branche mergée → le prochain
+   deploy injecte les deux DSN. Sentry commence à collecter immédiatement.
+5. Côté backend, le DSN se retrouve dans le `.env` prod via la step
+   "Assemble staging dir" du workflow. Côté frontend, il est baked dans le
+   bundle JS au moment du `vite build`.
+6. Pour tester : déclencher une exception manuelle depuis le code (`throw
+   new RuntimeException('test')` dans un controller admin, ou
+   `Sentry.captureMessage('test')` côté React). Elle doit apparaître dans le
+   dashboard Sentry sous ~30 s.
+
+Si Sentry est désactivé localement : rien à faire, `VITE_SENTRY_DSN` vide
+est détecté par `frontend/src/sentry.ts` qui bypasse l'init.
+
+### RGPD / privacy
+
+- `SENTRY_SEND_DEFAULT_PII=false` → aucune IP / user-agent / cookie n'est
+  envoyé automatiquement à Sentry.
+- Côté React, `Sentry.replayIntegration({ maskAllText: true, blockAllMedia:
+  true })` masque tout le texte visible et bloque les médias dans les session
+  replays, pour éviter de leaker des données utilisateur (noms de joueurs,
+  emails, etc.).
+- Session replay désactivé sauf en cas d'erreur
+  (`replaysOnErrorSampleRate: 1.0`) — pas d'enregistrement systématique.
+
+---
+
+## 7. Références
 
 - Setup détaillé une-fois : [`HOSTINGER-DEPLOY.md`](HOSTINGER-DEPLOY.md)
 - Checklist pré-prod business : [`PRE-PRODUCTION.md`](PRE-PRODUCTION.md)

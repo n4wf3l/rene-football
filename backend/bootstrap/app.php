@@ -7,6 +7,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Sentry\Laravel\Integration;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -59,4 +60,9 @@ return Application::configure(basePath: dirname(__DIR__))
             }
             return null;
         });
+
+        // Sentry : capture toutes les exceptions non-gérées une fois Laravel
+        // les a renvoyées. No-op si SENTRY_LARAVEL_DSN n'est pas défini,
+        // donc safe en local / staging sans projet Sentry.
+        Integration::handles($exceptions);
     })->create();
