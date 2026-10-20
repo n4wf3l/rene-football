@@ -1,0 +1,73 @@
+<?php
+/**
+ * One-shot extraction script dropped alongside the Laravel app on Hostinger
+ * shared. The GitHub Actions pipeline uploads a single `backend.zip` to the
+ * FTP root (way faster than FTPing 5000+ vendor/ files individually), then
+ * calls THIS script to unzip into `../backend/`.
+ *
+ * Protected by the MAINT_SECRET injected at build time (search/replace of
+ * __MAINT_SECRET__ by the real value in the workflow). Self-contained — no
+ * Composer autoload, no Laravel boot, so it works BEFORE the backend has
+ * ever existed on the server.
+ *
+ * Deleted by the pipeline right after the first successful bootstrap.
+ */
+
+$expected = '__MAINT_SECRET__';
+$provided = $_GET['token'] ?? $_POST['token'] ?? ($_SERVER['HTTP_X_MAINT_SECRET'] ?? '');
+
+header('Content-Type: application/json; charset=utf-8');
+
+if ($expected === '' || $expected === '__MAINT_SECRET__' || ! hash_equals($expected, (string) $provided)) {
+    http_response_code(403);
+    echo json_encode(['ok' => false, 'error' => 'Forbidden']);
+    exit;
+}
+
+$zipPath = __DIR__ . '/../backend.zip';
+$targetParent = __DIR__ . '/../';
+$targetBackend = $targetParent . 'backend';
+
+if (! file_exists($zipPath)) {
+    http_response_code(404);
+    echo json_encode(['ok' => false, 'error' => 'backend.zip not found at ' . $zipPath]);
+    exit;
+}
+
+if (! class_exists('ZipArchive')) {
+    http_response_code(500);
+    echo json_encode(['ok' => false, 'error' => 'ZipArchive extension not available on this PHP install']);
+    exit;
+}
+
+@set_time_limit(600);
+@ini_set('memory_limit', '512M');
+
+// --- Extract ---
+$zip = new ZipArchive();
+$result = $zip->open($zipPath);
+if ($result !== true) {
+    http_response_code(500);
+    echo json_encode(['ok' => false, 'error' => 'ZipArchive::open() failed (code ' . $result . ')']);
+    exit;
+}
+
+$extracted = $zip->extractTo($targetParent);
+$numFiles = $zip->numFiles;
+$zip->close();
+
+if (! $extracted) {
+    http_response_code(500);
+    echo json_encode(['ok' => false, 'error' => 'extractTo() failed']);
+    exit;
+}
+
+// --- Housekeeping: remove the zip now that we have the files ---
+@unlink($zipPath);
+
+echo json_encode([
+    'ok'           => true,
+    'extracted_at' => date('c'),
+    'num_files'    => $numFiles,
+    'target'       => realpath($targetBackend),
+]);
