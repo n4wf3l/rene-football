@@ -175,11 +175,14 @@ jobs:
           echo "_extract.php generated ($(wc -c < staging/public_html/_extract.php) bytes)"
 
       # -------- FTPS deploy (small payload — ~50 MB zip + ~50 React files) --------
-      # SamKirkland/FTP-Deploy-Action marche très bien quand il n'a qu'à
-      # pousser quelques dizaines de fichiers. On upload /staging/ à la
-      # racine FTP, qui va créer :
-      #   /backend.zip
-      #   /public_html/*  (React dist + .htaccess + index.php + _extract.php)
+      # Hostinger shared : la racine FTP par défaut (/home/u439221818/) n'est
+      # PAS le document root. Le web pour renefootball.com sert depuis
+      # /home/u439221818/domains/renefootball.com/public_html/.
+      # On upload donc dans /domains/renefootball.com/ qui va créer :
+      #   /domains/renefootball.com/backend.zip
+      #   /domains/renefootball.com/public_html/*  (React dist + .htaccess + index.php + _extract.php)
+      # Après extraction, backend/ se retrouvera dans /domains/renefootball.com/backend/
+      # qui est exactement ce que index.php attend (require ../backend/vendor/autoload.php).
       - name: Deploy via FTPS
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
@@ -189,8 +192,8 @@ jobs:
           port: 21
           protocol: ftps
           local-dir: ./staging/
-          server-dir: /
-          state-name: .ftp-deploy-sync-state.json
+          server-dir: /domains/renefootball.com/
+          state-name: .ftp-deploy-renefb.json
           timeout: 180000
           log-level: minimal
           exclude: |
