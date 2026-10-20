@@ -1,282 +1,413 @@
 # Rene Football — Déploiement production
 
-Checklist à parcourir intégralement **avant** chaque mise en prod. Reprend
-les vérifications qui n'ont pas d'équivalent automatisé côté tests.
+Le site est en prod sur **https://renefootball.com** via **Hostinger Shared
+(plan Single)** + **GitHub Actions**. Ce document explique :
 
-## 0. Pré-flight (à froid)
+1. L'architecture choisie et pourquoi
+2. Le pipeline CI/CD actuel
+3. Les 7 bugs rencontrés pendant le setup initial et comment on les a réglés
+4. La checklist opérationnelle pour les futures mises en prod
 
-- [ ] Suite de tests **backend** verte : `cd backend && php artisan test`
-  - Attendu : `61 passed` (à date, dont 4 tests de non-régression sécurité). Un test rouge = on ne push pas.
-- [ ] **Frontend typecheck** vert : `cd frontend && npx tsc --noEmit`
-- [ ] Aucun `console.log` / `dd()` / `dump()` oublié :
+Pour la **procédure détaillée** (secrets GitHub, cron Hostinger, commandes
+post-deploy), voir [`HOSTINGER-DEPLOY.md`](HOSTINGER-DEPLOY.md).
+
+---
+
+## 1. Architecture retenue
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  GitHub (repo privé)                                        │
+│  └─ push origin main → .github/workflows/deploy.yml         │
+└─────────────────────────────────────────────────────────────┘
+            │
+            │  Build + composer install + zip
+            │
+            ▼
+┌─────────────────────────────────────────────────────────────┐
+│  Ubuntu runner (GH Actions)                                 │
+│  ├─ Setup PHP 8.2 + Composer                                │
+│  ├─ Setup Node 20                                           │
+│  ├─ Build frontend (vite build → frontend/dist/)            │
+│  ├─ Composer install --no-dev --optimize-autoloader         │
+│  ├─ Zip backend/ en backend.zip (~14 MB)                    │
+│  ├─ Génère _extract.php avec MAINT_SECRET injecté           │
+│  └─ Upload FTPS vers Hostinger                              │
+└─────────────────────────────────────────────────────────────┘
+            │
+            │  FTPS upload (~2 min)
+            │  backend.zip + public_html/ → /domains/renefootball.com/
+            │
+            ▼
+┌─────────────────────────────────────────────────────────────┐
+│  Hostinger Shared (plan Single, pas de SSH)                 │
+│  /home/u439221818/domains/renefootball.com/                 │
+│  ├── backend/              ← dézippé par _extract.php       │
+│  │   ├── vendor/                                            │
+│  │   ├── storage/                                           │
+│  │   └── .env             (secrets injectés au build)       │
+│  └── public_html/          ← webroot Apache                 │
+│      ├── index.php         (boot Laravel depuis ../backend) │
+│      ├── .htaccess         (routing API ↔ SPA)              │
+│      ├── _extract.php      (one-shot, auto-supprime zip)    │
+│      ├── index.html        (React SPA)                      │
+│      └── assets/           (React build)                    │
+└─────────────────────────────────────────────────────────────┘
+            │
+            │  Auto-call /_extract.php → /api/_maintenance/bootstrap
+            │
+            ▼
+┌─────────────────────────────────────────────────────────────┐
+│  Laravel bootstrap                                          │
+│  ├─ php artisan migrate --force (idempotent)                │
+│  ├─ storage symlink (idempotent)                            │
+│  └─ Create admin si credentials fournis (idempotent)        │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Pourquoi Hostinger Shared + GitHub Actions (et pas un VPS classique)
+
+L'agence est sur le plan **Single** (shared hosting, ~3€/mois). Pas de VPS,
+pas de SSH, pas de systemd. Mais le plan a :
+
+- ✓ PHP 8.3 configurable
+- ✓ MySQL
+- ✓ Mail SMTP natif
+- ✓ Cron Jobs natifs via hPanel
+- ✓ SSL Let's Encrypt auto-renouvelé
+- ✗ Pas de SSH
+- ✗ Pas de Composer sur serveur
+- ✗ Pas de Node.js sur serveur
+
+**Conséquence** : impossible de `git pull && composer install && php artisan
+migrate` à la mode VPS. Il faut faire le build en amont (GitHub Actions) et
+pousser le résultat déjà prêt.
+
+L'alternative aurait été d'upgrader à un plan Premium ou Business (~5€/mois)
+pour avoir SSH. L'agence n'a pas voulu payer plus → on s'adapte.
+
+---
+
+## 2. Le pipeline en 7 étapes
+
+Déclencheur : `git push origin main` (ou `workflow_dispatch` manuel).
+
+### 2.1 Build
+```yaml
+- Setup PHP 8.2 + Node 20
+- cd backend && composer install --no-dev --optimize-autoloader
+- cd frontend && npm ci && npm run build
+```
+
+### 2.2 Assemble le staging
+- Copie `backend/` dans `staging/backend/` (hors tests, hors .env)
+- Copie `frontend/dist/*` dans `staging/public_html/`
+- Copie `.github/hostinger/index.php` et `.htaccess` dans `staging/public_html/`
+- Écrit `.env` prod dans `staging/backend/.env` depuis les GitHub Secrets
+
+### 2.3 Zippe le backend
+```bash
+cd staging && zip -rq backend.zip backend/ && rm -rf backend/
+```
+→ Un seul fichier `backend.zip` (~14 MB au lieu de 5000+ fichiers individuels).
+
+### 2.4 Génère `_extract.php` avec MAINT_SECRET injecté
+```bash
+sed "s/__MAINT_SECRET__/${MAINT_SECRET}/g" \
+  .github/hostinger/_extract.php.template > staging/public_html/_extract.php
+```
+Garde-fou : si `__MAINT_SECRET__` reste dans le fichier après sed, la
+pipeline fail (`grep -q '__MAINT_SECRET__' && exit 1`).
+
+### 2.5 Upload FTPS
+```yaml
+- uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+  with:
+    local-dir: ./staging/
+    server-dir: /domains/renefootball.com/
+    protocol: ftps
+    port: 21
+```
+~2 min pour le backend.zip + une cinquantaine de fichiers public_html.
+
+### 2.6 Extraction côté serveur
+`curl POST https://renefootball.com/_extract.php` avec header `X-Maint-Secret`.
+Le script PHP standalone (pas besoin de Laravel booté) :
+- Vérifie le secret
+- Ouvre `../backend.zip` via ZipArchive
+- Dézippe dans `../backend/`
+- Supprime `backend.zip`
+
+### 2.7 Bootstrap Laravel
+`curl POST https://renefootball.com/api/_maintenance/bootstrap` →
+- `php artisan migrate --force`
+- `symlink(storage/app/public, public/storage)`
+- Création admin si credentials fournis (idempotent — skip si existe)
+- `config:clear` + `route:clear` + `view:clear`
+
+**Durée totale** : ~5 min pour un deploy incrémental, ~7 min pour le 1er
+(incluant l'upload complet du vendor).
+
+---
+
+## 3. Les 7 bugs rencontrés (et comment on les a réglés)
+
+Pour quiconque reprend le projet et doit déboguer un deploy similaire, voici
+les écueils réels qu'on a rencontrés dans l'ordre chronologique.
+
+### Bug #1 — Timeout lftp (30 min)
+**Symptôme** : la pipeline tourne 30 min et timeout pendant l'upload des
+fichiers Laravel vendor/ via `lftp` en FTPS.
+
+**Cause** : lftp négocie TLS pour chaque fichier individuellement. Avec
+5000+ fichiers dans vendor/ et ~0.1-0.3 s de handshake TLS chacun, on dépasse
+largement le timeout de 15 min du runner.
+
+**Fix** : switch vers `SamKirkland/FTP-Deploy-Action@v4.3.5` qui utilise
+basic-ftp (Node) et réutilise la connexion TLS entre fichiers.
+
+### Bug #2 — Timeout FTP-Deploy aussi (29 min)
+**Symptôme** : même action, timeout sur `vendor/phpoffice/phpspreadsheet/`
+après avoir "creating folder" pendant 29 minutes.
+
+**Cause** : PhpSpreadsheet seul a ~800 dossiers imbriqués. Chaque création
+de dossier = 1 commande FTP sérialisée. ~800 × 1s = 13 min pour PhpSpreadsheet
+seul, et il reste tout le reste de vendor/ derrière.
+
+**Fix** : pivot complet vers une stratégie **zip + extract** :
+- Zippe `backend/` en local (via `zip -rq`), upload le zip, dézippe sur le
+  serveur avec un script PHP standalone (`_extract.php`)
+- Résultat : 1 upload de 14 MB en 2 min au lieu de 5000+ uploads en 30+ min
+
+### Bug #3 — Mauvais chemin FTP (upload dans le mauvais `public_html`)
+**Symptôme** : workflow passe au vert, mais `https://renefootball.com` affiche
+toujours la page par défaut "Vous êtes prêt à partir!" Hostinger.
+
+**Cause** : Hostinger a DEUX dossiers `public_html` :
+- `/home/u439221818/public_html/` (legacy, non servi par le web)
+- `/home/u439221818/domains/renefootball.com/public_html/` (le VRAI webroot)
+
+Notre upload FTPS avec `server-dir: /` landait dans le legacy, pas dans le
+webroot réel.
+
+**Fix** : changer `server-dir: /` en `server-dir: /domains/renefootball.com/`
+dans la step `SamKirkland/FTP-Deploy-Action`.
+
+### Bug #4 — Sed trailing newline cassait le MAINT_SECRET
+**Symptôme** : `_extract.php` retournait systématiquement "Forbidden" même
+avec le bon token.
+
+**Cause** : la step de génération faisait
+```bash
+ESCAPED=$(printf '%s\n' "${MAINT_SECRET}" | sed -e 's/[\/&]/\\&/g')
+```
+Le `printf '%s\n'` **ajoutait un retour à la ligne final** au secret. Donc le
+fichier généré contenait littéralement :
+```php
+$expected = '1856536f...638f2998
+';
+```
+Et `hash_equals('secret\n', 'secret')` → false → Forbidden.
+
+**Fix** : supprimer le `printf`, substituer directement :
+```bash
+sed "s/__MAINT_SECRET__/${MAINT_SECRET}/g" template > output
+```
+MAINT_SECRET est pur hex (généré via `openssl rand -hex 32`), aucun caractère
+spécial à escaper pour sed.
+
+### Bug #5 — Le sed substitue le placeholder dans la condition de check aussi
+**Symptôme** : même après avoir fixé le trailing newline (#4), toujours
+"Forbidden" systématique.
+
+**Cause** : mon template avait un garde-fou :
+```php
+$expected = trim('__MAINT_SECRET__');
+if ($expected === '' || $expected === '__MAINT_SECRET__' || !hash_equals(...)) {
+    // Forbidden
+}
+```
+L'intention : refuser si le placeholder n'a jamais été substitué (deploy
+accidentel du template brut). Mais `sed` remplace **toutes** les occurrences
+du placeholder, y compris celle dans la condition de check. Après génération :
+```php
+$expected = trim('REAL_SECRET');
+if ($expected === '' || $expected === 'REAL_SECRET' || !hash_equals(...)) {
+    // Forbidden car $expected === 'REAL_SECRET' est toujours TRUE
+}
+```
+
+**Fix** : retirer cette check. Le safety-net contre le placeholder non
+substitué est déjà côté workflow (`grep -q '__MAINT_SECRET__' && exit 1`).
+
+### Bug #6 — DirectoryIndex absent → 404 sur la racine
+**Symptôme** : `/api/_maintenance/health` fonctionne (Laravel boote), mais
+`https://renefootball.com/` retourne 404.
+
+**Cause** : sans directive `DirectoryIndex` explicite dans `.htaccess`, Apache
+sur Hostinger tombait sur `index.php` au lieu de `index.html`. Du coup
+Laravel était appelé avec le path `/`. Et notre `backend/routes/web.php` fait
+un `abort(404)` explicite sur `/` en prod (pour éviter de leak les URL d'API
+aux crawlers qui tomberaient sur le backend).
+
+**Fix** : ajouter `DirectoryIndex index.html index.php` en haut du
+`.htaccess`. Apache sert maintenant la SPA React en priorité, Laravel ne
+reçoit QUE les routes `/api/*`, `/storage/*`, `/up`, `/sitemap.xml`,
+`/robots.txt` comme prévu.
+
+### Bug #7 — `symlink()` dans le mauvais namespace PHP
+**Symptôme** : bootstrap réussit la migration, crée l'admin, mais échoue sur
+la création du symlink :
+```
+"storage_link": {
+  "ok": false,
+  "error": "Call to undefined function App\\Http\\Controllers\\Api\\symlink()"
+}
+```
+
+**Cause** : PHP cherche une fonction non-qualifiée **d'abord dans le
+namespace courant**, puis fallback sur le global. Dans un contrôleur
+namespacé `App\Http\Controllers\Api\`, un appel `symlink()` est cherché à
+`App\Http\Controllers\Api\symlink()` et crashe parce qu'il n'existe pas là.
+
+**Fix** : préfixer par `\` pour forcer le namespace global :
+```php
+@\symlink($target, $link);
+```
+
+### Bugs non-anticipés qui NE sont pas arrivés mais à savoir
+
+- Hostinger n'a pas throttle le FTPS pour nous (contrairement à certains
+  témoignages Reddit). Si ça arrivait, option de fallback : réduire le
+  parallélisme ou splitter en plusieurs sessions.
+- La taille du zip (14 MB) est largement sous les limites PHP d'upload /
+  memory. Si vendor/ gonfle (gros packages), monitorer `upload_max_filesize`
+  dans hPanel.
+- Le PHP de Hostinger a bien `ZipArchive` activé. Sur certaines configs
+  minimalistes, il faudrait fallback sur `PharData` (tarball).
+
+---
+
+## 4. Checklist opérationnelle pour les prochaines mises en prod
+
+### Pre-flight (à faire sur ta machine)
+
+- [ ] `cd backend && php artisan test` → tout vert
+- [ ] `cd frontend && npx tsc --noEmit` → zero error
+- [ ] `git status` clean sur `main`
+- [ ] Pas de `console.log` / `dd()` / `dump()` oublié :
   ```powershell
   Select-String -Pattern "console\.log|dd\(|dump\(" -Path backend/app/**/*.php,frontend/src/**/*.tsx -SimpleMatch
   ```
-- [ ] `git status` clean sur `main`, dernier commit taggué au besoin.
 
-## 1. Backend Laravel — variables d'environnement
-
-Créer / mettre à jour `.env` sur le serveur. Valeurs critiques :
-
-| Clé | Valeur prod | Notes |
-|-----|-------------|-------|
-| `APP_ENV` | `production` | jamais `local` en prod |
-| `APP_DEBUG` | `false` | **impératif** — sinon stack traces exposées |
-| `APP_URL` | `https://renefootball.com` | HTTPS, sans slash final |
-| `APP_KEY` | (généré) | `php artisan key:generate` si absent |
-| `LOG_LEVEL` | `warning` | `debug` pollue les logs |
-| `DB_CONNECTION` | `mysql` (ou `pgsql`) | pas SQLite en prod |
-| `DB_HOST` / `DB_PORT` / `DB_DATABASE` / `DB_USERNAME` / `DB_PASSWORD` | à setter | Mot de passe fort |
-| `SESSION_DRIVER` | `database` ou `redis` | pas `file` derrière un load balancer |
-| `CACHE_STORE` | `database` ou `redis` | idem |
-| `QUEUE_CONNECTION` | `database` ou `redis` | si des jobs sont poussés plus tard |
-| `MAIL_MAILER` | `smtp` | pas `log` / `array` en prod |
-| `MAIL_HOST` / `MAIL_PORT` / `MAIL_USERNAME` / `MAIL_PASSWORD` | à setter | Provider SMTP (Postmark / Resend / SES) |
-| `MAIL_FROM_ADDRESS` | `noreply@renefootball.com` | domaine vérifié SPF/DKIM |
-| `MAIL_FROM_NAME` | `Rene Football` | |
-| `CONTACT_RECIPIENT` | `contact@renefootball.com` | destinataire des notifications de demande |
-| `CORS_ALLOWED_ORIGINS` | `https://renefootball.com,https://www.renefootball.com` | whitelist stricte (défaut dev = localhost) |
-| `SANCTUM_EXPIRATION_MINUTES` | `10080` | TTL des tokens admin (7 j). Override si nécessaire |
-| `SESSION_SECURE_COOKIE` | `true` | cookie transmis en HTTPS uniquement |
-| `SESSION_HTTP_ONLY` | `true` | inaccessible depuis JavaScript |
-| `SESSION_SAME_SITE` | `lax` | bloque cross-site sauf top-nav |
-| `SESSION_DOMAIN` | `.renefootball.com` | avec le point initial |
-| `FILESYSTEM_DISK` | `public` | ou `s3` si stockage distant |
-
-**Note sur Sanctum** : le SPA utilise des Bearer tokens (localStorage), pas la SPA-cookie mode. `SANCTUM_STATEFUL_DOMAINS` n'a donc pas d'effet pratique et peut rester vide.
-
-Vérifier : `php artisan config:show app.env` doit répondre `production`.
-Le boot refusera de démarrer si `APP_DEBUG=true` en production (guard `AppServiceProvider::assertSafeProductionConfig()`).
-
-## 2. Migrations & seeds
-
-- [ ] Sauvegarde de la BDD prod **avant** toute migration :
-  ```bash
-  mysqldump -u <user> -p <db> > backup-$(date +%F).sql
-  ```
-- [ ] Lancer les migrations :
-  ```bash
-  php artisan migrate --force
-  ```
-- [ ] **NE JAMAIS lancer** `php artisan db:seed` en prod. `DatabaseSeeder` auto-invoquerait `DemoAccountsSeeder` uniquement si `APP_ENV=local` (guard runtime), mais les seeders de contenu (players / articles / staff démo) écraseraient tes vraies données. `DemoAccountsSeeder` refuse maintenant explicitement de tourner ailleurs qu'en `local` ou `testing` (allow-list stricte : `production`, `staging`, `preview`, tout autre valeur → `RuntimeException`). Mieux vaut quand même ne pas s'y frotter.
-- [ ] **Créer l'admin manuellement** via tinker (première install ou reset) :
-  ```bash
-  php artisan tinker
-  >>> App\Models\User::create([
-  ...   'name' => 'Admin',
-  ...   'email' => 'admin@renefootball.com',
-  ...   'password' => Hash::make('MOT_DE_PASSE_FORT'),  // ≥ 16 chars, aléatoire
-  ...   'is_admin' => true,
-  ...   'email_verified_at' => now(),
-  ... ]);
-  ```
-  Puis le rotate à la prochaine occasion.
-- [ ] `php artisan storage:link` — pour que `/storage/*` serve les uploads (photos joueurs, CV, logos partenaires).
-
-## 3. Cache & optimisation
-
-À lancer sur chaque déploiement :
+### Deploy
 
 ```bash
-composer install --no-dev --optimize-autoloader
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
-php artisan event:cache
+git push origin main
 ```
 
-Attention : `config:cache` fige les variables `.env`. Toute modif du `.env`
-nécessite de rejouer `php artisan config:clear && php artisan config:cache`.
+C'est tout. Le workflow fait le reste en ~5 min.
 
-## 4. Sécurité serveur
-
-- [ ] **HTTPS forcé** — redirection 301 depuis HTTP côté nginx/Apache.
-- [ ] `storage/`, `bootstrap/cache/`, `public/storage/` **writable** par l'utilisateur PHP-FPM (`chown -R www-data:www-data`).
-- [ ] Le répertoire `.env` **n'est pas** exposé (nginx : ajouter un bloc `location ~ /\.` qui deny all).
-- [ ] Headers de sécurité (nginx) :
-  ```nginx
-  add_header X-Frame-Options "SAMEORIGIN" always;
-  add_header X-Content-Type-Options "nosniff" always;
-  add_header Referrer-Policy "strict-origin-when-cross-origin" always;
-  add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
-  ```
-- [ ] `CORS` — la whitelist est pilotée par `CORS_ALLOWED_ORIGINS` (voir §1). En archi single-domain (§5), le CORS n'entre pas en jeu pour le SPA lui-même (même origine) — cette variable ne compte que si tu ajoutes des consommateurs tiers.
-- [ ] Rate limiting : la route `/api/contact` est déjà en `throttle:5,1`. Vérifier qu'aucune autre route publique sensible n'est en accès libre illimité.
-
-## 5. Frontend React — architecture single-domain
-
-**Le code frontend suppose une architecture single-domain** : `renefootball.com`
-sert **à la fois** le SPA React et l'API Laravel. Le client HTTP fait
-`fetch('/api/...')` en chemins relatifs, il n'y a **pas** de `VITE_API_URL`.
-
-Nginx doit router :
-- `/api/*` → PHP-FPM (Laravel `public/index.php`)
-- `/storage/*` → PHP-FPM (Laravel storage symlink)
-- Tout le reste → `frontend/dist/index.html` (SPA fallback)
-
-Si tu veux un jour split `api.renefootball.com` / `renefootball.com`, il
-faudra ajouter `VITE_API_URL` + refactor `frontend/src/api/client.ts` +
-setter CORS/Sanctum stateful domains — mais ce n'est pas le modèle actuel.
-
-### 5.1 `.env.production` (frontend)
-
-Copier `frontend/.env.example` → `frontend/.env.production` et setter :
-```
-VITE_PUBLIC_URL=https://renefootball.com
-```
-
-Cette variable pilote les canonical URLs et og:image des pages hydratées
-(cf `frontend/src/lib/publicUrl.ts`). Aucune API URL n'est nécessaire
-(chemins relatifs).
-
-### 5.2 Build
+### Vérifs post-deploy
 
 ```bash
-cd frontend
-npm ci
-npm run build
-```
-Le build lit `.env.production` (Vite convention) et produit `dist/`.
+# 1. Le site charge
+curl -I https://renefootball.com
+# → HTTP/2 200
 
-### 5.3 Servir `dist/`
+# 2. L'API Laravel boote
+curl https://renefootball.com/api/_maintenance/health
+# → {"ok":true,"info":{"app_env":"production","db":"ok"}}
 
-- Copier `dist/` dans le webroot (ex : `/var/www/renefootball/frontend`)
-- Vérifier que `dist/sitemap.xml`, `dist/robots.txt` et `dist/logo-black.png` sont bien présents (copiés depuis `public/`)
-- **Si tu changes le domaine cible** : les URLs dans `frontend/index.html` (canonical, og:url, JSON-LD) et `frontend/public/sitemap.xml` sont écrites en dur. Faire un find-and-replace `renefootball.com` avant le build, ou éditer directement puis committer.
+# 3. Le sitemap est servi (généré dynamiquement par Laravel)
+curl -I https://renefootball.com/sitemap.xml
+# → HTTP/2 200, Content-Type: application/xml
 
-### 5.4 Exemple nginx (single-domain)
-
-```nginx
-server {
-    listen 443 ssl http2;
-    server_name renefootball.com www.renefootball.com;
-
-    ssl_certificate     /etc/letsencrypt/live/renefootball.com/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/renefootball.com/privkey.pem;
-    ssl_protocols TLSv1.2 TLSv1.3;
-
-    # Security headers (cf § 4)
-    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
-    add_header X-Frame-Options "SAMEORIGIN" always;
-    add_header X-Content-Type-Options "nosniff" always;
-    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
-    add_header Content-Security-Policy "default-src 'self'; style-src 'self' fonts.googleapis.com 'unsafe-inline'; font-src fonts.gstatic.com; img-src 'self' data: flagcdn.com; frame-src www.youtube-nocookie.com; base-uri 'self'; frame-ancestors 'self'" always;
-
-    # Bloquer les fichiers sensibles
-    location ~ /\.(env|git) { deny all; return 404; }
-    location ~ /composer\.(json|lock)$ { deny all; return 404; }
-
-    # 1) API Laravel — tout ce qui commence par /api/
-    location ^~ /api/ {
-        root /var/www/renefootball/backend/public;
-        try_files $uri /index.php?$query_string;
-    }
-
-    # 2) Storage Laravel (uploads : photos joueurs, CV, logos partenaires)
-    location ^~ /storage/ {
-        root /var/www/renefootball/backend/public;
-        try_files $uri =404;
-        expires 7d;
-        add_header Cache-Control "public, immutable";
-    }
-
-    # 3) Endpoints internes Laravel (health, sitemap, robots — servis par web.php)
-    location = /up { root /var/www/renefootball/backend/public; try_files $uri /index.php?$query_string; }
-
-    # 4) PHP-FPM handler pour toutes les routes Laravel ci-dessus
-    location ~ \.php$ {
-        root /var/www/renefootball/backend/public;
-        include snippets/fastcgi-php.conf;
-        fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
-        fastcgi_hide_header X-Powered-By;
-    }
-
-    # 5) SPA React — tout le reste → index.html
-    root /var/www/renefootball/frontend;
-    index index.html;
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-}
-
-# Redirect HTTP → HTTPS
-server {
-    listen 80;
-    server_name renefootball.com www.renefootball.com;
-    return 301 https://$host$request_uri;
-}
+# 4. L'admin login est accessible
+curl -I https://renefootball.com/admin/login
+# → HTTP/2 200 (sert index.html via SPA fallback)
 ```
 
-### 5.5 Vérifs post-build
+### Opérations manuelles ponctuelles
 
-- [ ] `curl -sI https://renefootball.com/api/players | grep 200` → renvoie 200
-- [ ] `curl -sI https://renefootball.com/storage/players/xxx.jpg` → renvoie 200 (après création d'un joueur avec photo)
-- [ ] `curl https://renefootball.com/` → HTML du SPA
-- [ ] Tester en incognito HTTPS que **toutes les langues** basculent proprement (FR/EN/DE/NL/LB).
+Reset mot de passe admin (si perdu) :
+```powershell
+$body = @{
+  admin_email = "ton@email.com"
+  admin_name = "Rene"
+  admin_password = "NouveauMotDePasseFort16+"
+} | ConvertTo-Json
 
-## 6. Pages légales
+Invoke-RestMethod -Method Post `
+  -Uri "https://renefootball.com/api/_maintenance/bootstrap" `
+  -Headers @{"X-Maint-Secret"="<MAINT_SECRET>"} `
+  -ContentType "application/json" `
+  -Body $body
+```
+Note : `action: "exists"` dans la réponse → l'admin existe déjà, le password
+n'a pas été changé. Pour vraiment le changer, soit via l'UI admin, soit via
+phpMyAdmin (`UPDATE users SET password = ... WHERE id = 1`).
 
-- [ ] Remplacer les `À compléter` dans `frontend/src/pages/legal/MentionsLegales.tsx` :
-  - Forme juridique
-  - Numéro RCS Luxembourg
-  - Numéro TVA intracommunautaire
-  - Nom + adresse de l'hébergeur
-- [ ] Vérifier que le compte admin de démo (`admin@rene-football.test` / `admin1234`) **n'existe pas** en prod.
+Lancer la purge RGPD à la main :
+```bash
+curl -X POST https://renefootball.com/api/_maintenance/cron/purge \
+  -H "X-Maint-Secret: <MAINT_SECRET>"
+```
 
-## 7. Tests fonctionnels manuels (à faire en HTTPS)
+Voir les logs Laravel : via File Manager Hostinger →
+`/domains/renefootball.com/backend/storage/logs/laravel.log`
 
-Parcourir chaque parcours dans un navigateur incognito, avec l'onglet Network ouvert :
+### Rollback
 
-**Public**
-- [ ] Home → change de langue via le switcher, confirme que rien ne reste en français hors legal
-- [ ] `/joueurs` → filtres, ouverture d'une fiche joueur, boutons "Fiche PDF" et "Retour au roster"
-- [ ] `/actualites` → catégories, ouverture d'un article, galerie lightbox
-- [ ] `/a-propos` → staff, section partenaires
-- [ ] `/contact` → parcours complet joueur (avec CV upload), club, media, autre
-- [ ] `/contact` → vérifier réception du mail sur `CONTACT_RECIPIENT`
-- [ ] `/contact` → tester le rate limit (5 envois puis 429)
-- [ ] `/mentions-legales`, `/confidentialite`, `/cookies` → bannière ambre + résumé s'affichent dans les autres langues
-- [ ] Bannière cookies → click "Compris", vérifie que le localStorage `rf_cookie_notice_ack` est écrit
-- [ ] Une URL inexistante → NotFoundPage traduit
-
-**Admin**
-- [ ] `/admin/login` → connexion, redirection dashboard
-- [ ] Créer/éditer/supprimer un joueur → toast s'affiche en bas à droite, modal confirm au delete
-- [ ] Uploader une photo de joueur → visible sur la fiche publique
-- [ ] Créer/publier/dépublier un article
-- [ ] Créer un partenaire avec logo
-- [ ] Modifier les réseaux sociaux → footer public se met à jour après rechargement
-- [ ] Générer une présentation joueur → lien de partage `/p/:token` fonctionne
-- [ ] Traiter une demande de contact reçue (changer statut, supprimer)
-
-## 8. Sauvegardes & monitoring
-
-- [ ] Sauvegarde automatique de la BDD (cron `mysqldump` + rotation 7 jours)
-- [ ] Sauvegarde du répertoire `backend/storage/app/public/` (photos, CV, logos)
-- [ ] Log rotation Laravel : `LOG_DAILY_MAX_FILES=14` dans `.env`
-- [ ] Monitoring uptime (Uptime Kuma / BetterUptime / Pingdom) sur `https://renefootball.com/up` (endpoint Laravel healthcheck déjà configuré)
-- [ ] Alerte email si `/up` répond ≠ 200 pendant > 2 min
-
-## 9. Post-déploiement
-
-- [ ] `curl -I https://renefootball.com` → 200 OK, HSTS présent
-- [ ] `curl https://renefootball.com/sitemap.xml` → XML valide
-- [ ] `curl https://renefootball.com/robots.txt` → contenu attendu
-- [ ] Soumettre `sitemap.xml` à Google Search Console
-- [ ] Vérifier Lighthouse (Performance / SEO / Accessibility ≥ 90)
-
-## 10. Rollback si nécessaire
+Pas de rollback automatique pour l'instant. Pour revenir à une version
+précédente :
 
 ```bash
-# Sur le serveur, revenir au commit précédent
-git checkout <previous-sha>
-composer install --no-dev --optimize-autoloader
-php artisan config:cache route:cache
-# Si migration nouvelle a été jouée et qu'elle bloque :
-php artisan migrate:rollback --step=1
-# Restaurer la BDD depuis backup si dommage :
-mysql -u <user> -p <db> < backup-YYYY-MM-DD.sql
+git log --oneline -20            # trouver le SHA cible
+git revert <SHA_du_commit_fautif>
+git push origin main             # auto-deploy du revert en 5 min
 ```
 
-Retrigger le build frontend, rejouer les caches. Poster incident sur le
-canal ops.
+Si une migration a cassé la DB : phpMyAdmin pour corriger manuellement, puis
+`php artisan migrate:rollback --step=1` via une route maintenance ad-hoc à
+ajouter (pas encore implémentée).
+
+---
+
+## 5. Variables d'env production (pour mémoire)
+
+Toutes injectées depuis les GitHub Secrets dans le `.env` au moment du build.
+Jamais commitées dans le repo.
+
+| Clé | Valeur |
+|-----|--------|
+| `APP_ENV` | `production` |
+| `APP_DEBUG` | `false` (hard-fail si `true` via `AppServiceProvider::assertSafeProductionConfig`) |
+| `APP_URL` | `https://renefootball.com` |
+| `APP_KEY` | généré via `php artisan key:generate --show` une seule fois |
+| `DB_CONNECTION` | `mysql` |
+| `DB_HOST` | `localhost` (Hostinger shared, pas de remote MySQL exposé) |
+| `DB_DATABASE` / `DB_USERNAME` / `DB_PASSWORD` | créés via hPanel Databases |
+| `MAIL_MAILER` | `smtp` |
+| `MAIL_HOST` | `smtp.hostinger.com` |
+| `MAIL_PORT` | `465` (SSL) |
+| `MAIL_USERNAME` | `contact@renefootball.com` |
+| `MAIL_PASSWORD` | créé via hPanel Emails |
+| `MAIL_ENCRYPTION` | `ssl` |
+| `MAINT_SECRET` | généré via `openssl rand -hex 32`, utilisé pour `/_maintenance/*` et `/_extract.php` |
+| `SESSION_SECURE_COOKIE` | `true` |
+| `SESSION_DOMAIN` | `.renefootball.com` |
+| `FILESYSTEM_DISK` | `local` (CVs privés, servis via URL signée) |
+
+---
+
+## 6. Références
+
+- Setup détaillé une-fois : [`HOSTINGER-DEPLOY.md`](HOSTINGER-DEPLOY.md)
+- Checklist pré-prod business : [`PRE-PRODUCTION.md`](PRE-PRODUCTION.md)
+- Workflow GH Actions : [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)
+- Apache config : [`.github/hostinger/.htaccess`](.github/hostinger/.htaccess)
+- Laravel bootstrap : [`.github/hostinger/index.php`](.github/hostinger/index.php)
+- Script d'extraction : [`.github/hostinger/_extract.php.template`](.github/hostinger/_extract.php.template)
+- Routes maintenance : [`backend/app/Http/Controllers/Api/MaintenanceController.php`](backend/app/Http/Controllers/Api/MaintenanceController.php)
+</content>
