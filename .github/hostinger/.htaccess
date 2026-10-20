@@ -14,12 +14,15 @@
 #   4. Everything else → React's index.html (SPA client-side router).
 # ---------------------------------------------------------------------------
 
+# DirectoryIndex explicite — Apache sert index.html (SPA React) avant
+# index.php (Laravel bootstrap) sur les URL se terminant par un slash
+# (y compris la racine renefootball.com/). Sans ça, Apache tomberait sur
+# index.php qui boote Laravel, Laravel n'a pas de route "/" en production
+# et retournerait un 404.
+DirectoryIndex index.html index.php
+
 <IfModule mod_rewrite.c>
     RewriteEngine On
-
-    # Handle Front Controller... (Laravel's standard trick to let Apache strip
-    # trailing slashes and redirect missing-trailing-slash URLs cleanly).
-    RewriteRule ^(.*)/$ /$1 [L,R=301]
 
     # 1. Laravel-handled routes — always go through index.php, bypassing the
     #    file-exists check so dynamic sitemap/robots take priority over any
@@ -30,12 +33,13 @@
     RewriteRule ^sitemap\.xml$     index.php [L]
     RewriteRule ^robots\.txt$      index.php [L]
 
-    # 2. Any real file / directory → serve as-is.
-    RewriteCond %{REQUEST_FILENAME} -f [OR]
-    RewriteCond %{REQUEST_FILENAME} -d
+    # 2. Any real file → serve as-is (React assets like /assets/*.js, logos,
+    #    icons.svg, etc). Directories hit DirectoryIndex above instead.
+    RewriteCond %{REQUEST_FILENAME} -f
     RewriteRule ^ - [L]
 
-    # 3. SPA fallback — everything else is a React Router path.
+    # 3. SPA fallback — any other path (React Router routes like /joueurs/alex)
+    #    serves index.html, React Router takes over client-side.
     RewriteRule ^ index.html [L]
 </IfModule>
 
