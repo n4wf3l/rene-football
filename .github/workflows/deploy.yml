@@ -25,7 +25,7 @@ jobs:
   deploy:
     name: Build & deploy
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
 
     steps:
       - name: Checkout
@@ -149,53 +149,77 @@ jobs:
           ls -la staging/
           du -sh staging/backend staging/public_html
 
-      # -------- FTPS deploy --------
-      # Uses lftp (included in Ubuntu runner) with explicit TLS over port 21.
-      # `--parallel=4` keeps the upload reasonable without hammering Hostinger.
-      # `--only-newer --delete` avoids re-uploading unchanged files and prunes
-      # orphans — makes incremental deploys fast after the first.
-      - name: Deploy to Hostinger via FTPS
-        env:
-          FTP_HOST: ${{ secrets.FTP_HOST }}
-          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
-          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-        run: |
-          sudo apt-get install -y lftp
-          lftp -c "
-            set ssl:verify-certificate no;
-            set ftp:ssl-allow true;
-            set ftp:ssl-force true;
-            set ftp:ssl-protect-data true;
-            open -u '${FTP_USERNAME}','${FTP_PASSWORD}' ftp://${FTP_HOST};
-            mirror -R --parallel=4 --only-newer --delete \
-              --exclude-glob .git* \
-              staging/backend/ /backend/;
-            mirror -R --parallel=4 --only-newer --delete \
-              --exclude-glob .git* \
-              staging/public_html/ /public_html/;
-            bye
-          "
+      # -------- FTPS deploy — backend --------
+      # SamKirkland/FTP-Deploy-Action maintient un .ftp-deploy-sync-state.json
+      # dans le dossier distant → deploys incrémentaux : seuls les fichiers
+      # dont le hash a changé sont ré-uploadés. Beaucoup plus rapide que lftp
+      # sur du Laravel/vendor (~5000 fichiers) et robuste aux timeouts.
+      # Deux steps séparés car on cible deux server-dir distincts.
+      - name: Deploy backend/ via FTPS
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: 21
+          protocol: ftps
+          local-dir: ./staging/backend/
+          server-dir: /backend/
+          state-name: .ftp-deploy-backend.json
+          timeout: 120000
+          log-level: minimal
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+
+      - name: Deploy public_html/ via FTPS
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: 21
+          protocol: ftps
+          local-dir: ./staging/public_html/
+          server-dir: /public_html/
+          state-name: .ftp-deploy-public_html.json
+          timeout: 120000
+          log-level: minimal
+          exclude: |
+            **/.git*
+            **/.git*/**
 
       # -------- Post-deploy : bootstrap (migrations + symlink) --------
+      # Retries 5x with 10s backoff — Hostinger peut prendre quelques secondes
+      # pour picker les nouveaux .htaccess + index.php après un FTPS upload,
+      # surtout au tout premier déploiement.
       - name: Trigger maintenance bootstrap
         env:
           MAINT_SECRET: ${{ secrets.MAINT_SECRET }}
         run: |
-          echo "Calling bootstrap endpoint..."
-          HTTP=$(curl -s -o /tmp/boot.json -w "%{http_code}" \
-            -X POST "https://renefootball.com/api/_maintenance/bootstrap" \
-            -H "X-Maint-Secret: ${MAINT_SECRET}" \
-            -H "Accept: application/json" \
-            --max-time 60 || echo "000")
-          echo "HTTP status: $HTTP"
-          cat /tmp/boot.json || true
-          echo ""
-          # Treat 2xx as success. Non-2xx → fail the pipeline so we see it.
-          if [[ "$HTTP" -lt 200 || "$HTTP" -ge 300 ]]; then
-            echo "::warning::Bootstrap endpoint returned $HTTP — check Hostinger side."
-            # Not failing the pipeline for first deploy where the route might
-            # not be reachable yet, but surface it loudly.
-          fi
+          echo "Waiting 10s for Hostinger to pick up new files..."
+          sleep 10
+          for i in 1 2 3 4 5; do
+            echo "--- Bootstrap attempt $i ---"
+            HTTP=$(curl -s -o /tmp/boot.json -w "%{http_code}" \
+              -X POST "https://renefootball.com/api/_maintenance/bootstrap" \
+              -H "X-Maint-Secret: ${MAINT_SECRET}" \
+              -H "Accept: application/json" \
+              --max-time 90 || echo "000")
+            echo "HTTP: $HTTP"
+            cat /tmp/boot.json 2>/dev/null || true
+            echo ""
+            if [[ "$HTTP" -ge 200 && "$HTTP" -lt 300 ]]; then
+              echo "::notice::Bootstrap succeeded on attempt $i"
+              exit 0
+            fi
+            if [[ $i -lt 5 ]]; then
+              echo "Retrying in 10s..."
+              sleep 10
+            fi
+          done
+          echo "::warning::Bootstrap failed after 5 attempts. Deploy is still live — try manually via curl later."
 
       - name: Deploy summary
         if: always()
