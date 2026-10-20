@@ -1,0 +1,75 @@
+# ---------------------------------------------------------------------------
+# Rene Football — Apache rewrite rules for Hostinger shared hosting.
+# Serves a hybrid Laravel API + React SPA from a single document root.
+#
+# Routing order (first match wins) :
+#   1. Any request matching an existing real file / directory → served as-is
+#      (React assets, logo-*.png, robots.txt, sitemap.xml if the Laravel one
+#      hasn't been reached yet, etc.).
+#   2. /api/*, /storage/*, /up → forwarded to Laravel's index.php (which lives
+#      in this same dir but boots the app from ../backend/).
+#   3. /sitemap.xml and /robots.txt → forwarded to Laravel so the DYNAMIC
+#      versions (with freshly published players + articles) are served, not
+#      the static placeholders that may still live in public_html/.
+#   4. Everything else → React's index.html (SPA client-side router).
+# ---------------------------------------------------------------------------
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Handle Front Controller... (Laravel's standard trick to let Apache strip
+    # trailing slashes and redirect missing-trailing-slash URLs cleanly).
+    RewriteRule ^(.*)/$ /$1 [L,R=301]
+
+    # 1. Laravel-handled routes — always go through index.php, bypassing the
+    #    file-exists check so dynamic sitemap/robots take priority over any
+    #    static copy that might linger in public_html/.
+    RewriteRule ^api(/.*)?$        index.php [L]
+    RewriteRule ^storage(/.*)?$    index.php [L]
+    RewriteRule ^up$               index.php [L]
+    RewriteRule ^sitemap\.xml$     index.php [L]
+    RewriteRule ^robots\.txt$      index.php [L]
+
+    # 2. Any real file / directory → serve as-is.
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # 3. SPA fallback — everything else is a React Router path.
+    RewriteRule ^ index.html [L]
+</IfModule>
+
+# ---------------------------------------------------------------------------
+# Security headers (align with DEPLOYMENT.md §4)
+# ---------------------------------------------------------------------------
+<IfModule mod_headers.c>
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+</IfModule>
+
+# ---------------------------------------------------------------------------
+# Compression & caching for static assets
+# ---------------------------------------------------------------------------
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json image/svg+xml
+</IfModule>
+
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpeg "access plus 30 days"
+    ExpiresByType image/png "access plus 30 days"
+    ExpiresByType image/webp "access plus 30 days"
+    ExpiresByType image/svg+xml "access plus 30 days"
+    ExpiresByType text/css "access plus 7 days"
+    ExpiresByType application/javascript "access plus 7 days"
+    ExpiresByType font/woff2 "access plus 365 days"
+</IfModule>
+
+# ---------------------------------------------------------------------------
+# Block access to sensitive files that could leak through FTP misconfig
+# ---------------------------------------------------------------------------
+<FilesMatch "^(\.env.*|composer\.(json|lock)|package.*\.json|.*\.sql|.*\.sh|.*\.md)$">
+    Require all denied
+</FilesMatch>

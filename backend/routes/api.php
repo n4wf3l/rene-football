@@ -30,6 +30,7 @@ use App\Http\Controllers\Api\AnalysisController;
 use App\Http\Controllers\Api\ArticleController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ContactController;
+use App\Http\Controllers\Api\MaintenanceController;
 use App\Http\Controllers\Api\PdfController;
 use App\Http\Controllers\Api\PartnerController;
 use App\Http\Controllers\Api\PlayerController;
@@ -71,6 +72,15 @@ Route::post('/contact', [ContactController::class, 'store'])
 Route::get('/contact-submissions/{submission}/cv', [ContactController::class, 'downloadCv'])
     ->middleware('signed')
     ->name('contact.cv.download');
+
+// --- Maintenance endpoints (Hostinger shared, no SSH) ---
+// Protected by X-Maint-Secret header (shared with .env MAINT_SECRET).
+// `bootstrap` runs migrations + optional admin seed + storage symlink,
+// `cron/purge` is hit by Hostinger Cron Jobs daily (replaces schedule:run),
+// `health` is open and used by uptime monitors.
+Route::post('/_maintenance/bootstrap',   [MaintenanceController::class, 'bootstrap']);
+Route::post('/_maintenance/cron/purge',  [MaintenanceController::class, 'cronPurge']);
+Route::get('/_maintenance/health',       [MaintenanceController::class, 'health']);
 
 // --- Authenticated admin ---
 Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
