@@ -5,10 +5,14 @@
  * FTP root (way faster than FTPing 5000+ vendor/ files individually), then
  * calls THIS script to unzip into `../backend/`.
  *
- * Protected by the MAINT_SECRET injected at build time (search/replace of
- * __MAINT_SECRET__ by the real value in the workflow). Self-contained — no
- * Composer autoload, no Laravel boot, so it works BEFORE the backend has
- * ever existed on the server.
+ * Protected by the MAINT_SECRET injected at build time. The workflow does a
+ * sed-based search/replace on the placeholder below, and ALSO greps the
+ * generated file to ensure the placeholder was actually substituted (fails
+ * the pipeline otherwise). So by the time this script runs on the server,
+ * $expected is guaranteed to contain the real secret.
+ *
+ * Self-contained — no Composer autoload, no Laravel boot, so it works
+ * BEFORE the backend has ever existed on the server.
  *
  * Deleted by the pipeline right after the first successful bootstrap.
  */
@@ -16,12 +20,16 @@
 // trim() both sides defensively — any trailing whitespace or newline
 // (from a bad sed substitution, URL-decoding quirk, header munging…)
 // would otherwise break hash_equals and lock us out of our own script.
+// IMPORTANT : NE PAS checker `$expected === '__MAINT_SECRET__'` ici — le sed
+// substitue toutes les occurrences du placeholder, donc ce test ferait
+// toujours TRUE après génération et bloquerait TOUT accès. Le safety net
+// contre un placeholder non-substitué est côté workflow (grep -q).
 $expected = trim('__MAINT_SECRET__');
 $provided = trim($_GET['token'] ?? $_POST['token'] ?? ($_SERVER['HTTP_X_MAINT_SECRET'] ?? ''));
 
 header('Content-Type: application/json; charset=utf-8');
 
-if ($expected === '' || $expected === '__MAINT_SECRET__' || ! hash_equals($expected, (string) $provided)) {
+if ($expected === '' || ! hash_equals($expected, (string) $provided)) {
     http_response_code(403);
     echo json_encode(['ok' => false, 'error' => 'Forbidden']);
     exit;
