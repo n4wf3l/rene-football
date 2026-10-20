@@ -13,8 +13,11 @@
  * Deleted by the pipeline right after the first successful bootstrap.
  */
 
-$expected = '__MAINT_SECRET__';
-$provided = $_GET['token'] ?? $_POST['token'] ?? ($_SERVER['HTTP_X_MAINT_SECRET'] ?? '');
+// trim() both sides defensively — any trailing whitespace or newline
+// (from a bad sed substitution, URL-decoding quirk, header munging…)
+// would otherwise break hash_equals and lock us out of our own script.
+$expected = trim('__MAINT_SECRET__');
+$provided = trim($_GET['token'] ?? $_POST['token'] ?? ($_SERVER['HTTP_X_MAINT_SECRET'] ?? ''));
 
 header('Content-Type: application/json; charset=utf-8');
 

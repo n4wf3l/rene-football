@@ -167,10 +167,11 @@ jobs:
         env:
           MAINT_SECRET: ${{ secrets.MAINT_SECRET }}
         run: |
-          # Replace __MAINT_SECRET__ placeholder with the real value.
-          # Escape slashes so sed doesn't choke on the base64 chars.
-          ESCAPED=$(printf '%s\n' "${MAINT_SECRET}" | sed -e 's/[\/&]/\\&/g')
-          sed "s/__MAINT_SECRET__/${ESCAPED}/g" \
+          # MAINT_SECRET est un hex pur (généré via `openssl rand -hex 32`),
+          # donc aucun caractère spécial à escaper pour sed. On substitue
+          # directement sans passer par `printf '%s\n'` qui ajoutait un \n
+          # final au secret → hash_equals échouait côté PHP.
+          sed "s/__MAINT_SECRET__/${MAINT_SECRET}/g" \
             .github/hostinger/_extract.php.template > staging/public_html/_extract.php
           echo "_extract.php generated ($(wc -c < staging/public_html/_extract.php) bytes)"
 
