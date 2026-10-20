@@ -1,0 +1,206 @@
+name: Deploy to Hostinger
+
+# -----------------------------------------------------------------------------
+# Build + FTPS deploy pipeline for Hostinger shared hosting (Single plan,
+# no SSH). The runner builds the React frontend, installs Composer prod
+# dependencies, writes a production `.env` from GitHub Secrets, assembles
+# the Hostinger folder layout (backend/ + public_html/) and uploads the
+# whole thing to the FTP root. After the deploy, pings the maintenance
+# bootstrap endpoint to run migrations + create the storage symlink.
+#
+# Triggered on every push to `main`, and manually via workflow_dispatch
+# for a dry-run or forced redeploy.
+# -----------------------------------------------------------------------------
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build & deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # -------- Backend : PHP + Composer prod deps --------
+      - name: Setup PHP 8.2
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, bcmath, pdo, pdo_mysql, zip, gd, intl, xml
+          coverage: none
+          tools: composer:v2
+
+      - name: Composer install (prod)
+        working-directory: ./backend
+        run: |
+          composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+          composer dump-autoload --optimize --no-dev
+
+      # -------- Frontend : Node + Vite build --------
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Frontend build
+        working-directory: ./frontend
+        run: |
+          npm ci
+          npm run build
+
+      # -------- Staging : assemble Hostinger folder layout --------
+      - name: Assemble staging dir
+        run: |
+          set -euo pipefail
+          mkdir -p staging/backend
+          mkdir -p staging/public_html
+
+          # Copy backend (excluding dev/test artifacts). rsync-with-excludes.
+          rsync -a \
+            --exclude='.env' \
+            --exclude='.env.example' \
+            --exclude='.phpunit.result.cache' \
+            --exclude='tests/' \
+            --exclude='.git/' \
+            --exclude='storage/logs/*' \
+            --exclude='storage/framework/cache/data/*' \
+            --exclude='storage/framework/sessions/*' \
+            --exclude='storage/framework/views/*' \
+            --exclude='storage/framework/testing/*' \
+            --exclude='node_modules/' \
+            backend/ staging/backend/
+
+          # Keep storage/ writable scaffolding (Laravel expects these dirs).
+          mkdir -p staging/backend/storage/logs
+          mkdir -p staging/backend/storage/framework/cache/data
+          mkdir -p staging/backend/storage/framework/sessions
+          mkdir -p staging/backend/storage/framework/views
+          mkdir -p staging/backend/storage/app/public
+          mkdir -p staging/backend/bootstrap/cache
+          touch staging/backend/storage/logs/.gitkeep
+
+          # Frontend build output → public_html
+          cp -r frontend/dist/* staging/public_html/
+
+          # Hostinger-specific bootstrap + Apache config → public_html
+          cp .github/hostinger/index.php staging/public_html/
+          cp .github/hostinger/.htaccess staging/public_html/
+
+          # Write production .env to backend/
+          cat > staging/backend/.env <<ENVEOF
+          APP_NAME="Rene Football"
+          APP_ENV=production
+          APP_DEBUG=false
+          APP_URL=https://renefootball.com
+          APP_KEY=${{ secrets.APP_KEY }}
+          APP_LOCALE=fr
+          APP_FALLBACK_LOCALE=en
+          LOG_CHANNEL=stack
+          LOG_STACK=single
+          LOG_LEVEL=warning
+
+          DB_CONNECTION=mysql
+          DB_HOST=${{ secrets.DB_HOST }}
+          DB_PORT=3306
+          DB_DATABASE=${{ secrets.DB_DATABASE }}
+          DB_USERNAME=${{ secrets.DB_USERNAME }}
+          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+
+          SESSION_DRIVER=database
+          SESSION_LIFETIME=10080
+          SESSION_ENCRYPT=false
+          SESSION_SECURE_COOKIE=true
+          SESSION_HTTP_ONLY=true
+          SESSION_SAME_SITE=lax
+          SESSION_DOMAIN=.renefootball.com
+
+          CACHE_STORE=database
+          QUEUE_CONNECTION=database
+
+          MAIL_MAILER=smtp
+          MAIL_HOST=${{ secrets.MAIL_HOST }}
+          MAIL_PORT=${{ secrets.MAIL_PORT }}
+          MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
+          MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
+          MAIL_ENCRYPTION=ssl
+          MAIL_FROM_ADDRESS=${{ secrets.MAIL_USERNAME }}
+          MAIL_FROM_NAME="Rene Football"
+          CONTACT_RECIPIENT=${{ secrets.MAIL_USERNAME }}
+
+          FILESYSTEM_DISK=local
+          SANCTUM_EXPIRATION_MINUTES=10080
+
+          MAINT_SECRET=${{ secrets.MAINT_SECRET }}
+          ENVEOF
+
+          echo "----- Staging layout -----"
+          ls -la staging/
+          du -sh staging/backend staging/public_html
+
+      # -------- FTPS deploy --------
+      # Uses lftp (included in Ubuntu runner) with explicit TLS over port 21.
+      # `--parallel=4` keeps the upload reasonable without hammering Hostinger.
+      # `--only-newer --delete` avoids re-uploading unchanged files and prunes
+      # orphans — makes incremental deploys fast after the first.
+      - name: Deploy to Hostinger via FTPS
+        env:
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          sudo apt-get install -y lftp
+          lftp -c "
+            set ssl:verify-certificate no;
+            set ftp:ssl-allow true;
+            set ftp:ssl-force true;
+            set ftp:ssl-protect-data true;
+            open -u '${FTP_USERNAME}','${FTP_PASSWORD}' ftp://${FTP_HOST};
+            mirror -R --parallel=4 --only-newer --delete \
+              --exclude-glob .git* \
+              staging/backend/ /backend/;
+            mirror -R --parallel=4 --only-newer --delete \
+              --exclude-glob .git* \
+              staging/public_html/ /public_html/;
+            bye
+          "
+
+      # -------- Post-deploy : bootstrap (migrations + symlink) --------
+      - name: Trigger maintenance bootstrap
+        env:
+          MAINT_SECRET: ${{ secrets.MAINT_SECRET }}
+        run: |
+          echo "Calling bootstrap endpoint..."
+          HTTP=$(curl -s -o /tmp/boot.json -w "%{http_code}" \
+            -X POST "https://renefootball.com/api/_maintenance/bootstrap" \
+            -H "X-Maint-Secret: ${MAINT_SECRET}" \
+            -H "Accept: application/json" \
+            --max-time 60 || echo "000")
+          echo "HTTP status: $HTTP"
+          cat /tmp/boot.json || true
+          echo ""
+          # Treat 2xx as success. Non-2xx → fail the pipeline so we see it.
+          if [[ "$HTTP" -lt 200 || "$HTTP" -ge 300 ]]; then
+            echo "::warning::Bootstrap endpoint returned $HTTP — check Hostinger side."
+            # Not failing the pipeline for first deploy where the route might
+            # not be reachable yet, but surface it loudly.
+          fi
+
+      - name: Deploy summary
+        if: always()
+        run: |
+          echo "## Deploy result" >> $GITHUB_STEP_SUMMARY
+          echo "- Commit: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- URL: https://renefootball.com" >> $GITHUB_STEP_SUMMARY
+          echo "- Health: https://renefootball.com/api/_maintenance/health" >> $GITHUB_STEP_SUMMARY
