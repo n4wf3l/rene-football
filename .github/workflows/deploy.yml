@@ -149,13 +149,38 @@ jobs:
           ls -la staging/
           du -sh staging/backend staging/public_html
 
-      # -------- FTPS deploy — backend --------
-      # SamKirkland/FTP-Deploy-Action maintient un .ftp-deploy-sync-state.json
-      # dans le dossier distant → deploys incrémentaux : seuls les fichiers
-      # dont le hash a changé sont ré-uploadés. Beaucoup plus rapide que lftp
-      # sur du Laravel/vendor (~5000 fichiers) et robuste aux timeouts.
-      # Deux steps séparés car on cible deux server-dir distincts.
-      - name: Deploy backend/ via FTPS
+      # -------- Package backend as a single zip ----------
+      # Hostinger shared sans SSH : impossible de lancer composer install sur
+      # le serveur. On zippe vendor/+app/+… en local pour upload d'UN SEUL
+      # fichier (50-80 MB) au lieu de 5000+ petits fichiers individuels
+      # (chaque création de dossier via FTP coûte ~0.5-1s, PhpSpreadsheet
+      # seul = ~800 dossiers → impossible à finir dans la fenêtre du runner).
+      - name: Package backend as single zip
+        run: |
+          set -euo pipefail
+          cd staging
+          zip -rq backend.zip backend/
+          rm -rf backend/
+          ls -lh backend.zip
+
+      - name: Generate _extract.php with injected MAINT_SECRET
+        env:
+          MAINT_SECRET: ${{ secrets.MAINT_SECRET }}
+        run: |
+          # Replace __MAINT_SECRET__ placeholder with the real value.
+          # Escape slashes so sed doesn't choke on the base64 chars.
+          ESCAPED=$(printf '%s\n' "${MAINT_SECRET}" | sed -e 's/[\/&]/\\&/g')
+          sed "s/__MAINT_SECRET__/${ESCAPED}/g" \
+            .github/hostinger/_extract.php.template > staging/public_html/_extract.php
+          echo "_extract.php generated ($(wc -c < staging/public_html/_extract.php) bytes)"
+
+      # -------- FTPS deploy (small payload — ~50 MB zip + ~50 React files) --------
+      # SamKirkland/FTP-Deploy-Action marche très bien quand il n'a qu'à
+      # pousser quelques dizaines de fichiers. On upload /staging/ à la
+      # racine FTP, qui va créer :
+      #   /backend.zip
+      #   /public_html/*  (React dist + .htaccess + index.php + _extract.php)
+      - name: Deploy via FTPS
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_HOST }}
@@ -163,43 +188,50 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           port: 21
           protocol: ftps
-          local-dir: ./staging/backend/
-          server-dir: /backend/
-          state-name: .ftp-deploy-backend.json
-          timeout: 120000
+          local-dir: ./staging/
+          server-dir: /
+          state-name: .ftp-deploy-sync-state.json
+          timeout: 180000
           log-level: minimal
           exclude: |
             **/.git*
             **/.git*/**
             **/node_modules/**
 
-      - name: Deploy public_html/ via FTPS
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.FTP_HOST }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          port: 21
-          protocol: ftps
-          local-dir: ./staging/public_html/
-          server-dir: /public_html/
-          state-name: .ftp-deploy-public_html.json
-          timeout: 120000
-          log-level: minimal
-          exclude: |
-            **/.git*
-            **/.git*/**
-
-      # -------- Post-deploy : bootstrap (migrations + symlink) --------
-      # Retries 5x with 10s backoff — Hostinger peut prendre quelques secondes
-      # pour picker les nouveaux .htaccess + index.php après un FTPS upload,
-      # surtout au tout premier déploiement.
-      - name: Trigger maintenance bootstrap
+      # -------- Extract backend.zip on the server (via standalone PHP) --------
+      # _extract.php lit backend.zip et dézippe dans ../backend/ (= à la racine
+      # FTP, à côté de public_html/). Puis supprime le zip. Protégé par le
+      # MAINT_SECRET injecté au build.
+      - name: Extract backend.zip on server
         env:
           MAINT_SECRET: ${{ secrets.MAINT_SECRET }}
         run: |
           echo "Waiting 10s for Hostinger to pick up new files..."
           sleep 10
+          for i in 1 2 3 4 5; do
+            echo "--- Extract attempt $i ---"
+            HTTP=$(curl -s -o /tmp/extract.json -w "%{http_code}" \
+              -X POST "https://renefootball.com/_extract.php" \
+              -H "X-Maint-Secret: ${MAINT_SECRET}" \
+              --max-time 180 || echo "000")
+            echo "HTTP: $HTTP"
+            cat /tmp/extract.json 2>/dev/null || true
+            echo ""
+            if [[ "$HTTP" -ge 200 && "$HTTP" -lt 300 ]]; then
+              echo "::notice::Extract succeeded on attempt $i"
+              break
+            fi
+            if [[ $i -lt 5 ]]; then
+              echo "Retrying in 15s..."
+              sleep 15
+            fi
+          done
+
+      # -------- Post-deploy : bootstrap (migrations + symlink) --------
+      - name: Trigger maintenance bootstrap
+        env:
+          MAINT_SECRET: ${{ secrets.MAINT_SECRET }}
+        run: |
           for i in 1 2 3 4 5; do
             echo "--- Bootstrap attempt $i ---"
             HTTP=$(curl -s -o /tmp/boot.json -w "%{http_code}" \
