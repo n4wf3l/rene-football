@@ -395,8 +395,11 @@ function HomePage() {
         {/* Stats line - filiform, mono numbers, divided by 1px lines.
            Sits BELOW the 100dvh hero box so it never competes for vertical space
            with the headline + portrait. Visible on scroll-down.
-           Hidden entirely when STATS is empty (all values are 0). */}
-        {STATS.length > 0 && (
+           Hidden entirely when STATS a moins de 2 entrées : "16 ans d'expérience"
+           tout seul paraît isolé et le même info est déjà dans le paragraphe
+           du hero ("en activité depuis 2010"). On attend d'avoir au moins
+           2 chiffres (joueurs + années, ou joueurs + staff...) avant d'afficher. */}
+        {STATS.length >= 2 && (
           <div className="container-page pb-16 lg:pb-20">
             <div className="grid grid-cols-2 lg:grid-cols-4 lg:divide-x divide-stone-200 dark:divide-stone-50/10 border-t border-stone-200 dark:border-stone-50/10 pt-10">
               {STATS.map((s, i) => (
