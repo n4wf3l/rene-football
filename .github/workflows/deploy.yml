@@ -56,6 +56,15 @@ jobs:
 
       - name: Frontend build
         working-directory: ./frontend
+        env:
+          # Sentry (côté client) : injecté à la compilation Vite. Vide =
+          # Sentry désactivé (no-op dans src/sentry.ts). Le DSN n'étant pas
+          # un secret dur (il figure dans le JS publié), le committer en
+          # secret GitHub reste la bonne pratique pour pouvoir le changer
+          # sans toucher au code.
+          VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
+          VITE_SENTRY_ENV: production
+          VITE_APP_VERSION: ${{ github.sha }}
         run: |
           npm ci
           npm run build
@@ -143,6 +152,11 @@ jobs:
           SANCTUM_EXPIRATION_MINUTES=10080
 
           MAINT_SECRET=${{ secrets.MAINT_SECRET }}
+
+          SENTRY_LARAVEL_DSN=${{ secrets.SENTRY_LARAVEL_DSN }}
+          SENTRY_TRACES_SAMPLE_RATE=0.1
+          SENTRY_SEND_DEFAULT_PII=false
+          SENTRY_RELEASE=${{ github.sha }}
           ENVEOF
 
           echo "----- Staging layout -----"
