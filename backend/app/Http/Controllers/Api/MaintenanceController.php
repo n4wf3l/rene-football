@@ -75,7 +75,11 @@ class MaintenanceController extends Controller
             $target = storage_path('app/public');
             $link   = public_path('storage');
             if (! File::exists($link)) {
-                if (@symlink($target, $link)) {
+                // Préfixe `\` : symlink() est une fonction globale, sans ce
+                // backslash PHP la cherche dans le namespace du contrôleur
+                // (App\Http\Controllers\Api\symlink) et crashe avec
+                // "Call to undefined function".
+                if (@\symlink($target, $link)) {
                     $report['storage_link'] = ['ok' => true, 'created' => true];
                 } else {
                     $report['storage_link'] = ['ok' => false, 'error' => 'symlink() failed — may need manual creation via File Manager'];
