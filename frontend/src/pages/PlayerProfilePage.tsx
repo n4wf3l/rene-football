@@ -38,7 +38,7 @@ import ClipsGalleryPublic from '../components/ClipsGalleryPublic'
 import type { Appearance } from '../types/appearance'
 import type { PlayerClip } from '../types/clip'
 import type { Presentation } from '../types/presentation'
-import { hasFreshMatchCount, uniqueLabels } from '../lib/playerDisplay'
+import { hasFreshMatchCount, sameLabel, uniqueLabels } from '../lib/playerDisplay'
 import { heatmapFromPosition, isValidGrid } from '../lib/heatmap'
 import { playerImage } from '../lib/playerImage'
 import { toPublicUrl } from '../lib/publicUrl'
@@ -564,7 +564,8 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
         <div className="grid lg:grid-cols-5 gap-5">
           {([
             { Icon: Person,     key: 'category',    label: t('playerProfile.identity.cards.category'),    value: player.category },
-            { Icon: SoccerBall, key: 'position',    label: t('playerProfile.identity.cards.position'),    value: player.position },
+            // Position card dropped when it only repeats the category ("Attaquant" / "Attaquant").
+            { Icon: SoccerBall, key: 'position',    label: t('playerProfile.identity.cards.position'),    value: sameLabel(player.position, player.category) ? null : player.position },
             { Icon: Flag,       key: 'nationality', label: t('playerProfile.identity.cards.nationality'), value: player.nationality },
             { Icon: Ruler,      key: 'height',      label: t('playerProfile.identity.cards.height'),      value: player.height },
             { Icon: Calendar,   key: 'since',       label: t('playerProfile.identity.cards.since'),       value: player.since },
