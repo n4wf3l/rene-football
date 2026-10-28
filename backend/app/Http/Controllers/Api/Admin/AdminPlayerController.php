@@ -143,6 +143,7 @@ class AdminPlayerController extends Controller
             $data['photo_url'] = $this->storePhoto($request, $data['slug']);
         }
         unset($data['photo'], $data['photo_remove']);
+        $data = $this->stampStats($data);
 
         $player = Player::create($data);
 
@@ -165,6 +166,7 @@ class AdminPlayerController extends Controller
             $data['photo_url'] = null;
         }
         unset($data['photo'], $data['photo_remove']);
+        $data = $this->stampStats($data, $player);
 
         $player->update($data);
 
@@ -190,6 +192,36 @@ class AdminPlayerController extends Controller
         $filename = $slugForName.'-'.substr(bin2hex(random_bytes(4)), 0, 8).'.'.$ext;
         $path = $file->storeAs('players', $filename, 'public');
         return Storage::url($path);
+    }
+
+    /** Match statistics whose manual edit counts as a stats update. */
+    private const STAT_FIELDS = [
+        'matches_played', 'minutes_played', 'goals', 'assists', 'shots', 'shots_on_target',
+        'xg', 'xa', 'key_passes', 'pass_accuracy', 'dribbles_completed', 'tackles',
+        'interceptions', 'duels_won', 'yellow_cards', 'red_cards', 'clean_sheets', 'saves',
+    ];
+
+    /**
+     * Dates a manual stats edit (stats_updated_at, stats_source = manual if
+     * unset). Public pages hide match counts older than a month, so an edit
+     * must refresh that date — the CSV import already does.
+     */
+    private function stampStats(array $data, ?Player $player = null): array
+    {
+        $changed = false;
+        foreach (self::STAT_FIELDS as $field) {
+            if (! array_key_exists($field, $data)) continue;
+            $before = $player?->{$field};
+            if ($player === null ? (float) $data[$field] !== 0.0 : (string) ($before ?? '') !== (string) ($data[$field] ?? '')) {
+                $changed = true;
+                break;
+            }
+        }
+        if ($changed) {
+            $data['stats_updated_at'] = now();
+            if (empty($player?->stats_source) && empty($data['stats_source'])) $data['stats_source'] = 'manual';
+        }
+        return $data;
     }
 
     /** Delete the file behind a photo_url if (and only if) it points to our local /storage. */

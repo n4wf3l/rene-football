@@ -38,6 +38,7 @@ import ClipsGalleryPublic from '../components/ClipsGalleryPublic'
 import type { Appearance } from '../types/appearance'
 import type { PlayerClip } from '../types/clip'
 import type { Presentation } from '../types/presentation'
+import { hasFreshMatchCount, uniqueLabels } from '../lib/playerDisplay'
 import { heatmapFromPosition, isValidGrid } from '../lib/heatmap'
 import { playerImage } from '../lib/playerImage'
 import { toPublicUrl } from '../lib/publicUrl'
@@ -256,6 +257,10 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
   const { t, i18n } = useTranslation()
   const containerRef = useRef<HTMLDivElement | null>(null)
   const isKeeper = player.category === 'Gardien'
+  // Match count only when recent and non-zero (see lib/playerDisplay).
+  const freshMatches = hasFreshMatchCount(player)
+  // Category / position / club chips without repeats ("Attaquant · Attaquant").
+  const [primaryChip, ...otherChips] = uniqueLabels([player.category, player.position, player.club])
 
   /* ─────────────────────────── Section visibility ───────────────────────────
    * A public profile must never expose empty/zero stat sections - a U9 player
@@ -277,7 +282,8 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
   const vis = {
     identite:   true, // identity is always shown - individual fields filter themselves below
     scout:      hasScoutProfile,
-    saison:     (player.matches_played ?? 0) > 0,
+    // Season block follows the same freshness rule as the match count.
+    saison:     freshMatches,
     // Only show the heatmap if the admin actually painted one - never the
     // generic fallback from `heatmapFromPosition`, which is a placeholder.
     terrain:    isValidGrid(player.heatmap_grid),
@@ -392,17 +398,16 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
               </h1>
 
               <div className="mt-6 flex flex-wrap items-center gap-2">
-                <span className="px-3 py-1 rounded-full bg-turf-800/40 border border-turf-300/30 text-turf-200 text-xs font-medium">
-                  {player.category}
-                </span>
-                <span className="px-3 py-1 rounded-full bg-stone-50/5 border border-stone-50/10 text-stone-200 text-xs font-medium">
-                  {player.position}
-                </span>
-                {player.club && (
-                  <span className="px-3 py-1 rounded-full bg-stone-50/5 border border-stone-50/10 text-stone-200 text-xs font-medium">
-                    {player.club}
+                {primaryChip && (
+                  <span className="px-3 py-1 rounded-full bg-turf-800/40 border border-turf-300/30 text-turf-200 text-xs font-medium">
+                    {primaryChip}
                   </span>
                 )}
+                {otherChips.map((label) => (
+                  <span key={label} className="px-3 py-1 rounded-full bg-stone-50/5 border border-stone-50/10 text-stone-200 text-xs font-medium">
+                    {label}
+                  </span>
+                ))}
               </div>
 
               <dl className="mt-10 grid grid-cols-2 sm:grid-cols-4 gap-y-5 gap-x-8 border-t border-stone-50/10 pt-8 max-w-[600px]">
@@ -452,15 +457,17 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
                       'linear-gradient(180deg, transparent 35%, rgba(10,10,10,0.55) 75%, #0a0a0a 100%)',
                   }}
                 />
-                <div className="absolute bottom-5 left-5 right-5 flex items-end justify-between gap-3">
-                  <div>
-                    <div className="font-mono text-[0.7rem] uppercase tracking-wider text-turf-300">
-                      {t('playerProfile.hero.currentSeason')}
+                <div className={`absolute bottom-5 left-5 right-5 flex items-end gap-3 ${freshMatches ? 'justify-between' : 'justify-end'}`}>
+                  {freshMatches && (
+                    <div>
+                      <div className="font-mono text-[0.7rem] uppercase tracking-wider text-turf-300">
+                        {t('playerProfile.hero.currentSeason')}
+                      </div>
+                      <div className="mt-1 font-mono text-xl text-stone-50 tabular-nums">
+                        {t('playerProfile.hero.matchesCount', { count: player.matches_played })}
+                      </div>
                     </div>
-                    <div className="mt-1 font-mono text-xl text-stone-50 tabular-nums">
-                      {t('playerProfile.hero.matchesCount', { count: player.matches_played })}
-                    </div>
-                  </div>
+                  )}
                   <div className="flex items-center gap-2 rounded-full bg-stone-50/10 backdrop-blur px-3 py-1.5 border border-stone-50/15">
                     <span className="w-2 h-2 rounded-full bg-turf-300 animate-pulse" />
                     <span className="text-[0.7rem] text-stone-100">{t('playerProfile.hero.underContract')}</span>
@@ -519,9 +526,11 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
             </a>
           ))}
           <div className="ml-auto flex items-center gap-3">
-            <span className="hidden lg:inline font-mono uppercase tracking-[0.18em] text-[0.6rem] text-zinc-500 dark:text-stone-400 whitespace-nowrap">
-              {t('playerProfile.stickyNav.summary', { matches: player.matches_played, minutes: player.minutes_played.toLocaleString(i18n.resolvedLanguage) })}
-            </span>
+            {freshMatches && (
+              <span className="hidden lg:inline font-mono uppercase tracking-[0.18em] text-[0.6rem] text-zinc-500 dark:text-stone-400 whitespace-nowrap">
+                {t('playerProfile.stickyNav.summary', { matches: player.matches_played, minutes: player.minutes_played.toLocaleString(i18n.resolvedLanguage) })}
+              </span>
+            )}
             <a
               href={pdfUrl(player.slug)}
               target="_blank"

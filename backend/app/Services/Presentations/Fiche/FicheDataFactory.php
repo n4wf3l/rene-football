@@ -14,14 +14,17 @@ use Throwable;
  *
  *  - defaults come from FicheCompositions (same values the editor shows);
  *  - stats are only printed when they are real (a stats source is recorded
- *    or the player has played matches) and the value exists — never zeros
- *    standing in for missing data;
+ *    or the player has played matches), updated within the last month, and
+ *    the value exists — never zeros standing in for missing data;
  *  - QR target priority: custom URL > YouTube > published article;
  *  - `$overrides` lets the editor preview unsaved player edits (bio) without
  *    writing them to the database.
  */
 class FicheDataFactory
 {
+    /** Stats older than this are left out of the fiche (mirrors frontend lib/playerDisplay). */
+    public const STATS_FRESH_DAYS = 31;
+
     public function __construct(private readonly FicheAssets $assets)
     {
     }
@@ -164,7 +167,10 @@ class FicheDataFactory
 
     private function stats(FicheData $d, Player $p, array $o, FicheI18n $i18n): void
     {
-        $real = self::clean($p->stats_source) !== null || (int) $p->matches_played > 0;
+        // Real (sourced or played) AND recent: same rule as the public profile,
+        // a stale or never-dated stat line would discredit the document.
+        $fresh = $p->stats_updated_at && Carbon::parse($p->stats_updated_at)->gt(now()->subDays(self::STATS_FRESH_DAYS));
+        $real = $fresh && (self::clean($p->stats_source) !== null || (int) $p->matches_played > 0);
         if ($real) {
             $d->statsSource = self::clean($p->stats_source);
             $selected = array_values(array_filter((array) ($o['selected_stats'] ?? []), 'is_string'));
