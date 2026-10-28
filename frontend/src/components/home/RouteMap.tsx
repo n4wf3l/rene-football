@@ -1,12 +1,13 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import {
+  animate,
   motion,
+  useInView,
   useMotionValue,
   useMotionValueEvent,
   useReducedMotion,
-  useScroll,
   useTransform,
 } from 'framer-motion'
 import type { MotionValue } from 'framer-motion'
@@ -21,9 +22,8 @@ import type { Player } from '../../types/player'
 const W = 800
 const H = 640
 const RINGS_KM = [50, 100, 200]
-/** Share of the pinned scroll spent drawing routes (the rest is a hold). */
-const DRAW_FROM = 0.08
-const DRAW_TO = 0.86
+/** Seconds spent drawing each route once the map comes into view. */
+const SECONDS_PER_ROUTE = 0.65
 
 const luxembourgFeature = luxembourgData as Feature<Polygon, { name: string }>
 
@@ -50,16 +50,14 @@ function point(lon: number, lat: number): Feature<Geometry> {
 }
 
 /**
- * Pinned scroll set-piece: from the agency's base in Luxembourg, one route
- * per club where a represented player is listed draws itself as the visitor
- * scrolls. Real data only - clubs without a known location are left out, and
- * the section hides itself under two destinations.
+ * Route map: from the agency's base in Luxembourg, one route per club where
+ * a represented player is listed. The routes draw themselves once, on a timer,
+ * when the map comes into view - the page scroll is never pinned or slowed.
+ * Real data only - clubs without a known location are left out, and the
+ * section hides itself under two destinations.
  */
 function RouteMap({ players }: RouteMapProps) {
   const model = useMemo(() => buildModel(players), [players])
-  // The scene only mounts once there is something to draw, so its scroll
-  // target ref is attached on first render (useScroll would otherwise fall
-  // back to tracking the whole page).
   return model.destinations.length < 2 ? null : <RouteScene model={model} />
 }
 
@@ -93,7 +91,7 @@ function buildModel(players: Player[]) {
   const path = geoPath(projection)
   const [ox, oy] = projection([LUXEMBOURG.lon, LUXEMBOURG.lat]) ?? [W / 2, H / 2]
 
-  const span = (DRAW_TO - DRAW_FROM) / Math.max(list.length, 1)
+  const span = 1 / Math.max(list.length, 1)
   const destinations: Destination[] = list.map((g, i) => {
     const [x, y] = projection([g.lon, g.lat]) ?? [ox, oy]
     // Control point pushed sideways from the chord: routes bow like flight paths.
@@ -102,7 +100,7 @@ function buildModel(players: Player[]) {
     const bend = 0.22 * (i % 2 === 0 ? 1 : -1)
     const cx = mx - (y - oy) * bend
     const cy = my + (x - ox) * bend
-    const start = DRAW_FROM + i * span
+    const start = i * span
     return {
       id: g.id,
       club: g.club,
@@ -135,14 +133,24 @@ function RouteScene({ model }: { model: MapModel }) {
   const { t, i18n } = useTranslation()
   const reduce = useReducedMotion()
   const sectionRef = useRef<HTMLElement | null>(null)
-  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start start', 'end end'] })
+  const inView = useInView(sectionRef, { once: true, amount: 0.35 })
   const full = useMotionValue(1)
-  const progress = reduce ? full : scrollYProgress
+  const drawn = useMotionValue(0)
+  const progress = reduce ? full : drawn
 
   const { destinations, origin, rings } = model
   const [active, setActive] = useState(reduce ? destinations.length - 1 : -1)
 
-  useMotionValueEvent(scrollYProgress, 'change', (v) => {
+  useEffect(() => {
+    if (!inView || reduce) return
+    const controls = animate(drawn, 1, {
+      duration: destinations.length * SECONDS_PER_ROUTE,
+      ease: 'linear',
+    })
+    return () => controls.stop()
+  }, [inView, reduce, drawn, destinations.length])
+
+  useMotionValueEvent(drawn, 'change', (v) => {
     let next = -1
     destinations.forEach((d, i) => { if (v >= d.start) next = i })
     if (next !== active) setActive(next)
@@ -152,12 +160,8 @@ function RouteScene({ model }: { model: MapModel }) {
   const fmt = (n: number) => Math.round(n).toLocaleString(i18n.resolvedLanguage)
 
   return (
-    <section
-      ref={sectionRef}
-      className="relative bg-zinc-950 text-stone-100"
-      style={{ height: reduce ? 'auto' : `${140 + destinations.length * 45}vh` }}
-    >
-      <div className={`${reduce ? '' : 'sticky top-0'} flex min-h-[100dvh] items-center overflow-hidden py-16 lg:py-0`}>
+    <section ref={sectionRef} className="relative bg-zinc-950 text-stone-100">
+      <div className="relative flex items-center overflow-hidden py-20 lg:py-28">
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0"
@@ -204,9 +208,7 @@ function RouteScene({ model }: { model: MapModel }) {
                       </span>
                     </div>
                   </>
-                ) : (
-                  <span className="font-mono text-xs uppercase tracking-[0.22em] text-stone-500">{t('home.map.scrollHint')}</span>
-                )}
+                ) : null}
               </div>
             </div>
           </div>
