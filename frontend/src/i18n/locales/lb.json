@@ -465,6 +465,13 @@
     "sentBy": "Geschéckt vum {{agent}}",
     "generatedOn": "Erstallt de(n) {{date}}",
     "template": "Template {{name}}",
+    "compositions": {
+      "signature": "Signature Editorial",
+      "scouting": "Scouting Intelligence",
+      "career": "Parcours & Potenzial",
+      "classic": "Marketing v1",
+      "external": "Eropgeluedent Dokument"
+    },
     "confidential": "Vertraulecht Dokument · Rene Football",
     "backToSite": "Zréck op d'Rene-Football-Websäit",
     "gone": "Presentatioun net fonnt",

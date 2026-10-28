@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { ChangeEvent, FormEvent } from 'react'
+import type { ChangeEvent, CSSProperties, FormEvent, ReactNode } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { motion } from 'framer-motion'
 import {
+  ArrowSquareOut,
   CheckCircle,
   Copy,
   Eye,
@@ -11,22 +11,29 @@ import {
   Person,
   Plus,
   Trash,
+  WarningCircle,
   X as XIcon,
 } from '@phosphor-icons/react'
-import { api, ApiError, getToken } from '../../api/client'
+import { api, ApiError } from '../../api/client'
 import type { Player } from '../../types/player'
 import type {
+  FicheCompositionInfo,
+  FicheCompositionKey,
+  FicheOptionGroup,
+  FicheRenderMeta,
+  FicheThemeInfo,
+  MiddleVariant,
+  OrgBlock,
   Presentation,
   PresentationOptions,
   PresentationStatChoice,
-  PresentationTemplate,
   PresentationTemplateKey,
 } from '../../types/presentation'
 import PdfGenerationOverlay from '../../components/PdfGenerationOverlay'
 import PlayerSingleSelect from '../../components/PlayerSingleSelect'
 import PresentationPreview from '../../components/PresentationPreview'
+import type { PresentationPreviewResult } from '../../components/PresentationPreview'
 import Skeleton from '../../components/Skeleton'
-import WorkInProgressBanner from '../../components/admin/WorkInProgressBanner'
 import { useConfirm } from '../../components/ConfirmProvider'
 import { useToast } from '../../components/ToastProvider'
 
@@ -34,41 +41,53 @@ interface PlayersResponse { data: (Player & { id: number })[] }
 interface PresentationResponse { data: Presentation }
 interface CatalogueArticleRow { id: number; slug: string; title: string; category: string; is_published: boolean }
 interface CatalogueResponse {
-  templates: PresentationTemplate[]
+  compositions: FicheCompositionInfo[]
+  themes: FicheThemeInfo[]
   stats: PresentationStatChoice[]
   articles?: CatalogueArticleRow[]
 }
 
-/**
- * Which optional sections each template actually renders. If a capability is
- * false, the editor hides that section entirely so the admin never wonders
- * why the option they filled in doesn't show up on the PDF.
- */
-const TEMPLATE_CAPABILITIES: Record<PresentationTemplateKey, { previousClubs: boolean; externalLinks: boolean }> = {
-  marketing: { previousClubs: false, externalLinks: true },
-}
-
-const MARKETING_THEMES: Array<{ value: 'violet' | 'navy' | 'black-gold' | 'black-yellow' | 'custom'; label: string; swatch: string }> = [
-  { value: 'navy',         label: 'Navy · bleu',        swatch: '#3b82f6' },
-  { value: 'violet',       label: 'Violet',              swatch: '#8b5cf6' },
-  { value: 'black-gold',   label: 'Noir & or',          swatch: '#d4a017' },
-  { value: 'black-yellow', label: 'Noir & jaune',       swatch: '#facc15' },
-  { value: 'custom',       label: 'Personnalisé',       swatch: 'linear-gradient(45deg,#3b82f6,#8b5cf6,#facc15)' },
-]
-
 const INPUT_BASE =
   'w-full rounded-lg border border-stone-300 bg-white text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-900 dark:border-stone-50/15 dark:bg-zinc-900 dark:text-stone-50 dark:placeholder:text-stone-500 dark:focus:border-turf-300 px-3 py-2 text-sm focus:outline-none transition'
 
-const DEFAULT_OPTIONS: PresentationOptions = {
-  accent_color: '#1e40af',
-  secondary_color: '#93c5fd',
-  text_color: '#0c0a09',
-  background_color: '#fafaf9',
-  tagline: '',
-  selected_stats: [],
-  show_heatmap: true,
-  photo_source: 'player',
-  custom_photo_url: null,
+const MIDDLE_VARIANTS: Array<{ value: MiddleVariant; label: string; hint: string }> = [
+  { value: 'profile-strengths',        label: 'Profil + Points forts',          hint: 'Bio à gauche, points forts numérotés à droite' },
+  { value: 'profile-caracteristiques', label: 'Points forts + Caractéristiques', hint: 'Style de jeu, mental, objectif' },
+  { value: 'parcours-strengths',       label: 'Parcours + Qualités',            hint: 'Historique des clubs à gauche' },
+  { value: 'profile-bars',             label: 'Profil + Barres',                hint: 'Barres de profil athlétique à droite' },
+]
+
+const FONT_FAMILIES: Array<{ value: NonNullable<PresentationOptions['font_family']>; label: string; hint: string; style: CSSProperties }> = [
+  { value: 'sans',      label: 'Moderne',    hint: 'Titres Bebas Neue, texte Barlow',            style: { fontFamily: '"Bebas Neue", Impact, sans-serif', letterSpacing: '0.02em' } },
+  { value: 'grotesque', label: 'Impact',     hint: 'Titres Barlow Condensed extra-gras',         style: { fontFamily: '"Barlow Condensed", "Arial Narrow", sans-serif', fontWeight: 800 } },
+  { value: 'editorial', label: 'Éditoriale', hint: 'Titres Bebas Neue, texte courant serif',     style: { fontFamily: 'Georgia, "Times New Roman", serif' } },
+]
+
+/** Labels for the lists / texts the PDF may synthesise (FicheDensity caps). */
+const SYNTHESIS_LABELS: Record<string, string> = {
+  strengths: 'Points forts',
+  mental: 'Traits mentaux',
+  career: 'Étapes du parcours',
+  bars: 'Barres de profil',
+  gallery: 'Photos de galerie',
+  academies: 'Pays d’académies',
+  academy_clubs: 'Clubs des académies',
+  comparisons: 'Comparaisons',
+  physical: 'Données physiques',
+  stats: 'Statistiques',
+  languages: 'Langues',
+  bio: 'Bio (caractères)',
+  project_intro: 'Intro du projet (caractères)',
+  objective: 'Objectif (caractères)',
+  org_description: 'Description partenaire (caractères)',
+  facts: 'Faits d’identité',
+  heatmap: 'Heatmap',
+  career_logos: 'Logos du parcours',
+}
+
+function densityLabel(density: string): string {
+  if (density.startsWith('dense+synthèse')) return 'Dense + synthèse'
+  return ({ standard: 'Standard', compact: 'Compact', dense: 'Dense', legacy: 'Historique', pdf: 'PDF importé', image: 'Image importée' } as Record<string, string>)[density] ?? density
 }
 
 interface FormState {
@@ -77,8 +96,8 @@ interface FormState {
   title: string
   is_published: boolean
   options: PresentationOptions
-  /** Editable scout bio - lives on the Player, edited here for convenience.
-   *  Synced back to the player's `bio` field on save / preview. */
+  /** Editable scout bio — lives on the Player. Previewed live without being
+   *  saved; written back to the player only on « Enregistrer ». */
   player_bio: string
 }
 
@@ -93,7 +112,7 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
     template_key: 'marketing',
     title: '',
     is_published: false,
-    options: { ...DEFAULT_OPTIONS },
+    options: { composition: 'signature' },
     player_bio: '',
   })
   const [loading, setLoading] = useState(!creating)
@@ -101,53 +120,50 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   const [players, setPlayers] = useState<(Player & { id: number })[]>([])
-  const [templates, setTemplates] = useState<PresentationTemplate[]>([])
+  const [compositions, setCompositions] = useState<FicheCompositionInfo[]>([])
+  const [themes, setThemes] = useState<FicheThemeInfo[]>([])
   const [statCatalogue, setStatCatalogue] = useState<PresentationStatChoice[]>([])
   const [articles, setArticles] = useState<CatalogueArticleRow[]>([])
   const [existing, setExisting] = useState<Presentation | null>(null)
-  const [photoFile, setPhotoFile] = useState<File | null>(null)
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
   const [uploadingPlayerPhoto, setUploadingPlayerPhoto] = useState(false)
   const [uploadingAsset, setUploadingAsset] = useState(false)
-  const [generatingPdf, setGeneratingPdf] = useState(false)
+  const [preview, setPreview] = useState<PresentationPreviewResult | null>(null)
+  const [previewKey, setPreviewKey] = useState(0)
   const assetInputRef = useRef<HTMLInputElement | null>(null)
 
   const hasExternalAsset = !!existing?.external_asset_path
-  const externalAssetForPreview = hasExternalAsset && existing
-    ? {
-        url: existing.external_asset_path as string,
-        type: (existing.external_asset_type ?? 'image') as 'image' | 'pdf',
-        name: existing.external_asset_original_name ?? null,
-      }
-    : null
 
   const selectedPlayer = useMemo(
     () => players.find((p) => p.id === form.player_id) ?? null,
     [players, form.player_id],
   )
 
-  // When the admin switches player, load that player's saved bio into the
-  // editable textarea. We only reset when the *player* changes (not on every
-  // players array update) so keystrokes in the textarea don't get clobbered
-  // by a refetch.
+  // Load the player's saved bio when the selected player changes.
   useEffect(() => {
     setForm((f) => ({ ...f, player_bio: selectedPlayer?.bio ?? '' }))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedPlayer?.id])
 
-  // Preview mirror of the player with the *in-flight* bio applied so the
-  // live A4 reflects textarea edits without a save round-trip.
-  const previewPlayer = useMemo<Player | null>(
-    () => (selectedPlayer ? { ...selectedPlayer, bio: form.player_bio || null } : null),
-    [selectedPlayer, form.player_bio],
-  )
+  const bioDirty = !!selectedPlayer && (selectedPlayer.bio ?? '').trim() !== form.player_bio.trim()
+
+  // --- composition & effective options (defaults come from the backend) ----
+
+  const compositionKey: FicheCompositionKey = form.options.composition ?? 'classic'
+  const composition = compositions.find((c) => c.key === compositionKey) ?? null
+  const supports = useMemo(() => new Set<FicheOptionGroup>(composition?.supports ?? []), [composition])
+  const has = (g: FicheOptionGroup) => supports.has(g)
+  function eff<K extends keyof PresentationOptions>(k: K): PresentationOptions[K] {
+    return (form.options[k] ?? composition?.defaults[k]) as PresentationOptions[K]
+  }
 
   // --- bootstrap ----------------------------------------------------------
 
   useEffect(() => {
     api.get<PlayersResponse>('/admin/players', { auth: true })
       .then((res) => setPlayers(res.data))
-      .catch(() => { /* non-fatal */ })
+      .catch(() => toast.error('Liste des joueurs indisponible.'))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
@@ -162,14 +178,12 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
         setExisting(p)
         setForm({
           player_id: p.player_id,
-          // Coerce historic template_keys (classic/magazine/minimal/stadium/
-          // signature) to marketing so the editor speaks the current schema.
           template_key: 'marketing',
           title: p.title,
           is_published: p.is_published,
-          options: { ...DEFAULT_OPTIONS, ...(p.options ?? {}) },
-          // Populated by the selectedPlayer effect once the players list loads;
-          // stays "" until then so the textarea has a defined string value.
+          // Stored options as-is: rows saved before the redesign have no
+          // composition and keep the historic layout until one is chosen.
+          options: { ...(p.options ?? {}) },
           player_bio: '',
         })
       })
@@ -178,24 +192,28 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
     return () => { cancelled = true }
   }, [id, creating])
 
-  // Re-fetch the catalogue (stats depend on player category + PDF language).
+  const lang = eff('language') ?? 'fr'
   useEffect(() => {
     const cat = selectedPlayer?.category || 'Milieu'
-    const lang = form.options.language ?? 'fr'
     api.get<CatalogueResponse>(`/admin/presentations/catalogue?category=${encodeURIComponent(cat)}&language=${lang}`, { auth: true })
-      .then((res) => { setTemplates(res.templates); setStatCatalogue(res.stats); setArticles(res.articles ?? []) })
-      .catch(() => { /* non-fatal */ })
-  }, [selectedPlayer?.category, form.options.language])
+      .then((res) => {
+        setCompositions(res.compositions ?? [])
+        setThemes(res.themes ?? [])
+        setStatCatalogue(res.stats)
+        setArticles(res.articles ?? [])
+      })
+      .catch(() => toast.error('Catalogue des compositions indisponible.'))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedPlayer?.category, lang])
 
   // --- helpers ------------------------------------------------------------
 
-  const showToast = (kind: 'success' | 'error', message: string) => {
-    if (kind === 'success') toast.success(message)
-    else toast.error(message)
-  }
-
   const setOpt = <K extends keyof PresentationOptions>(k: K, v: PresentationOptions[K]) => {
     setForm((f) => ({ ...f, options: { ...f.options, [k]: v } }))
+  }
+
+  const setOrg = (k: 'supervised_by' | 'partner_agency', patch: Partial<OrgBlock>) => {
+    setForm((f) => ({ ...f, options: { ...f.options, [k]: { ...(f.options[k] ?? {}), ...patch } } }))
   }
 
   const toggleStat = (key: string) => {
@@ -208,73 +226,43 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
     })
   }
 
-  const pickTemplate = (key: PresentationTemplateKey) => {
-    const tpl = templates.find((t) => t.key === key)
-    if (!tpl) { setForm((f) => ({ ...f, template_key: key })); return }
-    // Adopt the template's color defaults if the user hasn't touched them yet,
-    // but preserve any explicit customisation they already made.
-    setForm((f) => {
-      const merged: PresentationOptions = {
-        ...f.options,
-        accent_color:     tpl.defaults.accent_color     ?? f.options.accent_color,
-        secondary_color:  tpl.defaults.secondary_color  ?? f.options.secondary_color,
-        text_color:       tpl.defaults.text_color       ?? f.options.text_color,
-        background_color: tpl.defaults.background_color ?? f.options.background_color,
-      }
-      return { ...f, template_key: key, options: merged }
-    })
-  }
+  const payload = () => ({
+    player_id: form.player_id,
+    template_key: form.template_key,
+    title: form.title,
+    is_published: form.is_published,
+    options: form.options,
+  })
 
-  /** PATCH the player's `bio` unconditionally when a player is selected.
-   *  We used to short-circuit on string equality, but React state timing
-   *  (setPlayers → new selectedPlayer reference) sometimes made the guard
-   *  return early even when the DB was stale, so the PDF re-rendered with
-   *  the previous bio. The PATCH is idempotent server-side, so re-sending
-   *  the same value is safe and guarantees the DB reflects the textarea.
-   *  Errors are surfaced but non-fatal so the presentation save still runs. */
+  /** Writes the edited bio to the player (explicit save only — the preview
+   *  shows it without persisting anything). */
   const syncPlayerBio = async (): Promise<void> => {
-    if (!selectedPlayer) return
+    if (!selectedPlayer || !bioDirty) return
     const next = form.player_bio.trim()
-    try {
-      await api.patch(`/admin/players/${selectedPlayer.slug}`, { bio: next || null }, { auth: true })
-      // Keep the in-memory list in sync so subsequent renders and preview
-      // fetches see the updated bio.
-      setPlayers((ps) => ps.map((p) => (p.id === selectedPlayer.id ? { ...p, bio: next || null } : p)))
-    } catch (err: unknown) {
-      showToast('error', err instanceof Error ? err.message : 'Bio du joueur : échec de la synchronisation.')
-    }
+    await api.patch(`/admin/players/${selectedPlayer.slug}`, { bio: next || null }, { auth: true })
+    setPlayers((ps) => ps.map((p) => (p.id === selectedPlayer.id ? { ...p, bio: next || null } : p)))
   }
 
-  /** Ensures a draft row exists on the server so we have an id to attach an
-   *  asset to. Returns the presentation id or null if the pre-conditions
-   *  (player + title) aren't met. Mirrors the auto-save trick used by onPreview. */
+  /** Creates the row (needed before attaching an external fiche). */
   const ensureDraft = async (): Promise<number | null> => {
-    if (!form.player_id) { showToast('error', 'Choisissez un joueur avant d\'attacher une fiche.'); return null }
-    if (!form.title.trim()) { showToast('error', 'Donnez un titre avant d\'attacher une fiche.'); return null }
+    if (!form.player_id) { toast.error('Choisissez un joueur avant d’attacher une fiche.'); return null }
+    if (!form.title.trim()) { toast.error('Donnez un titre avant d’attacher une fiche.'); return null }
     if (existing?.id) return existing.id
-    // Creating mode - persist the draft first.
     try {
       await syncPlayerBio()
-      const payload = {
-        player_id: form.player_id,
-        template_key: form.template_key,
-        title: form.title,
-        is_published: form.is_published,
-        options: form.options,
-      }
-      const res = await api.post<PresentationResponse>('/admin/presentations', payload, { auth: true })
+      const res = await api.post<PresentationResponse>('/admin/presentations', payload(), { auth: true })
       setExisting(res.data)
       navigate(`/admin/presentations/${res.data.id}/edit`, { replace: true })
+      toast.success('Brouillon enregistré.')
       return res.data.id
     } catch (err: unknown) {
-      showToast('error', err instanceof Error ? err.message : 'Impossible d\'enregistrer le brouillon.')
+      toast.error(err instanceof Error ? err.message : 'Impossible d’enregistrer le brouillon.')
       return null
     }
   }
 
   const onUploadAsset = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null
-    // Reset the input immediately so the same file can be re-selected after error.
     if (assetInputRef.current) assetInputRef.current.value = ''
     if (!file) return
     const targetId = await ensureDraft()
@@ -285,9 +273,10 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
       fd.append('asset', file)
       const res = await api.post<PresentationResponse>(`/admin/presentations/${targetId}/upload-asset`, fd, { auth: true })
       setExisting(res.data)
-      showToast('success', 'Fiche externe attachée. Le PDF téléchargeable a été mis à jour.')
+      setPreviewKey((k) => k + 1)
+      toast.success('Fiche externe attachée. Le PDF téléchargeable a été mis à jour.')
     } catch (err: unknown) {
-      showToast('error', err instanceof Error ? err.message : 'Upload de la fiche impossible.')
+      toast.error(err instanceof Error ? err.message : 'Upload de la fiche impossible.')
     } finally {
       setUploadingAsset(false)
     }
@@ -297,43 +286,39 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
     if (!existing?.id) return
     if (!(await confirm({
       title: 'Retirer la fiche externe ?',
-      body: 'Le PDF sera à nouveau généré depuis le template par défaut.',
+      body: 'Le PDF sera à nouveau généré à partir de la composition choisie.',
       confirmLabel: 'Retirer',
       danger: true,
     }))) return
     try {
       const res = await api.delete<PresentationResponse>(`/admin/presentations/${existing.id}/asset`, { auth: true })
       setExisting(res.data)
-      showToast('success', 'Fiche externe retirée.')
+      setPreviewKey((k) => k + 1)
+      toast.success('Fiche externe retirée.')
     } catch (err: unknown) {
-      showToast('error', err instanceof Error ? err.message : 'Suppression impossible.')
+      toast.error(err instanceof Error ? err.message : 'Suppression impossible.')
     }
   }
 
   const onUploadPhoto = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null
+    if (e.target) e.target.value = ''
     if (!file) return
-    setPhotoFile(file)
     setUploadingPhoto(true)
     try {
       const fd = new FormData()
       fd.append('photo', file)
       const res = await api.post<{ url: string }>('/admin/presentations/upload-photo', fd, { auth: true })
-      setOpt('custom_photo_url', res.url)
-      setOpt('photo_source', 'custom')
-      showToast('success', 'Photo uploadée.')
+      setForm((f) => ({ ...f, options: { ...f.options, custom_photo_url: res.url, photo_source: 'custom' } }))
+      toast.success('Photo uploadée.')
     } catch (err: unknown) {
-      showToast('error', err instanceof Error ? err.message : 'Upload impossible.')
-      setPhotoFile(null)
+      toast.error(err instanceof Error ? err.message : 'Upload impossible.')
     } finally {
       setUploadingPhoto(false)
     }
   }
 
-  /** Upload the picked file directly to the SELECTED PLAYER's photo_url via
-   *  the admin PATCH endpoint. Used when the player has no canonical photo
-   *  yet — one upload updates the DB so the same photo also shows up on the
-   *  public player profile, not just this presentation. */
+  /** Uploads straight to the player's photo (when the player has none yet). */
   const onUploadPlayerPhoto = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null
     if (e.target) e.target.value = ''
@@ -342,19 +327,16 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
     try {
       const fd = new FormData()
       fd.append('photo', file)
-      // POST alias on the update route (browsers can't send files over PATCH
-      // without _method spoofing dance) - Laravel treats it as an update.
       const res = await api.post<{ data: Player & { id: number; photo_url: string | null } }>(
         `/admin/players/${selectedPlayer.slug}`,
         fd,
         { auth: true },
       )
-      // Reflect the new photo in the local players list so the preview + hint
-      // update immediately without a full refetch.
       setPlayers((ps) => ps.map((p) => (p.id === selectedPlayer.id ? { ...p, photo_url: res.data.photo_url } : p)))
-      showToast('success', 'Photo enregistrée sur la fiche joueur. Visible partout sur le site.')
+      setPreviewKey((k) => k + 1)
+      toast.success('Photo enregistrée sur la fiche joueur. Visible partout sur le site.')
     } catch (err: unknown) {
-      showToast('error', err instanceof Error ? err.message : 'Upload impossible.')
+      toast.error(err instanceof Error ? err.message : 'Upload impossible.')
     } finally {
       setUploadingPlayerPhoto(false)
     }
@@ -368,19 +350,9 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
     setErrors({})
     try {
       await syncPlayerBio()
-      const payload = {
-        player_id: form.player_id,
-        template_key: form.template_key,
-        title: form.title,
-        is_published: form.is_published,
-        options: form.options,
-      }
-      let res: PresentationResponse
-      if (creating) {
-        res = await api.post<PresentationResponse>('/admin/presentations', payload, { auth: true })
-      } else {
-        res = await api.patch<PresentationResponse>(`/admin/presentations/${id}`, payload, { auth: true })
-      }
+      const res = creating && !existing
+        ? await api.post<PresentationResponse>('/admin/presentations', payload(), { auth: true })
+        : await api.patch<PresentationResponse>(`/admin/presentations/${existing?.id ?? id}`, payload(), { auth: true })
       setExisting(res.data)
       navigate('/admin/presentations', {
         state: { toast: creating ? `« ${res.data.title} » créée.` : `« ${res.data.title} » mise à jour.` },
@@ -392,69 +364,16 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
         Object.entries(data?.errors ?? {}).forEach(([k, v]) => {
           flat[k] = Array.isArray(v) ? String(v[0]) : String(v)
         })
+        if (flat.layout) flat._global = flat.layout
         setErrors(flat)
-        showToast('error', 'Vérifiez les champs en erreur.')
+        toast.error(flat.layout ?? 'Vérifiez les champs en erreur.')
       } else {
-        const msg = err instanceof Error ? err.message : 'Erreur d\'enregistrement.'
+        const msg = err instanceof Error ? err.message : 'Erreur d’enregistrement.'
         setErrors({ _global: msg })
-        showToast('error', msg)
+        toast.error(msg)
       }
     } finally {
       setSaving(false)
-    }
-  }
-
-  const onPreview = async () => {
-    // Save first to make sure the preview reflects current state, then open the
-    // server-rendered PDF in a new tab.
-    if (!form.player_id || !form.title.trim()) {
-      showToast('error', 'Joueur et titre requis pour l\'aperçu.')
-      return
-    }
-    setSaving(true)
-    setGeneratingPdf(true)
-    try {
-      await syncPlayerBio()
-      const payload = {
-        player_id: form.player_id,
-        template_key: form.template_key,
-        title: form.title,
-        is_published: form.is_published,
-        options: form.options,
-      }
-      let target: Presentation
-      if (creating && !existing) {
-        const res = await api.post<PresentationResponse>('/admin/presentations', payload, { auth: true })
-        target = res.data
-        setExisting(target)
-        // Replace the URL so refreshing keeps the same draft.
-        navigate(`/admin/presentations/${target.id}/edit`, { replace: true })
-      } else {
-        const targetId = existing?.id ?? Number(id)
-        const res = await api.patch<PresentationResponse>(`/admin/presentations/${targetId}`, payload, { auth: true })
-        target = res.data
-        setExisting(target)
-      }
-      // A raw window.open on /api/... would send no Authorization header, so
-      // Laravel's admin middleware would 302 to a non-existent `login` route
-      // and crash. Fetch the PDF as a blob with the Bearer token, then hand
-      // the object URL to a fresh tab.
-      const token = getToken()
-      const resp = await fetch(`/api/admin/presentations/${target.id}/preview`, {
-        headers: token ? { Authorization: `Bearer ${token}`, Accept: 'application/pdf' } : { Accept: 'application/pdf' },
-      })
-      if (!resp.ok) throw new Error(`Aperçu impossible (HTTP ${resp.status})`)
-      const blob = await resp.blob()
-      const url = URL.createObjectURL(blob)
-      window.open(url, '_blank', 'noopener,noreferrer')
-      // Release the blob URL after a short delay so the new tab has time to load it.
-      window.setTimeout(() => URL.revokeObjectURL(url), 60_000)
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Aperçu impossible.'
-      showToast('error', msg)
-    } finally {
-      setSaving(false)
-      setGeneratingPdf(false)
     }
   }
 
@@ -470,8 +389,12 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
       await api.delete(`/admin/presentations/${existing.id}`, { auth: true })
       navigate('/admin/presentations', { state: { toast: 'Présentation supprimée.' } })
     } catch (err: unknown) {
-      showToast('error', err instanceof Error ? err.message : 'Suppression impossible.')
+      toast.error(err instanceof Error ? err.message : 'Suppression impossible.')
     }
+  }
+
+  const openPreviewPdf = () => {
+    if (preview?.pdfUrl) window.open(preview.pdfUrl, '_blank', 'noopener,noreferrer')
   }
 
   // --- render -------------------------------------------------------------
@@ -491,15 +414,18 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
   if (errors._global === 'Présentation introuvable.') {
     return (
       <div className="px-6 lg:px-10 py-12 max-w-3xl w-full mx-auto text-center">
-        <h1 className="font-display font-semibold text-3xl text-zinc-950 dark:text-stone-50">
-          Présentation introuvable
-        </h1>
+        <h1 className="font-display font-semibold text-3xl text-zinc-950 dark:text-stone-50">Présentation introuvable</h1>
         <button type="button" onClick={() => navigate('/admin/presentations')} className="btn btn-primary text-sm mt-6">
           Retour à la liste
         </button>
       </div>
     )
   }
+
+  const premiumCompositions = compositions.filter((c) => !c.legacy)
+  const legacyComposition = compositions.find((c) => c.legacy) ?? null
+  const layout = preview?.layout ?? null
+  const synthesized = Object.entries(layout?.synthesized ?? {})
 
   return (
     <div className="bg-stone-50 dark:bg-zinc-950 h-[100dvh] flex flex-col">
@@ -535,1123 +461,667 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
 
       <div className="flex-1 overflow-y-auto">
         <div className="px-6 lg:px-10 py-8 max-w-7xl w-full mx-auto">
-          <WorkInProgressBanner storageKey="admin_presentation_edit_wip_v1" />
           <div className="lg:grid lg:grid-cols-5 lg:gap-8">
-            <aside className="lg:col-span-2 lg:order-2 lg:sticky lg:top-0 lg:self-start lg:h-[calc(100dvh-4rem)] lg:flex lg:items-center mb-8 lg:mb-0">
-              <div className="w-full lg:max-h-full lg:overflow-y-auto lg:pr-1 lg:py-4">
-                <div className="flex items-center justify-between mb-3">
+            {/* PREVIEW = the real PDF */}
+            <aside className="lg:col-span-2 lg:order-2 lg:sticky lg:top-0 lg:self-start lg:h-[calc(100dvh-4rem)] mb-8 lg:mb-0">
+              <div className="w-full lg:max-h-full lg:overflow-y-auto lg:pr-1 lg:py-4 space-y-3">
+                <div className="flex items-center justify-between">
                   <span className="text-[0.65rem] font-mono uppercase tracking-[0.16em] text-zinc-500 dark:text-stone-400">
-                    Aperçu live
+                    Aperçu · PDF réel
                   </span>
-                  <span className="text-[0.6rem] font-mono uppercase tracking-wider text-zinc-400 dark:text-stone-500">
-                    A4 · Marketing v1
-                  </span>
+                  <button
+                    type="button"
+                    onClick={openPreviewPdf}
+                    disabled={!preview?.pdfUrl}
+                    className="inline-flex items-center gap-1 text-[0.65rem] font-mono uppercase tracking-wider text-turf-700 dark:text-turf-300 hover:underline disabled:opacity-40 disabled:no-underline"
+                  >
+                    Ouvrir <ArrowSquareOut size={11} weight="bold" />
+                  </button>
                 </div>
                 <PresentationPreview
-                  template={form.template_key}
-                  player={previewPlayer}
+                  playerId={form.player_id}
                   options={form.options}
-                  title={form.title}
-                  statCatalogue={statCatalogue}
-                  externalAsset={externalAssetForPreview}
+                  bioOverride={bioDirty ? form.player_bio : undefined}
+                  presentationId={existing?.id ?? null}
+                  refreshKey={previewKey}
+                  onResult={setPreview}
                 />
-                <p className="mt-3 text-[0.65rem] text-zinc-500 dark:text-stone-500 leading-relaxed">
-                  Reflète le recadrage de la photo, la palette et les stats sélectionnées. Le rendu PDF final
-                  peut différer légèrement (typo serif, marges DomPDF).
-                </p>
+                {/* Layout report: what the one-page engine decided. */}
+                {layout && (
+                  <div className="rounded-xl border border-stone-200 dark:border-stone-50/10 bg-white dark:bg-zinc-900/60 px-3 py-2.5 text-[0.7rem] space-y-1.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="inline-flex items-center gap-1.5 font-medium text-emerald-700 dark:text-emerald-400">
+                        <CheckCircle size={13} weight="bold" />
+                        {layout.pages} page · {layout.page_size_mm?.join(' × ')} mm vérifié
+                      </span>
+                      <span className="font-mono uppercase tracking-wider text-zinc-500 dark:text-stone-400">
+                        Densité : {densityLabel(layout.density)}
+                      </span>
+                    </div>
+                    {synthesized.length > 0 && (
+                      <div className="text-amber-800 dark:text-amber-300 leading-relaxed">
+                        <span className="font-medium">Synthétisé dans le PDF</span> (données complètes conservées) :{' '}
+                        {synthesized.map(([k, v]) => `${SYNTHESIS_LABELS[k] ?? k} ${v.shown}/${v.total}`).join(' · ')}
+                      </div>
+                    )}
+                  </div>
+                )}
+                {preview?.error && (
+                  <div className="rounded-xl bg-rose-100 text-rose-800 dark:bg-rose-500/15 dark:text-rose-300 px-3 py-2.5 text-[0.7rem] leading-relaxed">
+                    <div className="flex items-start gap-1.5 font-medium"><WarningCircle size={14} weight="bold" className="shrink-0 mt-px" /> {preview.error}</div>
+                    {preview.details.length > 0 && <ul className="mt-1 list-disc pl-5 opacity-80">{preview.details.slice(0, 3).map((d) => <li key={d}>{d}</li>)}</ul>}
+                  </div>
+                )}
               </div>
             </aside>
 
-      <form onSubmit={submit} className="lg:col-span-3 lg:order-1 space-y-10">
-        {errors._global && (
-          <div className="px-4 py-3 rounded-xl bg-rose-100 text-rose-800 dark:bg-rose-500/15 dark:text-rose-300 text-sm">
-            {errors._global}
-          </div>
-        )}
-
-        {/* JOUEUR + TITRE */}
-        <section className="space-y-4">
-          <h3 className="font-mono uppercase tracking-[0.18em] text-[0.7rem] text-zinc-500 dark:text-stone-400">Cible</h3>
-          <div className="grid lg:grid-cols-2 gap-3">
-            <label className="block">
-              <span className="block text-[0.65rem] font-mono uppercase tracking-[0.16em] text-zinc-500 dark:text-stone-400 mb-1">Joueur</span>
-              <PlayerSingleSelect
-                players={players}
-                selectedSlug={selectedPlayer?.slug ?? null}
-                onChange={(slug) => {
-                  const p = players.find((x) => x.slug === slug)
-                  setForm((f) => ({ ...f, player_id: p?.id ?? null }))
-                }}
-                placeholder="Choisir un joueur du roster"
-              />
-              {errors.player_id && <span className="mt-1 block text-[0.7rem] text-rose-600 dark:text-rose-400">{errors.player_id}</span>}
-            </label>
-            <label className="block">
-              <span className="block text-[0.65rem] font-mono uppercase tracking-[0.16em] text-zinc-500 dark:text-stone-400 mb-1">Titre du document</span>
-              <input
-                type="text"
-                value={form.title}
-                onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-                placeholder="ex. Présentation Karim Touré · Borussia Dortmund"
-                className={INPUT_BASE}
-                required
-                maxLength={200}
-              />
-              {errors.title && <span className="mt-1 block text-[0.7rem] text-rose-600 dark:text-rose-400">{errors.title}</span>}
-            </label>
-          </div>
-        </section>
-
-        {/* FICHE EXTERNE (PNG/JPG/PDF) - bypass the generator when set */}
-        <section className="space-y-3">
-          <div className="flex items-baseline justify-between gap-3">
-            <h3 className="font-mono uppercase tracking-[0.18em] text-[0.7rem] text-zinc-500 dark:text-stone-400">
-              Fiche externe <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">- image ou PDF prêt à l'emploi</span>
-            </h3>
-            {hasExternalAsset && (
-              <button
-                type="button"
-                onClick={onClearAsset}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[0.7rem] font-medium text-rose-700 hover:bg-rose-100 dark:text-rose-400 dark:hover:bg-rose-500/15 transition"
-              >
-                <Trash size={12} weight="bold" /> Retirer la fiche
-              </button>
-            )}
-          </div>
-
-          {hasExternalAsset ? (
-            <div className="rounded-xl border border-turf-700/40 dark:border-turf-300/30 bg-turf-50/60 dark:bg-turf-950/20 px-4 py-3 text-sm">
-              <div className="flex items-center gap-3">
-                <div className="grid place-items-center w-9 h-9 rounded-lg bg-turf-700 text-white">
-                  {existing?.external_asset_type === 'pdf' ? <FileArrowUp size={16} weight="bold" /> : <ImageIcon size={16} weight="bold" />}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="font-medium text-zinc-900 dark:text-stone-100 truncate">
-                    {existing?.external_asset_original_name ?? 'Fiche attachée'}
-                  </div>
-                  <div className="text-[0.7rem] text-zinc-600 dark:text-stone-400">
-                    Cette fiche remplace le rendu automatique. Le générateur (template, couleurs, stats…) est masqué.
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="rounded-xl border border-dashed border-stone-300 dark:border-stone-50/15 bg-white/60 dark:bg-zinc-900/40 px-4 py-4 text-sm">
-              <p className="text-zinc-600 dark:text-stone-400 leading-relaxed mb-3">
-                Uploadez une fiche déjà conçue (PNG, JPG ou PDF) pour la servir telle quelle aux guests.
-                Utile quand la fiche est produite dans Photoshop / Canva.
-              </p>
-              <label className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-turf-700 text-white text-sm font-medium hover:bg-turf-800 transition cursor-pointer">
-                <FileArrowUp size={14} weight="bold" />
-                {uploadingAsset ? 'Upload en cours…' : 'Choisir un fichier'}
-                <input
-                  ref={assetInputRef}
-                  type="file"
-                  accept="image/png,image/jpeg,image/webp,application/pdf"
-                  onChange={onUploadAsset}
-                  disabled={uploadingAsset}
-                  className="hidden"
-                />
-              </label>
-              <div className="mt-2 text-[0.65rem] text-zinc-500 dark:text-stone-500">
-                Max 12 Mo. PNG/JPG seront enveloppés dans un PDF A4 1 page (image centrée, ratio préservé).
-              </div>
-            </div>
-          )}
-        </section>
-
-        {!hasExternalAsset && (<>
-        {/* BIO SCOUT (synced to Player.bio) */}
-        {(() => {
-          // Length tiers: DomPDF has no auto-shrink so long bios overflow the
-          // Profil scout blocks on Minimal / Stadium first. Guard the admin
-          // with a visible traffic-light signaler + hard cap. Cap chosen so
-          // even at 9.5pt italic the block stays under ~35mm on Minimal, the
-          // template with the tightest scout column.
-          const bioLen  = form.player_bio.length
-          const bioMax  = 350
-          const bioTier: 'ok' | 'warn' | 'danger' =
-            bioLen <= 180 ? 'ok' : bioLen <= 260 ? 'warn' : 'danger'
-          const tierText = {
-            ok:     'Longueur idéale - rentre dans tous les templates sans risque.',
-            warn:   'Long - vérifiez Minimal / Stadium, le bloc scout se remplit.',
-            danger: 'Limite atteinte - le rendu peut pousser sur une 2e page.',
-          }[bioTier]
-          const tierTextClass = {
-            ok:     'text-emerald-700 dark:text-emerald-400',
-            warn:   'text-amber-700 dark:text-amber-400',
-            danger: 'text-rose-700 dark:text-rose-400',
-          }[bioTier]
-          const barClass = {
-            ok:     'bg-emerald-500',
-            warn:   'bg-amber-500',
-            danger: 'bg-rose-500',
-          }[bioTier]
-          const ringClass = {
-            ok:     '',
-            warn:   'ring-1 ring-amber-400/50 dark:ring-amber-500/40 border-amber-400 dark:border-amber-500',
-            danger: 'ring-1 ring-rose-500/60 dark:ring-rose-500/40 border-rose-500 dark:border-rose-500',
-          }[bioTier]
-          const dirty = selectedPlayer && (selectedPlayer.bio ?? '').trim() !== form.player_bio.trim()
-          const pct = Math.min(100, Math.round((bioLen / bioMax) * 100))
-
-          return (
-            <section className="space-y-3">
-              <h3 className="font-mono uppercase tracking-[0.18em] text-[0.7rem] text-zinc-500 dark:text-stone-400">
-                Bio scout <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">- également enregistrée sur la fiche joueur</span>
-              </h3>
-              <textarea
-                value={form.player_bio}
-                onChange={(e) => setForm((f) => ({ ...f, player_bio: e.target.value.slice(0, bioMax) }))}
-                placeholder={selectedPlayer
-                  ? 'Résumé scout du joueur - style, forces, projection. Ce texte alimente le bloc «Profil scout» du template.'
-                  : "Choisissez d'abord un joueur pour éditer sa bio."}
-                disabled={!selectedPlayer}
-                rows={6}
-                className={`${INPUT_BASE} resize-y leading-relaxed disabled:opacity-60 disabled:cursor-not-allowed ${ringClass}`}
-                maxLength={bioMax}
-              />
-
-              {/* Traffic-light meter */}
-              <div className="space-y-1.5">
-                <div className="h-1.5 w-full rounded-full bg-stone-200 dark:bg-stone-50/10 overflow-hidden">
-                  <div className={`h-full ${barClass} transition-[width,background-color] duration-200`} style={{ width: `${pct}%` }} />
-                </div>
-                <div className="flex items-center justify-between gap-3 text-[0.65rem]">
-                  <span className={`inline-flex items-center gap-1.5 font-medium ${tierTextClass}`}>
-                    <span className={`inline-block w-1.5 h-1.5 rounded-full ${barClass}`} />
-                    {tierText}
-                  </span>
-                  <span className={`tabular-nums font-mono ${tierTextClass}`}>
-                    {bioLen}/{bioMax}
-                  </span>
-                </div>
-                <p className="text-[0.65rem] text-zinc-500 dark:text-stone-500">
-                  {dirty
-                    ? 'Modification en attente - sera enregistrée sur la fiche joueur au prochain « Enregistrer » ou « Aperçu PDF ».'
-                    : 'En phase avec la fiche joueur.'}
-                </p>
-              </div>
-            </section>
-          )
-        })()}
-
-        {/* TEMPLATE */}
-        <section className="space-y-4">
-          <h3 className="font-mono uppercase tracking-[0.18em] text-[0.7rem] text-zinc-500 dark:text-stone-400">Template</h3>
-          <div className="grid sm:grid-cols-3 gap-4">
-            {templates.map((t) => {
-              const active = form.template_key === t.key
-              return (
-                <button
-                  key={t.key}
-                  type="button"
-                  onClick={() => pickTemplate(t.key)}
-                  className={`text-left rounded-2xl border p-3 transition ${
-                    active
-                      ? 'border-turf-700 dark:border-turf-300 ring-2 ring-turf-700/20 dark:ring-turf-300/20 bg-white dark:bg-zinc-900'
-                      : 'border-stone-200 dark:border-stone-50/10 bg-white/60 dark:bg-zinc-900/40 hover:border-stone-400 dark:hover:border-stone-50/25'
-                  }`}
-                >
-                  <div className="aspect-[60/84] rounded-lg overflow-hidden bg-stone-100 dark:bg-zinc-950 mb-3"
-                       dangerouslySetInnerHTML={{ __html: t.thumbnail }} />
-                  <div className="font-display font-semibold text-sm text-zinc-950 dark:text-stone-50">{t.label}</div>
-                  <p className="mt-1 text-xs text-zinc-600 dark:text-stone-400 leading-relaxed">{t.description}</p>
-                </button>
-              )
-            })}
-          </div>
-        </section>
-
-        {/* COULEURS */}
-        <section className="space-y-4">
-          <h3 className="font-mono uppercase tracking-[0.18em] text-[0.7rem] text-zinc-500 dark:text-stone-400">Palette</h3>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            {(['accent_color', 'secondary_color', 'text_color', 'background_color'] as const).map((k) => (
-              <label key={k} className="block">
-                <span className="block text-[0.65rem] font-mono uppercase tracking-[0.16em] text-zinc-500 dark:text-stone-400 mb-1">
-                  {{ accent_color: 'Couleur principale', secondary_color: 'Couleur secondaire', text_color: 'Couleur du texte', background_color: 'Couleur de fond' }[k]}
-                </span>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="color"
-                    value={form.options[k] ?? '#000000'}
-                    onChange={(e) => setOpt(k, e.target.value)}
-                    className="h-9 w-12 rounded cursor-pointer border border-stone-300 dark:border-stone-50/15 bg-white dark:bg-zinc-900"
-                  />
-                  <input
-                    type="text"
-                    value={form.options[k] ?? ''}
-                    onChange={(e) => setOpt(k, e.target.value)}
-                    className={`${INPUT_BASE} font-mono`}
-                    maxLength={9}
-                  />
-                </div>
-              </label>
-            ))}
-          </div>
-          <label className="block">
-            <span className="block text-[0.65rem] font-mono uppercase tracking-[0.16em] text-zinc-500 dark:text-stone-400 mb-1">
-              Tagline <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">- accroche courte sous le nom</span>
-            </span>
-            <input
-              type="text"
-              value={form.options.tagline ?? ''}
-              onChange={(e) => setOpt('tagline', e.target.value)}
-              placeholder="ex. Avant-centre · Saison 2025/26"
-              className={INPUT_BASE}
-              maxLength={200}
-            />
-          </label>
-        </section>
-
-        {/* MARKETING v1 — options spécifiques au template */}
-        {form.template_key === 'marketing' && (
-        <section className="space-y-5">
-          <h3 className="font-mono uppercase tracking-[0.18em] text-[0.7rem] text-zinc-500 dark:text-stone-400">
-            Marketing v1 <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">(options du template)</span>
-          </h3>
-
-          {/* Thème couleur */}
-          <div className="space-y-2">
-            <div className="text-[0.65rem] font-mono uppercase tracking-[0.14em] text-zinc-500 dark:text-stone-400">Thème</div>
-            <div className="grid grid-cols-5 gap-2">
-              {MARKETING_THEMES.map((t) => {
-                const active = (form.options.theme ?? 'navy') === t.value
-                return (
-                  <button
-                    key={t.value}
-                    type="button"
-                    onClick={() => setOpt('theme', t.value)}
-                    className={`rounded-lg border p-2 text-center transition ${
-                      active
-                        ? 'border-turf-700 dark:border-turf-300 ring-2 ring-turf-700/20 dark:ring-turf-300/20 bg-white dark:bg-zinc-900'
-                        : 'border-stone-200 dark:border-stone-50/10 bg-white/60 dark:bg-zinc-900/40 hover:border-stone-400 dark:hover:border-stone-50/25'
-                    }`}
-                  >
-                    <div className="w-full h-6 rounded" style={{ background: t.swatch }} />
-                    <div className="mt-1 text-[0.65rem] font-medium text-zinc-800 dark:text-stone-200">{t.label}</div>
-                  </button>
-                )
-              })}
-            </div>
-            <p className="text-[0.65rem] text-zinc-500 dark:text-stone-500">
-              « Personnalisé » utilise les couleurs de la section Palette ci-dessus. Les autres thèmes appliquent leur propre palette.
-            </p>
-          </div>
-
-          {/* Côté de la photo */}
-          <div className="space-y-2">
-            <div className="text-[0.65rem] font-mono uppercase tracking-[0.14em] text-zinc-500 dark:text-stone-400">Côté de la photo</div>
-            <div className="inline-flex items-center gap-0.5 rounded-full border border-stone-300 dark:border-stone-50/15 p-0.5 text-xs">
-              {(['left','right'] as const).map((side) => {
-                const active = (form.options.photo_side ?? 'right') === side
-                return (
-                  <button
-                    key={side}
-                    type="button"
-                    onClick={() => setOpt('photo_side', side)}
-                    className={`px-4 py-1.5 rounded-full transition ${active ? 'bg-turf-700 text-white' : 'text-zinc-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-50/5'}`}
-                  >
-                    {side === 'left' ? 'Gauche' : 'Droite'}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-
-          {/* Motto + slogan */}
-          <div className="grid sm:grid-cols-2 gap-3">
-            <label className="block">
-              <span className="block text-[0.65rem] font-mono uppercase tracking-[0.16em] text-zinc-500 dark:text-stone-400 mb-1">
-                Motto <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">(footer, ex. DISCIPLINE • WORK • PASSION)</span>
-              </span>
-              <input
-                type="text"
-                value={form.options.motto ?? ''}
-                onChange={(e) => setOpt('motto', e.target.value || null)}
-                placeholder="DISCIPLINE • WORK • PASSION • SUCCESS"
-                className={INPUT_BASE}
-                maxLength={120}
-              />
-            </label>
-            <label className="block">
-              <span className="block text-[0.65rem] font-mono uppercase tracking-[0.16em] text-zinc-500 dark:text-stone-400 mb-1">
-                Slogan cursif <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">(italique bas de fiche)</span>
-              </span>
-              <input
-                type="text"
-                value={form.options.slogan_cursive ?? ''}
-                onChange={(e) => setOpt('slogan_cursive', e.target.value || null)}
-                placeholder="Notre vision, ton avenir. Ensemble vers l'élite."
-                className={INPUT_BASE}
-                maxLength={160}
-              />
-            </label>
-          </div>
-
-          {/* Supervisé par */}
-          <div className="space-y-2">
-            <div className="text-[0.65rem] font-mono uppercase tracking-[0.14em] text-zinc-500 dark:text-stone-400">
-              Supervisé par <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">(agence supérieure, ex. WNRS Sport)</span>
-            </div>
-            <div className="grid sm:grid-cols-2 gap-2">
-              <input type="text" value={form.options.supervised_by?.name ?? ''} onChange={(e) => setOpt('supervised_by', { ...(form.options.supervised_by ?? {}), name: e.target.value || null })} placeholder="Nom" className={INPUT_BASE} maxLength={120} />
-              <input type="url"  value={form.options.supervised_by?.logo_url ?? ''} onChange={(e) => setOpt('supervised_by', { ...(form.options.supervised_by ?? {}), logo_url: e.target.value || null })} placeholder="URL logo" className={INPUT_BASE} maxLength={500} />
-              <input type="text" value={form.options.supervised_by?.country ?? ''} onChange={(e) => setOpt('supervised_by', { ...(form.options.supervised_by ?? {}), country: e.target.value || null })} placeholder="Pays" className={INPUT_BASE} maxLength={80} />
-              <input type="text" value={form.options.supervised_by?.country_code ?? ''} onChange={(e) => setOpt('supervised_by', { ...(form.options.supervised_by ?? {}), country_code: e.target.value || null })} placeholder="Code pays (gb, fr…)" className={INPUT_BASE} maxLength={4} />
-            </div>
-          </div>
-
-          {/* Player profile bars */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="text-[0.65rem] font-mono uppercase tracking-[0.14em] text-zinc-500 dark:text-stone-400">
-                Bars de progression <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">(ex. Speed 90%, Technique 85%…)</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setOpt('player_profile_bars', [...(form.options.player_profile_bars ?? []), { label: '', pct: 50 }])}
-                className="inline-flex items-center gap-1 text-[0.7rem] font-medium text-turf-700 dark:text-turf-300 hover:underline"
-              >
-                <Plus size={12} weight="bold" /> Ajouter une barre
-              </button>
-            </div>
-            {(form.options.player_profile_bars ?? []).map((bar, bi) => (
-              <div key={bi} className="flex items-center gap-2">
-                <input
-                  type="text"
-                  value={bar.label}
-                  onChange={(e) => {
-                    const next = [...(form.options.player_profile_bars ?? [])]
-                    next[bi] = { ...next[bi], label: e.target.value }
-                    setOpt('player_profile_bars', next)
-                  }}
-                  placeholder="Libellé (ex. Speed)"
-                  className={INPUT_BASE}
-                  maxLength={40}
-                />
-                <input
-                  type="number"
-                  min={0} max={100}
-                  value={bar.pct}
-                  onChange={(e) => {
-                    const next = [...(form.options.player_profile_bars ?? [])]
-                    next[bi] = { ...next[bi], pct: Math.max(0, Math.min(100, Number(e.target.value) || 0)) }
-                    setOpt('player_profile_bars', next)
-                  }}
-                  className={`${INPUT_BASE} w-20 tabular-nums`}
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    const next = [...(form.options.player_profile_bars ?? [])]
-                    next.splice(bi, 1)
-                    setOpt('player_profile_bars', next)
-                  }}
-                  className="text-rose-700 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-500/15 rounded-md p-1.5 transition"
-                  aria-label="Supprimer"
-                >
-                  <Trash size={12} weight="bold" />
-                </button>
-              </div>
-            ))}
-          </div>
-        </section>
-        )}
-
-        {/* TYPOGRAPHIE */}
-        <section className="space-y-4">
-          <h3 className="font-mono uppercase tracking-[0.18em] text-[0.7rem] text-zinc-500 dark:text-stone-400">Typographie</h3>
-          <div className="grid sm:grid-cols-3 gap-3">
-            {([
-              { key: 'editorial', label: 'Éditoriale', hint: 'Serif classique, direction sportive traditionnelle', style: { fontFamily: 'Georgia, "Times New Roman", serif' } },
-              { key: 'sans',      label: 'Moderne',    hint: 'Sans-serif neutre, envoi corporate contemporain', style: { fontFamily: 'Inter, "Helvetica Neue", Helvetica, Arial, sans-serif' } },
-              { key: 'grotesque', label: 'Impact',     hint: 'Bold serré, ambiance sportive marketing',        style: { fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif', fontWeight: 800, letterSpacing: '-0.02em' } },
-            ] as const).map((f) => {
-              const active = (form.options.font_family ?? 'editorial') === f.key
-              return (
-                <button
-                  key={f.key}
-                  type="button"
-                  onClick={() => setOpt('font_family', f.key)}
-                  className={`text-left rounded-xl border p-3 transition ${
-                    active
-                      ? 'border-turf-700 dark:border-turf-300 ring-2 ring-turf-700/20 dark:ring-turf-300/20 bg-white dark:bg-zinc-900'
-                      : 'border-stone-200 dark:border-stone-50/10 bg-white/60 dark:bg-zinc-900/40 hover:border-stone-400 dark:hover:border-stone-50/25'
-                  }`}
-                >
-                  <div className="text-[22px] leading-none text-zinc-950 dark:text-stone-50" style={f.style}>Aa</div>
-                  <div className="mt-2 font-display font-semibold text-sm text-zinc-950 dark:text-stone-50">{f.label}</div>
-                  <div className="text-[0.65rem] text-zinc-500 dark:text-stone-500 leading-relaxed mt-1">{f.hint}</div>
-                </button>
-              )
-            })}
-          </div>
-          <div>
-            <span className="block text-[0.65rem] font-mono uppercase tracking-[0.16em] text-zinc-500 dark:text-stone-400 mb-1.5">
-              Taille de base
-            </span>
-            <div className="inline-flex items-center gap-0.5 rounded-full border border-stone-300 dark:border-stone-50/15 p-0.5 text-xs">
-              {([
-                { value: 'small' as const,  label: 'Compact' },
-                { value: 'normal' as const, label: 'Normal' },
-                { value: 'large' as const,  label: 'Confort' },
-              ]).map((s) => {
-                const active = (form.options.font_scale ?? 'normal') === s.value
-                return (
-                  <button
-                    key={s.value}
-                    type="button"
-                    onClick={() => setOpt('font_scale', s.value)}
-                    className={`px-3 py-1.5 rounded-full font-medium transition ${
-                      active
-                        ? 'bg-zinc-950 text-stone-50 dark:bg-stone-50 dark:text-zinc-950'
-                        : 'text-zinc-600 hover:text-zinc-900 dark:text-stone-400 dark:hover:text-stone-100'
-                    }`}
-                  >
-                    {s.label}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        </section>
-
-        {/* LANGUE */}
-        <section className="space-y-3">
-          <h3 className="font-mono uppercase tracking-[0.18em] text-[0.7rem] text-zinc-500 dark:text-stone-400">
-            Langue du document <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">- titre, tagline et bio restent tels que saisis</span>
-          </h3>
-          <div className="inline-flex items-center gap-0.5 rounded-full border border-stone-300 dark:border-stone-50/15 p-0.5 text-xs">
-            {([
-              { value: 'fr' as const, label: 'Français' },
-              { value: 'en' as const, label: 'English' },
-              { value: 'de' as const, label: 'Deutsch' },
-              { value: 'nl' as const, label: 'Nederlands' },
-            ]).map((l) => {
-              const active = (form.options.language ?? 'fr') === l.value
-              return (
-                <button
-                  key={l.value}
-                  type="button"
-                  onClick={() => setOpt('language', l.value)}
-                  className={`px-3 py-1.5 rounded-full font-medium transition ${
-                    active
-                      ? 'bg-zinc-950 text-stone-50 dark:bg-stone-50 dark:text-zinc-950'
-                      : 'text-zinc-600 hover:text-zinc-900 dark:text-stone-400 dark:hover:text-stone-100'
-                  }`}
-                >
-                  {l.label}
-                </button>
-              )
-            })}
-          </div>
-        </section>
-
-        {/* PHOTO */}
-        <section className="space-y-3">
-          <h3 className="font-mono uppercase tracking-[0.18em] text-[0.7rem] text-zinc-500 dark:text-stone-400">Photo</h3>
-          <div className="inline-flex items-center gap-0.5 rounded-full border border-stone-300 dark:border-stone-50/15 p-0.5 text-xs">
-            {(['player', 'custom'] as const).map((src) => (
-              <button
-                key={src}
-                type="button"
-                onClick={() => setOpt('photo_source', src)}
-                className={`px-3 py-1.5 rounded-full font-medium transition ${
-                  form.options.photo_source === src
-                    ? 'bg-zinc-950 text-stone-50 dark:bg-stone-50 dark:text-zinc-950'
-                    : 'text-zinc-600 hover:text-zinc-900 dark:text-stone-400 dark:hover:text-stone-100'
-                }`}
-              >
-                {src === 'player' ? 'Photo du joueur' : 'Photo personnalisée'}
-              </button>
-            ))}
-          </div>
-          {form.options.photo_source === 'player' && selectedPlayer && (
-            <div className="flex items-start gap-3 text-xs text-zinc-600 dark:text-stone-400">
-              <div className="shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-stone-200 dark:bg-stone-50/5 border border-stone-300 dark:border-stone-50/10">
-                {selectedPlayer.photo_url ? (
-                  <img src={selectedPlayer.photo_url} alt="" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full grid place-items-center text-zinc-400"><Person size={22} weight="regular" /></div>
-                )}
-              </div>
-              {selectedPlayer.photo_url ? (
-                <div className="flex-1 pt-1">
-                  <span>Utilise la photo de la fiche joueur.</span>
-                  <p className="mt-1 text-[0.65rem] text-zinc-500 dark:text-stone-500">
-                    Pour la remplacer, va sur <a href={`/admin/joueurs/${selectedPlayer.slug}/edit`} className="underline hover:text-zinc-900 dark:hover:text-stone-100">la fiche joueur</a>.
-                  </p>
-                </div>
-              ) : (
-                <div className="flex-1 space-y-2">
-                  <p className="text-zinc-700 dark:text-stone-300 leading-relaxed">
-                    <span className="font-medium">Ce joueur n'a pas encore de photo.</span> Uploader ici l'enregistre sur la fiche joueur (visible aussi sur son profil public).
-                  </p>
-                  <label className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium bg-turf-700 text-white hover:bg-turf-800 cursor-pointer transition disabled:opacity-60">
-                    <ImageIcon size={13} weight="bold" />
-                    <input
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp"
-                      className="hidden"
-                      onChange={onUploadPlayerPhoto}
-                      disabled={uploadingPlayerPhoto}
-                    />
-                    {uploadingPlayerPhoto ? 'Upload en cours…' : 'Ajouter une photo sur la fiche joueur'}
-                  </label>
-                  <p className="text-[0.65rem] text-zinc-500 dark:text-stone-500">
-                    JPG / PNG / WebP, 4 Mo max. Sinon utilise le mode « Photo personnalisée » pour un one-off qui ne touche pas à la fiche joueur.
-                  </p>
+            <form onSubmit={submit} className="lg:col-span-3 lg:order-1 space-y-10">
+              {errors._global && (
+                <div className="px-4 py-3 rounded-xl bg-rose-100 text-rose-800 dark:bg-rose-500/15 dark:text-rose-300 text-sm">
+                  {errors._global}
                 </div>
               )}
-            </div>
-          )}
-          {form.options.photo_source === 'custom' && (
-            <div className="flex items-start gap-3">
-              <div className="shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-stone-200 dark:bg-stone-50/5 border border-stone-300 dark:border-stone-50/10">
-                {form.options.custom_photo_url ? (
-                  <img src={form.options.custom_photo_url} alt="" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full grid place-items-center text-zinc-400"><ImageIcon size={20} weight="regular" /></div>
-                )}
-              </div>
-              <div className="flex-1 space-y-2">
-                <label className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium border border-stone-300 dark:border-stone-50/15 bg-white dark:bg-zinc-900/40 hover:bg-stone-100 dark:hover:bg-stone-50/5 cursor-pointer transition">
-                  <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={onUploadPhoto} disabled={uploadingPhoto} />
-                  {uploadingPhoto ? 'Upload…' : (photoFile ? `Changer (${photoFile.name.slice(0, 24)})` : 'Choisir une photo…')}
-                </label>
-                {form.options.custom_photo_url && (
-                  <button
-                    type="button"
-                    onClick={() => { setOpt('custom_photo_url', null); setPhotoFile(null) }}
-                    className="block text-[0.7rem] text-zinc-500 hover:text-rose-700 dark:text-stone-400 dark:hover:text-rose-400 transition"
-                  >
-                    Retirer la photo
-                  </button>
-                )}
-                <p className="text-[0.65rem] text-zinc-500 dark:text-stone-500">JPG / PNG / WebP - 6 Mo max.</p>
-              </div>
-            </div>
-          )}
 
-          {/* Cadrage de la photo */}
-          <div className="pt-3 border-t border-stone-200/70 dark:border-stone-50/10 space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-[0.65rem] font-mono uppercase tracking-[0.16em] text-zinc-500 dark:text-stone-400">
-                Cadrage <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">- ajustement dans le cadre</span>
-              </span>
-              <button
-                type="button"
-                onClick={() => {
-                  setOpt('photo_fit', 'contain')
-                  setOpt('photo_zoom', 100)
-                  setOpt('photo_position_x', 50)
-                  setOpt('photo_position_y', 50)
-                }}
-                className="text-[0.65rem] font-medium text-zinc-500 hover:text-zinc-900 dark:text-stone-400 dark:hover:text-stone-100 transition"
-              >
-                Réinitialiser
-              </button>
-            </div>
-
-            {/* Mode d'affichage */}
-            <div>
-              <span className="block text-[0.65rem] font-mono uppercase tracking-[0.14em] text-zinc-500 dark:text-stone-400 mb-1.5">
-                Mode d'affichage
-              </span>
-              <div className="inline-flex items-center gap-0.5 rounded-full border border-stone-300 dark:border-stone-50/15 p-0.5 text-xs">
-                {([
-                  { value: 'contain' as const, label: 'Photo entière', hint: 'toute la photo visible' },
-                  { value: 'cover'   as const, label: 'Photo cadrée',  hint: 'remplit et coupe' },
-                ]).map((m) => {
-                  const active = (form.options.photo_fit ?? 'contain') === m.value
-                  return (
-                    <button
-                      key={m.value}
-                      type="button"
-                      onClick={() => setOpt('photo_fit', m.value)}
-                      title={m.hint}
-                      className={`px-3 py-1.5 rounded-full font-medium transition ${
-                        active
-                          ? 'bg-zinc-950 text-stone-50 dark:bg-stone-50 dark:text-zinc-950'
-                          : 'text-zinc-600 hover:text-zinc-900 dark:text-stone-400 dark:hover:text-stone-100'
-                      }`}
-                    >
-                      {m.label}
-                    </button>
-                  )
-                })}
-              </div>
-              <p className="mt-1.5 text-[0.65rem] text-zinc-500 dark:text-stone-500">
-                « Photo entière » = tout le joueur visible, letterbox si besoin. « Photo cadrée » = remplit le cadre en recadrant.
-              </p>
-            </div>
-            {(
-              [
-                { key: 'photo_zoom',       label: 'Zoom',        min: 100, max: 250, step: 5,  suffix: '%' },
-                { key: 'photo_position_x', label: 'Position X',  min: 0,   max: 100, step: 1,  suffix: '%' },
-                { key: 'photo_position_y', label: 'Position Y',  min: 0,   max: 100, step: 1,  suffix: '%' },
-              ] as const
-            ).map((s) => {
-              const fallback = s.key === 'photo_zoom' ? 100 : 50
-              const value = (form.options[s.key] ?? fallback) as number
-              return (
-                <label key={s.key} className="block">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-[0.65rem] font-mono uppercase tracking-[0.14em] text-zinc-500 dark:text-stone-400">
-                      {s.label}
-                    </span>
-                    <span className="text-[0.7rem] font-mono tabular-nums text-zinc-700 dark:text-stone-300">
-                      {value}{s.suffix}
-                    </span>
-                  </div>
-                  <input
-                    type="range"
-                    min={s.min}
-                    max={s.max}
-                    step={s.step}
-                    value={value}
-                    onChange={(e) => setOpt(s.key, Number(e.target.value))}
-                    className="w-full accent-turf-700 dark:accent-turf-300"
-                  />
-                </label>
-              )
-            })}
-          </div>
-        </section>
-
-        {/* STATS */}
-        <section className="space-y-3">
-          <h3 className="font-mono uppercase tracking-[0.18em] text-[0.7rem] text-zinc-500 dark:text-stone-400">
-            Statistiques mises en avant <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">- max 4</span>
-          </h3>
-          {statCatalogue.length === 0 ? (
-            <p className="text-xs text-zinc-500 dark:text-stone-500">Choisissez d'abord un joueur pour voir la liste des stats disponibles.</p>
-          ) : (
-            <div className="flex flex-wrap gap-2">
-              {statCatalogue.map((s) => {
-                const active = (form.options.selected_stats ?? []).includes(s.key)
-                return (
-                  <button
-                    key={s.key}
-                    type="button"
-                    onClick={() => toggleStat(s.key)}
-                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition ${
-                      active
-                        ? 'bg-turf-800 text-stone-50 dark:bg-turf-300 dark:text-zinc-950'
-                        : 'bg-stone-200/70 text-zinc-700 hover:bg-stone-300/70 dark:bg-stone-50/10 dark:text-stone-300 dark:hover:bg-stone-50/15'
-                    }`}
-                  >
-                    {active && <CheckCircle size={12} weight="bold" />}
-                    {s.label}
-                  </button>
-                )
-              })}
-            </div>
-          )}
-          <p className="text-[0.65rem] text-zinc-500 dark:text-stone-500">
-            Si rien n'est sélectionné, le template choisit 4 stats par défaut selon la catégorie du joueur.
-          </p>
-        </section>
-
-        {/* HEATMAP */}
-        <section className="space-y-3">
-          <h3 className="font-mono uppercase tracking-[0.18em] text-[0.7rem] text-zinc-500 dark:text-stone-400">Heatmap de possession</h3>
-          <label className="inline-flex items-center gap-2 cursor-pointer text-sm">
-            <input
-              type="checkbox"
-              checked={!!form.options.show_heatmap}
-              onChange={(e) => setOpt('show_heatmap', e.target.checked)}
-              className="h-4 w-4 rounded border-stone-300 text-turf-700 focus:ring-turf-500"
-            />
-            <span className="text-zinc-700 dark:text-stone-300">Inclure la heatmap 4×6 du joueur dans la présentation</span>
-          </label>
-        </section>
-
-        {/* ANCIENS CLUBS (Stadium uniquement) */}
-        {TEMPLATE_CAPABILITIES[form.template_key].previousClubs && (
-        <section className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="font-mono uppercase tracking-[0.18em] text-[0.7rem] text-zinc-500 dark:text-stone-400">
-              Anciens clubs <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">- affichés en bas du template Stadium</span>
-            </h3>
-            <button
-              type="button"
-              onClick={() => {
-                const next = [...(form.options.previous_clubs ?? []), { name: '', logo_url: '' }]
-                setOpt('previous_clubs', next)
-              }}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-stone-300 dark:border-stone-50/15 bg-white dark:bg-zinc-900/40 hover:bg-stone-100 dark:hover:bg-stone-50/5 transition"
-            >
-              <Plus size={12} weight="bold" /> Ajouter un club
-            </button>
-          </div>
-          {(form.options.previous_clubs ?? []).length === 0 ? (
-            <p className="text-xs text-zinc-500 dark:text-stone-500">Aucun club ajouté. Cliquez sur « Ajouter un club ».</p>
-          ) : (
-            <ul className="space-y-2">
-              {(form.options.previous_clubs ?? []).map((club, idx) => (
-                <li key={idx} className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={club.name}
-                    onChange={(e) => {
-                      const next = [...(form.options.previous_clubs ?? [])]
-                      next[idx] = { ...next[idx], name: e.target.value }
-                      setOpt('previous_clubs', next)
-                    }}
-                    placeholder="Nom du club"
-                    className={`${INPUT_BASE} w-1/3`}
-                    maxLength={100}
-                  />
-                  <input
-                    type="text"
-                    value={club.logo_url ?? ''}
-                    onChange={(e) => {
-                      const next = [...(form.options.previous_clubs ?? [])]
-                      next[idx] = { ...next[idx], logo_url: e.target.value }
-                      setOpt('previous_clubs', next)
-                    }}
-                    placeholder="URL logo (optionnel)"
-                    className={`${INPUT_BASE} flex-1`}
-                    maxLength={500}
-                  />
-                  {club.logo_url && (
-                    <img src={club.logo_url} alt="" className="w-9 h-9 object-contain bg-white rounded p-1" />
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const next = [...(form.options.previous_clubs ?? [])]
-                      next.splice(idx, 1)
-                      setOpt('previous_clubs', next)
-                    }}
-                    className="grid place-items-center w-8 h-8 rounded-lg text-zinc-500 hover:bg-rose-100 hover:text-rose-700 dark:text-stone-400 dark:hover:bg-rose-500/15 dark:hover:text-rose-400 transition"
-                    aria-label="Retirer"
-                  >
-                    <XIcon size={14} weight="bold" />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-        )}
-
-        {/* LIENS EXTERNES (Stadium uniquement) */}
-        {TEMPLATE_CAPABILITIES[form.template_key].externalLinks && (
-        <section className="space-y-4">
-          <h3 className="font-mono uppercase tracking-[0.18em] text-[0.7rem] text-zinc-500 dark:text-stone-400">
-            Liens externes <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">- rendus en QR codes sur le template Stadium</span>
-          </h3>
-          <label className="block">
-            <span className="block text-[0.65rem] font-mono uppercase tracking-[0.16em] text-zinc-500 dark:text-stone-400 mb-1">
-              Article lié <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">- article publié sur notre plateforme</span>
-            </span>
-            <select
-              value={form.options.article_slug ?? ''}
-              onChange={(e) => setOpt('article_slug', e.target.value || null)}
-              className={INPUT_BASE}
-            >
-              <option value="">Aucun article</option>
-              {articles.filter((a) => a.is_published).map((a) => (
-                <option key={a.id} value={a.slug}>{a.title}</option>
-              ))}
-            </select>
-          </label>
-          <label className="block">
-            <span className="block text-[0.65rem] font-mono uppercase tracking-[0.16em] text-zinc-500 dark:text-stone-400 mb-1">
-              Lien vidéo YouTube <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">- compilation, full match…</span>
-            </span>
-            <input
-              type="url"
-              value={form.options.youtube_url ?? ''}
-              onChange={(e) => setOpt('youtube_url', e.target.value || null)}
-              placeholder="https://youtube.com/watch?v=…"
-              className={INPUT_BASE}
-              maxLength={500}
-            />
-            {errors['options.youtube_url'] && (
-              <span className="mt-1 block text-[0.7rem] text-rose-600 dark:text-rose-400">{errors['options.youtube_url']}</span>
-            )}
-          </label>
-          <label className="block">
-            <span className="block text-[0.65rem] font-mono uppercase tracking-[0.16em] text-zinc-500 dark:text-stone-400 mb-1">
-              URL personnalisée du QR code <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">- prioritaire sur l'article et YouTube (Instagram, Wyscout, portfolio…)</span>
-            </span>
-            <input
-              type="url"
-              value={form.options.qr_custom_url ?? ''}
-              onChange={(e) => setOpt('qr_custom_url', e.target.value || null)}
-              placeholder="https://…"
-              className={INPUT_BASE}
-              maxLength={500}
-            />
-            {errors['options.qr_custom_url'] && (
-              <span className="mt-1 block text-[0.7rem] text-rose-600 dark:text-rose-400">{errors['options.qr_custom_url']}</span>
-            )}
-          </label>
-        </section>
-        )}
-
-        {/* PARTENAIRES (agence + académies) */}
-        <section className="space-y-5">
-          <h3 className="font-mono uppercase tracking-[0.18em] text-[0.7rem] text-zinc-500 dark:text-stone-400">
-            Partenaires <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">- agence collaboratrice et académies partenaires</span>
-          </h3>
-
-          {/* Agence partenaire */}
-          <div className="space-y-2">
-            <div className="text-[0.65rem] font-mono uppercase tracking-[0.14em] text-zinc-500 dark:text-stone-400">
-              Agence partenaire
-            </div>
-            <div className="grid sm:grid-cols-2 gap-2">
-              <input
-                type="text"
-                value={form.options.partner_agency?.name ?? ''}
-                onChange={(e) => setOpt('partner_agency', { ...(form.options.partner_agency ?? {}), name: e.target.value || null })}
-                placeholder="Nom (ex. WNRS Sport)"
-                className={INPUT_BASE}
-                maxLength={120}
-              />
-              <input
-                type="url"
-                value={form.options.partner_agency?.logo_url ?? ''}
-                onChange={(e) => setOpt('partner_agency', { ...(form.options.partner_agency ?? {}), logo_url: e.target.value || null })}
-                placeholder="URL du logo"
-                className={INPUT_BASE}
-                maxLength={500}
-              />
-              <input
-                type="text"
-                value={form.options.partner_agency?.country ?? ''}
-                onChange={(e) => setOpt('partner_agency', { ...(form.options.partner_agency ?? {}), country: e.target.value || null })}
-                placeholder="Pays (ex. United Kingdom)"
-                className={INPUT_BASE}
-                maxLength={80}
-              />
-              <input
-                type="text"
-                value={form.options.partner_agency?.country_code ?? ''}
-                onChange={(e) => setOpt('partner_agency', { ...(form.options.partner_agency ?? {}), country_code: e.target.value || null })}
-                placeholder="Code pays (gb, fr, de…)"
-                className={INPUT_BASE}
-                maxLength={4}
-              />
-            </div>
-          </div>
-
-          {/* Académies partenaires */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="text-[0.65rem] font-mono uppercase tracking-[0.14em] text-zinc-500 dark:text-stone-400">
-                Académies partenaires
-              </div>
-              <button
-                type="button"
-                onClick={() => setOpt('partner_academies', [...(form.options.partner_academies ?? []), { country: '', clubs: [] }])}
-                className="inline-flex items-center gap-1 text-[0.7rem] font-medium text-turf-700 dark:text-turf-300 hover:underline"
-              >
-                <Plus size={12} weight="bold" /> Ajouter un pays
-              </button>
-            </div>
-            {(form.options.partner_academies ?? []).length === 0 && (
-              <p className="text-[0.7rem] text-zinc-500 dark:text-stone-500">Aucun pays configuré.</p>
-            )}
-            {(form.options.partner_academies ?? []).map((group, gi) => (
-              <div key={gi} className="rounded-lg border border-stone-200 dark:border-stone-50/10 bg-white/60 dark:bg-zinc-900/40 p-3 space-y-2">
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={group.country}
-                    onChange={(e) => {
-                      const next = [...(form.options.partner_academies ?? [])]
-                      next[gi] = { ...next[gi], country: e.target.value }
-                      setOpt('partner_academies', next)
-                    }}
-                    placeholder="Pays (ex. Angleterre)"
-                    className={INPUT_BASE}
-                    maxLength={80}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const next = [...(form.options.partner_academies ?? [])]
-                      next.splice(gi, 1)
-                      setOpt('partner_academies', next)
-                    }}
-                    className="text-rose-700 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-500/15 rounded-md p-1.5 transition"
-                    aria-label="Supprimer ce pays"
-                  >
-                    <Trash size={12} weight="bold" />
-                  </button>
+              {/* JOUEUR + TITRE */}
+              <Section title="Cible">
+                <div className="grid lg:grid-cols-2 gap-3">
+                  <label className="block">
+                    <FieldLabel>Joueur</FieldLabel>
+                    <PlayerSingleSelect
+                      players={players}
+                      selectedSlug={selectedPlayer?.slug ?? null}
+                      onChange={(slug) => {
+                        const p = players.find((x) => x.slug === slug)
+                        setForm((f) => ({ ...f, player_id: p?.id ?? null }))
+                      }}
+                      placeholder="Choisir un joueur du roster"
+                    />
+                    {errors.player_id && <span className="mt-1 block text-[0.7rem] text-rose-600 dark:text-rose-400">{errors.player_id}</span>}
+                  </label>
+                  <label className="block">
+                    <FieldLabel>Titre du document</FieldLabel>
+                    <input
+                      type="text"
+                      value={form.title}
+                      onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+                      placeholder="ex. Présentation Karim Touré · Borussia Dortmund"
+                      className={INPUT_BASE}
+                      required
+                      maxLength={200}
+                    />
+                    {errors.title && <span className="mt-1 block text-[0.7rem] text-rose-600 dark:text-rose-400">{errors.title}</span>}
+                  </label>
                 </div>
-                <div className="space-y-1.5 pl-2">
-                  {group.clubs.map((club, ci) => (
-                    <div key={ci} className="flex items-center gap-2">
-                      <input
-                        type="text"
-                        value={club.name}
-                        onChange={(e) => {
-                          const next = [...(form.options.partner_academies ?? [])]
-                          const clubs = [...next[gi].clubs]
-                          clubs[ci] = { ...clubs[ci], name: e.target.value }
-                          next[gi] = { ...next[gi], clubs }
-                          setOpt('partner_academies', next)
-                        }}
-                        placeholder="Nom du club"
-                        className={INPUT_BASE}
-                        maxLength={100}
-                      />
-                      <input
-                        type="url"
-                        value={club.logo_url ?? ''}
-                        onChange={(e) => {
-                          const next = [...(form.options.partner_academies ?? [])]
-                          const clubs = [...next[gi].clubs]
-                          clubs[ci] = { ...clubs[ci], logo_url: e.target.value || null }
-                          next[gi] = { ...next[gi], clubs }
-                          setOpt('partner_academies', next)
-                        }}
-                        placeholder="URL du logo"
-                        className={INPUT_BASE}
-                        maxLength={500}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const next = [...(form.options.partner_academies ?? [])]
-                          const clubs = [...next[gi].clubs]
-                          clubs.splice(ci, 1)
-                          next[gi] = { ...next[gi], clubs }
-                          setOpt('partner_academies', next)
-                        }}
-                        className="text-rose-700 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-500/15 rounded-md p-1.5 transition"
-                        aria-label="Supprimer ce club"
-                      >
-                        <Trash size={12} weight="bold" />
-                      </button>
+              </Section>
+
+              {/* FICHE EXTERNE */}
+              <Section title="Fiche externe" hint="image ou PDF prêt à l’emploi" action={hasExternalAsset && (
+                <button type="button" onClick={onClearAsset} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[0.7rem] font-medium text-rose-700 hover:bg-rose-100 dark:text-rose-400 dark:hover:bg-rose-500/15 transition">
+                  <Trash size={12} weight="bold" /> Retirer la fiche
+                </button>
+              )}>
+                {hasExternalAsset ? (
+                  <div className="rounded-xl border border-turf-700/40 dark:border-turf-300/30 bg-turf-50/60 dark:bg-turf-950/20 px-4 py-3 text-sm flex items-center gap-3">
+                    <div className="grid place-items-center w-9 h-9 rounded-lg bg-turf-700 text-white">
+                      {existing?.external_asset_type === 'pdf' ? <FileArrowUp size={16} weight="bold" /> : <ImageIcon size={16} weight="bold" />}
                     </div>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const next = [...(form.options.partner_academies ?? [])]
-                      next[gi] = { ...next[gi], clubs: [...next[gi].clubs, { name: '', logo_url: null }] }
-                      setOpt('partner_academies', next)
-                    }}
-                    className="inline-flex items-center gap-1 text-[0.7rem] font-medium text-turf-700 dark:text-turf-300 hover:underline"
-                  >
-                    <Plus size={12} weight="bold" /> Ajouter un club
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-        </>)}
+                    <div className="min-w-0 flex-1">
+                      <div className="font-medium text-zinc-900 dark:text-stone-100 truncate">{existing?.external_asset_original_name ?? 'Fiche attachée'}</div>
+                      <div className="text-[0.7rem] text-zinc-600 dark:text-stone-400">Cette fiche remplace le rendu automatique : les réglages de composition sont masqués.</div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="rounded-xl border border-dashed border-stone-300 dark:border-stone-50/15 bg-white/60 dark:bg-zinc-900/40 px-4 py-4 text-sm">
+                    <p className="text-zinc-600 dark:text-stone-400 leading-relaxed mb-3">
+                      Uploadez une fiche déjà conçue (PNG, JPG ou PDF) pour la servir telle quelle aux clubs.
+                    </p>
+                    <label className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-turf-700 text-white text-sm font-medium hover:bg-turf-800 transition cursor-pointer">
+                      <FileArrowUp size={14} weight="bold" />
+                      {uploadingAsset ? 'Upload en cours…' : 'Choisir un fichier'}
+                      <input ref={assetInputRef} type="file" accept="image/png,image/jpeg,image/webp,application/pdf" onChange={onUploadAsset} disabled={uploadingAsset} className="hidden" />
+                    </label>
+                    <div className="mt-2 text-[0.65rem] text-zinc-500 dark:text-stone-500">
+                      Max 12 Mo. Une image est placée sur une page A4 (ratio préservé). Un PDF doit faire exactement 1 page A4 portrait.
+                    </div>
+                  </div>
+                )}
+              </Section>
 
-        {/* PUBLICATION */}
-        <section className="space-y-3">
-          <h3 className="font-mono uppercase tracking-[0.18em] text-[0.7rem] text-zinc-500 dark:text-stone-400">Diffusion</h3>
-          <label className="inline-flex items-center gap-2 cursor-pointer text-sm">
-            <input
-              type="checkbox"
-              checked={form.is_published}
-              onChange={(e) => setForm((f) => ({ ...f, is_published: e.target.checked }))}
-              className="h-4 w-4 rounded border-stone-300 text-turf-700 focus:ring-turf-500"
-            />
-            <span className="text-zinc-700 dark:text-stone-300">
-              Publier sur la fiche publique du joueur (sinon, conservé en interne uniquement)
-            </span>
-          </label>
-          {existing?.is_published && existing.public_token && (() => {
-            const publicUrl = `${window.location.origin}/p/${existing.public_token}`
-            const copyLink = async () => {
-              try {
-                if (navigator.clipboard?.writeText) {
-                  await navigator.clipboard.writeText(publicUrl)
-                } else {
-                  const ta = document.createElement('textarea')
-                  ta.value = publicUrl
-                  ta.style.position = 'fixed'; ta.style.opacity = '0'
-                  document.body.appendChild(ta); ta.select()
-                  document.execCommand('copy')
-                  document.body.removeChild(ta)
-                }
-                showToast('success', 'Lien public copié.')
-              } catch {
-                showToast('error', 'Impossible de copier le lien.')
-              }
-            }
-            return (
-              <div className="space-y-2">
-                <div className="text-[0.65rem] font-mono uppercase tracking-[0.14em] text-zinc-500 dark:text-stone-400">
-                  Lien à envoyer au club
-                </div>
-                <div className="flex items-center gap-2 rounded-lg border border-stone-300 dark:border-stone-50/15 bg-white dark:bg-zinc-900 px-3 py-2">
-                  <span className="flex-1 text-xs font-mono truncate text-zinc-700 dark:text-stone-300" title={publicUrl}>
-                    {publicUrl}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={copyLink}
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-turf-700 text-white hover:bg-turf-800 transition"
-                    title="Copier le lien"
-                  >
-                    <Copy size={12} weight="bold" /> Copier
-                  </button>
-                  <a
-                    href={`/p/${existing.public_token}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border border-stone-300 dark:border-stone-50/15 hover:bg-stone-100 dark:hover:bg-stone-50/5 transition"
-                    title="Ouvrir dans un nouvel onglet"
-                  >
-                    <Eye size={12} weight="bold" /> Voir
-                  </a>
-                </div>
-                <p className="text-[0.65rem] text-zinc-500 dark:text-stone-500">
-                  Le club atterrit sur une page brandée Rene Football avec le PDF intégré + bouton de téléchargement.
-                </p>
-              </div>
-            )
-          })()}
-        </section>
+              {!hasExternalAsset && (<>
+                {/* COMPOSITION */}
+                <Section title="Composition" hint="la mise en page de la fiche">
+                  <div className="grid sm:grid-cols-3 gap-4">
+                    {premiumCompositions.map((c) => (
+                      <ChoiceCard key={c.key} active={compositionKey === c.key} onClick={() => setOpt('composition', c.key)}>
+                        <div className="aspect-[60/84] rounded-lg overflow-hidden bg-stone-100 dark:bg-zinc-950 mb-3" dangerouslySetInnerHTML={{ __html: c.thumbnail }} />
+                        <div className="font-display font-semibold text-sm text-zinc-950 dark:text-stone-50">{c.label}</div>
+                        <p className="mt-1 text-xs text-zinc-600 dark:text-stone-400 leading-relaxed">{c.description}</p>
+                      </ChoiceCard>
+                    ))}
+                  </div>
+                  {legacyComposition && compositionKey === 'classic' && (
+                    <div className="rounded-xl border border-amber-300 bg-amber-50 dark:border-amber-500/30 dark:bg-amber-500/10 px-4 py-3 text-xs text-amber-900 dark:text-amber-200 leading-relaxed">
+                      Cette fiche utilise l’ancienne mise en page « {legacyComposition.label} ». Choisissez une composition ci-dessus
+                      pour profiter de l’adaptation automatique à une page, des traductions et du cadrage photo.
+                    </div>
+                  )}
+                </Section>
 
-        {/* SAVE BAR */}
-        <div className="sticky bottom-0 -mx-6 lg:-mx-10 px-6 lg:px-10 py-4 bg-stone-50/95 dark:bg-zinc-950/95 backdrop-blur border-t border-stone-200 dark:border-stone-50/10 flex items-center justify-end gap-2">
-          <button
-            type="button"
-            onClick={() => navigate('/admin/presentations')}
-            className="px-4 py-2 rounded-lg text-sm font-medium text-zinc-700 hover:bg-stone-100 dark:text-stone-300 dark:hover:bg-stone-50/10 transition"
-          >
-            Annuler
-          </button>
-          <button
-            type="button"
-            onClick={onPreview}
-            disabled={saving}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border border-stone-300 dark:border-stone-50/15 bg-white dark:bg-zinc-900 hover:bg-stone-100 dark:hover:bg-stone-50/5 transition disabled:opacity-60"
-          >
-            <Eye size={14} weight="bold" />
-            Aperçu PDF
-          </button>
-          <button
-            type="submit"
-            disabled={saving}
-            className="btn btn-primary text-sm disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            {saving ? 'Enregistrement…' : (creating ? 'Créer la présentation' : 'Enregistrer')}
-          </button>
-        </div>
-      </form>
+                {/* BIO */}
+                {(() => {
+                  const bioLen = form.player_bio.length
+                  const bioMax = 600
+                  const tier: 'ok' | 'warn' = bioLen <= 380 ? 'ok' : 'warn'
+                  return (
+                    <Section title="Bio scout" hint="enregistrée sur la fiche joueur au clic sur « Enregistrer »">
+                      <textarea
+                        value={form.player_bio}
+                        onChange={(e) => setForm((f) => ({ ...f, player_bio: e.target.value.slice(0, bioMax) }))}
+                        placeholder={selectedPlayer ? 'Résumé scout du joueur : style, forces, projection.' : 'Choisissez d’abord un joueur pour éditer sa bio.'}
+                        disabled={!selectedPlayer}
+                        rows={5}
+                        className={`${INPUT_BASE} resize-y leading-relaxed disabled:opacity-60 disabled:cursor-not-allowed`}
+                        maxLength={bioMax}
+                      />
+                      <div className="flex items-center justify-between text-[0.65rem]">
+                        <span className={tier === 'ok' ? 'text-zinc-500 dark:text-stone-500' : 'text-amber-700 dark:text-amber-400'}>
+                          {bioDirty
+                            ? 'Modification visible dans l’aperçu, pas encore enregistrée sur la fiche joueur.'
+                            : tier === 'ok' ? 'En phase avec la fiche joueur.' : 'Bio longue : la fiche passera en mise en page plus dense, voire la résumera.'}
+                        </span>
+                        <span className="tabular-nums font-mono text-zinc-500 dark:text-stone-500">{bioLen}/{bioMax}</span>
+                      </div>
+                    </Section>
+                  )
+                })()}
+
+                {/* STYLE */}
+                <Section title="Style">
+                  {has('theme') && (
+                    <div className="space-y-2">
+                      <SubLabel>Thème</SubLabel>
+                      <div className="grid grid-cols-5 gap-2">
+                        {themes.map((t) => {
+                          const active = eff('theme') === t.key
+                          return (
+                            <button key={t.key} type="button" onClick={() => setOpt('theme', t.key)}
+                              className={`rounded-lg border p-2 text-center transition ${active ? 'border-turf-700 dark:border-turf-300 ring-2 ring-turf-700/20 dark:ring-turf-300/20 bg-white dark:bg-zinc-900' : 'border-stone-200 dark:border-stone-50/10 bg-white/60 dark:bg-zinc-900/40 hover:border-stone-400 dark:hover:border-stone-50/25'}`}>
+                              <div className="w-full h-6 rounded flex overflow-hidden">
+                                <span className="flex-[3]" style={{ background: t.bg }} />
+                                <span className="flex-[2]" style={{ background: t.accent }} />
+                              </div>
+                              <div className="mt-1 text-[0.65rem] font-medium text-zinc-800 dark:text-stone-200">{t.label}</div>
+                            </button>
+                          )
+                        })}
+                      </div>
+                      {eff('theme') === 'custom' && (
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
+                          {(['background_color', 'accent_color', 'secondary_color', 'text_color'] as const).map((k) => (
+                            <label key={k} className="block">
+                              <FieldLabel>{{ accent_color: 'Accent', secondary_color: 'Secondaire', text_color: 'Texte', background_color: 'Fond' }[k]}</FieldLabel>
+                              <div className="flex items-center gap-2">
+                                <input type="color" value={form.options[k] ?? '#000000'} onChange={(e) => setOpt(k, e.target.value)}
+                                  className="h-9 w-12 rounded cursor-pointer border border-stone-300 dark:border-stone-50/15 bg-white dark:bg-zinc-900" />
+                                <input type="text" value={form.options[k] ?? ''} onChange={(e) => setOpt(k, e.target.value)} className={`${INPUT_BASE} font-mono`} maxLength={9} />
+                              </div>
+                            </label>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="flex flex-wrap gap-x-8 gap-y-4">
+                    {has('photo_side') && (
+                      <div className="space-y-2">
+                        <SubLabel>Côté de la photo</SubLabel>
+                        <Segmented value={eff('photo_side') ?? 'right'} onChange={(v) => setOpt('photo_side', v)}
+                          options={[{ value: 'left', label: 'Gauche' }, { value: 'right', label: 'Droite' }]} />
+                      </div>
+                    )}
+                    {has('watermark') && (
+                      <label className="inline-flex items-center gap-2 cursor-pointer text-sm self-end pb-1">
+                        <input type="checkbox" checked={eff('show_watermark') !== false} onChange={(e) => setOpt('show_watermark', e.target.checked)}
+                          className="h-4 w-4 rounded border-stone-300 text-turf-700 focus:ring-turf-500" />
+                        <span className="text-zinc-700 dark:text-stone-300">Monogramme « RF » en filigrane</span>
+                      </label>
+                    )}
+                  </div>
+
+                  {(has('typography') || has('font_family')) && (
+                    <div className="space-y-2">
+                      <SubLabel>Typographie</SubLabel>
+                      <div className="grid sm:grid-cols-3 gap-3">
+                        {FONT_FAMILIES.map((f) => (
+                          <ChoiceCard key={f.value} active={eff('font_family') === f.value} onClick={() => setOpt('font_family', f.value)}>
+                            <div className="text-[22px] leading-none text-zinc-950 dark:text-stone-50" style={f.style}>Aa</div>
+                            <div className="mt-2 font-display font-semibold text-sm text-zinc-950 dark:text-stone-50">{f.label}</div>
+                            <div className="text-[0.65rem] text-zinc-500 dark:text-stone-500 leading-relaxed mt-1">{f.hint}</div>
+                          </ChoiceCard>
+                        ))}
+                      </div>
+                      {has('typography') && (
+                        <div className="pt-1">
+                          <SubLabel>Taille du texte</SubLabel>
+                          <Segmented value={eff('font_scale') ?? 'normal'} onChange={(v) => setOpt('font_scale', v)}
+                            options={[{ value: 'small', label: 'Compact' }, { value: 'normal', label: 'Normal' }, { value: 'large', label: 'Confort' }]} />
+                          <p className="mt-1 text-[0.65rem] text-zinc-500 dark:text-stone-500">Le texte courant ne descend jamais sous 9 pt, même en mise en page dense.</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {has('language') ? (
+                    <div className="space-y-2">
+                      <SubLabel>Langue de la fiche <span className="normal-case tracking-normal font-sans text-zinc-400">(libellés ; vos textes restent tels que saisis)</span></SubLabel>
+                      <Segmented value={lang} onChange={(v) => setOpt('language', v)}
+                        options={[{ value: 'fr', label: 'Français' }, { value: 'en', label: 'English' }, { value: 'de', label: 'Deutsch' }, { value: 'nl', label: 'Nederlands' }]} />
+                    </div>
+                  ) : (
+                    <p className="text-[0.7rem] text-zinc-500 dark:text-stone-500">Mise en page historique : libellés en français uniquement.</p>
+                  )}
+                </Section>
+
+                {/* CONTENU */}
+                {(has('middle_variant') || has('stats') || has('heatmap') || has('bars')) && (
+                  <Section title="Contenu">
+                    {has('middle_variant') && (
+                      <div className="space-y-2">
+                        <SubLabel>Colonnes centrales</SubLabel>
+                        <div className="grid sm:grid-cols-2 gap-2">
+                          {MIDDLE_VARIANTS.map((v) => (
+                            <ChoiceCard key={v.value} active={eff('middle_variant') === v.value} onClick={() => setOpt('middle_variant', v.value)} compact>
+                              <div className="font-medium text-sm text-zinc-900 dark:text-stone-100">{v.label}</div>
+                              <div className="text-[0.65rem] text-zinc-500 dark:text-stone-500">{v.hint}</div>
+                            </ChoiceCard>
+                          ))}
+                        </div>
+                        <p className="text-[0.65rem] text-zinc-500 dark:text-stone-500">Un bloc sans données est remplacé automatiquement par le suivant disponible.</p>
+                      </div>
+                    )}
+
+                    {has('stats') && (
+                      <div className="space-y-2">
+                        <SubLabel>Statistiques mises en avant <span className="normal-case tracking-normal font-sans text-zinc-400">(max 4)</span></SubLabel>
+                        <div className="flex flex-wrap gap-2">
+                          {statCatalogue.map((s) => {
+                            const active = (form.options.selected_stats ?? []).includes(s.key)
+                            return (
+                              <button key={s.key} type="button" onClick={() => toggleStat(s.key)}
+                                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition ${active ? 'bg-turf-800 text-stone-50 dark:bg-turf-300 dark:text-zinc-950' : 'bg-stone-200/70 text-zinc-700 hover:bg-stone-300/70 dark:bg-stone-50/10 dark:text-stone-300 dark:hover:bg-stone-50/15'}`}>
+                                {active && <CheckCircle size={12} weight="bold" />}
+                                {s.label}
+                              </button>
+                            )
+                          })}
+                        </div>
+                        <p className="text-[0.65rem] text-zinc-500 dark:text-stone-500">
+                          Affichées uniquement si le joueur a des statistiques réelles (source renseignée ou matchs joués). Aucune valeur n’est inventée.
+                        </p>
+                      </div>
+                    )}
+
+                    {has('heatmap') && (
+                      <label className="inline-flex items-center gap-2 cursor-pointer text-sm">
+                        <input type="checkbox" checked={eff('show_heatmap') !== false} onChange={(e) => setOpt('show_heatmap', e.target.checked)}
+                          className="h-4 w-4 rounded border-stone-300 text-turf-700 focus:ring-turf-500" />
+                        <span className="text-zinc-700 dark:text-stone-300">Zones d’influence (heatmap du joueur, si renseignée)</span>
+                      </label>
+                    )}
+
+                    {has('bars') && (
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <SubLabel>Barres de profil <span className="normal-case tracking-normal font-sans text-zinc-400">(ex. Vitesse 90 %)</span></SubLabel>
+                          <AddButton onClick={() => setOpt('player_profile_bars', [...(form.options.player_profile_bars ?? []), { label: '', pct: 50 }])}>Ajouter une barre</AddButton>
+                        </div>
+                        {(form.options.player_profile_bars ?? []).map((bar, bi) => (
+                          <div key={bi} className="flex items-center gap-2">
+                            <input type="text" value={bar.label} placeholder="Libellé (ex. Vitesse)" className={INPUT_BASE} maxLength={40}
+                              onChange={(e) => { const next = [...(form.options.player_profile_bars ?? [])]; next[bi] = { ...next[bi], label: e.target.value }; setOpt('player_profile_bars', next) }} />
+                            <input type="number" min={0} max={100} value={bar.pct} className={`${INPUT_BASE} w-20 tabular-nums`}
+                              onChange={(e) => { const next = [...(form.options.player_profile_bars ?? [])]; next[bi] = { ...next[bi], pct: Math.max(0, Math.min(100, Number(e.target.value) || 0)) }; setOpt('player_profile_bars', next) }} />
+                            <RemoveButton onClick={() => { const next = [...(form.options.player_profile_bars ?? [])]; next.splice(bi, 1); setOpt('player_profile_bars', next) }} />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </Section>
+                )}
+
+                {/* PHOTO */}
+                <Section title="Photo">
+                  <Segmented value={eff('photo_source') ?? 'player'} onChange={(v) => setOpt('photo_source', v)}
+                    options={[{ value: 'player', label: 'Photo du joueur' }, { value: 'custom', label: 'Photo personnalisée' }]} />
+                  {eff('photo_source') !== 'custom' && selectedPlayer && (
+                    <div className="flex items-start gap-3 text-xs text-zinc-600 dark:text-stone-400">
+                      <Thumb src={selectedPlayer.photo_url} />
+                      {selectedPlayer.photo_url ? (
+                        <div className="flex-1 pt-1">
+                          Utilise la photo de la fiche joueur.{' '}
+                          <a href={`/admin/joueurs/${selectedPlayer.slug}/edit`} className="underline hover:text-zinc-900 dark:hover:text-stone-100">Modifier sur la fiche joueur</a>.
+                        </div>
+                      ) : (
+                        <div className="flex-1 space-y-2">
+                          <p className="text-zinc-700 dark:text-stone-300 leading-relaxed">
+                            <span className="font-medium">Ce joueur n’a pas encore de photo.</span> L’ajouter ici l’enregistre sur sa fiche (visible aussi sur son profil public).
+                          </p>
+                          <label className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium bg-turf-700 text-white hover:bg-turf-800 cursor-pointer transition">
+                            <ImageIcon size={13} weight="bold" />
+                            <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={onUploadPlayerPhoto} disabled={uploadingPlayerPhoto} />
+                            {uploadingPlayerPhoto ? 'Upload en cours…' : 'Ajouter une photo sur la fiche joueur'}
+                          </label>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {eff('photo_source') === 'custom' && (
+                    <div className="flex items-start gap-3">
+                      <Thumb src={form.options.custom_photo_url ?? null} />
+                      <div className="flex-1 space-y-2">
+                        <label className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium border border-stone-300 dark:border-stone-50/15 bg-white dark:bg-zinc-900/40 hover:bg-stone-100 dark:hover:bg-stone-50/5 cursor-pointer transition">
+                          <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={onUploadPhoto} disabled={uploadingPhoto} />
+                          {uploadingPhoto ? 'Upload…' : 'Choisir une photo…'}
+                        </label>
+                        {form.options.custom_photo_url && (
+                          <button type="button" onClick={() => setOpt('custom_photo_url', null)} className="block text-[0.7rem] text-zinc-500 hover:text-rose-700 dark:text-stone-400 dark:hover:text-rose-400 transition">
+                            Retirer la photo
+                          </button>
+                        )}
+                        <p className="text-[0.65rem] text-zinc-500 dark:text-stone-500">JPG / PNG / WebP, 6 Mo max. Un PNG détouré (fond transparent) passe devant le nom.</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {has('photo_framing') && (
+                    <div className="pt-3 border-t border-stone-200/70 dark:border-stone-50/10 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <SubLabel>Cadrage</SubLabel>
+                        <button type="button" className="text-[0.65rem] font-medium text-zinc-500 hover:text-zinc-900 dark:text-stone-400 dark:hover:text-stone-100 transition"
+                          onClick={() => setForm((f) => ({ ...f, options: { ...f.options, photo_fit: undefined, photo_zoom: undefined, photo_position_x: undefined, photo_position_y: undefined } }))}>
+                          Réinitialiser
+                        </button>
+                      </div>
+                      <Segmented value={eff('photo_fit') ?? 'cover'} onChange={(v) => setOpt('photo_fit', v)}
+                        options={[{ value: 'cover', label: 'Remplir le cadre' }, { value: 'contain', label: 'Photo entière' }]} />
+                      {([
+                        { key: 'photo_zoom', label: 'Zoom', min: 100, max: 250, step: 5 },
+                        { key: 'photo_position_x', label: 'Point focal horizontal', min: 0, max: 100, step: 1 },
+                        { key: 'photo_position_y', label: 'Point focal vertical', min: 0, max: 100, step: 1 },
+                      ] as const).map((s) => {
+                        const value = Number(eff(s.key) ?? (s.key === 'photo_zoom' ? 100 : 50))
+                        return (
+                          <label key={s.key} className="block">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-[0.65rem] font-mono uppercase tracking-[0.14em] text-zinc-500 dark:text-stone-400">{s.label}</span>
+                              <span className="text-[0.7rem] font-mono tabular-nums text-zinc-700 dark:text-stone-300">{value}%</span>
+                            </div>
+                            <input type="range" min={s.min} max={s.max} step={s.step} value={value} onChange={(e) => setOpt(s.key, Number(e.target.value))}
+                              className="w-full accent-turf-700 dark:accent-turf-300" />
+                          </label>
+                        )
+                      })}
+                      <p className="text-[0.65rem] text-zinc-500 dark:text-stone-500">Le recadrage est appliqué à l’image elle-même : le PDF reprend exactement ce cadrage, sans déformation.</p>
+                    </div>
+                  )}
+                </Section>
+
+                {/* TEXTES DE MARQUE */}
+                <Section title="Textes de marque">
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    {has('tagline') && <TextField label="Accroche sous le logo" value={form.options.tagline ?? ''} placeholder={String(composition?.defaults.tagline ?? '')} max={200} onChange={(v) => setOpt('tagline', v || null)} />}
+                    {has('header_motto') && <TextField label="Devise d’en-tête" value={form.options.header_motto ?? ''} placeholder="ex. Respect · Ambition · Excellence" max={120} onChange={(v) => setOpt('header_motto', v || null)} />}
+                    {has('motto') && <TextField label="Motto (bandeau du bas)" value={form.options.motto ?? ''} placeholder="DISCIPLINE • WORK • PASSION" max={120} onChange={(v) => setOpt('motto', v || null)} />}
+                    {has('slogan') && <TextField label="Slogan cursif" value={form.options.slogan_cursive ?? ''} placeholder="Notre vision, ton avenir." max={160} onChange={(v) => setOpt('slogan_cursive', v || null)} />}
+                  </div>
+                </Section>
+
+                {/* PROJET SPORTIF */}
+                {has('project') && (
+                  <Section title="Projet sportif" hint="intro, superviseur, partenaire, académies ciblées">
+                    <label className="block">
+                      <FieldLabel>Introduction du projet</FieldLabel>
+                      <textarea value={form.options.projet_intro ?? ''} onChange={(e) => setOpt('projet_intro', e.target.value || null)} rows={3} maxLength={600}
+                        placeholder="ex. Représenté par RENEFOOTBALL en collaboration avec…" className={`${INPUT_BASE} resize-y leading-relaxed`} />
+                    </label>
+                    {([['supervised_by', 'Supervisé par'], ['partner_agency', 'En collaboration avec']] as const).map(([k, title]) => (
+                      <div key={k} className="space-y-2">
+                        <SubLabel>{title}</SubLabel>
+                        <div className="grid sm:grid-cols-2 gap-2">
+                          <input type="text" value={form.options[k]?.name ?? ''} onChange={(e) => setOrg(k, { name: e.target.value || null })} placeholder="Nom" className={INPUT_BASE} maxLength={120} />
+                          <input type="url" value={form.options[k]?.logo_url ?? ''} onChange={(e) => setOrg(k, { logo_url: e.target.value || null })} placeholder="URL du logo" className={INPUT_BASE} maxLength={500} />
+                          <input type="text" value={form.options[k]?.country ?? ''} onChange={(e) => setOrg(k, { country: e.target.value || null })} placeholder="Pays" className={INPUT_BASE} maxLength={80} />
+                          <input type="text" value={form.options[k]?.country_code ?? ''} onChange={(e) => setOrg(k, { country_code: e.target.value || null })} placeholder="Code pays (gb, fr…)" className={INPUT_BASE} maxLength={6} />
+                        </div>
+                        <input type="text" value={form.options[k]?.description ?? ''} onChange={(e) => setOrg(k, { description: e.target.value || null })} placeholder="Description courte (optionnelle)" className={INPUT_BASE} maxLength={300} />
+                      </div>
+                    ))}
+
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <SubLabel>Académies ciblées</SubLabel>
+                        <AddButton onClick={() => setOpt('partner_academies', [...(form.options.partner_academies ?? []), { country: '', country_code: null, clubs: [] }])}>Ajouter un pays</AddButton>
+                      </div>
+                      {(form.options.partner_academies ?? []).length === 0 && <p className="text-[0.7rem] text-zinc-500 dark:text-stone-500">Aucun pays configuré.</p>}
+                      {(form.options.partner_academies ?? []).map((group, gi) => {
+                        const update = (patch: Partial<typeof group>) => {
+                          const next = [...(form.options.partner_academies ?? [])]
+                          next[gi] = { ...next[gi], ...patch }
+                          setOpt('partner_academies', next)
+                        }
+                        return (
+                          <div key={gi} className="rounded-lg border border-stone-200 dark:border-stone-50/10 bg-white/60 dark:bg-zinc-900/40 p-3 space-y-2">
+                            <div className="flex items-center gap-2">
+                              <input type="text" value={group.country} onChange={(e) => update({ country: e.target.value })} placeholder="Pays (ex. Angleterre)" className={INPUT_BASE} maxLength={80} />
+                              <input type="text" value={group.country_code ?? ''} onChange={(e) => update({ country_code: e.target.value || null })} placeholder="Code (gb)" className={`${INPUT_BASE} w-28`} maxLength={6} />
+                              <RemoveButton onClick={() => { const next = [...(form.options.partner_academies ?? [])]; next.splice(gi, 1); setOpt('partner_academies', next) }} />
+                            </div>
+                            <div className="space-y-1.5 pl-2">
+                              {group.clubs.map((club, ci) => (
+                                <div key={ci} className="flex items-center gap-2">
+                                  <input type="text" value={club.name} placeholder="Nom du club" className={INPUT_BASE} maxLength={100}
+                                    onChange={(e) => { const clubs = [...group.clubs]; clubs[ci] = { ...clubs[ci], name: e.target.value }; update({ clubs }) }} />
+                                  <input type="url" value={club.logo_url ?? ''} placeholder="URL du logo" className={INPUT_BASE} maxLength={500}
+                                    onChange={(e) => { const clubs = [...group.clubs]; clubs[ci] = { ...clubs[ci], logo_url: e.target.value || null }; update({ clubs }) }} />
+                                  <RemoveButton onClick={() => { const clubs = [...group.clubs]; clubs.splice(ci, 1); update({ clubs }) }} />
+                                </div>
+                              ))}
+                              <AddButton onClick={() => update({ clubs: [...group.clubs, { name: '', logo_url: null }] })}>Ajouter un club</AddButton>
+                            </div>
+                          </div>
+                        )
+                      })}
+                      <p className="text-[0.65rem] text-zinc-500 dark:text-stone-500">
+                        La liste complète reste enregistrée. Si elle ne tient pas lisiblement sur la page, le PDF en affiche une sélection avec « +N » (voir le rapport sous l’aperçu).
+                      </p>
+                    </div>
+                  </Section>
+                )}
+
+                {/* QR */}
+                {has('qr') && (
+                  <Section title="QR code" hint="généré localement, affiché seulement si une adresse existe">
+                    <label className="block">
+                      <FieldLabel>Article lié</FieldLabel>
+                      <select value={form.options.article_slug ?? ''} onChange={(e) => setOpt('article_slug', e.target.value || null)} className={INPUT_BASE}>
+                        <option value="">Aucun article</option>
+                        {articles.filter((a) => a.is_published).map((a) => <option key={a.id} value={a.slug}>{a.title}</option>)}
+                      </select>
+                    </label>
+                    <TextField label="Vidéo YouTube" type="url" value={form.options.youtube_url ?? ''} placeholder="https://youtube.com/watch?v=…" max={500} onChange={(v) => setOpt('youtube_url', v || null)} error={errors['options.youtube_url']} />
+                    <TextField label="URL personnalisée (prioritaire)" type="url" value={form.options.qr_custom_url ?? ''} placeholder="https://…" max={500} onChange={(v) => setOpt('qr_custom_url', v || null)} error={errors['options.qr_custom_url']} />
+                    <p className="text-[0.65rem] text-zinc-500 dark:text-stone-500">Priorité : URL personnalisée, puis vidéo YouTube, puis article publié.</p>
+                  </Section>
+                )}
+
+                {/* CONTACT */}
+                {has('contact') && (
+                  <Section title="Contact du pied de page" hint="laisser vide pour masquer une ligne">
+                    <div className="grid sm:grid-cols-3 gap-3">
+                      {(['instagram', 'email', 'phone'] as const).map((k) => (
+                        <TextField key={k} label={{ instagram: 'Instagram', email: 'E-mail', phone: 'Téléphone' }[k]}
+                          value={form.options.contact?.[k] ?? String(composition?.defaults.contact?.[k] ?? '')} max={k === 'email' ? 120 : 80}
+                          onChange={(v) => setForm((f) => ({ ...f, options: { ...f.options, contact: { ...(composition?.defaults.contact ?? {}), ...(f.options.contact ?? {}), [k]: v } } }))} />
+                      ))}
+                    </div>
+                  </Section>
+                )}
+              </>)}
+
+              {/* DIFFUSION */}
+              <Section title="Diffusion">
+                <label className="inline-flex items-center gap-2 cursor-pointer text-sm">
+                  <input type="checkbox" checked={form.is_published} onChange={(e) => setForm((f) => ({ ...f, is_published: e.target.checked }))}
+                    className="h-4 w-4 rounded border-stone-300 text-turf-700 focus:ring-turf-500" />
+                  <span className="text-zinc-700 dark:text-stone-300">Publier sur la fiche publique du joueur (sinon, conservé en interne)</span>
+                </label>
+                {existing?.is_published && existing.public_token && <PublicLink token={existing.public_token} onCopied={(ok) => ok ? toast.success('Lien public copié.') : toast.error('Impossible de copier le lien.')} />}
+              </Section>
+
+              {/* SAVE BAR */}
+              <div className="sticky bottom-0 -mx-6 lg:-mx-10 px-6 lg:px-10 py-4 bg-stone-50/95 dark:bg-zinc-950/95 backdrop-blur border-t border-stone-200 dark:border-stone-50/10 flex items-center justify-end gap-2">
+                <button type="button" onClick={() => navigate('/admin/presentations')}
+                  className="px-4 py-2 rounded-lg text-sm font-medium text-zinc-700 hover:bg-stone-100 dark:text-stone-300 dark:hover:bg-stone-50/10 transition">
+                  Annuler
+                </button>
+                <button type="button" onClick={openPreviewPdf} disabled={!preview?.pdfUrl}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border border-stone-300 dark:border-stone-50/15 bg-white dark:bg-zinc-900 hover:bg-stone-100 dark:hover:bg-stone-50/5 transition disabled:opacity-60">
+                  <Eye size={14} weight="bold" />
+                  Ouvrir l’aperçu PDF
+                </button>
+                <button type="submit" disabled={saving} className="btn btn-primary text-sm disabled:opacity-60 disabled:cursor-not-allowed">
+                  {saving ? 'Génération et vérification…' : (creating && !existing ? 'Créer la présentation' : 'Enregistrer')}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       </div>
 
-      <PdfGenerationOverlay open={generatingPdf} />
+      <PdfGenerationOverlay open={saving} />
+    </div>
+  )
+}
+
+// --------------------------------------------------------------------------- UI bits
+
+function Section({ title, hint, action, children }: { title: string; hint?: string; action?: ReactNode; children: ReactNode }) {
+  return (
+    <section className="space-y-4">
+      <div className="flex items-baseline justify-between gap-3">
+        <h3 className="font-mono uppercase tracking-[0.18em] text-[0.7rem] text-zinc-500 dark:text-stone-400">
+          {title}{hint && <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal"> · {hint}</span>}
+        </h3>
+        {action}
+      </div>
+      {children}
+    </section>
+  )
+}
+
+function FieldLabel({ children }: { children: ReactNode }) {
+  return <span className="block text-[0.65rem] font-mono uppercase tracking-[0.16em] text-zinc-500 dark:text-stone-400 mb-1">{children}</span>
+}
+
+function SubLabel({ children }: { children: ReactNode }) {
+  return <div className="text-[0.65rem] font-mono uppercase tracking-[0.14em] text-zinc-500 dark:text-stone-400">{children}</div>
+}
+
+function ChoiceCard({ active, onClick, compact = false, children }: { active: boolean; onClick: () => void; compact?: boolean; children: ReactNode }) {
+  return (
+    <button type="button" onClick={onClick}
+      className={`text-left rounded-xl border ${compact ? 'p-2.5' : 'p-3'} transition ${active
+        ? 'border-turf-700 dark:border-turf-300 ring-2 ring-turf-700/20 dark:ring-turf-300/20 bg-white dark:bg-zinc-900'
+        : 'border-stone-200 dark:border-stone-50/10 bg-white/60 dark:bg-zinc-900/40 hover:border-stone-400 dark:hover:border-stone-50/25'}`}>
+      {children}
+    </button>
+  )
+}
+
+function Segmented<T extends string>({ value, onChange, options }: { value: T; onChange: (v: T) => void; options: Array<{ value: T; label: string }> }) {
+  return (
+    <div className="inline-flex items-center gap-0.5 rounded-full border border-stone-300 dark:border-stone-50/15 p-0.5 text-xs">
+      {options.map((o) => (
+        <button key={o.value} type="button" onClick={() => onChange(o.value)}
+          className={`px-3 py-1.5 rounded-full font-medium transition ${value === o.value
+            ? 'bg-zinc-950 text-stone-50 dark:bg-stone-50 dark:text-zinc-950'
+            : 'text-zinc-600 hover:text-zinc-900 dark:text-stone-400 dark:hover:text-stone-100'}`}>
+          {o.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+function TextField({ label, value, onChange, placeholder, max, type = 'text', error }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string; max: number; type?: string; error?: string }) {
+  return (
+    <label className="block">
+      <FieldLabel>{label}</FieldLabel>
+      <input type={type} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className={INPUT_BASE} maxLength={max} />
+      {error && <span className="mt-1 block text-[0.7rem] text-rose-600 dark:text-rose-400">{error}</span>}
+    </label>
+  )
+}
+
+function AddButton({ onClick, children }: { onClick: () => void; children: ReactNode }) {
+  return (
+    <button type="button" onClick={onClick} className="inline-flex items-center gap-1 text-[0.7rem] font-medium text-turf-700 dark:text-turf-300 hover:underline">
+      <Plus size={12} weight="bold" /> {children}
+    </button>
+  )
+}
+
+function RemoveButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button type="button" onClick={onClick} aria-label="Supprimer"
+      className="shrink-0 text-rose-700 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-500/15 rounded-md p-1.5 transition">
+      <Trash size={12} weight="bold" />
+    </button>
+  )
+}
+
+function Thumb({ src }: { src: string | null }) {
+  return (
+    <div className="shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-stone-200 dark:bg-stone-50/5 border border-stone-300 dark:border-stone-50/10">
+      {src ? <img src={src} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full grid place-items-center text-zinc-400"><Person size={22} /></div>}
+    </div>
+  )
+}
+
+function PublicLink({ token, onCopied }: { token: string; onCopied: (ok: boolean) => void }) {
+  const publicUrl = `${window.location.origin}/p/${token}`
+  const copy = async () => {
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(publicUrl)
+      } else {
+        const ta = document.createElement('textarea')
+        ta.value = publicUrl
+        ta.style.position = 'fixed'; ta.style.opacity = '0'
+        document.body.appendChild(ta); ta.select()
+        document.execCommand('copy')
+        document.body.removeChild(ta)
+      }
+      onCopied(true)
+    } catch {
+      onCopied(false)
+    }
+  }
+  return (
+    <div className="space-y-2">
+      <SubLabel>Lien à envoyer au club</SubLabel>
+      <div className="flex items-center gap-2 rounded-lg border border-stone-300 dark:border-stone-50/15 bg-white dark:bg-zinc-900 px-3 py-2">
+        <span className="flex-1 text-xs font-mono truncate text-zinc-700 dark:text-stone-300" title={publicUrl}>{publicUrl}</span>
+        <button type="button" onClick={copy} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-turf-700 text-white hover:bg-turf-800 transition">
+          <Copy size={12} weight="bold" /> Copier
+        </button>
+        <a href={`/p/${token}`} target="_blank" rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border border-stone-300 dark:border-stone-50/15 hover:bg-stone-100 dark:hover:bg-stone-50/5 transition">
+          <Eye size={12} weight="bold" /> Voir
+        </a>
+      </div>
+      <p className="text-[0.65rem] text-zinc-500 dark:text-stone-500">Le club arrive sur une page Rene Football avec le PDF intégré et un bouton de téléchargement.</p>
     </div>
   )
 }

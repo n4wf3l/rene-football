@@ -9,11 +9,11 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
 /**
- * Seeds one "Marketing v1" presentation per reference player so the demo
- * roster ships with the exact same fiches the agency uses in production.
- * Options mirror what's visible on each PNG (theme, photo side, motto,
- * partner blocks, academies grid, gallery, etc.) so the generator can
- * reproduce the printed fiches identically.
+ * Seeds one presentation per reference player so the demo roster ships with
+ * the fiches the agency uses in production. Options mirror what's visible on
+ * each reference PNG (theme, photo side, motto, partner blocks, academies…);
+ * each fiche uses the premium composition closest to its original layout
+ * (see FicheCompositions — the historic layout stays available as "classic").
  */
 class MarketingReferencePresentationSeeder extends Seeder
 {
@@ -61,6 +61,7 @@ class MarketingReferencePresentationSeeder extends Seeder
             'zoran-mawel-batomi' => [
                 'title'   => 'Fiche Zoran-Mawel Batomi',
                 'options' => [
+                    'composition'      => 'signature',
                     'theme'            => 'violet',
                     'photo_side'       => 'right',
                     'tagline'          => 'PROPULSEUR DE TALENTS',
@@ -82,6 +83,7 @@ class MarketingReferencePresentationSeeder extends Seeder
             'camara-philan' => [
                 'title'   => 'Fiche Camara Philan',
                 'options' => [
+                    'composition'      => 'career',
                     'theme'          => 'navy',
                     'photo_side'     => 'right',
                     'tagline'        => 'PROPULSEUR DE TALENTS',
@@ -118,6 +120,7 @@ class MarketingReferencePresentationSeeder extends Seeder
             'saeed-adams' => [
                 'title'   => 'Saeed Adams marketing fiche',
                 'options' => [
+                    'composition'      => 'scouting',
                     'theme'          => 'black-gold',
                     'photo_side'     => 'right',
                     'language'       => 'en',
@@ -163,6 +166,7 @@ class MarketingReferencePresentationSeeder extends Seeder
             'destiny-megogo' => [
                 'title'   => 'Fiche Destiny Megogo',
                 'options' => [
+                    'composition'      => 'signature',
                     'theme'          => 'black-gold',
                     'photo_side'     => 'left',
                     'tagline'        => 'AGENCE DE JOUEURS',
@@ -187,6 +191,7 @@ class MarketingReferencePresentationSeeder extends Seeder
             'hanibal-tesfegabir-solomon' => [
                 'title'   => 'Fiche Hanibal Tesfegabir Solomon',
                 'options' => [
+                    'composition'      => 'career',
                     'theme'          => 'black-yellow',
                     'photo_side'     => 'right',
                     'tagline'        => '',

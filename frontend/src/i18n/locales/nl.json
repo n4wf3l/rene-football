@@ -465,6 +465,13 @@
     "sentBy": "Verzonden door {{agent}}",
     "generatedOn": "Gegenereerd op {{date}}",
     "template": "Template {{name}}",
+    "compositions": {
+      "signature": "Signature Editorial",
+      "scouting": "Scouting Intelligence",
+      "career": "Loopbaan & potentieel",
+      "classic": "Marketing v1",
+      "external": "Geüpload document"
+    },
     "confidential": "Vertrouwelijk document · Rene Football",
     "backToSite": "Terug naar de Rene Football-website",
     "gone": "Presentatie niet gevonden",
