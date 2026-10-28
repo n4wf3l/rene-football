@@ -34,7 +34,9 @@ function AdminLogin() {
   const location = useLocation()
   const navigate = useNavigate()
 
-  const [email, setEmail] = useState('admin@rene-football.test')
+  // Demo credentials are a local-dev convenience only: `import.meta.env.DEV`
+  // is false in production builds, so Vite strips them from the bundle.
+  const [email, setEmail] = useState(import.meta.env.DEV ? 'admin@rene-football.test' : '')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -230,7 +232,7 @@ function AdminLogin() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="mt-2 w-full rounded-xl bg-white dark:bg-zinc-900/50 border border-stone-300 dark:border-stone-50/10 px-4 py-3.5 text-[0.95rem] text-zinc-950 dark:text-stone-50 placeholder:text-zinc-400 dark:placeholder:text-stone-500 focus:outline-none focus:ring-2 focus:ring-turf-700/20 focus:border-turf-700 dark:focus:border-turf-300 transition"
-                placeholder="admin@rene-football.test"
+                placeholder="vous@renefootball.com"
               />
             </label>
 
@@ -295,7 +297,8 @@ function AdminLogin() {
             </button>
           </form>
 
-          {/* Demo creds - discreet hint */}
+          {/* Demo creds - local development only, never shipped to production */}
+          {import.meta.env.DEV && (
           <div className="mt-8 rounded-xl border border-dashed border-stone-300 dark:border-stone-50/10 bg-white/60 dark:bg-zinc-900/30 p-4">
             <div className="font-mono uppercase tracking-[0.18em] text-[0.6rem] text-zinc-500 dark:text-stone-500 mb-2">
               Compte de démo
@@ -314,6 +317,7 @@ function AdminLogin() {
               </span>
             </div>
           </div>
+          )}
         </motion.div>
 
         {/* Footer mention */}
