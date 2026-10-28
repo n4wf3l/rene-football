@@ -6,6 +6,8 @@ const apiTarget = process.env.VITE_API_PROXY_TARGET || 'http://127.0.0.1:8000'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  // ES-module workers (pdf.js worker for the presentation preview).
+  worker: { format: 'es' },
   server: {
     proxy: {
       '/api': {
