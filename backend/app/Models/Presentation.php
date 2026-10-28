@@ -21,6 +21,7 @@ class Presentation extends Model
         'is_published',
         'public_token',
         'generated_at',
+        'render_meta',
         'created_by',
     ];
 
@@ -30,6 +31,7 @@ class Presentation extends Model
             'options'      => 'array',
             'is_published' => 'boolean',
             'generated_at' => 'datetime',
+            'render_meta'  => 'array',
         ];
     }
 

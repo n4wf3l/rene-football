@@ -1,8 +1,30 @@
 import type { Player } from './player'
 
-/* Mirrors App\Models\Presentation + App\Services\Presentations\PresentationTemplate. */
+/* Mirrors App\Models\Presentation + App\Services\Presentations\Fiche\FicheCompositions. */
+
+export type FicheCompositionKey = 'signature' | 'scouting' | 'career' | 'classic'
+
+/** Option groups a composition renders (FicheCompositions::supports). The editor
+ *  only shows controls listed here. */
+export type FicheOptionGroup =
+  | 'theme' | 'photo' | 'photo_side' | 'photo_framing' | 'typography' | 'font_family' | 'language'
+  | 'tagline' | 'header_motto' | 'motto' | 'slogan' | 'watermark' | 'contact' | 'qr' | 'project'
+  | 'middle_variant' | 'stats' | 'heatmap' | 'bars'
+
+export type MiddleVariant = 'profile-strengths' | 'profile-caracteristiques' | 'parcours-strengths' | 'profile-bars'
+
+export interface OrgBlock {
+  name?: string | null
+  logo_url?: string | null
+  country?: string | null
+  /** ISO 3166-1 alpha-2 lowercase (e.g. "gb", "fr") — used for the flag. */
+  country_code?: string | null
+  description?: string | null
+}
 
 export interface PresentationOptions {
+  /** Premium layout. Absent on presentations saved before the redesign (= classic). */
+  composition?: FicheCompositionKey
   accent_color?: string
   secondary_color?: string
   text_color?: string
@@ -12,58 +34,42 @@ export interface PresentationOptions {
   show_heatmap?: boolean
   photo_source?: 'player' | 'custom'
   custom_photo_url?: string | null
-  /** How the hero photo fits the frame: contain shows the full photo with letterboxing, cover fills and crops. */
+  /** How the photo fits its frame: contain shows the whole photo, cover fills and crops. */
   photo_fit?: 'contain' | 'cover'
-  /** Zoom percentage applied to the hero photo (100 = base fit, 200 = 2x). */
+  /** Zoom percentage applied to the photo (100 = base fit, 250 max). */
   photo_zoom?: number
   /** Horizontal focal point in % (0 = left edge, 50 = center, 100 = right). */
   photo_position_x?: number
   /** Vertical focal point in % (0 = top, 50 = center, 100 = bottom). */
   photo_position_y?: number
-  /** Optional internal article slug to link to (renders a QR + URL). */
+  /** Internal article slug — QR target (third priority). */
   article_slug?: string | null
-  /** Optional external YouTube URL (dribbles compilation, full match, ...). */
+  /** YouTube URL — QR target (second priority). */
   youtube_url?: string | null
-  /** Free-form URL that overrides the QR target when set (Instagram, Wyscout,
-   *  agency landing page…). Wins over article_slug and youtube_url. */
+  /** Free-form URL — QR target, wins over YouTube and article. */
   qr_custom_url?: string | null
-  /** Free-form list of clubs the player previously played for. */
+  /** Legacy (Stadium template) — kept for stored rows, not rendered. */
   previous_clubs?: Array<{ name: string; logo_url?: string | null }>
-  /** Partner agency block shown as "En collaboration avec". */
-  partner_agency?: {
-    name?: string | null
-    logo_url?: string | null
-    country?: string | null
-    /** ISO 3166-1 alpha-2 lowercase (e.g. "gb", "fr") — used for the flag. */
-    country_code?: string | null
-  } | null
-  /** Partner academies grid, grouped by country. */
+  partner_agency?: OrgBlock | null
+  supervised_by?: OrgBlock | null
   partner_academies?: Array<{
     country: string
+    country_code?: string | null
     clubs: Array<{ name: string; logo_url?: string | null }>
   }>
-  /** Marketing v1 template controls. */
   theme?: 'violet' | 'navy' | 'black-gold' | 'black-yellow' | 'custom'
   photo_side?: 'left' | 'right'
-  /** Motto shown in the marketing footer (e.g. "DISCIPLINE • WORK • PASSION"). */
   motto?: string | null
-  /** Cursive slogan overlaid on the marketing fiche footer. */
   slogan_cursive?: string | null
-  /** "Supervisé par" block (Fiche Destiny — supervising agency). */
-  supervised_by?: {
-    name?: string | null
-    logo_url?: string | null
-    country?: string | null
-    country_code?: string | null
-  } | null
-  /** Player profile percentage bars (Fiche Saeed — Speed 90%, Technique 85%…). */
+  header_motto?: string | null
+  projet_intro?: string | null
+  show_watermark?: boolean
+  middle_variant?: MiddleVariant
+  contact?: { instagram?: string; email?: string; phone?: string }
   player_profile_bars?: Array<{ label: string; pct: number }>
-  /** Font pairing applied to the whole document. */
   font_family?: 'editorial' | 'sans' | 'grotesque'
-  /** Base font-size scale relative to the template default. */
   font_scale?: 'small' | 'normal' | 'large'
-  /** PDF output language. Only affects hard-coded labels; free-form
-   *  fields (title, tagline, bio) are shown as-typed. */
+  /** Document language for the fixed labels of the fiche. */
   language?: 'fr' | 'en' | 'de' | 'nl'
 }
 
@@ -80,10 +86,45 @@ export interface PresentationTemplate {
   thumbnail: string
 }
 
+export interface FicheCompositionInfo {
+  key: FicheCompositionKey
+  label: string
+  description: string
+  legacy: boolean
+  supports: FicheOptionGroup[]
+  defaults: PresentationOptions
+  thumbnail: string
+}
+
+export interface FicheThemeInfo {
+  key: NonNullable<PresentationOptions['theme']>
+  label: string
+  bg: string
+  accent: string
+  secondary: string
+  text: string
+}
+
 export interface PresentationStatChoice {
   key: string
   label: string
   suffix?: string
+}
+
+/** Layout report of a verified render (FicheResult::meta). */
+export interface FicheRenderMeta {
+  engine: string
+  composition: string
+  /** standard | compact | dense | dense+synthèse1 | … | legacy | pdf | image */
+  density: string
+  /** Lists / texts the PDF shows partially: shown out of total. */
+  synthesized: Record<string, { shown: number; total: number }>
+  attempts: number
+  pages: number | null
+  page_size_mm: [number, number] | null
+  free_mm: number
+  render_ms: number
+  verified_at: string
 }
 
 export interface Presentation {
@@ -101,6 +142,7 @@ export interface Presentation {
   is_published: boolean
   public_token: string | null
   generated_at: string | null
+  render_meta?: FicheRenderMeta | null
   created_by: number | null
   created_at?: string
   updated_at?: string

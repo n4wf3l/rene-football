@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Player;
 use App\Models\Presentation;
+use App\Services\Presentations\Fiche\FicheCompositions;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -63,6 +64,9 @@ class PresentationController extends Controller
             'data' => [
                 'title'         => $presentation->title,
                 'template_key'  => $presentation->template_key,
+                'composition'   => $presentation->external_asset_path
+                    ? 'external'
+                    : FicheCompositions::keyFor($presentation->options ?? []),
                 'generated_at'  => $presentation->generated_at,
                 'pdf_url'       => '/api/presentations/'.$presentation->public_token,
                 'player'        => $presentation->player ? [

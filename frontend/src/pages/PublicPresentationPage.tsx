@@ -18,6 +18,8 @@ import { useTranslation } from 'react-i18next'
 interface Meta {
   title: string
   template_key: string
+  /** signature | scouting | career | classic | external */
+  composition?: string
   generated_at: string | null
   pdf_url: string
   player: {
@@ -27,14 +29,6 @@ interface Meta {
     photo_url: string | null
   } | null
   agent: string | null
-}
-
-const TEMPLATE_LABEL: Record<string, string> = {
-  classic:   "Carte d'identité",
-  signature: 'Signature',
-  magazine:  'Magazine',
-  minimal:   'Minimal',
-  stadium:   'Stadium',
 }
 
 function fmtDate(value: string | null, lang = 'fr'): string {
@@ -139,7 +133,9 @@ export default function PublicPresentationPage() {
             </span>
           )}
           {meta.generated_at && <span>· {t('presentation.generatedOn', { date: fmtDate(meta.generated_at, i18n.resolvedLanguage) })}</span>}
-          <span>· {t('presentation.template', { name: TEMPLATE_LABEL[meta.template_key] ?? meta.template_key })}</span>
+          {meta.composition && (
+            <span>· {t('presentation.template', { name: t(`presentation.compositions.${meta.composition}`) })}</span>
+          )}
         </div>
       </motion.header>
 

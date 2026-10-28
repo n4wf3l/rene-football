@@ -151,6 +151,7 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::post('/presentations',                         [AdminPresentationController::class, 'store']);
     Route::post('/presentations/upload-photo',            [AdminPresentationController::class, 'uploadPhoto']);
     Route::post('/presentations/preview-html',            [AdminPresentationController::class, 'previewHtml']);
+    Route::post('/presentations/preview-pdf',             [AdminPresentationController::class, 'previewPdf']);
     Route::get('/presentations/{presentation}',              [AdminPresentationController::class, 'show']);
     Route::get('/presentations/{presentation}/preview',      [AdminPresentationController::class, 'preview']);
     Route::patch('/presentations/{presentation}',            [AdminPresentationController::class, 'update']);

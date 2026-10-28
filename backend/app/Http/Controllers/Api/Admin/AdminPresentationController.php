@@ -6,9 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Models\Article;
 use App\Models\Player;
 use App\Models\Presentation;
+use App\Services\Presentations\Fiche\FicheCompositions;
+use App\Services\Presentations\Fiche\FicheI18n;
+use App\Services\Presentations\Fiche\FicheLayoutException;
+use App\Services\Presentations\Fiche\FicheResult;
+use App\Services\Presentations\Fiche\FicheTheme;
+use App\Services\Presentations\PresentationPdfService;
 use App\Services\Presentations\PresentationTemplate;
 use App\Services\Presentations\PresentationTemplateRegistry;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -17,6 +22,10 @@ use Symfony\Component\HttpFoundation\Response;
 
 class AdminPresentationController extends Controller
 {
+    public function __construct(private readonly PresentationPdfService $pdfs)
+    {
+    }
+
     public function index(): JsonResponse
     {
         $rows = Presentation::query()
@@ -33,7 +42,7 @@ class AdminPresentationController extends Controller
         return response()->json(['data' => $presentation]);
     }
 
-    /** Catalogue exposed to the editor so the UI can render template cards + stat pickers. */
+    /** Catalogue exposed to the editor so the UI can render composition cards + option controls. */
     public function catalogue(Request $request): JsonResponse
     {
         $category = $request->query('category', 'Milieu');
@@ -45,9 +54,15 @@ class AdminPresentationController extends Controller
             ->get(['id', 'slug', 'title', 'category', 'is_published']);
 
         return response()->json([
-            'templates' => PresentationTemplateRegistry::catalogue(),
-            'stats'     => PresentationTemplate::statCatalogue($category, $lang),
-            'articles'  => $articles,
+            'templates'    => PresentationTemplateRegistry::catalogue(),
+            // Premium fiche system: compositions with their defaults and the
+            // option groups they render, plus the theme palettes. The editor
+            // builds its controls from this, never from its own copy.
+            'compositions' => FicheCompositions::catalogue(),
+            'themes'       => FicheTheme::catalogue(),
+            'languages'    => FicheI18n::LANGUAGES,
+            'stats'        => PresentationTemplate::statCatalogue($category, $lang),
+            'articles'     => $articles,
         ]);
     }
 
@@ -55,20 +70,28 @@ class AdminPresentationController extends Controller
     {
         $data = $this->validateData($request);
         $player = Player::findOrFail($data['player_id']);
+        $isPublished = (bool) ($data['is_published'] ?? false);
 
-        $options = $this->normaliseOptions($data['options'] ?? [], $request);
-
-        $presentation = Presentation::create([
+        $presentation = new Presentation([
             'player_id'    => $player->id,
             'template_key' => $this->normaliseTemplateKey($data['template_key']),
             'title'        => $data['title'],
-            'options'      => $options,
-            'is_published' => (bool) ($data['is_published'] ?? false),
-            'public_token' => ! empty($data['is_published']) ? Str::random(40) : null,
+            'options'      => $this->normaliseOptions($data['options'] ?? []),
+            'is_published' => $isPublished,
+            'public_token' => $isPublished ? Str::random(40) : null,
             'created_by'   => $request->user()?->id,
         ]);
 
-        $this->renderAndStorePdf($presentation, $player);
+        // Render and verify first: nothing is saved if the fiche cannot be
+        // produced as exactly one A4 page.
+        try {
+            $result = $this->pdfs->render($presentation, $player);
+        } catch (FicheLayoutException $e) {
+            return $this->layoutError($e);
+        }
+
+        $presentation->save();
+        $this->storePdf($presentation, $player, $result);
 
         return response()->json(['data' => $presentation->fresh(['player', 'author'])], 201);
     }
@@ -78,13 +101,11 @@ class AdminPresentationController extends Controller
         $data = $this->validateData($request, $presentation);
         $player = Player::findOrFail($data['player_id'] ?? $presentation->player_id);
 
-        $options = $this->normaliseOptions($data['options'] ?? $presentation->options ?? [], $request);
-
         $payload = [
             'player_id'    => $player->id,
             'template_key' => $this->normaliseTemplateKey($data['template_key'] ?? $presentation->template_key),
             'title'        => $data['title'] ?? $presentation->title,
-            'options'      => $options,
+            'options'      => $this->normaliseOptions($data['options'] ?? $presentation->options ?? []),
         ];
 
         if (array_key_exists('is_published', $data)) {
@@ -96,8 +117,18 @@ class AdminPresentationController extends Controller
             // same link can be re-published later without breaking shares.
         }
 
-        $presentation->update($payload);
-        $this->renderAndStorePdf($presentation, $player);
+        // Render the edited state before persisting it: a failed layout keeps
+        // the previous options AND the previous valid PDF untouched.
+        $presentation->fill($payload);
+        try {
+            $result = $this->pdfs->render($presentation, $player);
+        } catch (FicheLayoutException $e) {
+            $presentation->refresh();
+            return $this->layoutError($e);
+        }
+
+        $presentation->save();
+        $this->storePdf($presentation, $player, $result);
 
         return response()->json(['data' => $presentation->fresh(['player', 'author'])]);
     }
@@ -115,22 +146,62 @@ class AdminPresentationController extends Controller
     {
         $player = $presentation->player;
         if (! $player) abort(404);
-        $bytes = $this->renderPdfBytes($presentation, $player);
-        return response($bytes, 200, [
+        try {
+            $result = $this->pdfs->render($presentation, $player);
+        } catch (FicheLayoutException $e) {
+            return $this->layoutError($e);
+        }
+        return response($result->pdf, 200, [
             'Content-Type'        => 'application/pdf',
             'Content-Disposition' => 'inline; filename="presentation-'.$player->slug.'-'.$presentation->id.'.pdf"',
         ]);
     }
 
     /**
-     * Renders the current *unsaved* wizard state as browser-safe HTML so
-     * the admin editor can show a live iframe preview that matches the
-     * final DomPDF output pixel-for-pixel.
-     *
-     * DomPDF eats filesystem paths for embedded images, but a browser
-     * iframe won't; we run the raw HTML through a small post-processor
-     * that swaps absolute Windows/UNIX paths back to their public
-     * /storage/* URLs before returning.
+     * Renders the current *unsaved* editor state with the same engine as the
+     * final file and returns the real PDF (base64) plus its layout report. The
+     * editor paints that PDF, so the preview is the document itself.
+     * `overrides.bio` previews an edited bio without writing it to the player.
+     */
+    public function previewPdf(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'player_id'       => ['required', 'integer', 'exists:players,id'],
+            'options'         => ['nullable', 'array'],
+            'overrides'       => ['nullable', 'array'],
+            'overrides.bio'   => ['nullable', 'string', 'max:2000'],
+            'presentation_id' => ['nullable', 'integer', 'exists:player_presentations,id'],
+        ]);
+        $player = Player::findOrFail($validated['player_id']);
+        $presentation = new Presentation([
+            'player_id' => $player->id,
+            'options'   => $this->normaliseOptions($validated['options'] ?? []),
+        ]);
+        // An attached external fiche is what guests get: preview that.
+        if (! empty($validated['presentation_id'])) {
+            $existing = Presentation::find($validated['presentation_id']);
+            $presentation->external_asset_path = $existing?->external_asset_path;
+            $presentation->external_asset_type = $existing?->external_asset_type;
+        }
+        $overrides = array_key_exists('bio', $validated['overrides'] ?? [])
+            ? ['bio' => (string) $validated['overrides']['bio']]
+            : [];
+
+        try {
+            $result = $this->pdfs->render($presentation, $player, $overrides);
+        } catch (FicheLayoutException $e) {
+            return $this->layoutError($e);
+        }
+        return response()->json([
+            'pdf'    => base64_encode($result->pdf),
+            'layout' => $result->meta(),
+        ]);
+    }
+
+    /**
+     * Raw HTML of the unsaved state, kept for API compatibility and layout
+     * inspection. The editor previews the real PDF (previewPdf) instead,
+     * because a browser does not lay out like the PDF engine.
      */
     public function previewHtml(Request $request): JsonResponse
     {
@@ -141,20 +212,20 @@ class AdminPresentationController extends Controller
             'options'      => ['nullable', 'array'],
         ]);
 
-        $player = \App\Models\Player::findOrFail($validated['player_id']);
-        $template = \App\Services\Presentations\PresentationTemplateRegistry::resolve($validated['template_key']);
-        $html = $template->render(
-            $player,
-            $validated['options'] ?? [],
-            $validated['title'] ?? 'Aperçu',
-        );
+        $player = Player::findOrFail($validated['player_id']);
+        try {
+            $html = $this->pdfs->render(new Presentation(['options' => $validated['options'] ?? []]), $player)->html;
+        } catch (FicheLayoutException $e) {
+            return $this->layoutError($e);
+        }
 
-        // Post-process: template.absolutePath() converts /storage/… to
-        // public_path('storage/…') for DomPDF's file loader. Undo it so
-        // the browser fetches via HTTP from the same origin.
-        $publicStorage = str_replace('\\', '/', public_path('storage/'));
-        $normalized = str_replace(['\\'], ['/'], $html);
-        $html = str_replace($publicStorage, '/storage/', $normalized);
+        // DomPDF loads files from disk; map storage paths back to public URLs.
+        $slash = static fn (string $p) => str_replace('\\', '/', $p);
+        $html = str_replace(
+            [$slash(public_path('storage/')), $slash(storage_path('app/public/'))],
+            '/storage/',
+            $slash($html),
+        );
 
         return response()->json(['html' => $html]);
     }
@@ -174,9 +245,9 @@ class AdminPresentationController extends Controller
     }
 
     /**
-     * Uploads a ready-made fiche (PNG/JPG/WebP/PDF) that bypasses the template
-     * generator entirely. The served PDF is either a 1-page A4 wrapper (for
-     * images) or a direct copy (for PDFs) so guests always download a `.pdf`.
+     * Uploads a ready-made fiche (PNG/JPG/WebP/PDF) that bypasses the
+     * generator. Images are wrapped on one A4 page; PDFs are accepted only if
+     * they already are exactly one A4 portrait page.
      */
     public function uploadAsset(Request $request, Presentation $presentation): JsonResponse
     {
@@ -186,22 +257,39 @@ class AdminPresentationController extends Controller
         $player = $presentation->player;
         if (! $player) abort(404);
 
-        $file = $request->file('asset');
-        $ext  = strtolower($file->guessExtension() ?: $file->getClientOriginalExtension() ?: 'bin');
-        $type = $ext === 'pdf' ? 'pdf' : 'image';
+        $file  = $request->file('asset');
+        $ext   = strtolower($file->guessExtension() ?: $file->getClientOriginalExtension() ?: 'bin');
+        $type  = $ext === 'pdf' ? 'pdf' : 'image';
+        $bytes = (string) file_get_contents($file->getRealPath());
+
+        if ($type === 'pdf') {
+            try {
+                $this->pdfs->assertUploadedPdf($bytes);
+            } catch (FicheLayoutException $e) {
+                return $this->layoutError($e);
+            }
+        }
+
         $stored = 'presentations/assets/'.$player->slug.'-'.$presentation->id.'-'.substr(bin2hex(random_bytes(3)), 0, 6).'.'.$ext;
+        Storage::disk('public')->put($stored, $bytes);
+        $previousAsset = $presentation->external_asset_path;
 
-        // Wipe the previous asset before storing the new one.
-        $this->deleteLocal($presentation->external_asset_path);
-        Storage::disk('public')->put($stored, file_get_contents($file->getRealPath()));
-
-        $presentation->update([
+        $presentation->fill([
             'external_asset_path'          => Storage::url($stored),
             'external_asset_type'          => $type,
             'external_asset_original_name' => mb_substr($file->getClientOriginalName() ?: ('fiche.'.$ext), 0, 200),
         ]);
+        try {
+            $result = $this->pdfs->render($presentation, $player);
+        } catch (FicheLayoutException $e) {
+            Storage::disk('public')->delete($stored);
+            $presentation->refresh();
+            return $this->layoutError($e);
+        }
 
-        $this->renderAndStorePdf($presentation->fresh(), $player);
+        $presentation->save();
+        $this->deleteLocal($previousAsset);
+        $this->storePdf($presentation, $player, $result);
 
         return response()->json(['data' => $presentation->fresh(['player', 'author'])]);
     }
@@ -212,14 +300,22 @@ class AdminPresentationController extends Controller
         $player = $presentation->player;
         if (! $player) abort(404);
 
-        $this->deleteLocal($presentation->external_asset_path);
-        $presentation->update([
+        $previousAsset = $presentation->external_asset_path;
+        $presentation->fill([
             'external_asset_path'          => null,
             'external_asset_type'          => null,
             'external_asset_original_name' => null,
         ]);
+        try {
+            $result = $this->pdfs->render($presentation, $player);
+        } catch (FicheLayoutException $e) {
+            $presentation->refresh();
+            return $this->layoutError($e);
+        }
 
-        $this->renderAndStorePdf($presentation->fresh(), $player);
+        $presentation->save();
+        $this->deleteLocal($previousAsset);
+        $this->storePdf($presentation, $player, $result);
 
         return response()->json(['data' => $presentation->fresh(['player', 'author'])]);
     }
@@ -230,8 +326,7 @@ class AdminPresentationController extends Controller
     {
         // Legacy template keys (classic/signature/magazine/minimal/stadium) are
         // silently accepted so historic presentations can still be edited and
-        // saved. They are normalised to `marketing` in normaliseOptions() before
-        // hitting the DB, so re-saving migrates the row to the current schema.
+        // saved. They are normalised to `marketing` before hitting the DB.
         $allowedKeys = array_unique(array_merge(
             PresentationTemplateRegistry::keys(),
             ['classic', 'signature', 'magazine', 'minimal', 'stadium'],
@@ -271,15 +366,16 @@ class AdminPresentationController extends Controller
             'options.partner_agency.name'           => ['nullable', 'string', 'max:120'],
             'options.partner_agency.logo_url'       => ['nullable', 'string', 'max:500'],
             'options.partner_agency.country'        => ['nullable', 'string', 'max:80'],
-            'options.partner_agency.country_code'   => ['nullable', 'string', 'max:4'],
+            'options.partner_agency.country_code'   => ['nullable', 'string', 'max:6'],
+            'options.partner_agency.description'    => ['nullable', 'string', 'max:300'],
             'options.partner_academies'                    => ['nullable', 'array', 'max:8'],
             'options.partner_academies.*'                  => ['array'],
             'options.partner_academies.*.country'          => ['nullable', 'string', 'max:80'],
+            'options.partner_academies.*.country_code'     => ['nullable', 'string', 'max:6'],
             'options.partner_academies.*.clubs'            => ['nullable', 'array', 'max:20'],
             'options.partner_academies.*.clubs.*'          => ['array'],
             'options.partner_academies.*.clubs.*.name'     => ['nullable', 'string', 'max:100'],
             'options.partner_academies.*.clubs.*.logo_url' => ['nullable', 'string', 'max:500'],
-            // Marketing v1 template controls.
             'options.theme'          => ['nullable', 'string', 'in:violet,navy,black-gold,black-yellow,custom'],
             'options.photo_side'     => ['nullable', 'string', 'in:left,right'],
             'options.motto'          => ['nullable', 'string', 'max:120'],
@@ -288,21 +384,33 @@ class AdminPresentationController extends Controller
             'options.supervised_by.name'         => ['nullable', 'string', 'max:120'],
             'options.supervised_by.logo_url'     => ['nullable', 'string', 'max:500'],
             'options.supervised_by.country'      => ['nullable', 'string', 'max:80'],
-            'options.supervised_by.country_code' => ['nullable', 'string', 'max:4'],
+            'options.supervised_by.country_code' => ['nullable', 'string', 'max:6'],
+            'options.supervised_by.description'  => ['nullable', 'string', 'max:300'],
             'options.player_profile_bars'        => ['nullable', 'array', 'max:8'],
             'options.player_profile_bars.*'      => ['array'],
             'options.player_profile_bars.*.label'=> ['nullable', 'string', 'max:40'],
             'options.player_profile_bars.*.pct'  => ['nullable', 'integer', 'min:0', 'max:100'],
+            // Premium fiche system.
+            'options.composition'       => ['nullable', 'string', 'in:'.implode(',', FicheCompositions::keys())],
+            'options.middle_variant'    => ['nullable', 'string', 'in:profile-strengths,profile-caracteristiques,parcours-strengths,profile-bars'],
+            'options.projet_intro'      => ['nullable', 'string', 'max:600'],
+            'options.header_motto'      => ['nullable', 'string', 'max:120'],
+            'options.show_watermark'    => ['nullable', 'boolean'],
+            'options.contact'           => ['nullable', 'array'],
+            'options.contact.instagram' => ['nullable', 'string', 'max:80'],
+            'options.contact.email'     => ['nullable', 'string', 'max:120'],
+            'options.contact.phone'     => ['nullable', 'string', 'max:40'],
         ]);
     }
 
-    private function normaliseOptions(array $opts, Request $request): array
+    private function normaliseOptions(array $opts): array
     {
-        // Cast booleans coming from JSON.
-        if (array_key_exists('show_heatmap', $opts)) {
-            $opts['show_heatmap'] = filter_var($opts['show_heatmap'], FILTER_VALIDATE_BOOLEAN);
+        foreach (['show_heatmap', 'show_watermark'] as $k) {
+            if (array_key_exists($k, $opts)) {
+                $opts[$k] = filter_var($opts[$k], FILTER_VALIDATE_BOOLEAN);
+            }
         }
-        // Trim and sanitise colours - DomPDF tolerates #rgb / #rrggbb only.
+        // Trim and sanitise colours - the renderer accepts #rgb / #rrggbb only.
         foreach (['accent_color', 'secondary_color', 'text_color', 'background_color'] as $k) {
             if (isset($opts[$k]) && is_string($opts[$k])) {
                 $opts[$k] = trim($opts[$k]);
@@ -311,9 +419,8 @@ class AdminPresentationController extends Controller
                 }
             }
         }
-        // Empty strings -> null on the optional text fields so they don't
-        // accidentally trip downstream length / format checks.
-        foreach (['tagline', 'custom_photo_url', 'article_slug', 'youtube_url', 'qr_custom_url', 'motto', 'slogan_cursive'] as $k) {
+        // Empty strings -> null on the optional text fields so they fall back to defaults.
+        foreach (['tagline', 'custom_photo_url', 'article_slug', 'youtube_url', 'qr_custom_url', 'motto', 'slogan_cursive', 'projet_intro', 'header_motto'] as $k) {
             if (isset($opts[$k]) && is_string($opts[$k]) && trim($opts[$k]) === '') {
                 $opts[$k] = null;
             }
@@ -327,26 +434,10 @@ class AdminPresentationController extends Controller
                         || (isset($row['pct']) && $row['pct'] !== null && $row['pct'] !== '')),
             ));
         }
-        // supervised_by: normalise like partner_agency.
-        if (isset($opts['supervised_by']) && is_array($opts['supervised_by'])) {
-            $sb = $opts['supervised_by'];
-            $empty = collect(['name', 'logo_url', 'country', 'country_code'])
-                ->every(fn ($k) => ! isset($sb[$k]) || trim((string) $sb[$k]) === '');
-            if ($empty) {
-                unset($opts['supervised_by']);
-            } else {
-                foreach (['name', 'logo_url', 'country', 'country_code'] as $k) {
-                    if (isset($sb[$k]) && is_string($sb[$k])) {
-                        $trimmed = trim($sb[$k]);
-                        $sb[$k] = $trimmed === '' ? null : $trimmed;
-                    }
-                }
-                if (! empty($sb['country_code'])) $sb['country_code'] = strtolower($sb['country_code']);
-                $opts['supervised_by'] = $sb;
-            }
+        foreach (['supervised_by', 'partner_agency'] as $orgKey) {
+            $opts = $this->normaliseOrg($opts, $orgKey);
         }
-        // Drop fully-empty previous_clubs rows (saved by accident when the
-        // admin clicks "Ajouter un club" without filling anything in).
+        // Drop fully-empty previous_clubs rows.
         if (isset($opts['previous_clubs']) && is_array($opts['previous_clubs'])) {
             $opts['previous_clubs'] = array_values(array_filter(
                 $opts['previous_clubs'],
@@ -368,37 +459,43 @@ class AdminPresentationController extends Controller
                 ));
                 $country = isset($row['country']) ? trim((string) $row['country']) : '';
                 if ($country === '' && empty($clubs)) return null;
-                return ['country' => $country, 'clubs' => $clubs];
+                $code = isset($row['country_code']) ? strtolower(trim((string) $row['country_code'])) : '';
+                return ['country' => $country, 'country_code' => $code !== '' ? $code : null, 'clubs' => $clubs];
             }, $opts['partner_academies'])));
         }
-        // Drop the partner_agency entirely if nothing was filled in.
-        if (isset($opts['partner_agency']) && is_array($opts['partner_agency'])) {
-            $pa = $opts['partner_agency'];
-            $empty = collect(['name', 'logo_url', 'country', 'country_code'])
-                ->every(fn ($k) => ! isset($pa[$k]) || trim((string) $pa[$k]) === '');
-            if ($empty) {
-                unset($opts['partner_agency']);
-            } else {
-                foreach (['name', 'logo_url', 'country', 'country_code'] as $k) {
-                    if (isset($pa[$k]) && is_string($pa[$k])) {
-                        $trimmed = trim($pa[$k]);
-                        $pa[$k] = $trimmed === '' ? null : $trimmed;
-                    }
-                }
-                // Lowercase the country code so it matches flag URL conventions.
-                if (! empty($pa['country_code'])) {
-                    $pa['country_code'] = strtolower($pa['country_code']);
-                }
-                $opts['partner_agency'] = $pa;
+        if (isset($opts['contact']) && is_array($opts['contact'])) {
+            $opts['contact'] = array_map(
+                static fn ($v) => is_string($v) ? trim($v) : '',
+                array_intersect_key($opts['contact'], array_flip(['instagram', 'email', 'phone'])),
+            );
+        }
+        return $opts;
+    }
+
+    /** Supervisor / partner agency blocks: trim, drop when entirely empty, lowercase the country code. */
+    private function normaliseOrg(array $opts, string $key): array
+    {
+        if (! isset($opts[$key]) || ! is_array($opts[$key])) return $opts;
+        $fields = ['name', 'logo_url', 'country', 'country_code', 'description'];
+        $org = $opts[$key];
+        if (collect($fields)->every(fn ($k) => ! isset($org[$k]) || trim((string) $org[$k]) === '')) {
+            unset($opts[$key]);
+            return $opts;
+        }
+        foreach ($fields as $k) {
+            if (isset($org[$k]) && is_string($org[$k])) {
+                $trimmed = trim($org[$k]);
+                $org[$k] = $trimmed === '' ? null : $trimmed;
             }
         }
+        if (! empty($org['country_code'])) $org['country_code'] = strtolower($org['country_code']);
+        $opts[$key] = $org;
         return $opts;
     }
 
     /**
      * Migrate a legacy template key (classic/signature/magazine/minimal/
-     * stadium) to `marketing` — the only template currently shipped. Keys
-     * already known to the registry pass through untouched.
+     * stadium) to `marketing` — the only template key currently shipped.
      */
     private function normaliseTemplateKey(string $key): string
     {
@@ -407,70 +504,33 @@ class AdminPresentationController extends Controller
         return 'marketing';
     }
 
-    private function renderHtml(Presentation $presentation, Player $player): string
+    /**
+     * Stores a verified PDF under a fresh name, then removes the previous
+     * file — a valid PDF is never replaced by nothing.
+     */
+    private function storePdf(Presentation $presentation, Player $player, FicheResult $result): void
     {
-        $template = PresentationTemplateRegistry::resolve($presentation->template_key);
-        return $template->render($player, $presentation->options ?? [], $presentation->title);
-    }
-
-    private function renderAndStorePdf(Presentation $presentation, Player $player): void
-    {
-        $this->deleteLocal($presentation->file_path);
-
+        $previous = $presentation->file_path;
         $filename = 'presentations/'.$player->slug.'-'.$presentation->id.'-'.substr(bin2hex(random_bytes(3)), 0, 6).'.pdf';
-        $pdfBytes = $this->renderPdfBytes($presentation, $player);
-        Storage::disk('public')->put($filename, $pdfBytes);
+        Storage::disk('public')->put($filename, $result->pdf);
 
         $presentation->update([
             'file_path'    => Storage::url($filename),
             'generated_at' => now(),
+            'render_meta'  => $result->meta(),
         ]);
-    }
-
-    /**
-     * Produces the served PDF. Three paths:
-     *  - external image → wrap as a single A4 page centred image
-     *  - external PDF   → return the uploaded bytes verbatim
-     *  - no asset       → render the template like before
-     */
-    private function renderPdfBytes(Presentation $presentation, Player $player): string
-    {
-        if ($presentation->external_asset_path) {
-            $relative = Str::after($presentation->external_asset_path, '/storage/');
-            if (Storage::disk('public')->exists($relative)) {
-                $absolute = Storage::disk('public')->path($relative);
-                if ($presentation->external_asset_type === 'pdf') {
-                    return file_get_contents($absolute);
-                }
-                $html = $this->renderImageAsPdfHtml($absolute);
-                return Pdf::loadHTML($html)->setPaper('a4', 'portrait')->output();
-            }
-            // Asset disappeared from disk — fall through to the template.
+        if ($previous && $previous !== $presentation->file_path) {
+            $this->deleteLocal($previous);
         }
-
-        $html = $this->renderHtml($presentation, $player);
-        return Pdf::loadHTML($html)->setPaper('a4', 'portrait')->output();
     }
 
-    /** Centres the uploaded image on a borderless A4 page, preserving aspect ratio. */
-    private function renderImageAsPdfHtml(string $absolutePath): string
+    private function layoutError(FicheLayoutException $e): JsonResponse
     {
-        $dims = @getimagesize($absolutePath) ?: [1, 1];
-        [$w, $h] = [$dims[0] ?: 1, $dims[1] ?: 1];
-        // Portrait-ish → cap to page height; landscape-ish → cap to page width.
-        $style = $w > $h
-            ? 'width: 210mm; height: auto;'
-            : 'height: 297mm; width: auto;';
-        $src = 'file://'.str_replace('\\', '/', $absolutePath);
-        return '<!doctype html><html><head><style>'
-            .'@page { margin: 0; }'
-            .'html, body { margin: 0; padding: 0; background: #fff; }'
-            .'.wrap { width: 210mm; height: 297mm; display: table; }'
-            .'.cell { display: table-cell; text-align: center; vertical-align: middle; }'
-            .'img { '.$style.' }'
-            .'</style></head><body><div class="wrap"><div class="cell">'
-            .'<img src="'.htmlspecialchars($src, ENT_QUOTES).'" />'
-            .'</div></div></body></html>';
+        return response()->json([
+            'message' => $e->getMessage(),
+            'errors'  => ['layout' => [$e->getMessage()]],
+            'details' => $e->details,
+        ], 422);
     }
 
     private function deleteLocal(?string $url): void

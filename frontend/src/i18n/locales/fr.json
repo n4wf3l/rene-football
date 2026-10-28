@@ -465,6 +465,13 @@
     "sentBy": "Envoyée par {{agent}}",
     "generatedOn": "Générée le {{date}}",
     "template": "Template {{name}}",
+    "compositions": {
+      "signature": "Signature Éditoriale",
+      "scouting": "Scouting Intelligence",
+      "career": "Parcours & Potentiel",
+      "classic": "Marketing v1",
+      "external": "Fiche importée"
+    },
     "confidential": "Document confidentiel · Rene Football",
     "backToSite": "Retour au site Rene Football",
     "gone": "Présentation introuvable",

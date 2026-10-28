@@ -3,6 +3,7 @@
 namespace App\Services\Presentations;
 
 use App\Models\Player;
+use App\Services\Presentations\Fiche\FicheI18n;
 
 /**
  * Each concrete template returns a complete <html>...</html> document that
@@ -42,24 +43,11 @@ abstract class PresentationTemplate
     /** Curated stat catalogue, segmented by player category for the picker UI. */
     public static function statCatalogue(string $category, string $lang = 'fr'): array
     {
-        $labels = [
-            'matches_played'     => self::T['st_matches_played'][$lang]     ?? self::T['st_matches_played']['fr'],
-            'minutes_played'     => self::T['st_minutes_played'][$lang]     ?? self::T['st_minutes_played']['fr'],
-            'clean_sheets'       => self::T['st_clean_sheets'][$lang]       ?? self::T['st_clean_sheets']['fr'],
-            'saves'              => self::T['st_saves'][$lang]              ?? self::T['st_saves']['fr'],
-            'pass_accuracy'      => self::T['st_pass_accuracy'][$lang]      ?? self::T['st_pass_accuracy']['fr'],
-            'yellow_cards'       => self::T['st_yellow_cards'][$lang]       ?? self::T['st_yellow_cards']['fr'],
-            'goals'              => self::T['st_goals'][$lang]              ?? self::T['st_goals']['fr'],
-            'assists'            => self::T['st_assists'][$lang]            ?? self::T['st_assists']['fr'],
-            'xg'                 => self::T['st_xg'][$lang]                 ?? self::T['st_xg']['fr'],
-            'xa'                 => self::T['st_xa'][$lang]                 ?? self::T['st_xa']['fr'],
-            'key_passes'         => self::T['st_key_passes'][$lang]         ?? self::T['st_key_passes']['fr'],
-            'shots_on_target'    => self::T['st_shots_on_target'][$lang]    ?? self::T['st_shots_on_target']['fr'],
-            'dribbles_completed' => self::T['st_dribbles_completed'][$lang] ?? self::T['st_dribbles_completed']['fr'],
-            'tackles'            => self::T['st_tackles'][$lang]            ?? self::T['st_tackles']['fr'],
-            'interceptions'      => self::T['st_interceptions'][$lang]      ?? self::T['st_interceptions']['fr'],
-            'duels_won'          => self::T['st_duels_won'][$lang]          ?? self::T['st_duels_won']['fr'],
-        ];
+        $i18n = FicheI18n::for($lang);
+        $labels = [];
+        foreach (['matches_played', 'minutes_played', 'clean_sheets', 'saves', 'pass_accuracy', 'yellow_cards', 'goals', 'assists', 'xg', 'xa', 'key_passes', 'shots_on_target', 'dribbles_completed', 'tackles', 'interceptions', 'duels_won'] as $key) {
+            $labels[$key] = $i18n->t('st_'.$key);
+        }
 
         if ($category === 'Gardien') {
             return [
@@ -210,125 +198,8 @@ abstract class PresentationTemplate
         // preserve the source PNG's 3:2 aspect ratio automatically - the
         // resulting on-page height ends up ~66% of whatever column width the
         // template gives us, which is what we want anyway.
-        $png = $this->buildHeatmapPng($grid);
+        $png = base64_encode(HeatmapRenderer::png($grid));
         return '<img src="data:image/png;base64,'.$png.'" alt="" width="100%" style="display:block;border-radius:2mm;">';
-    }
-
-    /**
-     * Rasterise a 4×6 heatmap_grid into a football-pitch PNG (base64). Draws
-     * turf gradient + pitch markings via GD primitives, then paints radial
-     * blobs pixel-by-pixel with a continuous ease-out alpha falloff so the
-     * result is genuinely smooth (concentric imagefilledellipse would band).
-     */
-    private function buildHeatmapPng(array $grid): string
-    {
-        // 600×400 keeps per-pixel PHP work under a second while staying above
-        // typical PDF embed resolution. imagecopyresampled would upscale it if
-        // higher DPI were ever needed.
-        $W = 600;
-        $H = 400;
-        $img = imagecreatetruecolor($W, $H);
-        imagealphablending($img, true);
-        imagesavealpha($img, true);
-        imageantialias($img, true);
-
-        // Turf gradient (top to bottom).
-        for ($y = 0; $y < $H; $y++) {
-            $t = $y / $H;
-            $r = (int) round(14 + (8 - 14)  * $t);
-            $g = (int) round(63 + (38 - 63) * $t);
-            $b = (int) round(34 + (22 - 34) * $t);
-            $c = imagecolorallocate($img, $r, $g, $b);
-            imageline($img, 0, $y, $W, $y, $c);
-        }
-
-        // Pitch markings - white lines at ~22% alpha.
-        $stroke = imagecolorallocatealpha($img, 255, 255, 255, 99);
-        imagesetthickness($img, 2);
-        imagerectangle($img, 4, 4, $W - 4, $H - 4, $stroke);
-        imageline($img, (int) ($W / 2), 4, (int) ($W / 2), $H - 4, $stroke);
-        imageellipse($img, (int) ($W / 2), (int) ($H / 2), 130, 130, $stroke);
-        imagefilledellipse($img, (int) ($W / 2), (int) ($H / 2), 7, 7, $stroke);
-        // Left penalty
-        imagerectangle($img, 4, (int) ($H * 0.275), (int) ($W * 0.14),  (int) ($H * 0.725), $stroke);
-        imagerectangle($img, 4, (int) ($H * 0.4),   (int) ($W * 0.047), (int) ($H * 0.6),   $stroke);
-        imagefilledellipse($img, (int) ($W * 0.10), (int) ($H / 2), 7, 7, $stroke);
-        // Right penalty
-        imagerectangle($img, (int) ($W * 0.86),  (int) ($H * 0.275), $W - 4, (int) ($H * 0.725), $stroke);
-        imagerectangle($img, (int) ($W * 0.953), (int) ($H * 0.4),   $W - 4, (int) ($H * 0.6),   $stroke);
-        imagefilledellipse($img, (int) ($W * 0.90), (int) ($H / 2), 7, 7, $stroke);
-
-        // Pre-collect blobs with pre-computed radii and RGB tuples so the
-        // inner loop stays tight.
-        $blobs = [];
-        foreach ($grid as $rowI => $row) {
-            foreach ($row as $colI => $raw) {
-                $v = max(0, min(100, (int) $raw));
-                if ($v < 5) continue;
-                $cx   = (int) round($colI * ($W / 6) + $W / 12);
-                $cy   = (int) round($rowI * ($H / 4) + $H / 8);
-                // Slightly larger than half a cell so adjacent blobs overlap
-                // and blend into continuous hotspot regions like the preview.
-                $maxR = 75 + ($v / 100) * 30;                        // 75..105 in target space
-                $rgb  = $this->hexToRgbInts($this->heatColor($v));
-                // Peak overlay strength at the centre (0..1). Higher intensity → more opaque core.
-                $peak = min(0.9, 0.35 + ($v / 100) * 0.55);
-                $blobs[] = [$cx, $cy, $maxR, $rgb[0], $rgb[1], $rgb[2], $peak];
-            }
-        }
-
-        // Pixel-by-pixel blend for every blob. Truecolor images accept raw
-        // packed ints from imagecolorat / imagesetpixel, so we bypass palette
-        // allocation entirely.
-        foreach ($blobs as [$cx, $cy, $maxR, $br, $bg, $bb, $peak]) {
-            $rSq = $maxR * $maxR;
-            $x0 = max(0, (int) floor($cx - $maxR));
-            $x1 = min($W - 1, (int) ceil($cx + $maxR));
-            $y0 = max(0, (int) floor($cy - $maxR));
-            $y1 = min($H - 1, (int) ceil($cy + $maxR));
-
-            for ($py = $y0; $py <= $y1; $py++) {
-                $dy = $py - $cy;
-                $dy2 = $dy * $dy;
-                for ($px = $x0; $px <= $x1; $px++) {
-                    $dx = $px - $cx;
-                    $d2 = $dx * $dx + $dy2;
-                    if ($d2 > $rSq) continue;
-
-                    // Two-stop falloff mirroring the preview SVG (peak at
-                    // centre, ~70% of peak at 55% of the radius, 0 at edge).
-                    // Gives wide, overlapping hotspots instead of tight dots.
-                    $t = sqrt($d2) / $maxR;                          // 0 at centre, 1 at edge
-                    if ($t < 0.55) {
-                        $falloff = 1 - 0.3 * ($t / 0.55);            // 1.00 → 0.70
-                    } else {
-                        $falloff = 0.7 * (1 - ($t - 0.55) / 0.45);   // 0.70 → 0
-                    }
-                    $a = $peak * $falloff;                           // 0..peak
-                    if ($a <= 0.005) continue;
-
-                    // Read current pixel (truecolor packed).
-                    $existing = imagecolorat($img, $px, $py);
-                    $er = ($existing >> 16) & 0xFF;
-                    $eg = ($existing >> 8) & 0xFF;
-                    $eb = $existing & 0xFF;
-
-                    // Standard "over" alpha compositing.
-                    $nr = (int) round($br * $a + $er * (1 - $a));
-                    $ng = (int) round($bg * $a + $eg * (1 - $a));
-                    $nb = (int) round($bb * $a + $eb * (1 - $a));
-
-                    $packed = ($nr << 16) | ($ng << 8) | $nb;
-                    imagesetpixel($img, $px, $py, $packed);
-                }
-            }
-        }
-
-        ob_start();
-        imagepng($img);
-        $data = ob_get_clean();
-        imagedestroy($img);
-        return base64_encode($data);
     }
 
     /** Convert #rrggbb (or #rgb) to [r, g, b] ints. */
@@ -339,37 +210,6 @@ abstract class PresentationTemplate
             $hex = $hex[0].$hex[0].$hex[1].$hex[1].$hex[2].$hex[2];
         }
         return [hexdec(substr($hex, 0, 2)), hexdec(substr($hex, 2, 2)), hexdec(substr($hex, 4, 2))];
-    }
-
-    /**
-     * Map a 0-100 intensity to the standard football heatmap ramp
-     * (yellow → orange → red → deep red), returned as a #rrggbb string.
-     * Independent of the template accent so blobs are always visible on the
-     * green pitch.
-     */
-    protected function heatColor(int $v): string
-    {
-        $v = max(0, min(100, $v));
-        // Four stops: 0=yellow, 33=orange, 66=red, 100=deep red.
-        $stops = [
-            [0.00, 250, 204,  21],   // #facc15 yellow
-            [0.33, 249, 115,  22],   // #f97316 orange
-            [0.66, 239,  68,  68],   // #ef4444 red
-            [1.00, 190,  18,  60],   // #be123c deep red / crimson
-        ];
-        $t = $v / 100;
-        for ($i = 0; $i < count($stops) - 1; $i++) {
-            [$t0, $r0, $g0, $b0] = $stops[$i];
-            [$t1, $r1, $g1, $b1] = $stops[$i + 1];
-            if ($t >= $t0 && $t <= $t1) {
-                $ratio = $t1 === $t0 ? 0 : ($t - $t0) / ($t1 - $t0);
-                $r = (int) round($r0 + ($r1 - $r0) * $ratio);
-                $g = (int) round($g0 + ($g1 - $g0) * $ratio);
-                $b = (int) round($b0 + ($b1 - $b0) * $ratio);
-                return sprintf('#%02x%02x%02x', $r, $g, $b);
-            }
-        }
-        return '#be123c';
     }
 
     /** Convert hex + alpha into an rgba string DomPDF understands. */
@@ -484,23 +324,6 @@ abstract class PresentationTemplate
         'foot_gauche'      => ['fr' => 'Gauche',       'en' => 'Left',       'de' => 'Links',             'nl' => 'Links'],
         'foot_ambidextre'  => ['fr' => 'Ambidextre',   'en' => 'Both',       'de' => 'Beidfüßig',         'nl' => 'Beidbenig'],
 
-        // Stat labels
-        'st_matches_played'     => ['fr' => 'Matchs joués',      'en' => 'Matches',         'de' => 'Spiele',            'nl' => 'Wedstrijden'],
-        'st_minutes_played'     => ['fr' => 'Minutes',           'en' => 'Minutes',         'de' => 'Minuten',           'nl' => 'Minuten'],
-        'st_goals'              => ['fr' => 'Buts',              'en' => 'Goals',           'de' => 'Tore',              'nl' => 'Doelpunten'],
-        'st_assists'            => ['fr' => 'Passes décisives',  'en' => 'Assists',         'de' => 'Vorlagen',          'nl' => 'Assists'],
-        'st_xg'                 => ['fr' => 'xG',                'en' => 'xG',              'de' => 'xG',                'nl' => 'xG'],
-        'st_xa'                 => ['fr' => 'xA',                'en' => 'xA',              'de' => 'xA',                'nl' => 'xA'],
-        'st_key_passes'         => ['fr' => 'Passes clés',       'en' => 'Key passes',      'de' => 'Schlüsselpässe',    'nl' => 'Sleutelpasses'],
-        'st_pass_accuracy'      => ['fr' => '% passes',          'en' => 'Pass %',          'de' => 'Pass %',            'nl' => 'Pass %'],
-        'st_shots_on_target'    => ['fr' => 'Tirs cadrés',       'en' => 'Shots on target', 'de' => 'Schüsse aufs Tor',  'nl' => 'Schoten op doel'],
-        'st_dribbles_completed' => ['fr' => 'Dribbles réussis',  'en' => 'Dribbles',        'de' => 'Dribblings',        'nl' => 'Dribbels'],
-        'st_tackles'            => ['fr' => 'Tacles',            'en' => 'Tackles',         'de' => 'Tacklings',         'nl' => 'Tackles'],
-        'st_interceptions'      => ['fr' => 'Interceptions',     'en' => 'Interceptions',   'de' => 'Abfangungen',       'nl' => 'Onderscheppingen'],
-        'st_duels_won'          => ['fr' => 'Duels gagnés',      'en' => 'Duels won',       'de' => 'Gewonnene Duelle',  'nl' => 'Duels gewonnen'],
-        'st_yellow_cards'       => ['fr' => 'Cartons jaunes',    'en' => 'Yellow cards',    'de' => 'Gelbe Karten',      'nl' => 'Gele kaarten'],
-        'st_clean_sheets'       => ['fr' => 'Clean sheets',      'en' => 'Clean sheets',    'de' => 'Zu-Null-Spiele',    'nl' => 'Clean sheets'],
-        'st_saves'              => ['fr' => 'Arrêts',            'en' => 'Saves',           'de' => 'Paraden',           'nl' => 'Reddingen'],
     ];
 
     protected function lang(array $options): string
