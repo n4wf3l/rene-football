@@ -14,6 +14,7 @@ import AnimatedNumber from '../components/AnimatedNumber'
 import Skeleton from '../components/Skeleton'
 import { playerImage } from '../lib/playerImage'
 import type { Player, PositionFilter, AgeFilter } from '../types/player'
+import { hasFreshMatchCount, sameLabel } from '../lib/playerDisplay'
 
 const POSITION_FILTERS: PositionFilter[] = ['Tous', 'Gardien', 'Defenseur', 'Milieu', 'Attaquant']
 /** Age filter keys — display labels come from players.filters.ages.* */
@@ -59,6 +60,8 @@ interface PlayerCardProps {
 
 function PlayerCard({ player }: PlayerCardProps) {
   const isKeeper = player.category === 'Gardien'
+  // Stale or empty stats are hidden rather than shown as zeros (lib/playerDisplay).
+  const freshMatches = hasFreshMatchCount(player)
   return (
     <motion.li
       layout
@@ -90,7 +93,9 @@ function PlayerCard({ player }: PlayerCardProps) {
           <div className="font-display font-semibold text-xl leading-tight">
             {player.name}
           </div>
-          <div className="text-xs text-stone-300 mt-0.5">{player.position}</div>
+          {player.position && !sameLabel(player.position, player.category) && (
+            <div className="text-xs text-stone-300 mt-0.5">{player.position}</div>
+          )}
         </div>
       </div>
       <div className="p-5">
@@ -100,6 +105,7 @@ function PlayerCard({ player }: PlayerCardProps) {
             depuis {player.since}
           </span>
         </div>
+        {freshMatches && (
         <dl className="grid grid-cols-3 gap-3 border-t border-stone-200 dark:border-stone-50/10 pt-4">
           <div>
             <dt className="font-mono uppercase tracking-wider text-[0.6rem] text-zinc-500 dark:text-stone-400">Matchs</dt>
@@ -122,6 +128,7 @@ function PlayerCard({ player }: PlayerCardProps) {
             </dd>
           </div>
         </dl>
+        )}
       </div>
       <div className="absolute top-4 right-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200 ease-premium pointer-events-none">
         <span className="grid place-items-center w-9 h-9 rounded-full bg-stone-50/95 text-zinc-950 backdrop-blur shadow-diffusion">

@@ -118,7 +118,12 @@ class PresentationFicheTest extends TestCase
         $result = app(FicheLayoutEngine::class)->render($player, ['composition' => 'scouting', 'selected_stats' => ['goals', 'assists']]);
         $this->assertStringNotContainsString('Statistiques', $result->html);
 
-        $player->update(['matches_played' => 12, 'goals' => 7, 'stats_source' => 'Wyscout']);
+        // Real but stale (last update > 1 month): still hidden.
+        $player->update(['matches_played' => 12, 'goals' => 7, 'stats_source' => 'Wyscout', 'stats_updated_at' => now()->subDays(45)]);
+        $result = app(FicheLayoutEngine::class)->render($player->fresh(), ['composition' => 'scouting', 'selected_stats' => ['goals']]);
+        $this->assertStringNotContainsString('Statistiques', $result->html);
+
+        $player->update(['stats_updated_at' => now()->subDays(3)]);
         $result = app(FicheLayoutEngine::class)->render($player->fresh(), ['composition' => 'scouting', 'selected_stats' => ['goals']]);
         $this->assertStringContainsString('Statistiques', $result->html);
         $this->assertStringContainsString('Wyscout', $result->html);
@@ -317,7 +322,7 @@ class PresentationFicheTest extends TestCase
             'bio' => str_repeat('Milieu complet capable de casser les lignes balle au pied, de presser haut et de se projeter dans la surface. ', 6),
             'scout_quote' => 'Un volume de jeu rare pour son âge.',
             'strengths' => array_map(fn ($l) => ['label' => $l], ['Volume de course exceptionnel', 'Conduite de balle sous pression', 'Passe verticale', 'Jeu de tête offensif', 'Pressing et récupération haute', 'Frappe de loin des deux pieds']),
-            'matches_played' => 31, 'minutes_played' => 2487, 'goals' => 9, 'assists' => 11, 'xg' => 7.4, 'pass_accuracy' => 87.2, 'stats_source' => 'Wyscout',
+            'matches_played' => 31, 'minutes_played' => 2487, 'goals' => 9, 'assists' => 11, 'xg' => 7.4, 'pass_accuracy' => 87.2, 'stats_source' => 'Wyscout', 'stats_updated_at' => now()->subDays(2),
             'distance_avg_km' => 11.4, 'top_speed_kmh' => 33.1, 'sprints_avg' => 24, 'high_intensity_runs_avg' => 61,
             'heatmap_grid' => [[0, 10, 20, 30, 10, 0], [5, 40, 70, 60, 30, 5], [5, 50, 90, 80, 40, 10], [0, 20, 30, 20, 10, 0]],
             'comparisons' => [['name' => 'Joueur A', 'club' => 'Club A'], ['name' => 'Joueur B', 'club' => 'Club B'], ['name' => 'Joueur C', 'club' => 'Club C']],
