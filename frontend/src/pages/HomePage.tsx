@@ -1,12 +1,11 @@
 import { useMemo, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion'
 import {
   ArrowRight,
   ArrowUpRight,
   Buildings,
   Handshake,
-  MapPin,
   MegaphoneSimple,
   Question,
   ScanSmiley,
@@ -17,121 +16,107 @@ import {
 import { useTranslation } from 'react-i18next'
 import MercatoTicker from '../components/MercatoTicker'
 import Seo from '../components/Seo'
-import HeroTrail from '../components/HeroTrail'
 import YouTubeEmbed from '../components/YouTubeEmbed'
 import MeshGradient from '../components/MeshGradient'
-import FloatingAccents from '../components/FloatingAccents'
-import LuxembourgMap from '../components/LuxembourgMap'
 import AnimatedNumber from '../components/AnimatedNumber'
-import AnimatedUnderline from '../components/AnimatedUnderline'
+import MagneticLink from '../components/MagneticLink'
+import HeroSpotlight from '../components/home/HeroSpotlight'
+import LuxClock from '../components/home/LuxClock'
+import RouteMap from '../components/home/RouteMap'
+import RosterSheet from '../components/home/RosterSheet'
+import OutroWordmark from '../components/home/OutroWordmark'
 import { usePublicPlayers, pickShowcase } from '../lib/usePublicPlayers'
 import { usePublicStaff } from '../lib/usePublicStaff'
-import { playerImage } from '../lib/playerImage'
+import { useDarkHero } from '../hooks/useDarkHero'
 import heroPortrait from '../assets/player2.png'
 
-/** Local portrait overrides - keyed by slug. Lets us pin the agency's
- *  hand-shot photos for specific players without breaking the rest of the
- *  roster (which falls back to playerImage()).
- *  Currently empty (the previous Karim override was removed when the
- *  demo pro was pulled from the seed). */
-const LOCAL_PORTRAITS: Record<string, string> = {}
-
-const HERO_PORTRAIT = heroPortrait
-
-// STATS are now derived at render-time from real DB numbers below. The
-// old hardcoded 127+ joueurs / 38+ clubs / 14 pays counts were placeholder
-// values that no longer match reality (~10 active players in production).
-
-/** Icon + layout meta ; title/text come from home.services.<key>.title / .text */
-const SERVICES: Array<{ Icon: typeof Handshake; key: 'representation' | 'contracts' | 'scouting' | 'career'; span: string; accent?: boolean }> = [
-  { Icon: Handshake,   key: 'representation', span: 'lg:col-span-3 lg:row-span-2', accent: true },
-  { Icon: ShieldCheck, key: 'contracts',      span: 'lg:col-span-2' },
-  { Icon: ScanSmiley,  key: 'scouting',       span: 'lg:col-span-2' },
-  { Icon: TrendUp,     key: 'career',         span: 'lg:col-span-3' },
+/** Icon + key ; title/text come from home.services.<key>.title / .text */
+const SERVICES: Array<{ Icon: typeof Handshake; key: 'representation' | 'contracts' | 'scouting' | 'career' }> = [
+  { Icon: Handshake,   key: 'representation' },
+  { Icon: ShieldCheck, key: 'contracts' },
+  { Icon: ScanSmiley,  key: 'scouting' },
+  { Icon: TrendUp,     key: 'career' },
 ]
 
-const FADE_UP = {
-  hidden: { opacity: 0, y: 16 },
-  show:   { opacity: 1, y: 0 },
+const EASE_OUT = [0.16, 1, 0.3, 1] as const
+
+/** Players with an uploaded photo (not the initials placeholder). */
+function hasRealPhoto(url: string | null): boolean {
+  return !!url && !url.includes('picsum.photos')
 }
 
-/**
- * Centered pin + typewriter "LUXEMBOURG" label that lands after the
- * LuxembourgMap outline finishes drawing. Sequenced by hard-coded delays
- * (the map's own tracing ends at ~3s = 0.4s delay + 2.6s duration) so it
- * doesn't need a callback out of the map component.
- */
-const LUXEMBOURG_WORD = 'LUXEMBOURG'
-const PIN_DELAY_S = 2.0
-const TYPING_DELAY_S = 2.4
-const LETTER_STEP_S = 0.055
+interface HeadlineProps {
+  pre: string
+  accent: string
+  post: string
+}
 
-function LuxembourgLabel() {
+/** H1 revealed word by word from behind a mask - the hero's load sequence. */
+function Headline({ pre, accent, post }: HeadlineProps) {
+  const reduce = useReducedMotion()
+  const words = [
+    ...pre.split(' ').map((w) => ({ w, accent: false })),
+    ...accent.split(' ').map((w) => ({ w, accent: true })),
+    ...post.split(' ').map((w) => ({ w, accent: false })),
+  ].filter((x) => x.w)
+
   return (
-    <div
-      className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-2 text-turf-700 dark:text-turf-300"
-      aria-hidden="true"
+    <h1
+      className="font-display font-semibold leading-[0.96] tracking-tightest text-stone-50"
+      style={{ fontSize: 'clamp(2.6rem, 6vw, 5.4rem)' }}
     >
-      <motion.div
-        initial={{ opacity: 0, scale: 0.6, y: 4 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ delay: PIN_DELAY_S, duration: 0.45, ease: [0.34, 1.56, 0.64, 1] }}
-      >
-        <MapPin size={30} weight="fill" />
-      </motion.div>
-      <div className="font-mono text-[0.72rem] tracking-[0.42em] font-semibold text-turf-900 dark:text-turf-100">
-        {LUXEMBOURG_WORD.split('').map((letter, i) => (
-          <motion.span
-            key={i}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: TYPING_DELAY_S + i * LETTER_STEP_S, duration: 0.001 }}
-          >
-            {letter}
-          </motion.span>
+      <span className="sr-only">{`${pre} ${accent} ${post}`}</span>
+      <span aria-hidden="true">
+        {words.map(({ w, accent: isAccent }, i) => (
+          <span key={i} className="inline-block overflow-hidden pb-[0.08em] align-bottom">
+            <motion.span
+              className={`inline-block ${isAccent ? 'text-turf-300 italic' : ''}`}
+              initial={reduce ? false : { y: '108%' }}
+              animate={{ y: '0%' }}
+              transition={{ duration: 0.9, ease: EASE_OUT, delay: 0.15 + i * 0.05 }}
+            >
+              {w}
+            </motion.span>
+            {i < words.length - 1 && '\u00a0'}
+          </span>
         ))}
-        {/* Blinking-then-fading cursor: appears with the first letter, blinks
-           while typing, fades out just after the last letter lands. */}
-        <motion.span
-          className="inline-block w-[0.5em] ml-0.5 -mb-0.5 align-baseline"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: [0, 1, 0, 1, 0, 1, 0] }}
-          transition={{
-            delay: TYPING_DELAY_S,
-            duration: LETTER_STEP_S * LUXEMBOURG_WORD.length + 0.6,
-            times: [0, 0.08, 0.24, 0.4, 0.56, 0.85, 1],
-            ease: 'linear',
-          }}
-        >
-          |
-        </motion.span>
-      </div>
-    </div>
+      </span>
+    </h1>
   )
 }
 
 function HomePage() {
   const { t } = useTranslation()
+  useDarkHero()
+  const reduce = useReducedMotion()
   const heroRef = useRef<HTMLElement | null>(null)
   const { players, loading } = usePublicPlayers()
   const { staff } = usePublicStaff()
-  // Top 4 showcase roster picked from the real DB - sorts by minutes_played
-  // so the visible cards always reflect the agency's active stars, not seed order.
-  const roster = useMemo(() => pickShowcase(players, 4), [players])
-  // Live stats derived from the DB so we never inflate the numbers. Cards
-  // with a value of 0 are filtered out so an empty deployment doesn't
-  // publicise "0 joueurs" / "0 clubs".
+
+  // Every published player, most active first - the hero card cycles through
+  // the ones with a real photo, the team sheet lists them all.
+  const ordered = useMemo(() => pickShowcase(players, players.length), [players])
+  const spotlight = useMemo(() => ordered.filter((p) => hasRealPhoto(p.photo_url)), [ordered])
+  const sheet = useMemo(() => ordered.slice(0, 8), [ordered])
+
+  // Live stats derived from the DB so we never inflate the numbers. Values of
+  // 0 are filtered out so an empty deployment doesn't publicise "0 clubs".
   const clubsCount = useMemo(
     () => new Set(players.map((p) => p.club).filter(Boolean)).size,
     [players],
   )
   const yearsOfExperience = new Date().getFullYear() - 2010
-  const STATS: { value: number; label: string; suffix?: string }[] = [
+  const STATS: { value: number; label: string }[] = [
     { value: players.length,     label: t('home.stats.players') },
     { value: yearsOfExperience,  label: t('home.stats.years') },
     { value: clubsCount,         label: t('home.stats.clubs') },
     { value: staff.length,       label: t('home.stats.team') },
   ].filter((s) => s.value > 0)
+
+  // Giant background wordmark drifts slower than the page (hero depth).
+  const { scrollYProgress: heroProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] })
+  const wordmarkY = useTransform(heroProgress, [0, 1], reduce ? ['0%', '0%'] : ['0%', '35%'])
+
   return (
     <>
       <Seo
@@ -140,283 +125,138 @@ function HomePage() {
         description="Agent FIFA licencié basé au Luxembourg. Représentation de joueurs, négociation de transferts, scouting et gestion de carrière, en activité depuis 2010."
         path="/"
       />
-      {/* HERO - asymmetric 60/40 split. Theme-aware : light mode keeps the
-          editorial layout with high-contrast dark text, dark mode keeps the
-          stadium-at-night feel that defines the brand. */}
-      <section ref={heroRef} className="relative overflow-hidden text-zinc-900 dark:text-stone-100">
-        <MeshGradient intensity="medium" tone="auto" />
-        <FloatingAccents />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-y-0 left-0 hidden w-7/12 items-center justify-start -ml-10 lg:flex"
-        >
-          <LuxembourgMap
-            className="h-[70%] max-h-[440px] w-auto text-turf-700/70 dark:text-turf-300/50"
-            showStroke={false}
-            fillOpacity={0.1}
-          />
-        </div>
-        {/* Stroke drawn again above the text (z-20) so the outline stays
-           visible where it crosses opaque headline glyphs. Screen-blend was
-           tried first but is invisible over pure white text (screen(white,
-           anything) ~= white) - a plain semi-transparent overlay reads on
-           both the white glyphs and the dark background instead.
-           The stroke is wrapped in a `relative` shell so the "Luxembourg"
-           label + pin can be absolutely centred over the country silhouette
-           without a second layout system. */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-y-0 left-0 z-20 hidden w-7/12 items-center justify-start -ml-10 lg:flex"
-        >
-          <div className="relative h-[70%] max-h-[440px] flex items-stretch">
-            <LuxembourgMap
-              className="h-full w-auto text-turf-600/60 dark:text-turf-300/70"
-              showFill={false}
-              strokeWidth={1.6}
-            />
-            <LuxembourgLabel />
-          </div>
-        </div>
 
+      {/* HERO - stadium at night in both themes: headline left, the
+          represented players cycling on a ticket-cut card right, the agency
+          wordmark set huge behind everything. */}
+      <section ref={heroRef} className="relative overflow-hidden bg-zinc-950 text-stone-100">
         <div
           aria-hidden="true"
-          className="pointer-events-none fixed inset-0 -z-10 opacity-[0.035]"
+          className="pointer-events-none absolute inset-0"
           style={{
-            backgroundImage:
-              'url("data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 width=%27160%27 height=%27160%27><filter id=%27n%27><feTurbulence type=%27fractalNoise%27 baseFrequency=%270.9%27/></filter><rect width=%27100%25%27 height=%27100%25%27 filter=%27url(%23n)%27/></svg>")',
+            background:
+              'radial-gradient(ellipse 45% 55% at 78% 35%, rgba(30,64,175,0.38), transparent 70%),' +
+              'radial-gradient(ellipse 40% 40% at 8% 90%, rgba(30,64,175,0.20), transparent 70%)',
           }}
         />
+        <motion.div
+          aria-hidden="true"
+          style={{ y: wordmarkY }}
+          className="pointer-events-none absolute inset-x-0 bottom-[-0.12em] select-none whitespace-nowrap text-center font-display font-semibold uppercase leading-none tracking-tightest text-stone-50/[0.045] text-[34vw]"
+        >
+          Rene
+        </motion.div>
 
-        <HeroTrail targetRef={heroRef} />
-
-        {/* Strict full-viewport hero on lg+: content stays inside one screen at any
-           resolution. On mobile we let it grow naturally (a tall stacked layout
-           would never fit a 100dvh box anyway). Title + portrait sizes are
-           viewport-aware (clamp + max-h dvh) so they never push content out.
-           `pt-24` on mobile clears the ~64px fixed navbar (was pt-12, which
-           parked the eyebrow chip visually behind the header on phones). */}
-        <div className="container-page grid lg:grid-cols-12 gap-8 lg:gap-10 items-center pt-24 pb-12 lg:pt-16 lg:pb-12 min-h-[calc(100dvh-4rem)] lg:h-[calc(100dvh-3rem)]">
-          <motion.div
-            className="lg:col-span-7"
-            initial="hidden"
-            animate="show"
-            variants={{ show: { transition: { staggerChildren: 0.08 } } }}
-          >
-            <motion.span
-              variants={FADE_UP}
-              transition={{ type: 'spring', stiffness: 110, damping: 18 }}
-              className="inline-flex items-center gap-2 rounded-full border border-turf-300/60 bg-turf-50 px-3 py-1 text-xs font-medium uppercase tracking-[0.18em] text-turf-800 dark:border-turf-400/30 dark:bg-turf-800/20 dark:text-turf-300"
+        <div className="container-page grid min-h-[100dvh] items-center gap-12 pb-14 pt-28 lg:grid-cols-12 lg:gap-10 lg:pb-16 lg:pt-24">
+          <div className="lg:col-span-7">
+            <motion.div
+              initial={reduce ? false : { opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: EASE_OUT }}
+              className="flex flex-wrap items-center gap-x-4 gap-y-2 font-mono text-[0.68rem] uppercase tracking-[0.24em] text-stone-400"
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-turf-600 dark:bg-turf-300 animate-pulse" />
-              {t('home.hero.chip')}
-            </motion.span>
+              <span className="text-turf-300">{t('home.hero.chip')}</span>
+              <span className="h-px w-8 bg-stone-50/20" aria-hidden="true" />
+              <span className="inline-flex items-center gap-2">
+                <span className="h-1.5 w-1.5 rounded-full bg-turf-300 animate-pulse" aria-hidden="true" />
+                {t('home.hero.clock')} <LuxClock />
+              </span>
+            </motion.div>
 
-            <motion.h1
-              variants={FADE_UP}
-              transition={{ type: 'spring', stiffness: 110, damping: 18 }}
-              className="mt-5 font-display font-semibold leading-[1.05] tracking-tightest text-zinc-950 dark:text-stone-50"
-              style={{ fontSize: 'clamp(2.4rem, 5.5vw, 4.25rem)' }}
-            >
-              {t('home.hero.titlePre')}{' '}
-              <span className="text-turf-700 dark:text-turf-300">{t('home.hero.titleAccent')}</span>{' '}
-              {t('home.hero.titlePost')}
-            </motion.h1>
+            <div className="mt-7">
+              <Headline pre={t('home.hero.titlePre')} accent={t('home.hero.titleAccent')} post={t('home.hero.titlePost')} />
+            </div>
 
             <motion.p
-              variants={FADE_UP}
-              transition={{ type: 'spring', stiffness: 110, damping: 18 }}
-              className="mt-5 max-w-[58ch] text-base lg:text-lg text-zinc-600 dark:text-stone-400 leading-relaxed"
+              initial={reduce ? false : { opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, ease: EASE_OUT, delay: 0.7 }}
+              className="mt-7 max-w-[54ch] text-base leading-relaxed text-stone-400 lg:text-lg"
             >
               {t('home.hero.paragraph')}
             </motion.p>
 
             <motion.div
-              variants={FADE_UP}
-              transition={{ type: 'spring', stiffness: 110, damping: 18 }}
-              className="mt-6 flex flex-wrap gap-3"
+              initial={reduce ? false : { opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, ease: EASE_OUT, delay: 0.82 }}
+              className="mt-9 flex flex-wrap items-center gap-3"
             >
-              <Link
+              <MagneticLink
                 to="/joueurs"
-                className="btn bg-zinc-950 text-stone-50 hover:bg-zinc-800 dark:bg-stone-50 dark:text-zinc-950 dark:hover:bg-stone-200 ease-premium"
+                className="group inline-flex items-center gap-3 bg-stone-50 px-6 py-4 text-[0.95rem] font-medium text-zinc-950 transition-colors duration-300 ease-premium hover:bg-turf-300"
               >
                 {t('home.hero.ctaPrimary')}
-                <ArrowUpRight size={18} weight="bold" />
-              </Link>
-              <Link to="/contact" className="btn btn-ghost">
+                <ArrowUpRight size={18} weight="bold" className="transition-transform duration-300 ease-premium group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+              </MagneticLink>
+              <Link
+                to="/contact"
+                className="inline-flex items-center gap-2 border border-stone-50/20 px-6 py-4 text-[0.95rem] font-medium text-stone-100 transition-colors duration-300 ease-premium hover:border-stone-50/60 active:-translate-y-px"
+              >
                 {t('home.hero.ctaSecondary')}
               </Link>
             </motion.div>
-          </motion.div>
 
-          {/* Hero portrait - right column. max-h capped against viewport so it
-             never pushes the whole hero past 100dvh on short laptop screens. */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.96 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ type: 'spring', stiffness: 80, damping: 20, delay: 0.15 }}
-            className="lg:col-span-5 relative flex lg:justify-end"
-          >
-            <div
-              className="relative aspect-[3/4] w-full lg:max-w-[440px] ml-auto rounded-[2rem] overflow-hidden border border-stone-300/60 dark:border-stone-50/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
-              style={{ maxHeight: 'min(75dvh, 600px)' }}
-            >
-              <img
-                src={HERO_PORTRAIT}
-                alt=""
-                loading="eager"
-                className="absolute inset-0 w-full h-full object-cover"
-              />
-              <div
-                className="absolute inset-0"
-                style={{
-                  background:
-                    'linear-gradient(180deg, transparent 30%, rgba(10,10,10,0.45) 70%, #0a0a0a 100%)',
-                }}
-              />
-              {/* Hero identity chip — bound to the first real player in the
-                  DB so the name matches the roster instead of a hardcoded
-                  placeholder. Hidden entirely when the roster is empty. */}
-              {roster[0] && (
-                <div className="absolute bottom-6 left-6 right-6 flex items-end justify-between gap-3">
-                  <div>
-                    <div className="font-mono text-[0.7rem] uppercase tracking-wider text-turf-300">
-                      {t('home.hero.identityLabel')}
-                    </div>
-                    <div className="mt-1 font-display font-semibold text-stone-50 text-xl">
-                      {roster[0].name}
-                    </div>
-                    <div className="text-stone-400 text-sm">
-                      {roster[0].position}{roster[0].age ? ` · ${roster[0].age}` : ''}
-                    </div>
+            {STATS.length >= 2 && (
+              <motion.dl
+                initial={reduce ? false : { opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.8, delay: 1 }}
+                className="mt-14 grid max-w-xl grid-cols-2 gap-y-6 border-t border-stone-50/10 pt-6 sm:grid-cols-4"
+              >
+                {STATS.map((s) => (
+                  <div key={s.label} className="flex flex-col pr-4">
+                    <dt className="order-2 mt-1 text-xs leading-snug text-stone-500">{s.label}</dt>
+                    <dd className="font-mono text-3xl tabular-nums text-stone-50">
+                      <AnimatedNumber value={s.value} duration={1.6} />
+                    </dd>
                   </div>
-                  {roster[0].since && (
-                    <div className="flex items-center gap-2 rounded-full bg-stone-50/10 backdrop-blur px-3 py-1.5 border border-stone-50/15">
-                      <span className="w-2 h-2 rounded-full bg-turf-300 animate-pulse" />
-                      <span className="text-xs text-stone-100">{t('home.hero.signedIn', { year: roster[0].since })}</span>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+                ))}
+              </motion.dl>
+            )}
+          </div>
+
+          <motion.div
+            initial={reduce ? false : { opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.9, ease: EASE_OUT, delay: 0.3 }}
+            className="lg:col-span-5"
+          >
+            <HeroSpotlight players={spotlight} fallbackSrc={heroPortrait} />
           </motion.div>
         </div>
-
-        {/* Stats line - filiform, mono numbers, divided by 1px lines.
-           Sits BELOW the 100dvh hero box so it never competes for vertical space
-           with the headline + portrait. Visible on scroll-down.
-           Hidden entirely when STATS a moins de 2 entrées : "16 ans d'expérience"
-           tout seul paraît isolé et le même info est déjà dans le paragraphe
-           du hero ("en activité depuis 2010"). On attend d'avoir au moins
-           2 chiffres (joueurs + années, ou joueurs + staff...) avant d'afficher. */}
-        {STATS.length >= 2 && (
-          <div className="container-page pb-16 lg:pb-20">
-            <div className="grid grid-cols-2 lg:grid-cols-4 lg:divide-x divide-stone-200 dark:divide-stone-50/10 border-t border-stone-200 dark:border-stone-50/10 pt-10">
-              {STATS.map((s, i) => (
-                <motion.div
-                  key={s.label}
-                  initial={{ opacity: 0, y: 12 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: '-80px' }}
-                  transition={{ delay: i * 0.06, type: 'spring', stiffness: 110, damping: 18 }}
-                  className="px-0 lg:px-8 first:lg:pl-0 py-4 lg:py-0"
-                >
-                  <div className="font-mono text-3xl lg:text-4xl text-zinc-950 dark:text-stone-50 tabular-nums inline-flex items-baseline">
-                    <AnimatedNumber value={s.value} duration={1.6} />
-                    {s.suffix && <span className="text-turf-700 dark:text-turf-300 ml-0.5">{s.suffix}</span>}
-                  </div>
-                  <div className="mt-2 text-sm text-zinc-600 dark:text-stone-400">{s.label}</div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        )}
       </section>
 
       {/* MERCATO TICKER */}
       <MercatoTicker />
 
-      {/* ROSTER PREVIEW - light section, gallery feel.
-          Hidden entirely when the API resolves an empty roster so an empty
-          deployment doesn't publish a "no players yet" line to guests. */}
-      {(loading || roster.length > 0) && (
-      <section className="bg-stone-50 dark:bg-zinc-950 py-20 lg:py-28">
-        <div className="container-page">
-          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 mb-12">
-            <div>
-              <span className="eyebrow">{t('home.roster.eyebrow')}</span>
-              <AnimatedUnderline className="mt-2" />
-              <h2 className="mt-3 font-display font-semibold text-3xl lg:text-5xl tracking-tight text-zinc-950 dark:text-stone-50 max-w-[18ch]">
-                {t('home.roster.title')}
-              </h2>
-            </div>
-            <Link
-              to="/joueurs"
-              className="inline-flex items-center gap-2 text-zinc-950 dark:text-stone-50 font-medium border-b border-zinc-950/30 dark:border-stone-50/30 hover:border-zinc-950 dark:hover:border-stone-50 transition pb-1 self-start"
-            >
-              {t('home.roster.viewAll')}
-              <ArrowUpRight size={16} weight="bold" />
-            </Link>
-          </div>
+      {/* DEPUIS LUXEMBOURG - pinned route map (hides itself without data) */}
+      <RouteMap players={players} />
 
-          {loading && roster.length === 0 ? (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="aspect-[3/4] rounded-2xl bg-stone-200 dark:bg-zinc-900 animate-pulse" />
-              ))}
+      {/* TEAM SHEET - every represented player, numbered like a line-up */}
+      {(loading || sheet.length > 0) && (
+        <section className="bg-stone-50 py-20 dark:bg-zinc-950 lg:py-32">
+          <div className="container-page">
+            <div className="mb-12 grid gap-6 lg:mb-16 lg:grid-cols-12 lg:items-end">
+              <div className="lg:col-span-8">
+                <span className="eyebrow">{t('home.roster.eyebrow')}</span>
+                <h2 className="mt-4 max-w-[16ch] font-display text-4xl font-semibold leading-[0.98] tracking-tightest text-zinc-950 dark:text-stone-50 lg:text-6xl">
+                  {t('home.roster.title')}
+                </h2>
+              </div>
+              <div className="lg:col-span-4 lg:justify-self-end">
+                <Link
+                  to="/joueurs"
+                  className="inline-flex items-center gap-2 border-b border-zinc-950/30 pb-1 font-medium text-zinc-950 transition hover:border-zinc-950 dark:border-stone-50/30 dark:text-stone-50 dark:hover:border-stone-50"
+                >
+                  {t('home.roster.viewAll')}
+                  <ArrowUpRight size={16} weight="bold" />
+                </Link>
+              </div>
             </div>
-          ) : (
-            <motion.ul
-              initial="hidden"
-              whileInView="show"
-              viewport={{ once: true, margin: '-100px' }}
-              variants={{ show: { transition: { staggerChildren: 0.08 } } }}
-              className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6"
-            >
-              {roster.map((p) => {
-                const photo = LOCAL_PORTRAITS[p.slug] ?? playerImage(p)
-                return (
-                  <motion.li
-                    key={p.slug}
-                    variants={FADE_UP}
-                    transition={{ type: 'spring', stiffness: 110, damping: 20 }}
-                    className="group"
-                  >
-                    <Link to={`/joueurs/${p.slug}`} className="block">
-                      <div className="relative aspect-[3/4] overflow-hidden rounded-2xl bg-stone-200">
-                        <img
-                          src={photo}
-                          alt=""
-                          loading="lazy"
-                          decoding="async"
-                          className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-premium group-hover:scale-[1.04]"
-                        />
-                        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-zinc-950/70 to-transparent" />
-                        <div className="absolute top-3 left-3 font-mono text-[0.65rem] uppercase tracking-wider text-stone-50/90 bg-zinc-950/40 backdrop-blur px-2 py-1 rounded-full">
-                          {p.age} ans
-                        </div>
-                        <div className="absolute bottom-3 left-3 right-3 text-stone-50">
-                          <div className="font-display font-medium text-base lg:text-lg leading-tight">
-                            {p.name}
-                          </div>
-                          <div className="text-xs text-stone-300 mt-0.5">{p.position}</div>
-                        </div>
-                      </div>
-                      <div className="mt-3 flex items-center justify-between text-sm">
-                        <span className="text-zinc-700 dark:text-stone-300">{p.club ?? '-'}</span>
-                        <ArrowUpRight
-                          size={14}
-                          weight="bold"
-                          className="text-zinc-400 group-hover:text-turf-700 dark:group-hover:text-turf-300 transition"
-                        />
-                      </div>
-                    </Link>
-                  </motion.li>
-                )
-              })}
-            </motion.ul>
-          )}
-        </div>
-      </section>
+            <RosterSheet players={sheet} loading={loading} />
+          </div>
+        </section>
       )}
 
       {/* BRAND VIDEO - dark editorial break between roster (light) and services (light).
@@ -472,71 +312,51 @@ function HomePage() {
         </div>
       </section>
 
-      {/* SERVICES - bento asymétrique, pas de 4 cards alignées */}
-      <section className="bg-stone-50 dark:bg-zinc-950 pt-4 pb-20 lg:pb-28">
-        <div className="container-page">
-          <div className="max-w-[44ch] mb-12">
-            <span className="eyebrow">{t('home.services.eyebrow')}</span>
-            <AnimatedUnderline className="mt-2" />
-            <h2 className="mt-3 font-display font-semibold text-3xl lg:text-5xl tracking-tight text-zinc-950 dark:text-stone-50">
-              {t('home.services.title')}
-            </h2>
-            <p className="mt-4 text-base text-zinc-600 dark:text-stone-400 leading-relaxed">
-              {t('home.services.intro')}
-            </p>
+      {/* SERVICES - sticky title left, numbered trades right */}
+      <section className="bg-stone-50 py-20 dark:bg-zinc-950 lg:py-32">
+        <div className="container-page grid gap-12 lg:grid-cols-12">
+          <div className="lg:col-span-5">
+            <div className="lg:sticky lg:top-28">
+              <span className="eyebrow">{t('home.services.eyebrow')}</span>
+              <h2 className="mt-4 max-w-[14ch] font-display text-4xl font-semibold leading-[0.98] tracking-tightest text-zinc-950 dark:text-stone-50 lg:text-6xl">
+                {t('home.services.title')}
+              </h2>
+              <p className="mt-6 max-w-[44ch] leading-relaxed text-zinc-600 dark:text-stone-400">
+                {t('home.services.intro')}
+              </p>
+            </div>
           </div>
 
-          <div className="grid lg:grid-cols-5 lg:auto-rows-[14rem] gap-4 lg:gap-5">
-            {SERVICES.map(({ Icon, key, span, accent }) => (
-              <motion.article
+          <ol className="lg:col-span-7 border-t border-stone-300/70 dark:border-stone-50/10">
+            {SERVICES.map(({ Icon, key }, i) => (
+              <motion.li
                 key={key}
-                initial={{ opacity: 0, y: 16 }}
+                initial={reduce ? false : { opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-80px' }}
-                transition={{ type: 'spring', stiffness: 110, damping: 20 }}
-                className={`relative overflow-hidden rounded-3xl border p-7 lg:p-8 flex flex-col justify-between ${span} ${
-                  accent
-                    ? 'bg-white text-zinc-900 border-stone-200/80 shadow-diffusion dark:bg-zinc-900 dark:text-stone-100 dark:border-white/10'
-                    : 'bg-white text-zinc-900 border-stone-200/80 dark:bg-zinc-900 dark:text-stone-50 dark:border-stone-50/10'
-                }`}
+                transition={{ duration: 0.7, ease: EASE_OUT }}
+                className="group grid grid-cols-[3.5rem_1fr] gap-x-4 border-b border-stone-300/70 py-9 dark:border-stone-50/10 sm:grid-cols-[5rem_1fr_auto] lg:py-11"
               >
-                <div
-                  className={`grid place-items-center w-11 h-11 rounded-xl ${
-                    accent
-                      ? 'bg-turf-50 text-turf-800 border border-turf-100 dark:bg-turf-800/40 dark:text-turf-200 dark:border-turf-300/30'
-                      : 'bg-turf-50 text-turf-800 border border-turf-100 dark:bg-turf-800/40 dark:text-turf-200 dark:border-turf-300/30'
-                  }`}
-                >
-                  <Icon size={22} weight="regular" />
-                </div>
-                {accent && (
-                  <div>
-                    <div className="font-mono text-5xl lg:text-6xl font-semibold text-turf-700 dark:text-turf-200 tracking-tight">
-                      <AnimatedNumber value={players.length} />
-                    </div>
-                    <div className="mt-1 text-xs uppercase tracking-[0.18em] text-stone-500 dark:text-stone-400">
-                      {t('home.stats.players')}
-                    </div>
-                  </div>
-                )}
+                <span className="font-display text-4xl font-semibold leading-none tabular-nums text-turf-700/80 dark:text-turf-300/80 lg:text-5xl">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
                 <div>
-                  <h3 className="font-display font-semibold text-xl lg:text-2xl tracking-tight text-zinc-950 dark:text-stone-50">
+                  <h3 className="font-display text-2xl font-semibold tracking-tight text-zinc-950 dark:text-stone-50 lg:text-3xl">
                     {t(`home.services.${key}.title`)}
                   </h3>
-                  <p className="mt-3 text-sm leading-relaxed max-w-[40ch] text-zinc-600 dark:text-stone-400">
+                  <p className="mt-3 max-w-[48ch] text-[0.95rem] leading-relaxed text-zinc-600 dark:text-stone-400">
                     {t(`home.services.${key}.text`)}
                   </p>
                 </div>
-                {accent && (
-                  <div
-                    aria-hidden="true"
-                    className="pointer-events-none absolute -bottom-24 -right-24 w-72 h-72 rounded-full"
-                    style={{ background: 'radial-gradient(circle, rgba(30, 64, 175,0.30), transparent 70%)' }}
-                  />
-                )}
-              </motion.article>
+                <Icon
+                  size={28}
+                  weight="regular"
+                  aria-hidden="true"
+                  className="hidden text-zinc-300 transition-[color,transform] duration-500 ease-premium group-hover:-rotate-6 group-hover:text-turf-700 dark:text-stone-600 dark:group-hover:text-turf-300 sm:block"
+                />
+              </motion.li>
             ))}
-          </div>
+          </ol>
         </div>
       </section>
 
@@ -559,7 +379,7 @@ function HomePage() {
 
           {/* Stat headliners — figures (0,5 % / 58 % / $1,37 Md) stay in the
               source language ; only the surrounding narrative is translated. */}
-          <div className="mt-12 grid md:grid-cols-3 gap-4">
+          <div className="mt-14 grid gap-10 md:grid-cols-3 md:gap-8">
             {[
               { stat: '0,5%',    key: 'one',   sourceLabel: 'FIFA',      sourceHref: 'https://digitalhub.fifa.com/m/1e7b741fa0fae779/original/FIFA-Football-Agent-Regulations.pdf' },
               { stat: '58%',     key: 'two',   sourceLabel: 'CIES',      sourceHref: 'https://football-observatory.com/IMG/pdf/report_agents_2012-2.pdf' },
@@ -571,9 +391,9 @@ function HomePage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-60px' }}
                 transition={{ type: 'spring', stiffness: 110, damping: 22 }}
-                className="rounded-3xl border border-stone-200/80 bg-stone-50 dark:bg-zinc-900 dark:border-stone-50/10 p-6 lg:p-7 flex flex-col"
+                className="flex flex-col border-t-2 border-zinc-950 pt-6 dark:border-stone-50"
               >
-                <div className="font-mono text-4xl lg:text-5xl font-semibold text-zinc-950 dark:text-stone-50 tracking-tight tabular-nums">
+                <div className="font-display text-5xl lg:text-7xl font-semibold text-zinc-950 dark:text-stone-50 tracking-tightest tabular-nums">
                   {s.stat}
                 </div>
                 <div className="mt-3 font-display font-medium text-base lg:text-lg text-zinc-950 dark:text-stone-50 leading-snug">
@@ -596,7 +416,7 @@ function HomePage() {
           </div>
 
           {/* Value pillars - what an agency actually adds beyond the numbers */}
-          <div className="mt-14 grid lg:grid-cols-2 gap-4">
+          <div className="mt-16 grid gap-x-10 gap-y-8 lg:grid-cols-2">
             {[
               { Icon: ShieldCheck, key: 'one'   },
               { Icon: TrendUp,     key: 'two'   },
@@ -609,9 +429,9 @@ function HomePage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-60px' }}
                 transition={{ type: 'spring', stiffness: 110, damping: 22 }}
-                className="rounded-2xl border border-stone-200/80 bg-white dark:bg-zinc-900 dark:border-stone-50/10 p-6 flex items-start gap-4"
+                className="flex items-start gap-4 border-t border-stone-200 pt-6 dark:border-stone-50/10"
               >
-                <span className="grid place-items-center w-11 h-11 rounded-xl bg-turf-50 text-turf-800 border border-turf-100 dark:bg-turf-800/30 dark:border-turf-300/25 dark:text-turf-300 shrink-0">
+                <span className="grid place-items-center w-11 h-11 bg-turf-50 text-turf-800 border border-turf-100 dark:bg-turf-800/30 dark:border-turf-300/25 dark:text-turf-300 shrink-0">
                   <Icon size={20} weight="regular" />
                 </span>
                 <div className="min-w-0">
@@ -687,9 +507,9 @@ function HomePage() {
               <Link
                 key={reason}
                 to={`/contact?reason=${reason}`}
-                className="group relative flex items-start gap-3 rounded-2xl border border-stone-50/10 bg-stone-50/[0.03] hover:bg-stone-50/[0.06] hover:border-stone-50/25 p-5 transition-colors ease-premium"
+                className="group relative flex items-start gap-3 border border-stone-50/10 bg-stone-50/[0.03] hover:bg-stone-50/[0.06] hover:border-stone-50/25 p-5 transition-colors ease-premium"
               >
-                <span className="grid place-items-center w-10 h-10 rounded-xl bg-turf-800/40 text-turf-200 border border-turf-300/25 shrink-0">
+                <span className="grid place-items-center w-10 h-10 bg-turf-800/40 text-turf-200 border border-turf-300/25 shrink-0">
                   <Icon size={18} weight="regular" />
                 </span>
                 <span className="min-w-0">
@@ -716,6 +536,8 @@ function HomePage() {
           </div>
         </div>
       </section>
+      {/* OUTRO - the wordmark closes the page */}
+      <OutroWordmark />
     </>
   )
 }

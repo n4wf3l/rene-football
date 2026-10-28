@@ -66,7 +66,11 @@
       "ctaPrimary": "Eis Spiller entdecken",
       "ctaSecondary": "Kontakt ophuelen",
       "identityLabel": "Vertriedene Spiller",
-      "signedIn": "Ënnerschriwwen {{year}}"
+      "signedIn": "Ënnerschriwwen {{year}}",
+      "clock": "Lëtzebuerg",
+      "prevPlayer": "Viregte Spiller",
+      "nextPlayer": "Nächste Spiller",
+      "viewProfile": "Spillerprofil kucken"
     },
     "stats": {
       "players": "Aktiv Spiller",
@@ -152,6 +156,19 @@
       "subtitle": "Wielt Äert Profil, mir passen den Austausch un.",
       "paragraph": "All Wee opent d'Froen déi zu Ärer Situatioun passen. Äntwert bannent 48 Stonnen, vertraulechen Austausch, ouni Verpflichtung.",
       "browseAll": "Oder duerch de ganze Formulaire goen"
+    },
+    "map": {
+      "eyebrow": "Vu Lëtzebuerg aus",
+      "title": "Vum Groussherzogtum",
+      "titleAccent": "an Europas Ausbildungszentren.",
+      "paragraph": "All Linn fänkt bei eiser Basis un a féiert bei e Club, wou haut e Spiller spillt, deen mir vertrieden.",
+      "routeLabel": "Route",
+      "kmFrom": "km vu Lëtzebuerg",
+      "base": "Lëtzebuerg · Basis"
+    },
+    "outro": {
+      "tagline": "Fussballagence · Lëtzebuerg · zënter 2010",
+      "cta": "Iwwer Äre Projet schwätzen"
     }
   },
   "players": {
