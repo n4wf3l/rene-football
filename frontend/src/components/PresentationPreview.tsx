@@ -1,10 +1,18 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import * as pdfjs from 'pdfjs-dist'
-import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
+// Legacy build: same rendering, polyfilled for browsers without the newest
+// JS APIs (older Safari / Chrome). The worker is bundled by Vite as a .js
+// chunk (fresh hash, served as JavaScript by any host).
+import * as pdfjs from 'pdfjs-dist/legacy/build/pdf.mjs'
+import PdfWorker from 'pdfjs-dist/legacy/build/pdf.worker.min.mjs?worker'
 import { api, ApiError } from '../api/client'
 import type { FicheRenderMeta, PresentationOptions } from '../types/presentation'
 
-pdfjs.GlobalWorkerOptions.workerSrc = pdfWorkerUrl
+let workerReady = false
+function ensureWorker(): void {
+  if (workerReady) return
+  pdfjs.GlobalWorkerOptions.workerPort = new PdfWorker()
+  workerReady = true
+}
 
 /**
  * Live preview of a presentation = the real PDF.
@@ -46,6 +54,9 @@ export default function PresentationPreview({ playerId, options, bioOverride, pr
   const [pdfData, setPdfData] = useState<Uint8Array | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  /** pdf.js could not paint here: fall back to the browser's own PDF viewer. */
+  const [nativeViewer, setNativeViewer] = useState(false)
+  const [blobUrl, setBlobUrl] = useState<string | null>(null)
   const urlRef = useRef<string | null>(null)
   const onResultRef = useRef(onResult)
   onResultRef.current = onResult
@@ -85,6 +96,7 @@ export default function PresentationPreview({ playerId, options, bioOverride, pr
         const bytes = Uint8Array.from(atob(res.pdf), (c) => c.charCodeAt(0))
         if (urlRef.current) URL.revokeObjectURL(urlRef.current)
         urlRef.current = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }))
+        setBlobUrl(urlRef.current)
         setPdfData(bytes)
         setError(null)
         onResultRef.current?.({ pdfUrl: urlRef.current, layout: res.layout, error: null, details: [] })
@@ -109,9 +121,17 @@ export default function PresentationPreview({ playerId, options, bioOverride, pr
 
   // Paint page 1 at device resolution.
   useEffect(() => {
-    if (!pdfData || !width || !canvasRef.current) return
+    if (!pdfData || !width || !canvasRef.current || nativeViewer) return
     let cancelled = false
-    const task = pdfjs.getDocument({ data: pdfData.slice() })
+    let task: ReturnType<typeof pdfjs.getDocument>
+    try {
+      ensureWorker()
+      task = pdfjs.getDocument({ data: pdfData.slice() })
+    } catch (err) {
+      console.error('[PresentationPreview] pdf.js indisponible, lecteur PDF natif utilisé.', err)
+      setNativeViewer(true)
+      return
+    }
     task.promise.then(async (doc) => {
       const page = await doc.getPage(1)
       if (cancelled) return
@@ -125,10 +145,13 @@ export default function PresentationPreview({ playerId, options, bioOverride, pr
       canvas.style.width = `${width}px`
       canvas.style.height = `${(width * base.height) / base.width}px`
       await page.render({ canvas, viewport }).promise
-
-    }).catch(() => { /* a newer render replaced this one */ })
+    }).catch((err: unknown) => {
+      if (cancelled) return // a newer render replaced this one
+      console.error('[PresentationPreview] rendu pdf.js impossible, lecteur PDF natif utilisé.', err)
+      setNativeViewer(true)
+    })
     return () => { cancelled = true; task.destroy() }
-  }, [pdfData, width])
+  }, [pdfData, width, nativeViewer])
 
   return (
     <div
@@ -136,7 +159,15 @@ export default function PresentationPreview({ playerId, options, bioOverride, pr
       className="relative w-full rounded-lg overflow-hidden shadow-2xl border border-stone-300/70 dark:border-stone-50/15 bg-stone-200 dark:bg-zinc-900"
       style={{ aspectRatio: '210 / 297' }}
     >
-      {pdfData && <canvas ref={canvasRef} className={`block transition-opacity ${loading || error ? 'opacity-40' : ''}`} />}
+      {pdfData && !nativeViewer && <canvas ref={canvasRef} className={`block transition-opacity ${loading || error ? 'opacity-40' : ''}`} />}
+      {pdfData && nativeViewer && blobUrl && (
+        <iframe
+          key={blobUrl}
+          src={`${blobUrl}#toolbar=0&navpanes=0&view=FitH`}
+          title="Aperçu PDF"
+          className={`absolute inset-0 w-full h-full border-0 bg-white transition-opacity ${loading || error ? 'opacity-40' : ''}`}
+        />
+      )}
       {!pdfData && (
         <div className="absolute inset-0 flex items-center justify-center text-xs text-zinc-500 dark:text-stone-500 text-center px-6">
           {playerId ? (loading ? 'Génération du PDF…' : '') : 'Sélectionnez un joueur pour voir la fiche.'}
