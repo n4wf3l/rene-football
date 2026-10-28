@@ -21,6 +21,13 @@
 # et retournerait un 404.
 DirectoryIndex index.html index.php
 
+# ES modules shipped with a .mjs extension (pdf.js worker used by the
+# presentation editor preview). Apache on Hostinger serves them as
+# text/plain, which browsers refuse to execute under nosniff.
+<IfModule mod_mime.c>
+    AddType text/javascript .mjs
+</IfModule>
+
 <IfModule mod_rewrite.c>
     RewriteEngine On
 

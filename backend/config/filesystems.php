@@ -33,7 +33,9 @@ return [
         'local' => [
             'driver' => 'local',
             'root' => storage_path('app/private'),
-            'serve' => true,
+            // No built-in /storage route for the private disk: /storage/* is
+            // the public media route (routes/web.php); CVs use signed links.
+            'serve' => false,
             'throw' => false,
             'report' => false,
         ],
