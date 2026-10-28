@@ -66,7 +66,11 @@
       "ctaPrimary": "Unsere Spieler entdecken",
       "ctaSecondary": "Kontakt aufnehmen",
       "identityLabel": "Vertretener Spieler",
-      "signedIn": "Unterschrieben {{year}}"
+      "signedIn": "Unterschrieben {{year}}",
+      "clock": "Luxemburg",
+      "prevPlayer": "Vorheriger Spieler",
+      "nextPlayer": "Nächster Spieler",
+      "viewProfile": "Spielerprofil ansehen"
     },
     "stats": {
       "players": "Aktive Spieler",
@@ -152,6 +156,20 @@
       "subtitle": "Wählen Sie Ihr Profil, wir passen den Austausch an.",
       "paragraph": "Jeder Weg öffnet die Fragen, die zu Ihrer Situation passen. Antwort innerhalb von 48 Stunden, vertraulicher Austausch, unverbindlich.",
       "browseAll": "Oder das komplette Formular durchgehen"
+    },
+    "map": {
+      "eyebrow": "Aus Luxemburg",
+      "title": "Vom Großherzogtum",
+      "titleAccent": "in Europas Nachwuchsleistungszentren.",
+      "paragraph": "Jede Linie startet an unserem Standort und führt zu einem Verein, bei dem heute ein von uns vertretener Spieler spielt.",
+      "routeLabel": "Route",
+      "kmFrom": "km von Luxemburg",
+      "base": "Luxemburg · Basis",
+      "scrollHint": "Scrollen, um die Routen zu zeichnen"
+    },
+    "outro": {
+      "tagline": "Fußballagentur · Luxemburg · seit 2010",
+      "cta": "Über Ihr Projekt sprechen"
     }
   },
   "players": {

@@ -66,7 +66,11 @@
       "ctaPrimary": "Ontdek onze spelers",
       "ctaSecondary": "Neem contact op",
       "identityLabel": "Vertegenwoordigde speler",
-      "signedIn": "Getekend in {{year}}"
+      "signedIn": "Getekend in {{year}}",
+      "clock": "Luxemburg",
+      "prevPlayer": "Vorige speler",
+      "nextPlayer": "Volgende speler",
+      "viewProfile": "Spelersprofiel bekijken"
     },
     "stats": {
       "players": "Actieve spelers",
@@ -152,6 +156,20 @@
       "subtitle": "Kies uw profiel, we passen het gesprek aan.",
       "paragraph": "Elk profiel opent de vragen die bij uw situatie passen. Antwoord binnen 48 uur, vertrouwelijk gesprek, vrijblijvend.",
       "browseAll": "Of blader door het volledige formulier"
+    },
+    "map": {
+      "eyebrow": "Vanuit Luxemburg",
+      "title": "Van het Groothertogdom",
+      "titleAccent": "naar de jeugdopleidingen van Europa.",
+      "paragraph": "Elke lijn vertrekt vanuit onze basis en eindigt bij een club waar vandaag een speler speelt die wij vertegenwoordigen.",
+      "routeLabel": "Route",
+      "kmFrom": "km vanaf Luxemburg",
+      "base": "Luxemburg · Basis",
+      "scrollHint": "Scroll om de routes te tekenen"
+    },
+    "outro": {
+      "tagline": "Voetbalagentschap · Luxemburg · sinds 2010",
+      "cta": "Praat over uw project"
     }
   },
   "players": {

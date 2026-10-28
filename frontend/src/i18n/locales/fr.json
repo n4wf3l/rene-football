@@ -66,7 +66,11 @@
       "ctaPrimary": "Découvrir nos joueurs",
       "ctaSecondary": "Nous contacter",
       "identityLabel": "Joueur représenté",
-      "signedIn": "Signé en {{year}}"
+      "signedIn": "Signé en {{year}}",
+      "clock": "Luxembourg",
+      "prevPlayer": "Joueur précédent",
+      "nextPlayer": "Joueur suivant",
+      "viewProfile": "Voir la fiche du joueur"
     },
     "stats": {
       "players": "Joueurs actifs",
@@ -152,6 +156,20 @@
       "subtitle": "Choisissez votre profil, on adapte l'échange.",
       "paragraph": "Chaque parcours ouvre les questions utiles à votre situation. Réponse sous 48 heures, échange confidentiel, sans engagement.",
       "browseAll": "Ou parcourir tout le formulaire"
+    },
+    "map": {
+      "eyebrow": "Depuis Luxembourg",
+      "title": "Du Grand-Duché",
+      "titleAccent": "aux centres de formation d'Europe.",
+      "paragraph": "Chaque ligne part de notre base et rejoint un club où évolue aujourd'hui un joueur que nous représentons.",
+      "routeLabel": "Route",
+      "kmFrom": "km depuis Luxembourg",
+      "base": "Luxembourg · Base",
+      "scrollHint": "Faites défiler pour tracer les routes"
+    },
+    "outro": {
+      "tagline": "Agence de football · Luxembourg · depuis 2010",
+      "cta": "Parler de votre projet"
     }
   },
   "players": {

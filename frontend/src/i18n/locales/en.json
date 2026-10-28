@@ -66,7 +66,11 @@
       "ctaPrimary": "Meet our players",
       "ctaSecondary": "Get in touch",
       "identityLabel": "Represented player",
-      "signedIn": "Signed in {{year}}"
+      "signedIn": "Signed in {{year}}",
+      "clock": "Luxembourg",
+      "prevPlayer": "Previous player",
+      "nextPlayer": "Next player",
+      "viewProfile": "View the player's profile"
     },
     "stats": {
       "players": "Active players",
@@ -152,6 +156,20 @@
       "subtitle": "Pick your profile, we tailor the exchange.",
       "paragraph": "Each track opens the questions that fit your situation. Reply within 48 hours, confidential exchange, no obligation.",
       "browseAll": "Or browse the full form"
+    },
+    "map": {
+      "eyebrow": "From Luxembourg",
+      "title": "From the Grand Duchy",
+      "titleAccent": "to Europe's academies.",
+      "paragraph": "Every line leaves our base and reaches a club where a player we represent plays today.",
+      "routeLabel": "Route",
+      "kmFrom": "km from Luxembourg",
+      "base": "Luxembourg · Base",
+      "scrollHint": "Scroll to draw the routes"
+    },
+    "outro": {
+      "tagline": "Football agency · Luxembourg · since 2010",
+      "cta": "Talk about your project"
     }
   },
   "players": {
