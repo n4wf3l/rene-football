@@ -4,6 +4,7 @@ use App\Models\Article;
 use App\Models\Player;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * The root route is reserved for a tiny API-only landing - this Laravel
@@ -182,6 +183,32 @@ Route::get('/sitemap.xml', function () {
         'X-Generated-At' => $now,
     ]);
 });
+
+/**
+ * Public uploads (player photos, article covers, clips, partner logos, staff
+ * portraits, presentation PDFs). Hostinger shared hosting disables symlink(),
+ * so `public_html/storage` can never point at storage/app/public and the
+ * .htaccess forwards /storage/* here instead. Locally `storage:link` still
+ * serves the files before this route is reached.
+ *
+ * Only the media folders below are exposed — anything else that may sit on
+ * the public disk (e.g. legacy CV uploads) stays unreachable.
+ */
+Route::get('/storage/{path}', function (string $path) {
+    $folders = ['articles', 'clips', 'partners', 'players', 'presentations', 'staff'];
+    $top = explode('/', $path, 2)[0];
+    if (! in_array($top, $folders, true) || str_contains($path, '..') || str_contains($path, "\0")) {
+        abort(404);
+    }
+    $disk = Storage::disk('public');
+    if (! $disk->exists($path)) {
+        abort(404);
+    }
+
+    return $disk->response($path, null, [
+        'Cache-Control' => 'public, max-age=2592000',
+    ]);
+})->where('path', '.+');
 
 /**
  * Serve robots.txt from Laravel so we control the sitemap URL and Disallow
