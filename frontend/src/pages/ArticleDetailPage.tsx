@@ -1,4 +1,3 @@
-import * as React from 'react'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -15,6 +14,7 @@ import {
 } from '@phosphor-icons/react'
 import MeshGradient from '../components/MeshGradient'
 import BrandLogo from '../components/BrandLogo'
+import { renderMarkdown } from '../lib/markdown'
 import Seo from '../components/Seo'
 import { useTranslation } from 'react-i18next'
 import Skeleton from '../components/Skeleton'
@@ -31,34 +31,6 @@ function formatDate(iso: string | null, lang: string | undefined): string {
   if (!iso) return ''
   const d = new Date(iso)
   return isNaN(d.getTime()) ? '' : new Intl.DateTimeFormat(lang, { day: 'numeric', month: 'long', year: 'numeric' }).format(d)
-}
-
-/**
- * Render the article body as a sequence of paragraphs. We keep this lightweight
- * (split on blank lines) because the admin textarea uses plain text - anything
- * fancier than that should land via dedicated rich blocks later.
- */
-function renderContent(content: string | null): React.ReactElement | null {
-  if (!content) return null
-  const blocks = content.split(/\n{2,}/).map((b) => b.trim()).filter(Boolean)
-  if (blocks.length === 0) return null
-  return (
-    <div className="space-y-5 text-base lg:text-lg leading-[1.7] text-zinc-800 dark:text-stone-300">
-      {blocks.map((b, i) => {
-        const lines = b.split('\n')
-        return (
-          <p key={i}>
-            {lines.map((line, j) => (
-              <span key={j}>
-                {line}
-                {j < lines.length - 1 && <br />}
-              </span>
-            ))}
-          </p>
-        )
-      })}
-    </div>
-  )
 }
 
 interface GalleryProps {
@@ -309,7 +281,7 @@ export default function ArticleDetailPage() {
       <section className="bg-stone-50 dark:bg-zinc-950 transition-colors py-12 lg:py-16">
         <div className="container-page grid lg:grid-cols-12 gap-10 lg:gap-12">
           <article className="lg:col-span-8 min-w-0">
-            {renderContent(article.content)}
+            {renderMarkdown(article.content)}
 
             {/* Editorial sign-off */}
             <footer className="mt-14 border-t border-zinc-950/10 pt-8 dark:border-stone-50/10">
