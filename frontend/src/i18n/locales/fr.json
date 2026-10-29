@@ -178,6 +178,14 @@
     }
   },
   "players": {
+    "card": {
+      "matches": "Matchs",
+      "goals": "Buts",
+      "assists": "Passes déc.",
+      "cleanSheets": "Clean sheets",
+      "saves": "Arrêts",
+      "since": "depuis {{year}}"
+    },
     "seo": {
       "title": "Nos joueurs",
       "description": "La liste des joueurs qu'on accompagne cette saison. Une sélection resserrée, suivie par une équipe dédiée du début à la fin de la saison."
@@ -318,6 +326,10 @@
     "publishedOn": "Publié le",
     "photos": "Photos",
     "clips": "Captures",
+    "signature": {
+      "name": "La rédaction Rene Football",
+      "meta": "Agence de football · Luxembourg"
+    },
     "lightbox": {
       "close": "Fermer",
       "previous": "Photo précédente",

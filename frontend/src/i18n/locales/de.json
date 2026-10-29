@@ -178,6 +178,14 @@
     }
   },
   "players": {
+    "card": {
+      "matches": "Spiele",
+      "goals": "Tore",
+      "assists": "Vorlagen",
+      "cleanSheets": "Zu-null-Spiele",
+      "saves": "Paraden",
+      "since": "seit {{year}}"
+    },
     "seo": {
       "title": "Unsere Spieler",
       "description": "Die Spieler, die wir in dieser Saison begleiten. Eine bewusst kleine Auswahl, von einem festen Team über die gesamte Saison betreut."
@@ -318,6 +326,10 @@
     "publishedOn": "Veröffentlicht am",
     "photos": "Fotos",
     "clips": "Clips",
+    "signature": {
+      "name": "Die Redaktion von Rene Football",
+      "meta": "Fußballagentur · Luxemburg"
+    },
     "lightbox": {
       "close": "Schließen",
       "previous": "Vorheriges Foto",

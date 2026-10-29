@@ -228,9 +228,11 @@ const MegaPanel = memo(function MegaPanel({ open, onClose, onMouseEnter, onMouse
               <span className="font-mono uppercase tracking-[0.18em] text-[0.65rem] text-turf-700 dark:text-turf-300">
                 Dernières signatures
               </span>
-              <span className="font-mono text-[0.65rem] tabular-nums text-stone-500">
-                {total} joueurs actifs
-              </span>
+              {total > 0 && (
+                <span className="font-mono text-[0.65rem] tabular-nums text-stone-500">
+                  {total} · {t('home.stats.players')}
+                </span>
+              )}
             </div>
             <ul className="relative z-10 grid grid-cols-3 gap-3 p-4">
               {showcase.map((p, i) => (
