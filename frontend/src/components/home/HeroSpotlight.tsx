@@ -118,13 +118,13 @@ function HeroSpotlight({ players, fallbackSrc }: HeroSpotlightProps) {
 
       {count > 1 && (
         <div className="mt-4 flex items-center gap-4">
-          <span className="font-mono text-xs tabular-nums text-stone-400">
-            <span className="text-stone-50">{pad((index % count) + 1)}</span> / {pad(count)}
+          <span className="font-mono text-xs tabular-nums text-zinc-500 dark:text-stone-400">
+            <span className="text-zinc-950 dark:text-stone-50">{pad((index % count) + 1)}</span> / {pad(count)}
           </span>
-          <span className="relative h-px flex-1 overflow-hidden bg-stone-50/15" aria-hidden="true">
+          <span className="relative h-px flex-1 overflow-hidden bg-zinc-950/15 dark:bg-stone-50/15" aria-hidden="true">
             <motion.span
               key={`${index}-${autoplay}`}
-              className="absolute inset-0 origin-left bg-turf-300"
+              className="absolute inset-0 origin-left bg-turf-700 dark:bg-turf-300"
               initial={{ scaleX: 0 }}
               animate={{ scaleX: autoplay ? 1 : 0 }}
               transition={{ duration: autoplay ? ROTATE_MS / 1000 : 0, ease: 'linear' }}
@@ -135,7 +135,7 @@ function HeroSpotlight({ players, fallbackSrc }: HeroSpotlightProps) {
               type="button"
               onClick={() => go(-1)}
               aria-label={t('home.hero.prevPlayer')}
-              className="grid h-9 w-9 place-items-center border border-stone-50/15 text-stone-300 transition-colors hover:border-stone-50/50 hover:text-stone-50 active:scale-[0.96]"
+              className="grid h-9 w-9 place-items-center border border-zinc-950/15 text-zinc-600 transition-colors hover:border-zinc-950/50 hover:text-zinc-950 active:scale-[0.96] dark:border-stone-50/15 dark:text-stone-300 dark:hover:border-stone-50/50 dark:hover:text-stone-50"
             >
               <ArrowLeft size={14} weight="bold" />
             </button>
@@ -143,7 +143,7 @@ function HeroSpotlight({ players, fallbackSrc }: HeroSpotlightProps) {
               type="button"
               onClick={() => go(1)}
               aria-label={t('home.hero.nextPlayer')}
-              className="grid h-9 w-9 place-items-center border border-stone-50/15 text-stone-300 transition-colors hover:border-stone-50/50 hover:text-stone-50 active:scale-[0.96]"
+              className="grid h-9 w-9 place-items-center border border-zinc-950/15 text-zinc-600 transition-colors hover:border-zinc-950/50 hover:text-zinc-950 active:scale-[0.96] dark:border-stone-50/15 dark:text-stone-300 dark:hover:border-stone-50/50 dark:hover:text-stone-50"
             >
               <ArrowRight size={14} weight="bold" />
             </button>

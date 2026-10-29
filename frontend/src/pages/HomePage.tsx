@@ -27,7 +27,6 @@ import RosterSheet from '../components/home/RosterSheet'
 import OutroWordmark from '../components/home/OutroWordmark'
 import { usePublicPlayers, pickShowcase } from '../lib/usePublicPlayers'
 import { usePublicStaff } from '../lib/usePublicStaff'
-import { useDarkHero } from '../hooks/useDarkHero'
 import heroPortrait from '../assets/player2.png'
 
 /** Icon + key ; title/text come from home.services.<key>.title / .text */
@@ -62,7 +61,7 @@ function Headline({ pre, accent, post }: HeadlineProps) {
 
   return (
     <h1
-      className="font-display font-semibold leading-[0.96] tracking-tightest text-stone-50"
+      className="font-display font-semibold leading-[0.96] tracking-tightest text-zinc-950 dark:text-stone-50"
       style={{ fontSize: 'clamp(2.6rem, 6vw, 5.4rem)' }}
     >
       <span className="sr-only">{`${pre} ${accent} ${post}`}</span>
@@ -70,7 +69,7 @@ function Headline({ pre, accent, post }: HeadlineProps) {
         {words.map(({ w, accent: isAccent }, i) => (
           <span key={i} className="inline-block overflow-hidden pb-[0.08em] align-bottom">
             <motion.span
-              className={`inline-block ${isAccent ? 'text-turf-300 italic' : ''}`}
+              className={`inline-block ${isAccent ? 'text-turf-700 italic dark:text-turf-300' : ''}`}
               initial={reduce ? false : { y: '108%' }}
               animate={{ y: '0%' }}
               transition={{ duration: 0.9, ease: EASE_OUT, delay: 0.15 + i * 0.05 }}
@@ -87,7 +86,6 @@ function Headline({ pre, accent, post }: HeadlineProps) {
 
 function HomePage() {
   const { t } = useTranslation()
-  useDarkHero()
   const reduce = useReducedMotion()
   const heroRef = useRef<HTMLElement | null>(null)
   const { players, loading } = usePublicPlayers()
@@ -126,13 +124,13 @@ function HomePage() {
         path="/"
       />
 
-      {/* HERO - stadium at night in both themes: headline left, the
-          represented players cycling on a ticket-cut card right, the agency
-          wordmark set huge behind everything. */}
-      <section ref={heroRef} className="relative overflow-hidden bg-zinc-950 text-stone-100">
+      {/* HERO - follows the site theme: headline left, the represented
+          players cycling on a ticket-cut card right, the agency wordmark set
+          huge behind everything. */}
+      <section ref={heroRef} className="relative overflow-hidden bg-stone-50 text-zinc-900 dark:bg-zinc-950 dark:text-stone-100">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0"
+          className="pointer-events-none absolute inset-0 opacity-40 dark:opacity-100"
           style={{
             background:
               'radial-gradient(ellipse 45% 55% at 78% 35%, rgba(30,64,175,0.38), transparent 70%),' +
@@ -142,7 +140,7 @@ function HomePage() {
         <motion.div
           aria-hidden="true"
           style={{ y: wordmarkY }}
-          className="pointer-events-none absolute inset-x-0 bottom-[-0.12em] select-none whitespace-nowrap text-center font-display font-semibold uppercase leading-none tracking-tightest text-stone-50/[0.045] text-[34vw]"
+          className="pointer-events-none absolute inset-x-0 bottom-[-0.12em] select-none whitespace-nowrap text-center font-display font-semibold uppercase leading-none tracking-tightest text-zinc-950/[0.04] dark:text-stone-50/[0.045] text-[34vw]"
         >
           Rene
         </motion.div>
@@ -153,12 +151,12 @@ function HomePage() {
               initial={reduce ? false : { opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, ease: EASE_OUT }}
-              className="flex flex-wrap items-center gap-x-4 gap-y-2 font-mono text-[0.68rem] uppercase tracking-[0.24em] text-stone-400"
+              className="flex flex-wrap items-center gap-x-4 gap-y-2 font-mono text-[0.68rem] uppercase tracking-[0.24em] text-zinc-500 dark:text-stone-400"
             >
-              <span className="text-turf-300">{t('home.hero.chip')}</span>
-              <span className="h-px w-8 bg-stone-50/20" aria-hidden="true" />
+              <span className="text-turf-700 dark:text-turf-300">{t('home.hero.chip')}</span>
+              <span className="h-px w-8 bg-zinc-950/20 dark:bg-stone-50/20" aria-hidden="true" />
               <span className="inline-flex items-center gap-2">
-                <span className="h-1.5 w-1.5 rounded-full bg-turf-300 animate-pulse" aria-hidden="true" />
+                <span className="h-1.5 w-1.5 rounded-full bg-turf-600 animate-pulse dark:bg-turf-300" aria-hidden="true" />
                 {t('home.hero.clock')} <LuxClock />
               </span>
             </motion.div>
@@ -171,7 +169,7 @@ function HomePage() {
               initial={reduce ? false : { opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, ease: EASE_OUT, delay: 0.7 }}
-              className="mt-7 max-w-[54ch] text-base leading-relaxed text-stone-400 lg:text-lg"
+              className="mt-7 max-w-[54ch] text-base leading-relaxed text-zinc-600 dark:text-stone-400 lg:text-lg"
             >
               {t('home.hero.paragraph')}
             </motion.p>
@@ -184,14 +182,14 @@ function HomePage() {
             >
               <MagneticLink
                 to="/joueurs"
-                className="group inline-flex items-center gap-3 bg-stone-50 px-6 py-4 text-[0.95rem] font-medium text-zinc-950 transition-colors duration-300 ease-premium hover:bg-turf-300"
+                className="group inline-flex items-center gap-3 bg-zinc-950 px-6 py-4 text-[0.95rem] font-medium text-stone-50 transition-colors duration-300 ease-premium hover:bg-turf-800 dark:bg-stone-50 dark:text-zinc-950 dark:hover:bg-turf-300"
               >
                 {t('home.hero.ctaPrimary')}
                 <ArrowUpRight size={18} weight="bold" className="transition-transform duration-300 ease-premium group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
               </MagneticLink>
               <Link
                 to="/contact"
-                className="inline-flex items-center gap-2 border border-stone-50/20 px-6 py-4 text-[0.95rem] font-medium text-stone-100 transition-colors duration-300 ease-premium hover:border-stone-50/60 active:-translate-y-px"
+                className="inline-flex items-center gap-2 border border-zinc-950/20 px-6 py-4 text-[0.95rem] font-medium text-zinc-900 transition-colors duration-300 ease-premium hover:border-zinc-950/60 active:-translate-y-px dark:border-stone-50/20 dark:text-stone-100 dark:hover:border-stone-50/60"
               >
                 {t('home.hero.ctaSecondary')}
               </Link>
@@ -202,12 +200,12 @@ function HomePage() {
                 initial={reduce ? false : { opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.8, delay: 1 }}
-                className="mt-14 grid max-w-xl grid-cols-2 gap-y-6 border-t border-stone-50/10 pt-6 sm:grid-cols-4"
+                className="mt-14 grid max-w-xl grid-cols-2 gap-y-6 border-t border-zinc-950/10 pt-6 dark:border-stone-50/10 sm:grid-cols-4"
               >
                 {STATS.map((s) => (
                   <div key={s.label} className="flex flex-col pr-4">
-                    <dt className="order-2 mt-1 text-xs leading-snug text-stone-500">{s.label}</dt>
-                    <dd className="font-mono text-3xl tabular-nums text-stone-50">
+                    <dt className="order-2 mt-1 text-xs leading-snug text-zinc-500 dark:text-stone-500">{s.label}</dt>
+                    <dd className="font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">
                       <AnimatedNumber value={s.value} duration={1.6} />
                     </dd>
                   </div>
