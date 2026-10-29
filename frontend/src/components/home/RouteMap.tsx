@@ -160,24 +160,24 @@ function RouteScene({ model }: { model: MapModel }) {
   const fmt = (n: number) => Math.round(n).toLocaleString(i18n.resolvedLanguage)
 
   return (
-    <section ref={sectionRef} className="relative bg-zinc-950 text-stone-100">
+    <section ref={sectionRef} className="relative bg-white text-zinc-900 dark:bg-zinc-950 dark:text-stone-100">
       <div className="relative flex items-center overflow-hidden py-20 lg:py-28">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0"
+          className="pointer-events-none absolute inset-0 opacity-40 dark:opacity-100"
           style={{ background: 'radial-gradient(ellipse 55% 60% at 68% 50%, rgba(30,64,175,0.22), transparent 70%)' }}
         />
         <div className="container-page grid items-center gap-6 lg:grid-cols-12 lg:gap-10">
           <div className="lg:col-span-4">
-            <span className="eyebrow text-turf-300 dark:text-turf-300">{t('home.map.eyebrow')}</span>
+            <span className="eyebrow">{t('home.map.eyebrow')}</span>
             <h2 className="mt-3 font-display text-3xl font-semibold leading-[0.98] tracking-tightest sm:text-4xl lg:mt-4 lg:text-6xl">
-              {t('home.map.title')} <span className="text-turf-300">{t('home.map.titleAccent')}</span>
+              {t('home.map.title')} <span className="text-turf-700 dark:text-turf-300">{t('home.map.titleAccent')}</span>
             </h2>
-            <p className="mt-6 hidden max-w-[42ch] leading-relaxed text-stone-400 sm:block">{t('home.map.paragraph')}</p>
+            <p className="mt-6 hidden max-w-[42ch] leading-relaxed text-zinc-600 dark:text-stone-400 sm:block">{t('home.map.paragraph')}</p>
 
             {/* Live readout - follows the route currently being drawn */}
-            <div className="mt-5 border-t border-stone-50/10 pt-4 lg:mt-10 lg:pt-6" aria-live="polite">
-              <div className="flex items-baseline justify-between font-mono text-[0.68rem] uppercase tracking-[0.22em] text-stone-500">
+            <div className="mt-5 border-t border-zinc-950/10 pt-4 dark:border-stone-50/10 lg:mt-10 lg:pt-6" aria-live="polite">
+              <div className="flex items-baseline justify-between font-mono text-[0.68rem] uppercase tracking-[0.22em] text-zinc-500 dark:text-stone-500">
                 <span>{t('home.map.routeLabel')}</span>
                 <span className="tabular-nums">
                   {String(Math.max(active + 1, 0)).padStart(2, '0')} / {String(destinations.length).padStart(2, '0')}
@@ -190,17 +190,17 @@ function RouteScene({ model }: { model: MapModel }) {
                       text={shown.club.toUpperCase()}
                       baseMs={120}
                       stepMs={22}
-                      className="block font-display text-2xl font-semibold leading-tight tracking-tight text-stone-50 lg:text-3xl"
+                      className="block font-display text-2xl font-semibold leading-tight tracking-tight text-zinc-950 dark:text-stone-50 lg:text-3xl"
                     />
                     <div className="mt-2 flex flex-wrap items-baseline gap-x-4 gap-y-1 text-sm">
-                      <span className="font-mono tabular-nums text-turf-300">
+                      <span className="font-mono tabular-nums text-turf-700 dark:text-turf-300">
                         {fmt(shown.km)} {t('home.map.kmFrom')}
                       </span>
-                      <span className="text-stone-400">
+                      <span className="text-zinc-600 dark:text-stone-400">
                         {shown.players.map((p, i) => (
                           <span key={p.slug}>
                             {i > 0 && ', '}
-                            <Link to={`/joueurs/${p.slug}`} className="hover:text-stone-50 underline-offset-4 hover:underline">
+                            <Link to={`/joueurs/${p.slug}`} className="underline-offset-4 hover:text-zinc-950 hover:underline dark:hover:text-stone-50">
                               {p.name}
                             </Link>
                           </span>
@@ -216,7 +216,7 @@ function RouteScene({ model }: { model: MapModel }) {
           <div className="relative lg:col-span-8">
             <div className="relative mx-auto w-full max-w-[860px]" style={{ aspectRatio: `${W} / ${H}` }}>
               <svg viewBox={`0 0 ${W} ${H}`} className="absolute inset-0 h-full w-full" aria-hidden="true">
-                <path d={model.graticule} fill="none" stroke="rgb(245 245 244 / 0.06)" strokeWidth={1} />
+                <path d={model.graticule} fill="none" strokeWidth={1} className="stroke-zinc-950/[0.07] dark:stroke-stone-50/[0.06]" />
                 {rings.map((ring) => (
                   <g key={ring.km}>
                     <circle
@@ -224,13 +224,13 @@ function RouteScene({ model }: { model: MapModel }) {
                       cy={origin.y}
                       r={ring.r}
                       fill="none"
-                      stroke="rgb(147 197 253 / 0.14)"
+                      className="stroke-turf-700/25 dark:stroke-turf-300/[0.14]"
                       strokeDasharray="2 6"
                     />
                     <text
                       x={origin.x + 6}
                       y={origin.y - ring.r - 6}
-                      fill="rgb(147 197 253 / 0.45)"
+                      className="fill-turf-700/60 dark:fill-turf-300/45"
                       fontSize={12}
                       fontFamily="Geist Mono, monospace"
                     >
@@ -238,21 +238,21 @@ function RouteScene({ model }: { model: MapModel }) {
                     </text>
                   </g>
                 ))}
-                <path d={model.country} fill="rgb(96 165 250 / 0.22)" stroke="rgb(147 197 253 / 0.9)" strokeWidth={1.4} />
+                <path d={model.country} strokeWidth={1.4} className="fill-turf-400/20 stroke-turf-600 dark:fill-turf-400/[0.22] dark:stroke-turf-300/90" />
                 {destinations.map((d) => (
                   <Route key={d.id} d={d.d} progress={progress} start={d.start} end={d.end} />
                 ))}
                 {destinations.map((d) => (
                   <Pin key={d.id} x={d.x} y={d.y} progress={progress} at={d.end} />
                 ))}
-                <circle cx={origin.x} cy={origin.y} r={5} fill="rgb(245 245 244)" />
+                <circle cx={origin.x} cy={origin.y} r={5} className="fill-zinc-950 dark:fill-stone-50" />
                 {!reduce && (
                   <motion.circle
                     cx={origin.x}
                     cy={origin.y}
                     r={5}
                     fill="none"
-                    stroke="rgb(147 197 253)"
+                    className="stroke-turf-600 dark:stroke-turf-300"
                     initial={{ scale: 1, opacity: 0.8 }}
                     animate={{ scale: 5, opacity: 0 }}
                     transition={{ duration: 2.4, repeat: Infinity, ease: 'easeOut' }}
@@ -263,17 +263,17 @@ function RouteScene({ model }: { model: MapModel }) {
 
               {/* HTML labels keep a readable size whatever the SVG scale */}
               <MapLabel x={origin.x} y={origin.y} side="right" progress={full} at={0}>
-                <span className="font-mono text-[0.62rem] uppercase tracking-[0.24em] text-stone-50">
+                <span className="font-mono text-[0.62rem] uppercase tracking-[0.24em] text-zinc-950 dark:text-stone-50">
                   {t('home.map.base')}
                 </span>
               </MapLabel>
               {destinations.map((d) => (
                 <MapLabel key={d.id} x={d.x} y={d.y} side={d.x < origin.x || d.x > W * 0.7 ? 'left' : 'right'} progress={progress} at={d.end}>
-                  <span className={`block font-display text-[0.8rem] font-semibold leading-tight sm:text-sm ${shown?.id === d.id ? 'text-turf-300' : 'text-stone-100'}`}>
+                  <span className={`block font-display text-[0.8rem] font-semibold leading-tight sm:text-sm ${shown?.id === d.id ? 'text-turf-700 dark:text-turf-300' : 'text-zinc-900 dark:text-stone-100'}`}>
                     <span className="sm:hidden">{d.short}</span>
                     <span className="hidden sm:inline">{d.club}</span>
                   </span>
-                  <span className="hidden font-mono text-[0.62rem] tabular-nums text-stone-500 sm:block">
+                  <span className="hidden font-mono text-[0.62rem] tabular-nums text-zinc-500 dark:text-stone-500 sm:block">
                     {fmt(d.km)} km
                   </span>
                 </MapLabel>
@@ -297,11 +297,11 @@ function Route({ d, progress, start, end }: RouteProps) {
   const length = useTransform(progress, [start, end], [0, 1], { clamp: true })
   return (
     <>
-      <path d={d} fill="none" stroke="rgb(245 245 244 / 0.07)" strokeWidth={1} strokeDasharray="3 5" />
+      <path d={d} fill="none" strokeWidth={1} strokeDasharray="3 5" className="stroke-zinc-950/[0.08] dark:stroke-stone-50/[0.07]" />
       <motion.path
         d={d}
         fill="none"
-        stroke="rgb(147 197 253)"
+        className="stroke-turf-600 dark:stroke-turf-300"
         strokeWidth={1.8}
         strokeLinecap="round"
         style={{ pathLength: length }}
@@ -321,8 +321,8 @@ function Pin({ x, y, progress, at }: PinProps) {
   const scale = useTransform(progress, [at - 0.015, at + 0.01], [0, 1], { clamp: true })
   return (
     <motion.g style={{ scale, transformOrigin: `${x}px ${y}px` }}>
-      <circle cx={x} cy={y} r={10} fill="rgb(147 197 253 / 0.18)" />
-      <circle cx={x} cy={y} r={4} fill="rgb(147 197 253)" />
+      <circle cx={x} cy={y} r={10} className="fill-turf-600/15 dark:fill-turf-300/[0.18]" />
+      <circle cx={x} cy={y} r={4} className="fill-turf-600 dark:fill-turf-300" />
     </motion.g>
   )
 }
