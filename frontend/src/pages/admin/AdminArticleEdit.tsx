@@ -17,6 +17,7 @@ import type { Player } from '../../types/player'
 import type { PlayerClip } from '../../types/clip'
 import Skeleton from '../../components/Skeleton'
 import PlayerSingleSelect from '../../components/PlayerSingleSelect'
+import MarkdownEditor from '../../components/admin/MarkdownEditor'
 import { useConfirm } from '../../components/ConfirmProvider'
 import { useToast } from '../../components/ToastProvider'
 
@@ -525,12 +526,11 @@ export default function AdminArticleEdit({ creating = false }: { creating?: bool
         {/* CONTENT */}
         <section className="space-y-4">
           <h3 className="font-mono uppercase tracking-[0.18em] text-[0.7rem] text-zinc-500 dark:text-stone-400">Contenu</h3>
-          <FieldRow label="Texte" hint="markdown léger autorisé (gras avec **…**, listes avec - …)">
-            <textarea
-              rows={14}
+          <FieldRow label="Texte" hint="mise en forme avec la barre d'outils · l'aperçu montre le rendu public">
+            <MarkdownEditor
               value={form.content ?? ''}
-              onChange={(e) => set('content', e.target.value)}
-              className={`${INPUT_BASE} font-mono text-xs leading-relaxed`}
+              onChange={(v) => set('content', v)}
+              placeholder="Rédigez l'article. Laissez une ligne vide entre deux paragraphes."
             />
           </FieldRow>
         </section>
