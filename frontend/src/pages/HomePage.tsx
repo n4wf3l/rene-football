@@ -23,7 +23,7 @@ import MagneticLink from '../components/MagneticLink'
 import HeroSpotlight from '../components/home/HeroSpotlight'
 import LuxClock from '../components/home/LuxClock'
 import RouteMap from '../components/home/RouteMap'
-import RosterSheet from '../components/home/RosterSheet'
+import HomeNews from '../components/home/HomeNews'
 import OutroWordmark from '../components/home/OutroWordmark'
 import { usePublicPlayers, pickShowcase } from '../lib/usePublicPlayers'
 import { usePublicStaff } from '../lib/usePublicStaff'
@@ -88,14 +88,13 @@ function HomePage() {
   const { t } = useTranslation()
   const reduce = useReducedMotion()
   const heroRef = useRef<HTMLElement | null>(null)
-  const { players, loading } = usePublicPlayers()
+  const { players } = usePublicPlayers()
   const { staff } = usePublicStaff()
 
   // Every published player, most active first - the hero card cycles through
-  // the ones with a real photo, the team sheet lists them all.
+  // the ones with a real photo.
   const ordered = useMemo(() => pickShowcase(players, players.length), [players])
   const spotlight = useMemo(() => ordered.filter((p) => hasRealPhoto(p.photo_url)), [ordered])
-  const sheet = useMemo(() => ordered.slice(0, 8), [ordered])
 
   // Live stats derived from the DB so we never inflate the numbers. Values of
   // 0 are filtered out so an empty deployment doesn't publicise "0 clubs".
@@ -231,33 +230,10 @@ function HomePage() {
       {/* DEPUIS LUXEMBOURG - pinned route map (hides itself without data) */}
       <RouteMap players={players} />
 
-      {/* TEAM SHEET - every represented player, numbered like a line-up */}
-      {(loading || sheet.length > 0) && (
-        <section className="bg-stone-50 py-20 dark:bg-zinc-950 lg:py-32">
-          <div className="container-page">
-            <div className="mb-12 grid gap-6 lg:mb-16 lg:grid-cols-12 lg:items-end">
-              <div className="lg:col-span-8">
-                <span className="eyebrow">{t('home.roster.eyebrow')}</span>
-                <h2 className="mt-4 max-w-[16ch] font-display text-4xl font-semibold leading-[0.98] tracking-tightest text-zinc-950 dark:text-stone-50 lg:text-6xl">
-                  {t('home.roster.title')}
-                </h2>
-              </div>
-              <div className="lg:col-span-4 lg:justify-self-end">
-                <Link
-                  to="/joueurs"
-                  className="inline-flex items-center gap-2 border-b border-zinc-950/30 pb-1 font-medium text-zinc-950 transition hover:border-zinc-950 dark:border-stone-50/30 dark:text-stone-50 dark:hover:border-stone-50"
-                >
-                  {t('home.roster.viewAll')}
-                  <ArrowUpRight size={16} weight="bold" />
-                </Link>
-              </div>
-            </div>
-            <RosterSheet players={sheet} loading={loading} />
-          </div>
-        </section>
-      )}
+      {/* NEWS - signings and agency news: proof, not a second roster */}
+      <HomeNews />
 
-      {/* BRAND VIDEO - dark editorial break between roster (light) and services (light).
+      {/* BRAND VIDEO - dark editorial break between news (light) and services (light).
          Facade YouTube : poster only at first paint, iframe loaded on click. */}
       <section className="relative overflow-hidden bg-zinc-950 text-stone-100 py-20 lg:py-28">
         <div

@@ -169,6 +169,12 @@
     "outro": {
       "tagline": "Agence de football · Luxembourg · depuis 2010",
       "cta": "Parler de votre projet"
+    },
+    "news": {
+      "eyebrow": "Actualités",
+      "title": "Ce qui bouge autour de nos joueurs.",
+      "viewAll": "Toutes les actualités",
+      "readArticle": "Lire l'article"
     }
   },
   "players": {

@@ -169,6 +169,12 @@
     "outro": {
       "tagline": "Voetbalagentschap · Luxemburg · sinds 2010",
       "cta": "Praat over uw project"
+    },
+    "news": {
+      "eyebrow": "Nieuws",
+      "title": "Wat er beweegt rond onze spelers.",
+      "viewAll": "Al het nieuws",
+      "readArticle": "Lees het artikel"
     }
   },
   "players": {
