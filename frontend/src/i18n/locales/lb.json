@@ -178,6 +178,14 @@
     }
   },
   "players": {
+    "card": {
+      "matches": "Matcher",
+      "goals": "Goler",
+      "assists": "Virlagen",
+      "cleanSheets": "Clean sheets",
+      "saves": "Paraden",
+      "since": "zënter {{year}}"
+    },
     "seo": {
       "title": "Eis Spiller",
       "description": "D'Spiller déi mir dës Saison begleeden. Eng bewosst kleng Auswiel, iwwer déi ganz Saison vun engem festen Team begleet."
@@ -318,6 +326,10 @@
     "publishedOn": "Verëffentlecht den",
     "photos": "Fotoen",
     "clips": "Clipen",
+    "signature": {
+      "name": "D'Redaktioun vu Rene Football",
+      "meta": "Fussballagence · Lëtzebuerg"
+    },
     "lightbox": {
       "close": "Zoumaachen",
       "previous": "Virescht Foto",

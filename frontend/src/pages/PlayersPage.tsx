@@ -62,6 +62,20 @@ function PlayerCard({ player }: PlayerCardProps) {
   const isKeeper = player.category === 'Gardien'
   // Stale or empty stats are hidden rather than shown as zeros (lib/playerDisplay).
   const freshMatches = hasFreshMatchCount(player)
+  const { t } = useTranslation()
+  // Only non-zero figures are shown: a "0" reads as missing data, not a stat.
+  const cardStats = (freshMatches
+    ? [
+        { key: 'matches', label: t('players.card.matches'), value: player.matches_played },
+        isKeeper
+          ? { key: 'cleanSheets', label: t('players.card.cleanSheets'), value: player.clean_sheets }
+          : { key: 'goals', label: t('players.card.goals'), value: player.goals },
+        isKeeper
+          ? { key: 'saves', label: t('players.card.saves'), value: player.saves }
+          : { key: 'assists', label: t('players.card.assists'), value: player.assists },
+      ]
+    : []
+  ).filter((s) => s.value > 0)
   return (
     <motion.li
       layout
@@ -82,9 +96,11 @@ function PlayerCard({ player }: PlayerCardProps) {
         />
         <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-zinc-950/80 via-zinc-950/30 to-transparent" />
         <div className="absolute top-3 left-3 flex gap-2">
-          <span className="font-mono text-[0.65rem] uppercase tracking-wider text-stone-50/95 bg-zinc-950/45 backdrop-blur px-2 py-1 rounded-full border border-stone-50/15">
-            {player.age} ans
-          </span>
+          {player.age > 0 && (
+            <span className="font-mono text-[0.65rem] uppercase tracking-wider text-stone-50/95 bg-zinc-950/45 backdrop-blur px-2 py-1 rounded-full border border-stone-50/15">
+              {player.age} {t('playerProfile.yearsUnit')}
+            </span>
+          )}
           <span className="font-mono text-[0.65rem] uppercase tracking-wider text-turf-200 bg-turf-800/40 backdrop-blur px-2 py-1 rounded-full border border-turf-300/30">
             {player.category}
           </span>
@@ -101,32 +117,20 @@ function PlayerCard({ player }: PlayerCardProps) {
       <div className="p-5">
         <div className="flex items-center justify-between mb-4">
           <span className="text-sm text-zinc-700 dark:text-stone-300">{player.club}</span>
-          <span className="font-mono text-[0.7rem] text-zinc-500 dark:text-stone-500">
-            depuis {player.since}
-          </span>
+          {player.since ? (
+            <span className="font-mono text-[0.7rem] text-zinc-500 dark:text-stone-500">
+              {t('players.card.since', { year: player.since })}
+            </span>
+          ) : null}
         </div>
-        {freshMatches && (
+        {cardStats.length > 0 && (
         <dl className="grid grid-cols-3 gap-3 border-t border-stone-200 dark:border-stone-50/10 pt-4">
-          <div>
-            <dt className="font-mono uppercase tracking-wider text-[0.6rem] text-zinc-500 dark:text-stone-400">Matchs</dt>
-            <dd className="font-mono text-lg text-zinc-950 dark:text-stone-50 tabular-nums mt-0.5">{player.matches_played}</dd>
-          </div>
-          <div>
-            <dt className="font-mono uppercase tracking-wider text-[0.6rem] text-zinc-500 dark:text-stone-400">
-              {isKeeper ? 'Clean sh.' : 'Buts'}
-            </dt>
-            <dd className="font-mono text-lg text-zinc-950 dark:text-stone-50 tabular-nums mt-0.5">
-              {isKeeper ? player.clean_sheets : player.goals}
-            </dd>
-          </div>
-          <div>
-            <dt className="font-mono uppercase tracking-wider text-[0.6rem] text-zinc-500 dark:text-stone-400">
-              {isKeeper ? 'Arrêts' : 'P. déc.'}
-            </dt>
-            <dd className="font-mono text-lg text-zinc-950 dark:text-stone-50 tabular-nums mt-0.5">
-              {isKeeper ? player.saves : player.assists}
-            </dd>
-          </div>
+          {cardStats.map((stat) => (
+            <div key={stat.key}>
+              <dt className="font-mono uppercase tracking-wider text-[0.6rem] text-zinc-500 dark:text-stone-400">{stat.label}</dt>
+              <dd className="font-mono text-lg text-zinc-950 dark:text-stone-50 tabular-nums mt-0.5">{stat.value}</dd>
+            </div>
+          ))}
         </dl>
         )}
       </div>
@@ -222,18 +226,22 @@ function PlayersPage() {
           </div>
           <div className="lg:col-span-4 lg:justify-self-end">
             <div className="flex gap-8 lg:gap-10 border-t lg:border-t-0 border-stone-900/10 dark:border-stone-50/10 pt-6 lg:pt-0">
-              <div>
-                <div className="font-mono text-3xl text-zinc-950 dark:text-stone-50 tabular-nums">
-                  <AnimatedNumber value={players.length} duration={1.2} />
+              {players.length > 0 && (
+                <div>
+                  <div className="font-mono text-3xl text-zinc-950 dark:text-stone-50 tabular-nums">
+                    <AnimatedNumber value={players.length} duration={1.2} />
+                  </div>
+                  <div className="text-xs text-zinc-600 dark:text-stone-400 mt-1">{t('players.hero.activePlayers')}</div>
                 </div>
-                <div className="text-xs text-zinc-600 dark:text-stone-400 mt-1">{t('players.hero.activePlayers')}</div>
-              </div>
-              <div>
-                <div className="font-mono text-3xl text-zinc-950 dark:text-stone-50 tabular-nums">
-                  <AnimatedNumber value={clubsCount} duration={1.2} />
+              )}
+              {clubsCount > 0 && (
+                <div>
+                  <div className="font-mono text-3xl text-zinc-950 dark:text-stone-50 tabular-nums">
+                    <AnimatedNumber value={clubsCount} duration={1.2} />
+                  </div>
+                  <div className="text-xs text-zinc-600 dark:text-stone-400 mt-1">{t('players.hero.clubs')}</div>
                 </div>
-                <div className="text-xs text-zinc-600 dark:text-stone-400 mt-1">{t('players.hero.clubs')}</div>
-              </div>
+              )}
             </div>
           </div>
         </div>

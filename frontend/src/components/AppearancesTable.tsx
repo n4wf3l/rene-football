@@ -155,7 +155,7 @@ export default function AppearancesTable({
                   {a.score_team}-{a.score_opponent}
                 </td>
                 <td className="px-3 py-3 text-right font-mono tabular-nums text-xs text-zinc-700 dark:text-stone-300">
-                  {a.minutes_played}
+                  {a.minutes_played || ''}
                 </td>
                 <td className="px-3 py-3 text-right font-mono tabular-nums text-zinc-950 dark:text-stone-50">
                   {a.goals || ''}

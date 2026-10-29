@@ -92,6 +92,8 @@ interface StatNumberProps {
 }
 
 function StatNumber({ value, suffix = '', sub }: StatNumberProps) {
+  // Public rule: a zero is never displayed (it reads as "no data", not as a stat).
+  if (value === 0) return null
   return (
     <div>
       <div className="font-mono text-3xl lg:text-5xl text-zinc-950 dark:text-stone-50 tabular-nums leading-none">
@@ -674,6 +676,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
             </div>
 
             <div className="lg:col-span-5 space-y-5">
+              {player.minutes_played > 0 && (
               <div className="rounded-3xl bg-zinc-950 text-stone-100 p-6 lg:p-8 relative overflow-hidden">
                 <div
                   aria-hidden="true"
@@ -691,8 +694,9 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
                   {t('playerProfile.season.overAppearances', { count: player.matches_played })}
                 </div>
               </div>
+              )}
 
-              {!isKeeper && (
+              {!isKeeper && ((player.xg ?? 0) > 0 || (player.xa ?? 0) > 0) && (
                 <div className="rounded-3xl border border-stone-200/80 dark:border-stone-50/10 bg-white dark:bg-zinc-900/40 p-6 lg:p-8">
                   <div className="font-mono uppercase tracking-[0.18em] text-[0.65rem] text-zinc-500 dark:text-stone-400 mb-4">
                     {t('playerProfile.season.performanceVsExpected')}
@@ -761,36 +765,50 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
 
           <div className="grid lg:grid-cols-2 gap-10 lg:gap-16">
             <div className="space-y-6">
-              <StatBar label={t('playerProfile.creation.shotAccuracy')} raw={shotAccuracy.toFixed(0)} pct={shotAccuracy} suffix="%" />
-              <StatBar label={t('playerProfile.creation.conversion')} raw={conversion.toFixed(1)} pct={conversion} suffix="%" />
-              <StatBar
-                label={t('playerProfile.creation.passAccuracy')}
-                raw={Number(player.pass_accuracy ?? 0).toFixed(1)}
-                pct={Number(player.pass_accuracy ?? 0)}
-                suffix="%"
-              />
+              {shotAccuracy > 0 && (
+                <StatBar label={t('playerProfile.creation.shotAccuracy')} raw={shotAccuracy.toFixed(0)} pct={shotAccuracy} suffix="%" />
+              )}
+              {conversion > 0 && (
+                <StatBar label={t('playerProfile.creation.conversion')} raw={conversion.toFixed(1)} pct={conversion} suffix="%" />
+              )}
+              {Number(player.pass_accuracy ?? 0) > 0 && (
+                <StatBar
+                  label={t('playerProfile.creation.passAccuracy')}
+                  raw={Number(player.pass_accuracy ?? 0).toFixed(1)}
+                  pct={Number(player.pass_accuracy ?? 0)}
+                  suffix="%"
+                />
+              )}
             </div>
             <div className="grid grid-cols-2 gap-6">
-              <div>
-                <div className="font-mono uppercase tracking-wider text-[0.65rem] text-zinc-500 dark:text-stone-400">{t('playerProfile.creation.cumulativeXG')}</div>
-                <div className="mt-1 font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">
-                  {Number(player.xg ?? 0).toFixed(2)}
+              {(player.xg ?? 0) > 0 && (
+                <div>
+                  <div className="font-mono uppercase tracking-wider text-[0.65rem] text-zinc-500 dark:text-stone-400">{t('playerProfile.creation.cumulativeXG')}</div>
+                  <div className="mt-1 font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">
+                    {Number(player.xg ?? 0).toFixed(2)}
+                  </div>
                 </div>
-              </div>
-              <div>
-                <div className="font-mono uppercase tracking-wider text-[0.65rem] text-zinc-500 dark:text-stone-400">{t('playerProfile.creation.cumulativeXA')}</div>
-                <div className="mt-1 font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">
-                  {Number(player.xa ?? 0).toFixed(2)}
+              )}
+              {(player.xa ?? 0) > 0 && (
+                <div>
+                  <div className="font-mono uppercase tracking-wider text-[0.65rem] text-zinc-500 dark:text-stone-400">{t('playerProfile.creation.cumulativeXA')}</div>
+                  <div className="mt-1 font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">
+                    {Number(player.xa ?? 0).toFixed(2)}
+                  </div>
                 </div>
-              </div>
-              <div>
-                <div className="font-mono uppercase tracking-wider text-[0.65rem] text-zinc-500 dark:text-stone-400">{t('playerProfile.creation.keyPasses')}</div>
-                <div className="mt-1 font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">{player.key_passes}</div>
-              </div>
-              <div>
-                <div className="font-mono uppercase tracking-wider text-[0.65rem] text-zinc-500 dark:text-stone-400">{t('playerProfile.creation.dribblesCompleted')}</div>
-                <div className="mt-1 font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">{player.dribbles_completed}</div>
-              </div>
+              )}
+              {player.key_passes > 0 && (
+                <div>
+                  <div className="font-mono uppercase tracking-wider text-[0.65rem] text-zinc-500 dark:text-stone-400">{t('playerProfile.creation.keyPasses')}</div>
+                  <div className="mt-1 font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">{player.key_passes}</div>
+                </div>
+              )}
+              {player.dribbles_completed > 0 && (
+                <div>
+                  <div className="font-mono uppercase tracking-wider text-[0.65rem] text-zinc-500 dark:text-stone-400">{t('playerProfile.creation.dribblesCompleted')}</div>
+                  <div className="mt-1 font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">{player.dribbles_completed}</div>
+                </div>
+              )}
             </div>
           </div>
         </section>
@@ -799,29 +817,37 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
           <SectionHeading id="gardien" eyebrow={eyebrow('gardien')} title={sectionTitle('gardien')} />
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="rounded-2xl border border-stone-200/80 dark:border-stone-50/10 bg-white dark:bg-zinc-900/40 p-6">
-              <Shield size={20} weight="regular" className="text-turf-800 dark:text-turf-300" />
-              <div className="mt-4 font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">{player.clean_sheets}</div>
-              <div className="mt-1 text-xs text-zinc-500 dark:text-stone-400 font-mono uppercase tracking-wider">{t('playerProfile.keeper.cleanSheets')}</div>
-            </div>
-            <div className="rounded-2xl border border-stone-200/80 dark:border-stone-50/10 bg-white dark:bg-zinc-900/40 p-6">
-              <Sparkle size={20} weight="regular" className="text-turf-800 dark:text-turf-300" />
-              <div className="mt-4 font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">{player.saves}</div>
-              <div className="mt-1 text-xs text-zinc-500 dark:text-stone-400 font-mono uppercase tracking-wider">{t('playerProfile.keeper.saves')}</div>
-            </div>
-            <div className="rounded-2xl border border-stone-200/80 dark:border-stone-50/10 bg-white dark:bg-zinc-900/40 p-6">
-              <ListMagnifyingGlass size={20} weight="regular" className="text-turf-800 dark:text-turf-300" />
-              <div className="mt-4 font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">
-                {Number(player.pass_accuracy ?? 0).toFixed(1)}
-                <span className="text-stone-400 text-xl">%</span>
+            {player.clean_sheets > 0 && (
+              <div className="rounded-2xl border border-stone-200/80 dark:border-stone-50/10 bg-white dark:bg-zinc-900/40 p-6">
+                <Shield size={20} weight="regular" className="text-turf-800 dark:text-turf-300" />
+                <div className="mt-4 font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">{player.clean_sheets}</div>
+                <div className="mt-1 text-xs text-zinc-500 dark:text-stone-400 font-mono uppercase tracking-wider">{t('playerProfile.keeper.cleanSheets')}</div>
               </div>
-              <div className="mt-1 text-xs text-zinc-500 dark:text-stone-400 font-mono uppercase tracking-wider">{t('playerProfile.keeper.passAccuracy')}</div>
-            </div>
-            <div className="rounded-2xl border border-stone-200/80 dark:border-stone-50/10 bg-white dark:bg-zinc-900/40 p-6">
-              <Person size={20} weight="regular" className="text-turf-800 dark:text-turf-300" />
-              <div className="mt-4 font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">{player.duels_won}</div>
-              <div className="mt-1 text-xs text-zinc-500 dark:text-stone-400 font-mono uppercase tracking-wider">{t('playerProfile.keeper.duelsWon')}</div>
-            </div>
+            )}
+            {player.saves > 0 && (
+              <div className="rounded-2xl border border-stone-200/80 dark:border-stone-50/10 bg-white dark:bg-zinc-900/40 p-6">
+                <Sparkle size={20} weight="regular" className="text-turf-800 dark:text-turf-300" />
+                <div className="mt-4 font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">{player.saves}</div>
+                <div className="mt-1 text-xs text-zinc-500 dark:text-stone-400 font-mono uppercase tracking-wider">{t('playerProfile.keeper.saves')}</div>
+              </div>
+            )}
+            {Number(player.pass_accuracy ?? 0) > 0 && (
+              <div className="rounded-2xl border border-stone-200/80 dark:border-stone-50/10 bg-white dark:bg-zinc-900/40 p-6">
+                <ListMagnifyingGlass size={20} weight="regular" className="text-turf-800 dark:text-turf-300" />
+                <div className="mt-4 font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">
+                  {Number(player.pass_accuracy ?? 0).toFixed(1)}
+                  <span className="text-stone-400 text-xl">%</span>
+                </div>
+                <div className="mt-1 text-xs text-zinc-500 dark:text-stone-400 font-mono uppercase tracking-wider">{t('playerProfile.keeper.passAccuracy')}</div>
+              </div>
+            )}
+            {player.duels_won > 0 && (
+              <div className="rounded-2xl border border-stone-200/80 dark:border-stone-50/10 bg-white dark:bg-zinc-900/40 p-6">
+                <Person size={20} weight="regular" className="text-turf-800 dark:text-turf-300" />
+                <div className="mt-4 font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">{player.duels_won}</div>
+                <div className="mt-1 text-xs text-zinc-500 dark:text-stone-400 font-mono uppercase tracking-wider">{t('playerProfile.keeper.duelsWon')}</div>
+              </div>
+            )}
           </div>
         </section>
       ) : null}
@@ -833,29 +859,35 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
             <SectionHeading id="defense" eyebrow={eyebrow('defense')} title={sectionTitle('defense')} />
 
             <div className="grid lg:grid-cols-3 gap-5 lg:gap-6">
-              <div className="rounded-3xl border border-stone-200/80 dark:border-stone-50/10 dark:bg-zinc-900/40 p-6 lg:p-8">
-                <Shield size={22} weight="regular" className="text-turf-800 dark:text-turf-300" />
-                <div className="mt-5 font-mono text-4xl tabular-nums text-zinc-950 dark:text-stone-50">{player.tackles}</div>
-                <div className="mt-1 text-xs text-zinc-500 dark:text-stone-400 font-mono uppercase tracking-wider">{t('playerProfile.defense.tackles')}</div>
-              </div>
-              <div className="rounded-3xl border border-stone-200/80 dark:border-stone-50/10 dark:bg-zinc-900/40 p-6 lg:p-8">
-                <ListMagnifyingGlass size={22} weight="regular" className="text-turf-800 dark:text-turf-300" />
-                <div className="mt-5 font-mono text-4xl tabular-nums text-zinc-950 dark:text-stone-50">{player.interceptions}</div>
-                <div className="mt-1 text-xs text-zinc-500 dark:text-stone-400 font-mono uppercase tracking-wider">{t('playerProfile.defense.interceptions')}</div>
-              </div>
+              {player.tackles > 0 && (
+                <div className="rounded-3xl border border-stone-200/80 dark:border-stone-50/10 dark:bg-zinc-900/40 p-6 lg:p-8">
+                  <Shield size={22} weight="regular" className="text-turf-800 dark:text-turf-300" />
+                  <div className="mt-5 font-mono text-4xl tabular-nums text-zinc-950 dark:text-stone-50">{player.tackles}</div>
+                  <div className="mt-1 text-xs text-zinc-500 dark:text-stone-400 font-mono uppercase tracking-wider">{t('playerProfile.defense.tackles')}</div>
+                </div>
+              )}
+              {player.interceptions > 0 && (
+                <div className="rounded-3xl border border-stone-200/80 dark:border-stone-50/10 dark:bg-zinc-900/40 p-6 lg:p-8">
+                  <ListMagnifyingGlass size={22} weight="regular" className="text-turf-800 dark:text-turf-300" />
+                  <div className="mt-5 font-mono text-4xl tabular-nums text-zinc-950 dark:text-stone-50">{player.interceptions}</div>
+                  <div className="mt-1 text-xs text-zinc-500 dark:text-stone-400 font-mono uppercase tracking-wider">{t('playerProfile.defense.interceptions')}</div>
+                </div>
+              )}
               {/* Carte d'accent (toujours sombre) - en dark mode on lui donne une bordure
                   subtile et un fond légèrement plus clair que le `section` parent (zinc-950)
                   pour qu'elle ne se fonde pas dans le background. */}
-              <div className="rounded-3xl bg-zinc-950 dark:bg-zinc-900 text-stone-100 p-6 lg:p-8 relative overflow-hidden border border-transparent dark:border-stone-50/10">
-                <div
-                  aria-hidden="true"
-                  className="pointer-events-none absolute -bottom-12 -right-10 w-48 h-48 rounded-full"
-                  style={{ background: 'radial-gradient(circle, rgba(30, 64, 175,0.55), transparent 70%)' }}
-                />
-                <Person size={22} weight="regular" className="text-turf-300" />
-                <div className="mt-5 font-mono text-4xl tabular-nums text-stone-50">{player.duels_won}</div>
-                <div className="mt-1 text-xs text-stone-400 font-mono uppercase tracking-wider">{t('playerProfile.defense.duelsWon')}</div>
-              </div>
+              {player.duels_won > 0 && (
+                <div className="rounded-3xl bg-zinc-950 dark:bg-zinc-900 text-stone-100 p-6 lg:p-8 relative overflow-hidden border border-transparent dark:border-stone-50/10">
+                  <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute -bottom-12 -right-10 w-48 h-48 rounded-full"
+                    style={{ background: 'radial-gradient(circle, rgba(30, 64, 175,0.55), transparent 70%)' }}
+                  />
+                  <Person size={22} weight="regular" className="text-turf-300" />
+                  <div className="mt-5 font-mono text-4xl tabular-nums text-stone-50">{player.duels_won}</div>
+                  <div className="mt-1 text-xs text-stone-400 font-mono uppercase tracking-wider">{t('playerProfile.defense.duelsWon')}</div>
+                </div>
+              )}
             </div>
           </div>
         </section>
@@ -874,7 +906,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
               {t('playerProfile.physique.gpsAverage')}
             </p>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              {player.distance_avg_km != null && (
+              {player.distance_avg_km != null && player.distance_avg_km > 0 && (
                 <div className="rounded-2xl border border-stone-200/80 dark:border-stone-50/10 bg-stone-50/60 dark:bg-zinc-900/40 p-5">
                   <Path size={20} weight="regular" className="text-turf-700 dark:text-turf-300" />
                   <div className="mt-4 font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">
@@ -886,7 +918,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
                   </div>
                 </div>
               )}
-              {player.sprints_avg != null && (
+              {player.sprints_avg != null && player.sprints_avg > 0 && (
                 <div className="rounded-2xl border border-stone-200/80 dark:border-stone-50/10 bg-stone-50/60 dark:bg-zinc-900/40 p-5">
                   <Lightning size={20} weight="regular" className="text-turf-700 dark:text-turf-300" />
                   <div className="mt-4 font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">
@@ -897,7 +929,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
                   </div>
                 </div>
               )}
-              {player.top_speed_kmh != null && (
+              {player.top_speed_kmh != null && player.top_speed_kmh > 0 && (
                 <div className="rounded-2xl border border-stone-200/80 dark:border-stone-50/10 bg-stone-50/60 dark:bg-zinc-900/40 p-5">
                   <Wind size={20} weight="regular" className="text-turf-700 dark:text-turf-300" />
                   <div className="mt-4 font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">
@@ -909,7 +941,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
                   </div>
                 </div>
               )}
-              {player.high_intensity_runs_avg != null && (
+              {player.high_intensity_runs_avg != null && player.high_intensity_runs_avg > 0 && (
                 <div className="rounded-2xl border border-stone-200/80 dark:border-stone-50/10 bg-stone-50/60 dark:bg-zinc-900/40 p-5">
                   <PersonSimpleRun size={20} weight="regular" className="text-turf-700 dark:text-turf-300" />
                   <div className="mt-4 font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">
@@ -936,16 +968,20 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
         />
 
         <div className="grid sm:grid-cols-2 gap-5 max-w-2xl">
-          <div className="rounded-2xl border border-amber-200/70 dark:border-amber-400/20 bg-amber-50/40 dark:bg-amber-500/[0.08] p-6">
-            <Cards size={20} weight="regular" className="text-amber-700 dark:text-amber-300" />
-            <div className="mt-4 font-mono text-3xl tabular-nums text-zinc-950 dark:text-amber-50">{player.yellow_cards}</div>
-            <div className="mt-1 text-xs text-zinc-500 dark:text-amber-200/80 font-mono uppercase tracking-wider">{t('playerProfile.discipline.yellowCards')}</div>
-          </div>
-          <div className="rounded-2xl border border-rose-200/70 dark:border-rose-400/20 bg-rose-50/40 dark:bg-rose-500/[0.08] p-6">
-            <Cards size={20} weight="regular" className="text-rose-700 dark:text-rose-300" />
-            <div className="mt-4 font-mono text-3xl tabular-nums text-zinc-950 dark:text-rose-50">{player.red_cards}</div>
-            <div className="mt-1 text-xs text-zinc-500 dark:text-rose-200/80 font-mono uppercase tracking-wider">{t('playerProfile.discipline.redCards')}</div>
-          </div>
+          {player.yellow_cards > 0 && (
+            <div className="rounded-2xl border border-amber-200/70 dark:border-amber-400/20 bg-amber-50/40 dark:bg-amber-500/[0.08] p-6">
+              <Cards size={20} weight="regular" className="text-amber-700 dark:text-amber-300" />
+              <div className="mt-4 font-mono text-3xl tabular-nums text-zinc-950 dark:text-amber-50">{player.yellow_cards}</div>
+              <div className="mt-1 text-xs text-zinc-500 dark:text-amber-200/80 font-mono uppercase tracking-wider">{t('playerProfile.discipline.yellowCards')}</div>
+            </div>
+          )}
+          {player.red_cards > 0 && (
+            <div className="rounded-2xl border border-rose-200/70 dark:border-rose-400/20 bg-rose-50/40 dark:bg-rose-500/[0.08] p-6">
+              <Cards size={20} weight="regular" className="text-rose-700 dark:text-rose-300" />
+              <div className="mt-4 font-mono text-3xl tabular-nums text-zinc-950 dark:text-rose-50">{player.red_cards}</div>
+              <div className="mt-1 text-xs text-zinc-500 dark:text-rose-200/80 font-mono uppercase tracking-wider">{t('playerProfile.discipline.redCards')}</div>
+            </div>
+          )}
         </div>
       </section>
       )}

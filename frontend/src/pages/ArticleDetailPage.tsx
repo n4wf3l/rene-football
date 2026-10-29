@@ -14,6 +14,7 @@ import {
   X,
 } from '@phosphor-icons/react'
 import MeshGradient from '../components/MeshGradient'
+import BrandLogo from '../components/BrandLogo'
 import Seo from '../components/Seo'
 import { useTranslation } from 'react-i18next'
 import Skeleton from '../components/Skeleton'
@@ -26,12 +27,10 @@ import type { Article, ArticleImage } from '../types/article'
 
 interface ArticleResponse { data: Article }
 
-const FR_DATE = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
-
-function formatDate(iso: string | null): string {
+function formatDate(iso: string | null, lang: string | undefined): string {
   if (!iso) return ''
   const d = new Date(iso)
-  return isNaN(d.getTime()) ? '' : FR_DATE.format(d)
+  return isNaN(d.getTime()) ? '' : new Intl.DateTimeFormat(lang, { day: 'numeric', month: 'long', year: 'numeric' }).format(d)
 }
 
 /**
@@ -177,7 +176,7 @@ function Gallery({ images }: GalleryProps) {
 }
 
 export default function ArticleDetailPage() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   useDarkHero()
   const { slug } = useParams<{ slug: string }>()
   const navigate = useNavigate()
@@ -280,7 +279,7 @@ export default function ArticleDetailPage() {
             )}
             <span className="inline-flex items-center gap-1.5 text-xs text-stone-400">
               <CalendarBlank size={13} weight="regular" />
-              <span className="font-mono">{formatDate(article.published_at)}</span>
+              <span className="font-mono">{formatDate(article.published_at, i18n.resolvedLanguage)}</span>
             </span>
           </div>
 
@@ -310,11 +309,24 @@ export default function ArticleDetailPage() {
       <section className="bg-stone-50 dark:bg-zinc-950 transition-colors py-12 lg:py-16">
         <div className="container-page grid lg:grid-cols-12 gap-10 lg:gap-12">
           <article className="lg:col-span-8 min-w-0">
-            {renderContent(article.content) ?? (
-              <p className="text-zinc-500 dark:text-stone-500 italic">
-                Aucun contenu textuel pour cet article.
-              </p>
-            )}
+            {renderContent(article.content)}
+
+            {/* Editorial sign-off */}
+            <footer className="mt-14 border-t border-zinc-950/10 pt-8 dark:border-stone-50/10">
+              <span aria-hidden="true" className="block h-0.5 w-10 bg-turf-700 dark:bg-turf-300" />
+              <div className="mt-6 flex items-center gap-5">
+                <BrandLogo size={46} />
+                <div className="min-w-0">
+                  <div className="font-display text-xl font-medium italic tracking-tight text-zinc-950 dark:text-stone-50">
+                    {t('article.signature.name')}
+                  </div>
+                  <div className="mt-1.5 font-mono text-[0.65rem] uppercase tracking-[0.22em] text-zinc-500 dark:text-stone-500">
+                    {t('article.signature.meta')}
+                    {formatDate(article.published_at, i18n.resolvedLanguage) && <> · {formatDate(article.published_at, i18n.resolvedLanguage)}</>}
+                  </div>
+                </div>
+              </div>
+            </footer>
           </article>
 
           <aside className="lg:col-span-4 space-y-6">
@@ -362,16 +374,20 @@ export default function ArticleDetailPage() {
                 </li>
                 <li className="flex items-center justify-between gap-2">
                   <span className="text-zinc-500 dark:text-stone-500">{t('article.publishedOn')}</span>
-                  <span className="font-mono tabular-nums">{formatDate(article.published_at) || '-'}</span>
+                  <span className="font-mono tabular-nums">{formatDate(article.published_at, i18n.resolvedLanguage) || '-'}</span>
                 </li>
-                <li className="flex items-center justify-between gap-2">
-                  <span className="text-zinc-500 dark:text-stone-500">{t('article.photos')}</span>
-                  <span className="font-mono tabular-nums">{images.length}</span>
-                </li>
-                <li className="flex items-center justify-between gap-2">
-                  <span className="text-zinc-500 dark:text-stone-500">{t('article.clips')}</span>
-                  <span className="font-mono tabular-nums">{clips.length}</span>
-                </li>
+                {images.length > 0 && (
+                  <li className="flex items-center justify-between gap-2">
+                    <span className="text-zinc-500 dark:text-stone-500">{t('article.photos')}</span>
+                    <span className="font-mono tabular-nums">{images.length}</span>
+                  </li>
+                )}
+                {clips.length > 0 && (
+                  <li className="flex items-center justify-between gap-2">
+                    <span className="text-zinc-500 dark:text-stone-500">{t('article.clips')}</span>
+                    <span className="font-mono tabular-nums">{clips.length}</span>
+                  </li>
+                )}
               </ul>
             </div>
           </aside>

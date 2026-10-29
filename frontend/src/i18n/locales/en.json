@@ -178,6 +178,14 @@
     }
   },
   "players": {
+    "card": {
+      "matches": "Matches",
+      "goals": "Goals",
+      "assists": "Assists",
+      "cleanSheets": "Clean sheets",
+      "saves": "Saves",
+      "since": "since {{year}}"
+    },
     "seo": {
       "title": "Our players",
       "description": "The players we're accompanying this season. A small, curated roster followed by a dedicated team from start to finish."
@@ -318,6 +326,10 @@
     "publishedOn": "Published on",
     "photos": "Photos",
     "clips": "Clips",
+    "signature": {
+      "name": "The Rene Football editorial team",
+      "meta": "Football agency · Luxembourg"
+    },
     "lightbox": {
       "close": "Close",
       "previous": "Previous photo",

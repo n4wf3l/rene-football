@@ -178,6 +178,14 @@
     }
   },
   "players": {
+    "card": {
+      "matches": "Wedstrijden",
+      "goals": "Goals",
+      "assists": "Assists",
+      "cleanSheets": "Clean sheets",
+      "saves": "Reddingen",
+      "since": "sinds {{year}}"
+    },
     "seo": {
       "title": "Onze spelers",
       "description": "De spelers die we dit seizoen begeleiden. Een bewust kleine selectie, gevolgd door een vast team van begin tot einde van het seizoen."
@@ -318,6 +326,10 @@
     "publishedOn": "Gepubliceerd op",
     "photos": "Foto's",
     "clips": "Clips",
+    "signature": {
+      "name": "De redactie van Rene Football",
+      "meta": "Voetbalagentschap · Luxemburg"
+    },
     "lightbox": {
       "close": "Sluiten",
       "previous": "Vorige foto",
