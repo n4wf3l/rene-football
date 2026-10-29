@@ -1186,6 +1186,7 @@ function HeatmapSlot({
 }
 
 function HeatmapView({ players, onPlayerSaved }: HeatmapViewProps) {
+  const toast = useToast()
   const [aSlug, setASlug] = useState<string>(players[0]?.slug ?? '')
   const [bSlug, setBSlug] = useState<string>('')
   const [editing, setEditing] = useState<'a' | 'b' | null>(null)
@@ -1236,9 +1237,11 @@ function HeatmapView({ players, onPlayerSaved }: HeatmapViewProps) {
       setEditing(null)
       setSavedSlug(slug)
       setTimeout(() => setSavedSlug((s) => (s === slug ? null : s)), 2500)
+      toast.success(`Heatmap de « ${player.name} » enregistrée.`)
     } catch (e) {
       const message = e instanceof ApiError ? e.message : 'Enregistrement impossible.'
       setError(message)
+      toast.error(message)
     } finally {
       setSaving(null)
     }
@@ -1313,6 +1316,7 @@ interface ComparisonViewProps {
 }
 
 function ComparisonView({ players, selectedSlugs, onChangeSlugs }: ComparisonViewProps) {
+  const toast = useToast()
   // Maintain selection order (= color order in radar/table). We resolve slugs → players
   // in the same order the user picked them.
   const selectedPlayers = useMemo(

@@ -5,6 +5,7 @@ import { scoutingApi } from '../../../lib/scoutingApi'
 import type { MissionStatus, ScoutAssignment } from '../../../types/scouting'
 import { MISSION_STATUS_LABEL } from '../../../types/scouting'
 import Skeleton from '../../Skeleton'
+import { useToast } from '../../ToastProvider'
 import { MissionStatusBadge, PriorityBadge } from '../badges'
 
 interface Props { id: number; onClose: () => void }
@@ -13,6 +14,7 @@ function MissionDrawer({ id, onClose }: Props) {
   const [m, setM] = useState<ScoutAssignment | null>(null)
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
+  const toast = useToast()
 
   const reload = async () => {
     const res = await scoutingApi.showMission(id)
@@ -32,6 +34,9 @@ function MissionDrawer({ id, onClose }: Props) {
     try {
       await scoutingApi.setMissionStatus(id, status)
       await reload()
+      toast.success(`Statut : ${MISSION_STATUS_LABEL[status]}.`)
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Changement de statut impossible.')
     } finally { setBusy(false) }
   }
 

@@ -9,6 +9,7 @@ import { scoutingApi } from '../../../lib/scoutingApi'
 import type { ScoutingPlayer, Shortlist, ShortlistStage } from '../../../types/scouting'
 import { STAGE_LABEL } from '../../../types/scouting'
 import Skeleton from '../../Skeleton'
+import { useToast } from '../../ToastProvider'
 import { ScoreBadge, StageBadge } from '../badges'
 
 const STAGES: ShortlistStage[] = ['watchlist', 'shortlist_b', 'shortlist_a', 'valide', 'rejete']
@@ -22,6 +23,7 @@ type PlayerWithPivot = ScoutingPlayer & {
 }
 
 function ShortlistsView() {
+  const toast = useToast()
   const [, setParams] = useSearchParams()
   const [lists, setLists] = useState<Shortlist[]>([])
   const [selected, setSelected] = useState<string | null>(null)
@@ -70,8 +72,10 @@ function ShortlistsView() {
 
     try {
       await scoutingApi.updateShortlistEntry(detail.slug, entryId, { stage: overStage })
-    } catch {
+      toast.success(`Étape mise à jour : ${STAGE_LABEL[overStage]}.`)
+    } catch (err: unknown) {
       setDetail((d) => d ? { ...d, players: previous } : d)
+      toast.error(err instanceof Error ? err.message : "Changement d'étape impossible.")
     }
   }
 

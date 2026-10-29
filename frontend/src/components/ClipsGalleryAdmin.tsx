@@ -5,6 +5,7 @@ import { api, ApiError } from '../api/client'
 import type { ClipAnnotation, PlayerClip } from '../types/clip'
 import ClipAnnotator from './ClipAnnotator'
 import { useConfirm } from './ConfirmProvider'
+import { useToast } from './ToastProvider'
 
 export interface ClipsGalleryAdminProps {
   /** Slug of the player whose clips we manage. When empty (new player not saved yet),
@@ -24,6 +25,7 @@ const FR_DURATION = (sec: number | null): string => {
 
 export default function ClipsGalleryAdmin({ playerSlug }: ClipsGalleryAdminProps) {
   const confirm = useConfirm()
+  const toast = useToast()
   const [clips, setClips] = useState<PlayerClip[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -76,9 +78,11 @@ export default function ClipsGalleryAdmin({ playerSlug }: ClipsGalleryAdminProps
       )
       setClips((prev) => [res.data, ...prev])
       setAnnotating(false)
+      toast.success('Moment enregistré.')
     } catch (e) {
       const msg = e instanceof ApiError ? e.message : (e instanceof Error ? e.message : 'Échec de l\'enregistrement.')
       setError(msg)
+      toast.error(msg)
       throw e // ClipAnnotator catches it to surface a per-form error
     }
   }
@@ -93,8 +97,11 @@ export default function ClipsGalleryAdmin({ playerSlug }: ClipsGalleryAdminProps
     try {
       await api.delete(`/admin/players/${playerSlug}/clips/${id}`, { auth: true })
       setClips((prev) => prev.filter((c) => c.id !== id))
+      toast.success('Moment supprimé.')
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Suppression impossible.')
+      const msg = e instanceof Error ? e.message : 'Suppression impossible.'
+      setError(msg)
+      toast.error(msg)
     }
   }
 

@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
 import type { ChangeEvent, FormEvent } from 'react'
-import { motion } from 'framer-motion'
-import { CheckCircle, Image as ImageIcon, Plus, Trash, X as XIcon } from '@phosphor-icons/react'
+import { Image as ImageIcon, Plus, Trash, X as XIcon } from '@phosphor-icons/react'
 import { api, ApiError } from '../../api/client'
 import { invalidatePartnersCache } from '../../lib/usePublicPartners'
 import type { Partner } from '../../types/partner'
 import Skeleton from '../../components/Skeleton'
 import { useConfirm } from '../../components/ConfirmProvider'
+import { useToast } from '../../components/ToastProvider'
 
 interface ListResponse { data: Partner[] }
 interface OneResponse  { data: Partner }
@@ -41,7 +41,7 @@ export default function AdminPartners() {
   const [logoFile, setLogoFile] = useState<File | null>(null)
   const [saving, setSaving] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const [toast, setToast] = useState<{ kind: 'success' | 'error'; message: string } | null>(null)
+  const toast = useToast()
 
   const refresh = async () => {
     setLoading(true)
@@ -56,8 +56,8 @@ export default function AdminPartners() {
   useEffect(() => { void refresh() }, [])
 
   const showToast = (kind: 'success' | 'error', message: string) => {
-    setToast({ kind, message })
-    setTimeout(() => setToast(null), 3500)
+    if (kind === 'success') toast.success(message)
+    else toast.error(message)
   }
 
   const openNew = () => {
@@ -163,6 +163,7 @@ export default function AdminPartners() {
       await api.post<OneResponse>(`/admin/partners/${p.slug}`, fd, { auth: true })
       invalidatePartnersCache()
       await refresh()
+      showToast('success', 'Logo retiré.')
     } catch (err: unknown) {
       showToast('error', err instanceof Error ? err.message : 'Suppression du logo impossible.')
     }
@@ -325,18 +326,6 @@ export default function AdminPartners() {
         )}
       </div>
 
-      {toast && (
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          className={`fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-diffusion text-sm ${
-            toast.kind === 'success' ? 'bg-turf-800 text-stone-50' : 'bg-red-600 text-white'
-          }`}
-        >
-          <CheckCircle size={16} weight="bold" />
-          <span>{toast.message}</span>
-        </motion.div>
-      )}
     </div>
   )
 }

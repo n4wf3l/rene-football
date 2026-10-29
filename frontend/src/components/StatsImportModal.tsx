@@ -3,6 +3,7 @@ import type { ChangeEvent } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { CheckCircle, DownloadSimple, UploadSimple, WarningCircle, X as XIcon } from '@phosphor-icons/react'
 import { api, ApiError, getToken } from '../api/client'
+import { useToast } from './ToastProvider'
 
 /**
  * Batch-import numeric player stats from a CSV. The admin drops in a
@@ -45,6 +46,7 @@ export default function StatsImportModal({ open, onClose, onSuccess }: Props) {
   const [submitting, setSubmitting] = useState(false)
   const [result, setResult] = useState<ImportResult | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const toast = useToast()
 
   const reset = () => {
     setKind('stats'); setFile(null); setSource('csv'); setReliability(4)
@@ -70,11 +72,14 @@ export default function StatsImportModal({ open, onClose, onSuccess }: Props) {
       const res = await api.post<{ data: ImportResult }>(url, fd, { auth: true })
       setResult(res.data)
       onSuccess()
+      const done = (res.data.updated ?? 0) + (res.data.created ?? 0)
+      toast.success(`Import terminé : ${done} ligne${done > 1 ? 's' : ''} importée${done > 1 ? 's' : ''}${res.data.errors.length ? `, ${res.data.errors.length} en erreur` : ''}.`)
     } catch (err: unknown) {
       const msg = err instanceof ApiError && err.status === 422
         ? 'Fichier invalide — vérifiez le format (CSV / XLSX, max 4-8 Mo).'
         : err instanceof Error ? err.message : 'Import impossible.'
       setError(msg)
+      toast.error(msg)
     } finally {
       setSubmitting(false)
     }

@@ -104,6 +104,7 @@ export default function AdminStaff() {
         { items: items.map((m, i) => ({ id: m.id, sort_order: i })) },
         { auth: true },
       )
+      showToast('success', 'Ordre mis à jour.')
     } catch (err: unknown) {
       showToast('error', err instanceof Error ? err.message : 'Réordonnancement impossible.')
       await reload()

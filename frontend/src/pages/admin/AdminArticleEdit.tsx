@@ -309,7 +309,7 @@ export default function AdminArticleEdit({ creating = false }: { creating?: bool
     }))) return
     try {
       await api.delete(`/admin/articles/${form.slug}`, { auth: true })
-      navigate('/admin/articles')
+      navigate('/admin/articles', { state: { toast: `« ${form.title} » supprimé.` } })
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Suppression impossible.'
       showToast('error', message)
