@@ -169,6 +169,12 @@
     "outro": {
       "tagline": "Fussballagence · Lëtzebuerg · zënter 2010",
       "cta": "Iwwer Äre Projet schwätzen"
+    },
+    "news": {
+      "eyebrow": "Neiegkeeten",
+      "title": "Wat sech ronderëm eis Spiller beweegt.",
+      "viewAll": "All Neiegkeeten",
+      "readArticle": "Artikel liesen"
     }
   },
   "players": {
