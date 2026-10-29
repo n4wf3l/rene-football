@@ -235,18 +235,6 @@ class AdminPlayerController extends Controller
 
     private function validateData(Request $request, ?Player $player = null): array
     {
-        // Multipart requests can't carry nested arrays cleanly; the frontend
-        // serializes complex fields as JSON strings. Decode them back here so
-        // the validator sees real arrays.
-        foreach (['heatmap_grid', 'comparisons', 'strengths', 'tags'] as $jsonField) {
-            $val = $request->input($jsonField);
-            if (is_string($val) && $val !== '') {
-                $decoded = json_decode($val, true);
-                if (is_array($decoded)) {
-                    $request->merge([$jsonField => $decoded]);
-                }
-            }
-        }
         // Cast string booleans coming from FormData ("0"/"1"/"true"/"false").
         foreach (['is_published', 'photo_remove'] as $boolField) {
             if ($request->has($boolField)) {
@@ -334,6 +322,26 @@ class AdminPlayerController extends Controller
 
             'is_published' => ['nullable', 'boolean'],
         ];
+
+        // Multipart requests (photo upload) can't carry nested arrays cleanly;
+        // the frontend serializes complex fields as JSON strings. Decode them
+        // back so the validator sees real arrays - every top-level field
+        // validated as `array` is covered, so a new list field can't silently
+        // break photo uploads again (languages_spoken did).
+        $arrayFields = array_keys(array_filter(
+            $rules,
+            static fn (array $r, string $key) => ! str_contains($key, '.') && in_array('array', $r, true),
+            ARRAY_FILTER_USE_BOTH,
+        ));
+        foreach ([...$arrayFields, 'comparisons', 'strengths'] as $jsonField) {
+            $val = $request->input($jsonField);
+            if (is_string($val) && $val !== '') {
+                $decoded = json_decode($val, true);
+                if (is_array($decoded)) {
+                    $request->merge([$jsonField => $decoded]);
+                }
+            }
+        }
 
         return $request->validate($rules);
     }

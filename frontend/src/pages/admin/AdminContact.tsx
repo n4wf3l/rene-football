@@ -185,8 +185,11 @@ function AdminContact() {
       setSelected(res.data)
       setRows((prev) => prev.map((r) => r.id === id ? { ...r, status } : r))
       await load()
+      toast.success(`Statut : ${STATUS_META[status].label}.`)
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : 'Mise à jour impossible.')
+      const message = e instanceof ApiError ? e.message : 'Mise à jour impossible.'
+      setError(message)
+      toast.error(message)
     }
   }
 
@@ -219,8 +222,11 @@ function AdminContact() {
       await api.delete(`/admin/contact-submissions/${id}`, { auth: true })
       setSelected(null)
       await load()
+      toast.success('Demande supprimée.')
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : 'Suppression impossible.')
+      const message = e instanceof ApiError ? e.message : 'Suppression impossible.'
+      setError(message)
+      toast.error(message)
     }
   }
 

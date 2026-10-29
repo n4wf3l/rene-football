@@ -10,11 +10,13 @@ import { scoutingApi } from '../../../lib/scoutingApi'
 import type { MissionStatus, ScoutAssignment } from '../../../types/scouting'
 import { MISSION_STATUS_LABEL } from '../../../types/scouting'
 import Skeleton from '../../Skeleton'
+import { useToast } from '../../ToastProvider'
 import { MissionStatusBadge, PriorityBadge } from '../badges'
 
 const COLUMNS: MissionStatus[] = ['a_faire', 'en_cours', 'rapport_soumis', 'a_completer', 'valide']
 
 function MissionsView() {
+  const toast = useToast()
   const [missions, setMissions] = useState<ScoutAssignment[]>([])
   const [loading, setLoading] = useState(true)
   const [activeId, setActiveId] = useState<number | null>(null)
@@ -42,8 +44,10 @@ function MissionsView() {
     setMissions((prev) => prev.map((m) => (m.id === id ? { ...m, status: overId } : m)))
     try {
       await scoutingApi.setMissionStatus(id, overId)
-    } catch {
+      toast.success(`Mission déplacée : ${MISSION_STATUS_LABEL[overId]}.`)
+    } catch (err: unknown) {
       setMissions(previous)
+      toast.error(err instanceof Error ? err.message : 'Déplacement impossible.')
     }
   }
 

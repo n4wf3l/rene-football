@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
-  ArrowClockwise, CheckCircle, PencilSimpleLine, Plus, Trash, WarningCircle, X as XIcon,
+  ArrowClockwise, PencilSimpleLine, Plus, Trash, WarningCircle, X as XIcon,
 } from '@phosphor-icons/react'
 import { api, ApiError } from '../api/client'
 import { useConfirm } from './ConfirmProvider'
+import { useToast } from './ToastProvider'
 
 /**
  * Editable position × age-tier × metric benchmark table. Backed by
@@ -72,7 +73,7 @@ export default function BenchmarksEditor({ open, onClose, onMutated }: Props) {
   const [saving, setSaving] = useState(false)
   const [resetting, setResetting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [okMsg, setOkMsg] = useState<string | null>(null)
+  const toast = useToast()
   const [category, setCategory] = useState<string>('Attaquant')
   const [tier, setTier] = useState<string>('young')
   const [draft, setDraft] = useState<Draft | null>(null)
@@ -97,7 +98,6 @@ export default function BenchmarksEditor({ open, onClose, onMutated }: Props) {
     }).sort((a, b) => a.metric.localeCompare(b.metric))
   }, [payload, category, tier])
 
-  const toast = (msg: string) => { setOkMsg(msg); window.setTimeout(() => setOkMsg(null), 2500) }
 
   const startEdit = (row: typeof rowsForCell[number]) => {
     setDraft({
@@ -123,12 +123,13 @@ export default function BenchmarksEditor({ open, onClose, onMutated }: Props) {
       setDraft(null)
       await reload()
       onMutated?.()
-      toast('Benchmark enregistré.')
+      toast.success('Benchmark enregistré.')
     } catch (err: unknown) {
       const msg = err instanceof ApiError && err.status === 422
         ? 'Payload invalide - vérifiez category / tier / avg / elite.'
         : err instanceof Error ? err.message : 'Enregistrement impossible.'
       setError(msg)
+      toast.error(msg)
     } finally {
       setSaving(false)
     }
@@ -145,9 +146,11 @@ export default function BenchmarksEditor({ open, onClose, onMutated }: Props) {
     try {
       await api.delete(`/admin/benchmarks/${id}`, { auth: true })
       await reload(); onMutated?.()
-      toast('Override supprimé.')
+      toast.success('Override supprimé.')
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Suppression impossible.')
+      const msg = err instanceof Error ? err.message : 'Suppression impossible.'
+      setError(msg)
+      toast.error(msg)
     } finally {
       setSaving(false)
     }
@@ -164,9 +167,11 @@ export default function BenchmarksEditor({ open, onClose, onMutated }: Props) {
     try {
       await api.post('/admin/benchmarks/reset', {}, { auth: true })
       await reload(); onMutated?.()
-      toast('Défauts restaurés.')
+      toast.success('Défauts restaurés.')
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Reset impossible.')
+      const msg = err instanceof Error ? err.message : 'Reset impossible.'
+      setError(msg)
+      toast.error(msg)
     } finally {
       setResetting(false)
     }
@@ -242,12 +247,6 @@ export default function BenchmarksEditor({ open, onClose, onMutated }: Props) {
                 <div className="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-rose-50 text-rose-800 dark:bg-rose-500/10 dark:text-rose-300 text-sm">
                   <WarningCircle size={16} weight="bold" className="shrink-0 mt-0.5" />
                   <span>{error}</span>
-                </div>
-              )}
-              {okMsg && (
-                <div className="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-turf-50 text-turf-800 dark:bg-turf-500/10 dark:text-turf-300 text-sm">
-                  <CheckCircle size={16} weight="bold" className="shrink-0 mt-0.5" />
-                  <span>{okMsg}</span>
                 </div>
               )}
 

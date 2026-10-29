@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { FormEvent, InputHTMLAttributes, MouseEvent as ReactMouseEvent, ReactNode, SelectHTMLAttributes } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -230,9 +230,17 @@ function buildFormData(
 }
 
 function PlayerEditor({ player, isNew, onClose, onSaved, onDelete, mode = 'modal' }: PlayerEditorProps) {
+  const toast = useToast()
   const [form, setForm] = useState<PlayerFormState>(player)
   const [saving, setSaving] = useState(false)
   const [errors, setErrors] = useState<EditorErrors>({})
+  const errorsRef = useRef<HTMLDivElement | null>(null)
+
+  // The error list sits at the bottom of a long form: bring it into view so
+  // a failed save is never silent.
+  useEffect(() => {
+    if (Object.keys(errors).length > 0) errorsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [errors])
   const [photoFile, setPhotoFile] = useState<File | null>(null)
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
   const [photoRemove, setPhotoRemove] = useState(false)
@@ -289,9 +297,13 @@ function PlayerEditor({ player, isNew, onClose, onSaved, onDelete, mode = 'modal
           flat[k] = Array.isArray(v) ? String(v[0]) : String(v)
         })
         setErrors(flat)
+        const first = Object.values(flat)[0]
+        const more = Object.keys(flat).length - 1
+        toast.error(`Enregistrement impossible : ${first ?? 'données invalides.'}${more > 0 ? ` (+${more})` : ''}`)
       } else {
         const message = err instanceof Error ? err.message : 'Erreur d\'enregistrement.'
         setErrors({ _global: message })
+        toast.error(message)
       }
     } finally {
       setSaving(false)
@@ -685,6 +697,7 @@ function PlayerEditor({ player, isNew, onClose, onSaved, onDelete, mode = 'modal
           </label>
         </section>
 
+        <div ref={errorsRef} className="space-y-2 empty:hidden">
         {errors._global && (
           <div className="rounded-xl bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-800 dark:bg-red-500/10 dark:border-red-500/30 dark:text-red-200">
             {errors._global}
@@ -697,6 +710,7 @@ function PlayerEditor({ player, isNew, onClose, onSaved, onDelete, mode = 'modal
             ))}
           </div>
         )}
+        </div>
       </form>
 
       <div className={`border-t border-stone-200 bg-white dark:bg-zinc-900 dark:border-stone-50/10 px-6 py-4 flex items-center justify-between gap-3 ${

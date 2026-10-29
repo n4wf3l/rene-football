@@ -10,6 +10,7 @@ import {
 } from './AdminPlayers'
 import Skeleton from '../../components/Skeleton'
 import { useConfirm } from '../../components/ConfirmProvider'
+import { useToast } from '../../components/ToastProvider'
 
 interface AdminPlayerResponse { data: AdminPlayer }
 
@@ -21,6 +22,7 @@ interface AdminPlayerResponse { data: AdminPlayer }
  */
 export default function AdminPlayerEdit({ creating = false }: { creating?: boolean }) {
   const confirm = useConfirm()
+  const toast = useToast()
   const { slug } = useParams<{ slug: string }>()
   const navigate = useNavigate()
   const [player, setPlayer] = useState<PlayerFormState | null>(null)
@@ -72,9 +74,10 @@ export default function AdminPlayerEdit({ creating = false }: { creating?: boole
     }))) return
     try {
       await api.delete(`/admin/players/${p.slug}`, { auth: true })
+      toast.success(`« ${p.name} » supprimé.`)
       navigate('/admin/joueurs')
-    } catch {
-      setError('Suppression impossible.')
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Suppression impossible.')
     }
   }
 

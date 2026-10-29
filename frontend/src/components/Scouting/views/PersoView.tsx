@@ -2,12 +2,13 @@ import { useEffect, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { ChangeEvent, FormEvent } from 'react'
 import {
-  Buildings, CheckCircle, PencilSimpleLine, Plus, Trash, User, WarningCircle, X as XIcon,
+  Buildings, PencilSimpleLine, Plus, Trash, User, WarningCircle, X as XIcon,
 } from '@phosphor-icons/react'
 import { api, ApiError } from '../../../api/client'
 import type { ScoutProspect, ScoutWorkspace } from '../../../types/scouting'
 import Skeleton from '../../Skeleton'
 import { useConfirm } from '../../ConfirmProvider'
+import { useToast } from '../../ToastProvider'
 
 /**
  * Scout's personal workspace ("boîte perso").
@@ -120,7 +121,7 @@ export default function PersoView() {
   const [nameDraft, setNameDraft] = useState('')
   const [draft, setDraft] = useState<ProspectDraft | null>(null)
   const [saving, setSaving] = useState(false)
-  const [okMsg, setOkMsg] = useState<string | null>(null)
+  const toast = useToast()
 
   const load = async () => {
     setLoading(true); setError(null)
@@ -141,8 +142,6 @@ export default function PersoView() {
 
   useEffect(() => { void load() }, [])
 
-  const toast = (msg: string) => { setOkMsg(msg); window.setTimeout(() => setOkMsg(null), 2500) }
-
   const displayName = workspace?.name || 'Ma boîte perso'
 
   const saveName = async () => {
@@ -156,9 +155,11 @@ export default function PersoView() {
       )
       setWorkspace(res.data)
       setNameEditing(false)
-      toast('Nom mis à jour.')
+      toast.success('Nom mis à jour.')
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Renommage impossible.')
+      const msg = err instanceof Error ? err.message : 'Renommage impossible.'
+      setError(msg)
+      toast.error(msg)
     } finally {
       setSaving(false)
     }
@@ -173,10 +174,10 @@ export default function PersoView() {
       const payload = fromDraft(draft)
       if (draft.id) {
         await api.patch(`/admin/scouting/prospects/${draft.id}`, payload, { auth: true })
-        toast('Prospect mis à jour.')
+        toast.success('Prospect mis à jour.')
       } else {
         await api.post('/admin/scouting/prospects', payload, { auth: true })
-        toast('Prospect ajouté.')
+        toast.success('Prospect ajouté.')
       }
       setDraft(null)
       await load()
@@ -185,6 +186,7 @@ export default function PersoView() {
         ? 'Payload invalide - vérifiez les champs.'
         : err instanceof Error ? err.message : 'Enregistrement impossible.'
       setError(msg)
+      toast.error(msg)
     } finally {
       setSaving(false)
     }
@@ -200,9 +202,11 @@ export default function PersoView() {
     try {
       await api.delete(`/admin/scouting/prospects/${p.id}`, { auth: true })
       await load()
-      toast('Prospect supprimé.')
+      toast.success('Prospect supprimé.')
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Suppression impossible.')
+      const msg = err instanceof Error ? err.message : 'Suppression impossible.'
+      setError(msg)
+      toast.error(msg)
     }
   }
 
@@ -286,12 +290,6 @@ export default function PersoView() {
         <div className="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-rose-50 text-rose-800 dark:bg-rose-500/10 dark:text-rose-300 text-sm">
           <WarningCircle size={16} weight="bold" className="shrink-0 mt-0.5" />
           <span>{error}</span>
-        </div>
-      )}
-      {okMsg && (
-        <div className="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-turf-50 text-turf-800 dark:bg-turf-500/10 dark:text-turf-300 text-sm">
-          <CheckCircle size={16} weight="bold" className="shrink-0 mt-0.5" />
-          <span>{okMsg}</span>
         </div>
       )}
 
