@@ -40,6 +40,13 @@ DirectoryIndex index.html index.php
     RewriteRule ^sitemap\.xml$     index.php [L]
     RewriteRule ^robots\.txt$      index.php [L]
 
+    # 1b. Link previews: social-app scrapers (WhatsApp, Facebook, LinkedIn,
+    #     X, Slack, Telegram, Discord, iMessage...) don't run JavaScript, so
+    #     they get a small Laravel page with the article / player tags.
+    #     Visitors are never matched and keep getting the SPA.
+    RewriteCond %{HTTP_USER_AGENT} (WhatsApp|facebookexternalhit|Facebot|Twitterbot|LinkedInBot|Slackbot|TelegramBot|Discordbot|Pinterest|SkypeUriPreview|redditbot|Embedly|vkShare|Iframely|bingbot-preview) [NC]
+    RewriteRule ^(actualites|joueurs)/[A-Za-z0-9-]+/?$ index.php [L]
+
     # 2. Any real file → serve as-is (React assets like /assets/*.js, logos,
     #    icons.svg, etc). Directories hit DirectoryIndex above instead.
     RewriteCond %{REQUEST_FILENAME} -f
