@@ -40,6 +40,7 @@ const CLUBS: ClubLocation[] = [
   { id: 'leverkusen', short: 'Leverkusen', keys: ['leverkusen'],                lat: 51.0383, lon: 7.0022 },
   { id: 'koln',       short: 'Köln',       keys: ['koln', 'cologne'],           lat: 50.9335, lon: 6.8750 },
   { id: 'metz',       short: 'Metz',       keys: ['fc metz'],                   lat: 49.1097, lon: 6.1594 },
+  { id: 'auxerre',    short: 'Auxerre',    keys: ['auxerre'],                   lat: 47.7867, lon: 3.5884 },
 ]
 
 function normalize(value: string): string {
