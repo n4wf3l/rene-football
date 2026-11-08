@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\SharePreviewController;
 use App\Models\Article;
 use App\Models\Player;
 use Illuminate\Http\Request;
@@ -234,3 +235,10 @@ TXT;
         'Cache-Control' => 'public, max-age=86400',
     ]);
 });
+
+/*
+ * Link previews for social apps. Apache sends only their scrapers here
+ * (see .github/hostinger/.htaccess); visitors get the React SPA.
+ */
+Route::get('/actualites/{slug}', [SharePreviewController::class, 'article'])->where('slug', '[A-Za-z0-9-]+');
+Route::get('/joueurs/{slug}', [SharePreviewController::class, 'player'])->where('slug', '[A-Za-z0-9-]+');
