@@ -27,7 +27,6 @@ import HomeNews from '../components/home/HomeNews'
 import OutroWordmark from '../components/home/OutroWordmark'
 import { usePublicPlayers, pickShowcase } from '../lib/usePublicPlayers'
 import { usePublicStaff } from '../lib/usePublicStaff'
-import heroPortrait from '../assets/player2.png'
 
 /** Icon + key ; title/text come from home.services.<key>.title / .text */
 const SERVICES: Array<{ Icon: typeof Handshake; key: 'representation' | 'contracts' | 'scouting' | 'career' }> = [
@@ -219,7 +218,7 @@ function HomePage() {
             transition={{ duration: 0.9, ease: EASE_OUT, delay: 0.3 }}
             className="lg:col-span-5"
           >
-            <HeroSpotlight players={spotlight} fallbackSrc={heroPortrait} />
+            <HeroSpotlight players={spotlight} />
           </motion.div>
         </div>
       </section>
