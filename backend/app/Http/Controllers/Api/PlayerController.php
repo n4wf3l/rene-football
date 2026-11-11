@@ -30,6 +30,34 @@ class PlayerController extends Controller
     ];
 
     /**
+     * Fields the public profile is allowed to expose - an allow-list, so a
+     * column added later (scouting scores, internal notes, contact data…)
+     * stays private unless it is added here on purpose. Mirrors what
+     * PlayerProfilePage renders; the exact date of birth is deliberately
+     * left out (only the age is shown, and many players are minors).
+     */
+    public const PUBLIC_PROFILE_FIELDS = [
+        'id', 'slug', 'name', 'age', 'height', 'position', 'best_position', 'category',
+        'club', 'club_logo_url', 'nationality', 'secondary_nationality', 'preferred_foot',
+        'since', 'photo_url', 'bio',
+        'matches_played', 'goals', 'assists', 'minutes_played', 'shots', 'shots_on_target',
+        'xg', 'xa', 'key_passes', 'pass_accuracy', 'dribbles_completed', 'tackles',
+        'interceptions', 'duels_won', 'yellow_cards', 'red_cards', 'clean_sheets', 'saves',
+        'stats_updated_at',
+        'heatmap_grid', 'comparisons', 'strengths', 'potential_rating', 'potential_label', 'scout_quote',
+        'distance_avg_km', 'sprints_avg', 'top_speed_kmh', 'high_intensity_runs_avg',
+    ];
+
+    /** Match-log columns shown in the public table (internal notes excluded). */
+    private const PUBLIC_APPEARANCE_FIELDS = [
+        'id', 'player_id', 'match_date', 'competition', 'opponent', 'home', 'score_team',
+        'score_opponent', 'minutes_played', 'goals', 'assists', 'shots', 'shots_on_target', 'rating',
+    ];
+
+    /** Clip columns shown in the public galleries (notes and raw annotations excluded). */
+    public const PUBLIC_CLIP_FIELDS = ['id', 'player_id', 'image_path', 'title', 'timestamp_seconds', 'video_source_label'];
+
+    /**
      * Public roster listing.
      *
      * Returns ONLY the fields the public list pages actually render
@@ -81,12 +109,12 @@ class PlayerController extends Controller
         $percentiles = $this->computePercentiles($peers, $player);
 
         // Last 8 appearances (most recent first).
-        $appearances = $player->appearances()->limit(8)->get();
+        $appearances = $player->appearances()->limit(8)->get(self::PUBLIC_APPEARANCE_FIELDS);
         // Annotated frame clips (most recent first), public-safe metadata only.
-        $clips = $player->clips()->limit(20)->get();
+        $clips = $player->clips()->limit(20)->get(self::PUBLIC_CLIP_FIELDS);
 
         return response()->json([
-            'data' => $player,
+            'data' => $player->setVisible(self::PUBLIC_PROFILE_FIELDS),
             'percentiles' => $percentiles,
             'peers_count' => $peers->count(),
             'appearances' => $appearances,

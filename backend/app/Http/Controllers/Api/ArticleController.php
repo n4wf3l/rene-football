@@ -35,6 +35,11 @@ class ArticleController extends Controller
         $article->load([
             'player:id,slug,name,photo_url,position,club',
             'images',
+            // Public-safe clip columns only (no internal notes / raw annotations).
+            'clips' => fn ($q) => $q->select(array_map(
+                fn (string $c) => 'player_clips.'.$c,
+                PlayerController::PUBLIC_CLIP_FIELDS,
+            )),
             'clips.player:id,slug,name',
         ]);
 
