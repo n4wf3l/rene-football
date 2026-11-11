@@ -13,8 +13,6 @@ const CARD_CLIP = 'polygon(0 0, calc(100% - 44px) 0, 100% 44px, 100% 100%, 0 100
 
 interface HeroSpotlightProps {
   players: Player[]
-  /** Static portrait used while the roster loads or when it is empty. */
-  fallbackSrc: string
 }
 
 function pad(n: number): string {
@@ -26,7 +24,7 @@ function pad(n: number): string {
  * photo: the portrait wipes in from the bottom, the name settles like a
  * transfer board. Pauses on hover / focus; manual prev / next always works.
  */
-function HeroSpotlight({ players, fallbackSrc }: HeroSpotlightProps) {
+function HeroSpotlight({ players }: HeroSpotlightProps) {
   const { t } = useTranslation()
   const reduce = useReducedMotion()
   const [index, setIndex] = useState(0)
@@ -70,10 +68,21 @@ function HeroSpotlight({ players, fallbackSrc }: HeroSpotlightProps) {
           {pad(current ? (index % count) + 1 : 1)}
         </div>
 
+        {/* While the roster loads (or if it is empty) the card shows the agency
+            monogram, never a hard-coded player photo. */}
+        {!current && (
+          <img
+            src="/logo-white.png"
+            alt=""
+            aria-hidden="true"
+            className="absolute left-1/2 top-[42%] w-28 -translate-x-1/2 -translate-y-1/2 opacity-20"
+          />
+        )}
         <AnimatePresence initial={false}>
+          {current && (
           <motion.img
-            key={current?.slug ?? 'fallback'}
-            src={current ? playerImage(current) : fallbackSrc}
+            key={current.slug}
+            src={playerImage(current)}
             alt=""
             loading="eager"
             decoding="async"
@@ -83,6 +92,7 @@ function HeroSpotlight({ players, fallbackSrc }: HeroSpotlightProps) {
             exit={{ opacity: 0, transition: { duration: 0.35, delay: 0.55 } }}
             transition={{ duration: 0.9, ease: [0.76, 0, 0.24, 1] }}
           />
+          )}
         </AnimatePresence>
 
         <div
