@@ -16,6 +16,7 @@ import MeshGradient from '../components/MeshGradient'
 import BrandLogo from '../components/BrandLogo'
 import { renderMarkdown } from '../lib/markdown'
 import Seo from '../components/Seo'
+import ArticleCover from '../components/ArticleCover'
 import { useTranslation } from 'react-i18next'
 import Skeleton from '../components/Skeleton'
 import ClipsGalleryPublic from '../components/ClipsGalleryPublic'
@@ -214,7 +215,8 @@ export default function ArticleDetailPage() {
     )
   }
 
-  const cover = article.cover_url || `https://picsum.photos/seed/${article.slug}/1600/900`
+  // No photo: the RF mark on the page, the agency logo in link previews.
+  const cover = article.cover_url || null
   const images = article.images ?? []
   const clips = article.clips ?? []
 
@@ -272,11 +274,7 @@ export default function ArticleDetailPage() {
         {/* Cover image, full-bleed-ish inside the page container */}
         <div className="container-page pb-12 lg:pb-16">
           <div className="relative aspect-[16/9] rounded-3xl overflow-hidden border border-stone-50/10 bg-zinc-900">
-            <img
-              src={cover}
-              alt=""
-              className="absolute inset-0 w-full h-full object-cover"
-            />
+            <ArticleCover src={cover} loading="eager" markSize="lg" />
           </div>
         </div>
       </section>

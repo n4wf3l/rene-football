@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import ArticleCover from '../ArticleCover'
 import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowUpRight } from '@phosphor-icons/react'
 import { useTranslation } from 'react-i18next'
@@ -88,15 +89,11 @@ function HomeNews() {
             >
               <Link to={`/actualites/${lead.slug}`} className="group block">
                 <div className="relative aspect-[16/10] overflow-hidden bg-stone-200 dark:bg-zinc-800">
-                  {lead.cover_url && (
-                    <img
-                      src={lead.cover_url}
-                      alt=""
-                      loading="lazy"
-                      decoding="async"
-                      className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-premium group-hover:scale-[1.03]"
-                    />
-                  )}
+                  <ArticleCover
+                    src={lead.cover_url}
+                    markSize="md"
+                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-premium group-hover:scale-[1.03]"
+                  />
                 </div>
                 <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-[0.68rem] uppercase tracking-[0.22em]">
                   <span className="text-turf-700 dark:text-turf-300">{category(lead.category)}</span>
@@ -137,15 +134,9 @@ function HomeNews() {
                           {a.title}
                         </span>
                       </span>
-                      {a.cover_url && (
-                        <img
-                          src={a.cover_url}
-                          alt=""
-                          loading="lazy"
-                          decoding="async"
-                          className="h-20 w-28 bg-stone-200 object-cover dark:bg-zinc-800"
-                        />
-                      )}
+                      <span className="relative block h-20 w-28 shrink-0 overflow-hidden bg-stone-200 dark:bg-zinc-800">
+                        <ArticleCover src={a.cover_url} markSize="sm" />
+                      </span>
                     </Link>
                   </motion.li>
                 ))}
