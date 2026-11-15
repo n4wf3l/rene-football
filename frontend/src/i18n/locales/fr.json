@@ -396,6 +396,7 @@
         "category": "Catégorie",
         "position": "Poste",
         "nationality": "Nationalité",
+        "languages": "Langues",
         "height": "Taille",
         "since": "Suivi depuis"
       }

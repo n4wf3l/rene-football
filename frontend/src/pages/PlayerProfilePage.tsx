@@ -22,6 +22,7 @@ import {
   Sparkle,
   Wind,
   Calendar,
+  Translate,
 } from '@phosphor-icons/react'
 import { useTranslation } from 'react-i18next'
 import { ApiError, api, pdfUrl } from '../api/client'
@@ -38,7 +39,7 @@ import ClipsGalleryPublic from '../components/ClipsGalleryPublic'
 import type { Appearance } from '../types/appearance'
 import type { PlayerClip } from '../types/clip'
 import type { Presentation } from '../types/presentation'
-import { hasFreshMatchCount, sameLabel, uniqueLabels } from '../lib/playerDisplay'
+import { hasFreshMatchCount, positionCoversCategory, sameLabel, uniqueLabels } from '../lib/playerDisplay'
 import { heatmapFromPosition, isValidGrid } from '../lib/heatmap'
 import { playerImage } from '../lib/playerImage'
 import { toPublicUrl } from '../lib/publicUrl'
@@ -261,8 +262,15 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
   const isKeeper = player.category === 'Gardien'
   // Match count only when recent and non-zero (see lib/playerDisplay).
   const freshMatches = hasFreshMatchCount(player)
-  // Category / position / club chips without repeats ("Attaquant · Attaquant").
-  const [primaryChip, ...otherChips] = uniqueLabels([player.category, player.position, player.club])
+  // The category in the visitor's language ("Defenseur" -> "Défenseur", "Defender"…),
+  // and only when the position does not already say it ("Défenseur central gauche").
+  const categoryLabel = t(`players.filters.positions.${player.category}`, { defaultValue: player.category })
+  const categoryAdds = !positionCoversCategory(player.position, player.category)
+  // A position that is just the category ("Attaquant") is shown translated too.
+  const positionLabel = sameLabel(player.position, player.category) ? categoryLabel : player.position
+  const [primaryChip, ...otherChips] = uniqueLabels([categoryAdds ? categoryLabel : null, positionLabel, player.club])
+  const nationalities = uniqueLabels([player.nationality, player.secondary_nationality]).join(' · ')
+  const languages = (player.languages_spoken ?? []).filter(Boolean).join(', ')
 
   /* ─────────────────────────── Section visibility ───────────────────────────
    * A public profile must never expose empty/zero stat sections - a U9 player
@@ -565,12 +573,13 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
       <section className="container-page py-16 lg:py-24">
         <SectionHeading id="identite" eyebrow={eyebrow('identite')} title={sectionTitle('identite')} />
 
-        <div className="grid lg:grid-cols-5 gap-5">
+        <div className="grid sm:grid-cols-2 lg:[grid-template-columns:repeat(auto-fit,minmax(200px,1fr))] gap-5">
           {([
-            { Icon: Person,     key: 'category',    label: t('playerProfile.identity.cards.category'),    value: player.category },
-            // Position card dropped when it only repeats the category ("Attaquant" / "Attaquant").
-            { Icon: SoccerBall, key: 'position',    label: t('playerProfile.identity.cards.position'),    value: sameLabel(player.position, player.category) ? null : player.position },
-            { Icon: Flag,       key: 'nationality', label: t('playerProfile.identity.cards.nationality'), value: player.nationality },
+            // Category only when the position does not already say it.
+            { Icon: Person,     key: 'category',    label: t('playerProfile.identity.cards.category'),    value: categoryAdds ? categoryLabel : null },
+            { Icon: SoccerBall, key: 'position',    label: t('playerProfile.identity.cards.position'),    value: positionLabel },
+            { Icon: Flag,       key: 'nationality', label: t('playerProfile.identity.cards.nationality'), value: nationalities },
+            { Icon: Translate,  key: 'languages',   label: t('playerProfile.identity.cards.languages'),   value: languages },
             { Icon: Ruler,      key: 'height',      label: t('playerProfile.identity.cards.height'),      value: player.height },
             { Icon: Calendar,   key: 'since',       label: t('playerProfile.identity.cards.since'),       value: player.since },
           ] as const).filter((card) => card.value !== null && card.value !== undefined && card.value !== '').map(({ Icon, key, label, value }) => (
@@ -635,7 +644,7 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
                 {t('playerProfile.scout.percentiles.eyebrow')}
               </div>
               <h3 className="font-display font-semibold text-xl lg:text-2xl tracking-tight text-zinc-950 dark:text-stone-50 leading-tight mb-2">
-                {t('playerProfile.scout.percentiles.title', { firstName: player.name.split(' ')[0], category: player.category.toLowerCase() })}
+                {t('playerProfile.scout.percentiles.title', { firstName: player.name.split(' ')[0], category: categoryLabel.toLocaleLowerCase(i18n.resolvedLanguage) })}
               </h3>
               <p className="text-xs text-zinc-600 dark:text-stone-400 leading-relaxed mb-5">
                 {t('playerProfile.scout.percentiles.description')}{' '}
