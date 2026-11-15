@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
@@ -157,14 +157,29 @@ export default function ArticleDetailPage() {
   const [article, setArticle] = useState<Article | null>(null)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
+  // Current slug we just moved the address bar to: already loaded, no refetch.
+  const redirectedTo = useRef<string | null>(null)
 
   useEffect(() => {
     if (!slug) return
+    if (slug === redirectedTo.current) {
+      redirectedTo.current = null
+      return
+    }
     let cancelled = false
     setLoading(true)
     setNotFound(false)
     api.get<ArticleResponse>(`/articles/${slug}`)
-      .then((res) => { if (!cancelled) setArticle(res.data) })
+      .then((res) => {
+        if (cancelled) return
+        setArticle(res.data)
+        // Former URL (title edited since): show the current one.
+        if (res.data.slug !== slug) {
+          redirectedTo.current = res.data.slug
+          setLoading(false)
+          navigate(`/actualites/${res.data.slug}`, { replace: true })
+        }
+      })
       .catch((err: unknown) => {
         if (cancelled) return
         if (err instanceof ApiError && err.status === 404) {
@@ -175,7 +190,7 @@ export default function ArticleDetailPage() {
       })
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
-  }, [slug])
+  }, [slug, navigate])
 
   if (loading) {
     return (

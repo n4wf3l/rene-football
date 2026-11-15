@@ -28,9 +28,15 @@ class ArticleController extends Controller
         return response()->json(['data' => $query->get()]);
     }
 
-    public function show(Article $article): JsonResponse
+    /**
+     * Also answers a former slug (title edited since): the article comes back
+     * with its current slug, which the SPA puts in the address bar.
+     */
+    public function show(string $slug): JsonResponse
     {
-        abort_unless($article->is_published, 404);
+        $article = Article::where('slug', $slug)->where('is_published', true)->first()
+            ?? Article::publishedFormerlyAt($slug);
+        abort_unless($article, 404);
 
         $article->load([
             'player:id,slug,name,photo_url,position,club',
