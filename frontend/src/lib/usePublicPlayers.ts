@@ -13,10 +13,27 @@ interface PlayersResponse { data: Player[] }
 let cache: Player[] | null = null
 let inflight: Promise<Player[]> | null = null
 
+declare global {
+  interface Window {
+    /** Started by index.html before the app boots (null on failure). */
+    __rfPlayers?: Promise<PlayersResponse | null>
+  }
+}
+
+/** Uses the request index.html already started, once; otherwise fetches. */
+function request(): Promise<PlayersResponse> {
+  const early = typeof window !== 'undefined' ? window.__rfPlayers : undefined
+  if (early) {
+    window.__rfPlayers = undefined
+    return early.then((res) => res ?? api.get<PlayersResponse>('/players'))
+  }
+  return api.get<PlayersResponse>('/players')
+}
+
 function fetchOnce(): Promise<Player[]> {
   if (cache) return Promise.resolve(cache)
   if (inflight) return inflight
-  inflight = api.get<PlayersResponse>('/players')
+  inflight = request()
     .then((res) => {
       cache = res.data ?? []
       return cache

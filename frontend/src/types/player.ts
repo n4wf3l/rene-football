@@ -33,6 +33,8 @@ export interface Player {
   mental_strengths?: string[] | null
   since: number | null
   photo_url: string | null
+  /** Lightweight WebP of photo_url for the website (null when not generated). */
+  photo_display_url?: string | null
   /** Small portrait shown alongside the main action photo on marketing fiches. */
   secondary_photo_url?: string | null
   /** Extra photo URLs shown as a 3-vignette strip. */

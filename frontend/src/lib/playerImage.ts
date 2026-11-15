@@ -57,10 +57,15 @@ export interface PlayerImageInput {
   name: string
   slug: string
   photo_url?: string | null
+  /** Lightweight WebP made by the server from photo_url (max 960 x 1200). */
+  photo_display_url?: string | null
 }
 
-/** Returns the URL to set on `<img src>` for a player avatar. */
+/**
+ * Returns the URL to set on `<img src>` for a player avatar: the lightweight
+ * display version when the server has one, otherwise the original photo.
+ */
 export function playerImage(player: PlayerImageInput): string {
-  if (!isPlaceholderPhoto(player.photo_url)) return player.photo_url!
-  return placeholderDataUri(player.name, player.slug)
+  if (isPlaceholderPhoto(player.photo_url)) return placeholderDataUri(player.name, player.slug)
+  return player.photo_display_url || player.photo_url!
 }

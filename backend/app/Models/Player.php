@@ -8,6 +8,7 @@ use App\Models\Scouting\PlayerSource;
 use App\Models\Scouting\PlayerStatusHistory;
 use App\Models\Scouting\ScoutingReport;
 use App\Models\Scouting\ShortlistPlayer;
+use App\Support\PlayerPhoto;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -17,6 +18,23 @@ class Player extends Model
     public const SCOUTING_STATUSES = [
         'decouvert', 'watchlist', 'shortlist_b', 'shortlist_a', 'valide', 'rejete', 'archive',
     ];
+
+    /**
+     * Keeps the lightweight display photo (PlayerPhoto) in step with
+     * photo_url, whichever way the photo changes (admin upload, URL edit,
+     * content migration), and removes it with the player.
+     */
+    protected static function booted(): void
+    {
+        static::saving(function (Player $player) {
+            if (! $player->isDirty('photo_url')) {
+                return;
+            }
+            PlayerPhoto::delete($player->getOriginal('photo_display_url'));
+            $player->photo_display_url = PlayerPhoto::displayFor($player->photo_url);
+        });
+        static::deleted(fn (Player $player) => PlayerPhoto::delete($player->photo_display_url));
+    }
 
     public function appearances(): HasMany
     {

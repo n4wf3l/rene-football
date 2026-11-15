@@ -29,9 +29,14 @@ function HeroSpotlight({ players }: HeroSpotlightProps) {
   const reduce = useReducedMotion()
   const [index, setIndex] = useState(0)
   const [paused, setPaused] = useState(false)
+  // Portraits that finished loading: the wipe only starts once the image is
+  // there, so the card never reveals an empty frame.
+  const [loaded, setLoaded] = useState<Record<string, true>>({})
   const count = players.length
   const current = count > 0 ? players[index % count] : null
+  const ready = current ? loaded[current.slug] === true : false
   const autoplay = count > 1 && !paused && !reduce
+  const markLoaded = (slug: string) => setLoaded((l) => (l[slug] ? l : { ...l, [slug]: true }))
 
   useEffect(() => {
     if (!autoplay) return
@@ -70,7 +75,7 @@ function HeroSpotlight({ players }: HeroSpotlightProps) {
 
         {/* While the roster loads (or if it is empty) the card shows the agency
             monogram, never a hard-coded player photo. */}
-        {!current && (
+        {(!current || (index === 0 && !ready)) && (
           <img
             src="/logo-white.png"
             alt=""
@@ -86,9 +91,16 @@ function HeroSpotlight({ players }: HeroSpotlightProps) {
             alt=""
             loading="eager"
             decoding="async"
+            fetchPriority={index === 0 ? 'high' : 'auto'}
+            onLoad={() => markLoaded(current.slug)}
+            onError={() => markLoaded(current.slug)}
             className="absolute inset-0 h-full w-full object-cover object-[50%_18%]"
             initial={reduce ? { opacity: 0 } : { clipPath: 'inset(100% 0% 0% 0%)', scale: 1.08 }}
-            animate={reduce ? { opacity: 1 } : { clipPath: 'inset(0% 0% 0% 0%)', scale: 1 }}
+            animate={
+              !ready
+                ? (reduce ? { opacity: 0 } : { clipPath: 'inset(100% 0% 0% 0%)', scale: 1.08 })
+                : (reduce ? { opacity: 1 } : { clipPath: 'inset(0% 0% 0% 0%)', scale: 1 })
+            }
             exit={{ opacity: 0, transition: { duration: 0.35, delay: 0.55 } }}
             transition={{ duration: 0.9, ease: [0.76, 0, 0.24, 1] }}
           />
