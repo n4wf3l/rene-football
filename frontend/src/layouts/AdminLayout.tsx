@@ -11,6 +11,7 @@ import {
   EnvelopeSimple,
   Eye,
   Gear,
+  Globe,
   Handshake,
   House,
   List as ListIcon,
@@ -19,6 +20,7 @@ import {
   Newspaper,
   SignOut,
   SoccerBall,
+  Strategy,
   UsersThree,
   X as XIcon,
 } from '@phosphor-icons/react'
@@ -30,6 +32,7 @@ import LanguageSwitcher from '../components/LanguageSwitcher'
 import PageTransition from '../components/PageTransition'
 import AdminStatusBar from '../components/admin/AdminStatusBar'
 import type { AdminStatusBarBadges } from '../components/admin/AdminStatusBar'
+import { rememberSpacePage, spaceEntry, spaceOf, type AdminSpace } from '../lib/adminSpaces'
 
 const SIDEBAR_STATE_KEY = 'rene_admin_sidebar_open'
 
@@ -44,20 +47,57 @@ interface AdminNavItem {
   badgeKey?: BadgeKey
 }
 
-const NAV_ITEMS: AdminNavItem[] = [
-  { to: '/admin',           label: 'Tableau de bord', icon: House,         end: true },
-  { to: '/admin/joueurs',   label: 'Joueurs',         icon: SoccerBall },
-  { to: '/admin/analyse',   label: 'Data analyse',    icon: ChartLineUp },
-  { to: '/admin/frequentation', label: 'Fréquentation', icon: Eye },
-  { to: '/admin/articles',  label: 'Actualités',      icon: Newspaper },
-  { to: '/admin/scouting',  label: 'Scouting',        icon: Binoculars,    badgeKey: 'scouting' },
-  { to: '/admin/recherche', label: 'Centre de recherche', icon: MagnifyingGlass },
-  { to: '/admin/equipe',    label: 'Équipe',          icon: UsersThree },
-  { to: '/admin/partenaires', label: 'Partenaires',   icon: Handshake },
-  { to: '/admin/presentations', label: 'Présentations', icon: FilePdf },
-  { to: '/admin/contact',   label: 'Contact',         icon: EnvelopeSimple, badgeKey: 'contact' },
-  { to: '/admin/reglages',  label: 'Réglages',        icon: Gear },
-]
+interface AdminNavGroup { title: string; items: AdminNavItem[] }
+
+/* Two spaces (lib/adminSpaces): running the website, and the sporting work.
+   URLs are unchanged; the menu follows the page that is open. */
+const NAV: Record<AdminSpace, AdminNavGroup[]> = {
+  site: [
+    { title: 'Vue d\u2019ensemble', items: [
+      { to: '/admin',               label: 'Tableau de bord', icon: House, end: true },
+      { to: '/admin/frequentation', label: 'Fréquentation',   icon: Eye },
+    ] },
+    { title: 'Contenu du site', items: [
+      { to: '/admin/joueurs',       label: 'Joueurs',       icon: SoccerBall },
+      { to: '/admin/articles',      label: 'Actualités',    icon: Newspaper },
+      { to: '/admin/presentations', label: 'Présentations', icon: FilePdf },
+      { to: '/admin/equipe',        label: 'Équipe',        icon: UsersThree },
+      { to: '/admin/partenaires',   label: 'Partenaires',   icon: Handshake },
+    ] },
+    { title: 'Agence', items: [
+      { to: '/admin/contact',  label: 'Contact',  icon: EnvelopeSimple, badgeKey: 'contact' },
+      { to: '/admin/reglages', label: 'Réglages', icon: Gear },
+    ] },
+  ],
+  sport: [
+    { title: 'Vue d\u2019ensemble', items: [
+      { to: '/admin/sportif', label: 'Tableau de bord', icon: Strategy, end: true },
+    ] },
+    { title: 'Outils', items: [
+      { to: '/admin/analyse',   label: 'Data analyse',        icon: ChartLineUp },
+      { to: '/admin/scouting',  label: 'Scouting',            icon: Binoculars, badgeKey: 'scouting' },
+      { to: '/admin/recherche', label: 'Centre de recherche', icon: MagnifyingGlass },
+    ] },
+  ],
+}
+
+/* Each space has its own accent so it is always clear where you are. */
+const TONE: Record<AdminSpace, { link: string; bar: string; icon: string; badgeOn: string; badgeOff: string }> = {
+  site: {
+    link: 'bg-turf-50 text-turf-900 border border-turf-200/70 dark:bg-turf-900/25 dark:text-stone-50 dark:border-turf-400/15',
+    bar: 'bg-turf-600 dark:bg-turf-300',
+    icon: 'text-turf-700 dark:text-turf-300',
+    badgeOn: 'bg-turf-600 text-stone-50 dark:bg-turf-300 dark:text-zinc-950',
+    badgeOff: 'bg-turf-50 text-turf-700 border border-turf-200/70 dark:bg-turf-900/40 dark:text-turf-200 dark:border-turf-400/20',
+  },
+  sport: {
+    link: 'bg-emerald-50 text-emerald-900 border border-emerald-200/70 dark:bg-emerald-900/25 dark:text-stone-50 dark:border-emerald-400/15',
+    bar: 'bg-emerald-600 dark:bg-emerald-300',
+    icon: 'text-emerald-700 dark:text-emerald-300',
+    badgeOn: 'bg-emerald-600 text-stone-50 dark:bg-emerald-300 dark:text-zinc-950',
+    badgeOff: 'bg-emerald-50 text-emerald-700 border border-emerald-200/70 dark:bg-emerald-900/40 dark:text-emerald-200 dark:border-emerald-400/20',
+  },
+}
 
 interface SidebarLinkProps {
   to: string
@@ -66,9 +106,11 @@ interface SidebarLinkProps {
   end?: boolean
   /** Numeric count displayed as a pill on the right of the link. 0/null = hidden. */
   badge?: number | null
+  space: AdminSpace
 }
 
-function SidebarLink({ to, label, icon: Icon, end, badge }: SidebarLinkProps) {
+function SidebarLink({ to, label, icon: Icon, end, badge, space }: SidebarLinkProps) {
+  const tone = TONE[space]
   return (
     <NavLink
       to={to}
@@ -76,7 +118,7 @@ function SidebarLink({ to, label, icon: Icon, end, badge }: SidebarLinkProps) {
       className={({ isActive }) =>
         `group relative flex items-center gap-3 pl-5 pr-4 py-2.5 rounded-xl text-sm transition-colors duration-200 ease-premium ${
           isActive
-            ? 'bg-turf-50 text-turf-900 border border-turf-200/70 dark:bg-turf-900/25 dark:text-stone-50 dark:border-turf-400/15'
+            ? tone.link
             : 'text-zinc-600 border border-transparent hover:bg-stone-200/50 hover:text-zinc-950 dark:text-stone-400 dark:hover:bg-stone-50/5 dark:hover:text-stone-100'
         }`
       }
@@ -86,7 +128,7 @@ function SidebarLink({ to, label, icon: Icon, end, badge }: SidebarLinkProps) {
           {isActive && (
             <motion.span
               layoutId="admin-nav-active"
-              className="absolute inset-y-1.5 left-0 w-[3px] rounded-r-full bg-turf-600 dark:bg-turf-300 shadow-[0_0_12px_-2px_rgba(30, 64, 175,0.45)] dark:shadow-[0_0_12px_-2px_rgba(134,239,172,0.4)]"
+              className={`absolute inset-y-1.5 left-0 w-[3px] rounded-r-full ${tone.bar}`}
               transition={{ type: 'spring', stiffness: 380, damping: 32 }}
             />
           )}
@@ -94,7 +136,7 @@ function SidebarLink({ to, label, icon: Icon, end, badge }: SidebarLinkProps) {
             size={18}
             weight={isActive ? 'duotone' : 'regular'}
             className={isActive
-              ? 'text-turf-700 dark:text-turf-300'
+              ? tone.icon
               : 'text-zinc-500 group-hover:text-zinc-800 dark:text-stone-500 dark:group-hover:text-stone-200'}
           />
           <span className={`flex-1 ${isActive ? 'font-medium' : ''}`}>{label}</span>
@@ -102,9 +144,7 @@ function SidebarLink({ to, label, icon: Icon, end, badge }: SidebarLinkProps) {
             <span
               aria-label={`${badge} en attente`}
               className={`inline-grid place-items-center min-w-[18px] h-[18px] px-1 rounded-full text-[0.6rem] font-mono tabular-nums shrink-0 ${
-                isActive
-                  ? 'bg-turf-600 text-stone-50 dark:bg-turf-300 dark:text-zinc-950'
-                  : 'bg-turf-50 text-turf-700 border border-turf-200/70 dark:bg-turf-900/40 dark:text-turf-200 dark:border-turf-400/20'
+                isActive ? tone.badgeOn : tone.badgeOff
               }`}
             >
               {badge > 99 ? '99+' : badge}
@@ -126,9 +166,52 @@ interface SidebarProps {
   badges: Record<BadgeKey, number>
 }
 
+/** Site / Sportif switch at the top of the menu. The other space's pending
+ *  count shows on its button, so nothing waits unseen. */
+function SpaceSwitcher({ space, badges }: { space: AdminSpace; badges: Record<BadgeKey, number> }) {
+  const navigate = useNavigate()
+  const items: Array<{ key: AdminSpace; label: string; Icon: PhosphorIcon; pending: number }> = [
+    { key: 'site', label: 'Site', Icon: Globe, pending: badges.contact },
+    { key: 'sport', label: 'Sportif', Icon: Strategy, pending: badges.scouting },
+  ]
+  return (
+    <div className="grid grid-cols-2 gap-1 rounded-xl border border-stone-200 bg-stone-100/70 p-1 dark:border-stone-50/10 dark:bg-stone-50/[0.03]" role="tablist" aria-label="Espace du back-office">
+      {items.map(({ key, label, Icon, pending }) => {
+        const active = space === key
+        return (
+          <button
+            key={key}
+            type="button"
+            role="tab"
+            aria-selected={active}
+            onClick={() => { if (!active) navigate(spaceEntry(key)) }}
+            className={`relative inline-flex items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-medium transition-colors ${
+              active
+                ? `bg-white shadow-sm dark:bg-zinc-800 ${key === 'sport' ? 'text-emerald-800 dark:text-emerald-200' : 'text-turf-800 dark:text-turf-200'}`
+                : 'text-zinc-500 hover:text-zinc-900 dark:text-stone-400 dark:hover:text-stone-100'
+            }`}
+          >
+            <Icon size={14} weight={active ? 'duotone' : 'regular'} />
+            {label}
+            {!active && pending > 0 && (
+              <span
+                aria-label={`${pending} en attente`}
+                className={`ml-0.5 inline-grid h-4 min-w-4 place-items-center rounded-full px-1 font-mono text-[0.55rem] tabular-nums text-stone-50 ${key === 'sport' ? 'bg-emerald-600' : 'bg-turf-600'}`}
+              >
+                {pending > 99 ? '99+' : pending}
+              </span>
+            )}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
 function Sidebar({ onCloseMobile, onCollapseDesktop, badges }: SidebarProps) {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
+  const space = spaceOf(useLocation().pathname)
 
   const handleLogout = async () => {
     await logout()
@@ -142,7 +225,9 @@ function Sidebar({ onCloseMobile, onCollapseDesktop, badges }: SidebarProps) {
           <BrandLogo size={32} />
           <div className="leading-tight min-w-0">
             <div className="font-display font-semibold text-zinc-950 dark:text-stone-50 text-sm truncate">Rene Football</div>
-            <div className="text-[0.65rem] font-mono uppercase tracking-wider text-turf-700 dark:text-turf-300">Back-office</div>
+            <div className={`text-[0.65rem] font-mono uppercase tracking-wider ${space === 'sport' ? 'text-emerald-700 dark:text-emerald-300' : 'text-turf-700 dark:text-turf-300'}`}>
+              {space === 'sport' ? 'Espace sportif' : 'Back-office · Site'}
+            </div>
           </div>
         </div>
         {onCloseMobile && (
@@ -168,16 +253,25 @@ function Sidebar({ onCloseMobile, onCollapseDesktop, badges }: SidebarProps) {
         )}
       </div>
 
-      <nav className="flex-1 px-3 py-5 space-y-1 overflow-y-auto">
-        <div className="px-3 mb-2 text-[0.6rem] font-mono uppercase tracking-[0.2em] text-zinc-400 dark:text-stone-500">
-          Navigation
-        </div>
-        {NAV_ITEMS.map((item) => (
-          <SidebarLink
-            key={item.to}
-            {...item}
-            badge={item.badgeKey ? badges[item.badgeKey] : null}
-          />
+      <div className="px-3 pt-4">
+        <SpaceSwitcher space={space} badges={badges} />
+      </div>
+
+      <nav className="flex-1 px-3 py-4 space-y-5 overflow-y-auto">
+        {NAV[space].map((group) => (
+          <div key={group.title} className="space-y-1">
+            <div className="px-3 mb-2 text-[0.6rem] font-mono uppercase tracking-[0.2em] text-zinc-400 dark:text-stone-500">
+              {group.title}
+            </div>
+            {group.items.map((item) => (
+              <SidebarLink
+                key={item.to}
+                {...item}
+                space={space}
+                badge={item.badgeKey ? badges[item.badgeKey] : null}
+              />
+            ))}
+          </div>
         ))}
       </nav>
 
@@ -325,6 +419,11 @@ function AdminLayout() {
       .catch(() => { /* silently ignore */ })
     return () => { cancelled = true }
   }, [location.pathname])
+
+  // Switching space leads back to the page last opened there.
+  useEffect(() => {
+    rememberSpacePage(location.pathname + location.search)
+  }, [location.pathname, location.search])
 
   const statusBarBadges: AdminStatusBarBadges = badges
   const inFocusRoute = isFocusRoute(location.pathname)

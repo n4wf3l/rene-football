@@ -36,6 +36,7 @@ const AdminAnalysis    = lazy(() => import('./pages/admin/AdminAnalysis'))
 const AdminArticles    = lazy(() => import('./pages/admin/AdminArticles'))
 const AdminArticleEdit = lazy(() => import('./pages/admin/AdminArticleEdit'))
 const AdminScouting    = lazy(() => import('./pages/admin/AdminScouting'))
+const AdminSportHome = lazy(() => import('./pages/admin/AdminSportHome'))
 const AdminMarketIntelligence = lazy(() => import('./pages/admin/AdminMarketIntelligence'))
 const AdminStaff       = lazy(() => import('./pages/admin/AdminStaff'))
 const AdminStaffEdit   = lazy(() => import('./pages/admin/AdminStaffEdit'))
@@ -97,6 +98,7 @@ function App() {
                 <Route path="articles" element={<AdminArticles />} />
                 <Route path="articles/nouveau" element={<AdminArticleEdit creating />} />
                 <Route path="articles/:slug/edit" element={<AdminArticleEdit />} />
+                <Route path="sportif" element={<AdminSportHome />} />
                 <Route path="scouting" element={<AdminScouting />} />
                 <Route path="recherche" element={<AdminMarketIntelligence />} />
                 <Route path="equipe" element={<AdminStaff />} />

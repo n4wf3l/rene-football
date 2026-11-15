@@ -31,6 +31,7 @@ interface AdminStatusBarProps {
 const SECTION_LABELS: Array<{ test: (p: string) => boolean; label: string }> = [
   { test: (p) => p === '/admin',                        label: 'Tableau de bord' },
   { test: (p) => p.startsWith('/admin/joueurs'),        label: 'Joueurs' },
+  { test: (p) => p.startsWith('/admin/sportif'),        label: 'Espace sportif' },
   { test: (p) => p.startsWith('/admin/analyse'),        label: 'Data analyse' },
   { test: (p) => p.startsWith('/admin/articles'),       label: 'Actualités' },
   { test: (p) => p.startsWith('/admin/scouting'),       label: 'Scouting cockpit' },
