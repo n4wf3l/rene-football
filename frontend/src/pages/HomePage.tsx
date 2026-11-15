@@ -1,6 +1,6 @@
-import { useMemo, useRef } from 'react'
+import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import {
   ArrowRight,
   ArrowUpRight,
@@ -19,10 +19,9 @@ import DeferredRender from '../components/DeferredRender'
 import Seo from '../components/Seo'
 import YouTubeEmbed from '../components/YouTubeEmbed'
 import MeshGradient from '../components/MeshGradient'
-import AnimatedNumber from '../components/AnimatedNumber'
-import MagneticLink from '../components/MagneticLink'
-import HeroSpotlight from '../components/home/HeroSpotlight'
-import LuxClock from '../components/home/LuxClock'
+import HomeHero from '../components/home/hero/HomeHero'
+import { useHeroVariant } from '../lib/useHeroVariant'
+import { EASE_OUT } from '../components/home/hero/HeroParts'
 import RouteMap from '../components/home/RouteMap'
 import HomeNews from '../components/home/HomeNews'
 import OutroWordmark from '../components/home/OutroWordmark'
@@ -37,57 +36,15 @@ const SERVICES: Array<{ Icon: typeof Handshake; key: 'representation' | 'contrac
   { Icon: TrendUp,     key: 'career' },
 ]
 
-const EASE_OUT = [0.16, 1, 0.3, 1] as const
-
 /** Players with an uploaded photo (not the initials placeholder). */
 function hasRealPhoto(url: string | null): boolean {
   return !!url && !url.includes('picsum.photos')
 }
 
-interface HeadlineProps {
-  pre: string
-  accent: string
-  post: string
-}
-
-/** H1 revealed word by word from behind a mask - the hero's load sequence. */
-function Headline({ pre, accent, post }: HeadlineProps) {
-  const reduce = useReducedMotion()
-  const words = [
-    ...pre.split(' ').map((w) => ({ w, accent: false })),
-    ...accent.split(' ').map((w) => ({ w, accent: true })),
-    ...post.split(' ').map((w) => ({ w, accent: false })),
-  ].filter((x) => x.w)
-
-  return (
-    <h1
-      className="font-display font-semibold leading-[0.96] tracking-tightest text-zinc-950 dark:text-stone-50"
-      style={{ fontSize: 'clamp(2.6rem, 6vw, 5.4rem)' }}
-    >
-      <span className="sr-only">{`${pre} ${accent} ${post}`}</span>
-      <span aria-hidden="true">
-        {words.map(({ w, accent: isAccent }, i) => (
-          <span key={i} className="inline-block overflow-hidden pb-[0.08em] align-bottom">
-            <motion.span
-              className={`inline-block ${isAccent ? 'text-turf-700 italic dark:text-turf-300' : ''}`}
-              initial={reduce ? false : { y: '108%' }}
-              animate={{ y: '0%' }}
-              transition={{ duration: 0.9, ease: EASE_OUT, delay: 0.15 + i * 0.05 }}
-            >
-              {w}
-            </motion.span>
-            {i < words.length - 1 && '\u00a0'}
-          </span>
-        ))}
-      </span>
-    </h1>
-  )
-}
-
 function HomePage() {
   const { t } = useTranslation()
   const reduce = useReducedMotion()
-  const heroRef = useRef<HTMLElement | null>(null)
+  const heroVariant = useHeroVariant()
   const { players } = usePublicPlayers()
   const { staff } = usePublicStaff()
 
@@ -110,9 +67,6 @@ function HomePage() {
     { value: staff.length,       label: t('home.stats.team') },
   ].filter((s) => s.value > 0)
 
-  // Giant background wordmark drifts slower than the page (hero depth).
-  const { scrollYProgress: heroProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] })
-  const wordmarkY = useTransform(heroProgress, [0, 1], reduce ? ['0%', '0%'] : ['0%', '35%'])
 
   return (
     <>
@@ -123,106 +77,12 @@ function HomePage() {
         path="/"
       />
 
-      {/* HERO - follows the site theme: headline left, the represented
-          players cycling on a ticket-cut card right, the agency wordmark set
-          huge behind everything. */}
-      <section ref={heroRef} className="relative overflow-hidden bg-stone-50 text-zinc-900 dark:bg-zinc-950 dark:text-stone-100">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 opacity-40 dark:opacity-100"
-          style={{
-            background:
-              'radial-gradient(ellipse 45% 55% at 78% 35%, rgba(30,64,175,0.38), transparent 70%),' +
-              'radial-gradient(ellipse 40% 40% at 8% 90%, rgba(30,64,175,0.20), transparent 70%)',
-          }}
-        />
-        <motion.div
-          aria-hidden="true"
-          style={{ y: wordmarkY }}
-          className="pointer-events-none absolute inset-x-0 bottom-[-0.12em] select-none whitespace-nowrap text-center font-display font-semibold uppercase leading-none tracking-tightest text-zinc-950/[0.04] dark:text-stone-50/[0.045] text-[34vw]"
-        >
-          Rene
-        </motion.div>
-
-        <div className="container-page grid min-h-[100dvh] items-center gap-12 pb-14 pt-28 lg:grid-cols-12 lg:gap-10 lg:pb-16 lg:pt-24">
-          <div className="lg:col-span-7">
-            <motion.div
-              initial={reduce ? false : { opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, ease: EASE_OUT }}
-              className="flex flex-wrap items-center gap-x-4 gap-y-2 font-mono text-[0.68rem] uppercase tracking-[0.24em] text-zinc-500 dark:text-stone-400"
-            >
-              <span className="text-turf-700 dark:text-turf-300">{t('home.hero.chip')}</span>
-              <span className="h-px w-8 bg-zinc-950/20 dark:bg-stone-50/20" aria-hidden="true" />
-              <span className="inline-flex items-center gap-2">
-                <span className="h-1.5 w-1.5 rounded-full bg-turf-600 animate-pulse dark:bg-turf-300" aria-hidden="true" />
-                {t('home.hero.clock')} <LuxClock />
-              </span>
-            </motion.div>
-
-            <div className="mt-7">
-              <Headline pre={t('home.hero.titlePre')} accent={t('home.hero.titleAccent')} post={t('home.hero.titlePost')} />
-            </div>
-
-            <motion.p
-              initial={reduce ? false : { opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, ease: EASE_OUT, delay: 0.7 }}
-              className="mt-7 max-w-[54ch] text-base leading-relaxed text-zinc-600 dark:text-stone-400 lg:text-lg"
-            >
-              {t('home.hero.paragraph')}
-            </motion.p>
-
-            <motion.div
-              initial={reduce ? false : { opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, ease: EASE_OUT, delay: 0.82 }}
-              className="mt-9 flex flex-wrap items-center gap-3"
-            >
-              <MagneticLink
-                to="/joueurs"
-                className="group inline-flex items-center gap-3 bg-zinc-950 px-6 py-4 text-[0.95rem] font-medium text-stone-50 transition-colors duration-300 ease-premium hover:bg-turf-800 dark:bg-stone-50 dark:text-zinc-950 dark:hover:bg-turf-300"
-              >
-                {t('home.hero.ctaPrimary')}
-                <ArrowUpRight size={18} weight="bold" className="transition-transform duration-300 ease-premium group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-              </MagneticLink>
-              <Link
-                to="/contact"
-                className="inline-flex items-center gap-2 border border-zinc-950/20 px-6 py-4 text-[0.95rem] font-medium text-zinc-900 transition-colors duration-300 ease-premium hover:border-zinc-950/60 active:-translate-y-px dark:border-stone-50/20 dark:text-stone-100 dark:hover:border-stone-50/60"
-              >
-                {t('home.hero.ctaSecondary')}
-              </Link>
-            </motion.div>
-
-            {STATS.length >= 2 && (
-              <motion.dl
-                initial={reduce ? false : { opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.8, delay: 1 }}
-                className="mt-14 grid max-w-xl grid-cols-2 gap-y-6 border-t border-zinc-950/10 pt-6 dark:border-stone-50/10 sm:grid-cols-4"
-              >
-                {STATS.map((s) => (
-                  <div key={s.label} className="flex flex-col pr-4">
-                    <dt className="order-2 mt-1 text-xs leading-snug text-zinc-500 dark:text-stone-500">{s.label}</dt>
-                    <dd className="font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">
-                      <AnimatedNumber value={s.value} duration={1.6} />
-                    </dd>
-                  </div>
-                ))}
-              </motion.dl>
-            )}
-          </div>
-
-          <motion.div
-            initial={reduce ? false : { opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.9, ease: EASE_OUT, delay: 0.3 }}
-            className="lg:col-span-5"
-          >
-            <HeroSpotlight players={spotlight} />
-          </motion.div>
-        </div>
-      </section>
+      {/* HERO - the layout chosen in Réglages (lib/heroVariants). Until it
+          is known (first visit, a fraction of a second) an empty frame of the
+          same size holds the space so nothing jumps. */}
+      {heroVariant
+        ? <HomeHero variant={heroVariant} players={ordered} spotlight={spotlight} stats={STATS} />
+        : <section aria-hidden="true" className="min-h-[100dvh] bg-stone-50 dark:bg-zinc-950" />}
 
       {/* Everything below the hero renders right after the hero has been
           painted, so the first screen doesn't wait for the map, news, video… */}

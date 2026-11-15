@@ -57,6 +57,9 @@
     "copyright": "© {{year}} Rene Football. All rights reserved."
   },
   "home": {
+    "heroVariants": {
+      "lineupCaption": "The squad"
+    },
     "hero": {
       "chip": "Football agency",
       "titlePre": "Representing every",

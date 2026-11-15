@@ -20,10 +20,16 @@ export interface PublicLegal {
   publication_director: string | null
 }
 
+export interface PublicAppearance {
+  /** Home page hero chosen in Réglages (see lib/heroVariants). */
+  hero_variant: string
+}
+
 export interface PublicSettings {
   social_links: Partial<Record<SocialPlatform, string>>
   contact: PublicContact
   legal: PublicLegal
+  appearance: PublicAppearance
 }
 
 /** Raw admin view — includes empty/null URLs so the form can bind directly. */
@@ -45,4 +51,6 @@ export interface AdminSettings {
   contact_email: string | null
   contact_phone: string | null
   office_city:   string | null
+  // Appearance
+  hero_variant:  string | null
 }

@@ -57,6 +57,9 @@
     "copyright": "© {{year}} Rene Football. Alle rechten voorbehouden."
   },
   "home": {
+    "heroVariants": {
+      "lineupCaption": "De selectie"
+    },
     "hero": {
       "chip": "Voetbalagentschap",
       "titlePre": "Elke",

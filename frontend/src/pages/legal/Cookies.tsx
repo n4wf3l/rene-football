@@ -70,6 +70,13 @@ export default function Cookies() {
             à chaque visite, ignorée après 7 jours.
           </dd>
 
+          <dt><code>rf_hero_variant</code> · <em>localStorage</em></dt>
+          <dd>
+            Nom de la mise en page d'accueil choisie par l'agence, pour
+            l'afficher sans attendre lors de vos visites suivantes. Aucune
+            donnée vous concernant. Remplacé à chaque visite.
+          </dd>
+
           <dt><code>rf_cookie_notice_ack_v2</code> · <em>localStorage</em></dt>
           <dd>
             Trace que vous avez pris connaissance du bandeau d'information.

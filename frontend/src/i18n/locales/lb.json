@@ -57,6 +57,9 @@
     "copyright": "© {{year}} Rene Football. All Rechter reservéiert."
   },
   "home": {
+    "heroVariants": {
+      "lineupCaption": "De Kader"
+    },
     "hero": {
       "chip": "Fussballagence",
       "titlePre": "Jidder",

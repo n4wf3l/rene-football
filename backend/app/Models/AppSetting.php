@@ -32,7 +32,20 @@ class AppSetting extends Model
         'contact_email',
         'contact_phone',
         'office_city',
+        // Appearance — which home page hero is shown (see HERO_VARIANTS).
+        'hero_variant',
     ];
+
+    /** Home page heroes the admin can choose from; the first is the default. */
+    public const HERO_VARIANTS = ['spotlight', 'poster', 'mosaic', 'lineup', 'cover', 'marquee'];
+
+    /** The hero to show, falling back to the default for empty/unknown values. */
+    public function heroVariant(): string
+    {
+        return in_array($this->hero_variant, self::HERO_VARIANTS, true)
+            ? $this->hero_variant
+            : self::HERO_VARIANTS[0];
+    }
 
     /** Lazy-creates the settings row on first access. */
     public static function singleton(): self

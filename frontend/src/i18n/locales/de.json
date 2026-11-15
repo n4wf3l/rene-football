@@ -57,6 +57,9 @@
     "copyright": "© {{year}} Rene Football. Alle Rechte vorbehalten."
   },
   "home": {
+    "heroVariants": {
+      "lineupCaption": "Der Kader"
+    },
     "hero": {
       "chip": "Fußball-Agentur",
       "titlePre": "Jeden",
