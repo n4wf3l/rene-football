@@ -319,6 +319,15 @@
     "cta": "Back to home"
   },
   "article": {
+    "admin": {
+      "label": "Admin mode",
+      "edit": "Edit",
+      "delete": "Delete",
+      "confirmTitle": "Delete “{{title}}”?",
+      "confirmBody": "This cannot be undone: the article will no longer be online.",
+      "deleted": "“{{title}}” deleted.",
+      "deleteError": "Could not delete the article."
+    },
     "backToList": "All news",
     "featured": "Featured",
     "sidebarTitle": "At a glance",

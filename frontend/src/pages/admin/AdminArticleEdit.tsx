@@ -274,13 +274,16 @@ export default function AdminArticleEdit({ creating = false }: { creating?: bool
         : await api.post<ArticleResponse>(`/admin/articles/${form.slug}`, fd, { auth: true })
 
       stagedImages.forEach((s) => URL.revokeObjectURL(s.previewUrl))
-      navigate('/admin/articles', {
-        state: {
-          toast: creating
-            ? `« ${res.data.title} » créé.`
-            : `« ${res.data.title} » mis à jour.`,
-        },
-      })
+      const message = creating ? `« ${res.data.title} » créé.` : `« ${res.data.title} » mis à jour.`
+      if (res.data.is_published) {
+        // Online: show the article as visitors see it (edit / delete stay
+        // available there for admins).
+        showToast('success', message)
+        navigate(`/actualites/${res.data.slug}`)
+      } else {
+        // Not online yet: the public page would be a 404, back to the list.
+        navigate('/admin/articles', { state: { toast: message } })
+      }
     } catch (err: unknown) {
       if (err instanceof ApiError && err.status === 422) {
         const flat: Record<string, string> = {}

@@ -319,6 +319,15 @@
     "cta": "Zréck op d'Haaptsäit"
   },
   "article": {
+    "admin": {
+      "label": "Admin-Modus",
+      "edit": "Änneren",
+      "delete": "Läschen",
+      "confirmTitle": "„{{title}}“ läschen?",
+      "confirmBody": "Dëst ass definitiv: den Artikel ass duerno net méi online.",
+      "deleted": "„{{title}}“ geläscht.",
+      "deleteError": "Läschen net méiglech."
+    },
     "backToList": "All Aktualitéit",
     "featured": "Ausgesicht",
     "sidebarTitle": "Am Iwwerbléck",

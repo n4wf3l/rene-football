@@ -19,6 +19,7 @@ import Seo from '../components/Seo'
 import { useTranslation } from 'react-i18next'
 import Skeleton from '../components/Skeleton'
 import ClipsGalleryPublic from '../components/ClipsGalleryPublic'
+import ArticleAdminBar from '../components/ArticleAdminBar'
 import { api, ApiError } from '../api/client'
 import { playerImage } from '../lib/playerImage'
 import { toPublicUrl } from '../lib/publicUrl'
@@ -230,13 +231,16 @@ export default function ArticleDetailPage() {
       <section className="relative overflow-hidden text-stone-100">
         <MeshGradient intensity="subtle" />
         <div className="container-page pt-10 lg:pt-14 pb-8">
-          <Link
-            to="/actualites"
-            className="inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-[0.16em] text-stone-300 hover:text-stone-50 transition"
-          >
-            <ArrowLeft size={12} weight="bold" />
-            {t('article.backToList')}
-          </Link>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <Link
+              to="/actualites"
+              className="inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-[0.16em] text-stone-300 hover:text-stone-50 transition"
+            >
+              <ArrowLeft size={12} weight="bold" />
+              {t('article.backToList')}
+            </Link>
+            <ArticleAdminBar slug={article.slug} title={article.title} />
+          </div>
 
           <div className="mt-6 flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[0.65rem] font-mono uppercase tracking-wider bg-turf-800/40 border border-turf-300/30 text-turf-200">
