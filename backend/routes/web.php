@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\SharePreviewController;
+use App\Http\Controllers\PublicPageController;
 use App\Models\Article;
 use App\Models\Player;
 use Illuminate\Http\Request;
@@ -183,7 +183,7 @@ Route::get('/sitemap.xml', function () {
         'X-Robots-Tag'  => 'noindex',
         'X-Generated-At' => $now,
     ]);
-});
+})->withoutMiddleware('web'); // no session or CSRF cookie on public responses
 
 /**
  * Public uploads (player photos, article covers, clips, partner logos, staff
@@ -209,7 +209,7 @@ Route::get('/storage/{path}', function (string $path) {
     return $disk->response($path, null, [
         'Cache-Control' => 'public, max-age=2592000',
     ]);
-})->where('path', '.+');
+})->where('path', '.+')->withoutMiddleware('web');
 
 /**
  * Serve robots.txt from Laravel so we control the sitemap URL and Disallow
@@ -234,11 +234,19 @@ TXT;
         'Content-Type'  => 'text/plain; charset=utf-8',
         'Cache-Control' => 'public, max-age=86400',
     ]);
-});
+})->withoutMiddleware('web');
 
 /*
- * Link previews for social apps. Apache sends only their scrapers here
- * (see .github/hostinger/.htaccess); visitors get the React SPA.
+ * Public pages of the SPA, served with their own title, description, image
+ * and schema.org data (see PublicPageController). Apache sends these paths
+ * here for every visitor; the home page stays the static index.html.
+ *
+ * Like the other public routes above, they run without the 'web' group: no
+ * session, no CSRF cookie - visitors of the public site get no cookie.
  */
-Route::get('/actualites/{slug}', [SharePreviewController::class, 'article'])->where('slug', '[A-Za-z0-9-]+');
-Route::get('/joueurs/{slug}', [SharePreviewController::class, 'player'])->where('slug', '[A-Za-z0-9-]+');
+Route::withoutMiddleware('web')->group(function () {
+    Route::get('/{page}', [PublicPageController::class, 'page'])
+        ->where('page', 'joueurs|actualites|a-propos|contact|mentions-legales|confidentialite|cookies');
+    Route::get('/actualites/{slug}', [PublicPageController::class, 'article'])->where('slug', '[A-Za-z0-9-]+');
+    Route::get('/joueurs/{slug}', [PublicPageController::class, 'player'])->where('slug', '[A-Za-z0-9-]+');
+});

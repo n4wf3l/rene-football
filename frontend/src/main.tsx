@@ -8,8 +8,10 @@ import { initSentry } from './sentry'
 import App from './App'
 import { ToastProvider } from './components/ToastProvider'
 import { ConfirmProvider } from './components/ConfirmProvider'
+import { removeServerHeadTags } from './hooks/useServerHeadCleanup'
 
 initSentry()
+removeServerHeadTags()
 
 const rootElement = document.getElementById('root')
 if (!rootElement) throw new Error('Root element #root not found')

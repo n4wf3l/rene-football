@@ -55,6 +55,13 @@ return [
     'url' => env('APP_URL', 'http://localhost'),
 
     /*
+    | Built SPA entry point (index.html) that PublicPageController serves with
+    | per-page head tags. Optional: by default public_html/index.html next to
+    | the backend (Hostinger), then frontend/dist/index.html (local build).
+    */
+    'spa_index' => env('SPA_INDEX_PATH'),
+
+    /*
     |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
