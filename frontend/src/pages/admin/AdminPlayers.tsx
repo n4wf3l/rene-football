@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { FormEvent, InputHTMLAttributes, MouseEvent as ReactMouseEvent, ReactNode, SelectHTMLAttributes } from 'react'
+import { createPortal } from 'react-dom'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
@@ -28,6 +29,7 @@ import TagPicker from '../../components/TagPicker'
 import ClipsGalleryAdmin from '../../components/ClipsGalleryAdmin'
 import { type HeatmapGrid, emptyGrid, heatmapFromPosition, isValidGrid } from '../../lib/heatmap'
 import { useConfirm } from '../../components/ConfirmProvider'
+import { completenessTone, playerCompleteness, TONE_CLASSES } from '../../lib/playerCompleteness'
 import { useToast } from '../../components/ToastProvider'
 
 type AdminPlayer = Player & { id?: number }
@@ -84,14 +86,16 @@ const NUMERIC_FIELDS: (keyof PlayerFormState)[] = [
 ]
 
 interface FieldRowProps {
+  /** Anchor used by the completeness bar to jump to this input. */
+  field?: string
   label: string
   hint?: string
   children: ReactNode
 }
 
-function FieldRow({ label, hint, children }: FieldRowProps) {
+function FieldRow({ field, label, hint, children }: FieldRowProps) {
   return (
-    <label className="block">
+    <label className="block scroll-mt-40 rounded-lg transition-shadow" data-field={field}>
       <span className="block text-[0.65rem] font-mono uppercase tracking-[0.16em] text-zinc-500 dark:text-stone-400 mb-1">
         {label}{hint ? <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal ml-1">- {hint}</span> : null}
       </span>
@@ -180,8 +184,24 @@ interface PlayerEditorProps {
 function PageWrapper({ children }: { children: ReactNode }) {
   return <div className="bg-stone-50 dark:bg-zinc-950 min-h-[100dvh] flex flex-col">{children}</div>
 }
+// The drawer and its backdrop render on <body>: inside the admin layout an
+// animated (transformed) ancestor would turn `fixed` into "relative to that
+// ancestor", pushing the drawer down and cutting its footer off.
+function DrawerBackdrop({ onClick }: { onClick: () => void }) {
+  return createPortal(
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={onClick}
+      className="fixed inset-0 z-40 bg-zinc-950/40"
+    />,
+    document.body,
+  )
+}
+
 function ModalWrapper({ children }: { children: ReactNode }) {
-  return (
+  return createPortal(
     <motion.div
       initial={{ x: 420 }}
       animate={{ x: 0 }}
@@ -190,7 +210,8 @@ function ModalWrapper({ children }: { children: ReactNode }) {
       className="fixed top-0 right-0 h-[100dvh] w-full max-w-xl bg-stone-50 dark:bg-zinc-950 shadow-2xl flex flex-col z-50"
     >
       {children}
-    </motion.div>
+    </motion.div>,
+    document.body,
   )
 }
 
@@ -227,6 +248,80 @@ function buildFormData(
   if (photoRemove) fd.append('photo_remove', '1')
 
   return fd
+}
+
+/** Live "profil complété" bar under the editor header, with shortcuts to
+ *  what is still missing. */
+function CompletenessStrip({ form }: { form: PlayerFormState }) {
+  const { pct, missing } = playerCompleteness(form)
+  const tone = TONE_CLASSES[completenessTone(pct)]
+  const [showAll, setShowAll] = useState(false)
+  const shown = showAll ? missing : missing.slice(0, 6)
+
+  function goTo(field: string) {
+    const el = document.querySelector<HTMLElement>(`[data-field="${field}"]`)
+    if (!el) return
+    const ring = ['ring-2', 'ring-orange-400', 'ring-offset-4', 'ring-offset-white', 'dark:ring-offset-zinc-900']
+    // Scroll only the panel that holds the form, never the page behind it.
+    let box: HTMLElement | null = el.parentElement
+    while (box && !(box.scrollHeight > box.clientHeight && /(auto|scroll)/.test(getComputedStyle(box).overflowY))) {
+      box = box.parentElement
+    }
+    if (box) {
+      const top = el.getBoundingClientRect().top - box.getBoundingClientRect().top + box.scrollTop
+      box.scrollTo({ top: Math.max(0, top - box.clientHeight / 2 + el.offsetHeight / 2), behavior: 'smooth' })
+    } else {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+    el.classList.add(...ring)
+    window.setTimeout(() => el.classList.remove(...ring), 1800)
+    window.setTimeout(() => {
+      el.querySelector<HTMLElement>('input:not([type=hidden]):not([type=file]), textarea, select, button')?.focus({ preventScroll: true })
+    }, 450)
+  }
+
+  return (
+    <div className="px-6 py-3 border-b border-stone-200 bg-white/95 dark:bg-zinc-900/95 dark:border-stone-50/10 backdrop-blur">
+      <div className="flex items-center gap-3">
+        <span className="text-xs font-medium text-zinc-700 dark:text-stone-300 shrink-0">Profil complété</span>
+        <div
+          className={`relative flex-1 h-2 rounded-full overflow-hidden ${tone.track}`}
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={pct}
+          aria-label="Profil complété"
+        >
+          <div className={`h-full rounded-full ${tone.bar} transition-[width] duration-500 ease-out`} style={{ width: `${pct}%` }} />
+        </div>
+        <span className={`font-mono text-sm font-semibold tabular-nums shrink-0 ${tone.text}`}>{pct}%</span>
+      </div>
+      {missing.length > 0 ? (
+        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+          <span className="text-[0.65rem] font-mono uppercase tracking-[0.14em] text-zinc-500 dark:text-stone-400 mr-1">À remplir</span>
+          {shown.map((item) => (
+            <button
+              key={item.field}
+              type="button"
+              onClick={() => goTo(item.field)}
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border border-stone-300 text-[0.7rem] text-zinc-700 hover:border-zinc-500 hover:text-zinc-950 dark:border-stone-50/15 dark:text-stone-300 dark:hover:border-stone-50/40 dark:hover:text-stone-50 transition"
+            >
+              {item.label}
+              <span className="font-mono text-[0.6rem] text-zinc-400 dark:text-stone-500">+{item.weight}</span>
+            </button>
+          ))}
+          {missing.length > 6 && (
+            <button type="button" onClick={() => setShowAll((v) => !v)}
+              className="text-[0.7rem] font-medium text-turf-700 dark:text-turf-300 hover:underline px-1">
+              {showAll ? 'Moins' : `+${missing.length - 6} autres`}
+            </button>
+          )}
+        </div>
+      ) : (
+        <p className="mt-1.5 text-[0.7rem] text-emerald-700 dark:text-emerald-400">Profil complet : rien à ajouter.</p>
+      )}
+    </div>
+  )
 }
 
 function PlayerEditor({ player, isNew, onClose, onSaved, onDelete, mode = 'modal' }: PlayerEditorProps) {
@@ -317,9 +412,8 @@ function PlayerEditor({ player, isNew, onClose, onSaved, onDelete, mode = 'modal
 
   return (
     <Wrapper>
-      <div className={`flex items-center justify-between px-6 h-16 border-b border-stone-200 bg-white dark:bg-zinc-900 dark:border-stone-50/10 ${
-        mode === 'page' ? 'sticky top-0 z-10' : ''
-      }`}>
+      <div className={mode === 'page' ? 'sticky top-0 z-10' : ''}>
+      <div className="flex items-center justify-between px-6 h-16 border-b border-stone-200 bg-white dark:bg-zinc-900 dark:border-stone-50/10">
         <div>
           <div className="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-turf-700 dark:text-turf-300">
             {isNew ? 'Nouveau joueur' : 'Édition'}
@@ -337,6 +431,8 @@ function PlayerEditor({ player, isNew, onClose, onSaved, onDelete, mode = 'modal
           <XIcon size={18} weight="bold" />
         </button>
       </div>
+      <CompletenessStrip form={form} />
+      </div>
 
       <form onSubmit={submit} className={`flex-1 overflow-y-auto space-y-8 ${
         mode === 'page' ? 'px-6 lg:px-10 py-8 max-w-5xl w-full mx-auto' : 'px-6 py-6'
@@ -353,26 +449,26 @@ function PlayerEditor({ player, isNew, onClose, onSaved, onDelete, mode = 'modal
               {/* Min 8 to cover U13 academy players represented by the agency. */}
               <NumberInput value={form.age} onChange={(v) => set('age', v)} min={8} max={60} />
             </FieldRow>
-            <FieldRow label="Date de naissance" hint="optionnelle - remplace l'affichage de l'âge dans le PDF">
+            <FieldRow field="date_of_birth" label="Date de naissance" hint="optionnelle - remplace l'affichage de l'âge dans le PDF">
               <TextInput
                 type="date"
                 value={form.date_of_birth || ''}
                 onChange={(e) => set('date_of_birth', e.target.value || null)}
               />
             </FieldRow>
-            <FieldRow label="Taille" hint="ex. 1m83">
+            <FieldRow field="height" label="Taille" hint="ex. 1m83">
               <TextInput value={form.height || ''} onChange={(e) => set('height', e.target.value)} />
             </FieldRow>
-            <FieldRow label="Poste" hint="ex. Milieu offensif">
+            <FieldRow field="position" label="Poste" hint="ex. Milieu offensif">
               <TextInput value={form.position} onChange={(e) => set('position', e.target.value)} required />
             </FieldRow>
             <FieldRow label="Catégorie">
               <SelectInput value={form.category} onChange={(v) => set('category', v)} options={CATEGORIES} />
             </FieldRow>
-            <FieldRow label="Club">
+            <FieldRow field="club" label="Club">
               <TextInput value={form.club || ''} onChange={(e) => set('club', e.target.value)} />
             </FieldRow>
-            <FieldRow label="Logo du club" hint="URL du blason - affiché à côté du club sur la fiche">
+            <FieldRow field="club_logo_url" label="Logo du club" hint="URL du blason - affiché à côté du club sur la fiche">
               <TextInput
                 value={form.club_logo_url || ''}
                 onChange={(e) => set('club_logo_url', e.target.value)}
@@ -382,14 +478,14 @@ function PlayerEditor({ player, isNew, onClose, onSaved, onDelete, mode = 'modal
             <FieldRow label="Depuis">
               <NumberInput value={form.since} onChange={(v) => set('since', v)} min={1990} max={2100} />
             </FieldRow>
-            <FieldRow label="Nationalité">
+            <FieldRow field="nationality" label="Nationalité">
               <TextInput value={form.nationality || ''} onChange={(e) => set('nationality', e.target.value)} />
             </FieldRow>
-            <FieldRow label="Pied fort">
+            <FieldRow field="preferred_foot" label="Pied fort">
               <SelectInput value={form.preferred_foot || 'Droit'} onChange={(v) => set('preferred_foot', v)} options={FEET} />
             </FieldRow>
             <div className="col-span-2">
-              <FieldRow label="Photo" hint="Upload depuis votre PC ou collez une URL externe.">
+              <FieldRow field="photo_url" label="Photo" hint="Upload depuis votre PC ou collez une URL externe.">
                 <div className="space-y-3">
                   <div className="flex items-start gap-4">
                     {/* Preview */}
@@ -468,7 +564,7 @@ function PlayerEditor({ player, isNew, onClose, onSaved, onDelete, mode = 'modal
               </FieldRow>
             </div>
             <div className="col-span-2">
-              <FieldRow label="Photo portrait secondaire" hint="URL - petit portrait affiché à côté de la photo principale (fiches marketing)">
+              <FieldRow field="secondary_photo_url" label="Photo portrait secondaire" hint="URL - petit portrait affiché à côté de la photo principale (fiches marketing)">
                 <TextInput
                   value={form.secondary_photo_url || ''}
                   onChange={(e) => set('secondary_photo_url', e.target.value)}
@@ -477,7 +573,7 @@ function PlayerEditor({ player, isNew, onClose, onSaved, onDelete, mode = 'modal
               </FieldRow>
             </div>
             <div className="col-span-2">
-              <FieldRow label="Bio" hint="optionnelle, affichée dans le PDF">
+              <FieldRow field="bio" label="Bio" hint="optionnelle, affichée dans le PDF">
                 <textarea
                   rows={3}
                   value={form.bio || ''}
@@ -487,7 +583,7 @@ function PlayerEditor({ player, isNew, onClose, onSaved, onDelete, mode = 'modal
               </FieldRow>
             </div>
             <div className="col-span-2">
-              <FieldRow label="Tags & statut" hint="situation contractuelle, suivi médical, dispo…">
+              <FieldRow field="tags" label="Tags & statut" hint="situation contractuelle, suivi médical, dispo…">
                 <TagPicker
                   value={form.tags ?? []}
                   onChange={(tags) => set('tags', tags)}
@@ -504,16 +600,16 @@ function PlayerEditor({ player, isNew, onClose, onSaved, onDelete, mode = 'modal
             Fiche marketing <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">(champs pour le template "Marketing v1")</span>
           </h3>
           <div className="grid grid-cols-2 gap-3">
-            <FieldRow label="Style de jeu" hint="ex. Percutant – Dribbleur">
+            <FieldRow field="playing_style" label="Style de jeu" hint="ex. Percutant – Dribbleur">
               <TextInput value={form.playing_style || ''} onChange={(e) => set('playing_style', e.target.value)} />
             </FieldRow>
-            <FieldRow label="Meilleur poste" hint="ex. Attaquant de pointe">
+            <FieldRow field="best_position" label="Meilleur poste" hint="ex. Attaquant de pointe">
               <TextInput value={form.best_position || ''} onChange={(e) => set('best_position', e.target.value)} />
             </FieldRow>
             <FieldRow label="Nationalité secondaire" hint="pour les binationaux">
               <TextInput value={form.secondary_nationality || ''} onChange={(e) => set('secondary_nationality', e.target.value)} />
             </FieldRow>
-            <FieldRow label="Langues parlées" hint="séparer par virgules, ex. Français, Anglais">
+            <FieldRow field="languages_spoken" label="Langues parlées" hint="séparer par virgules, ex. Français, Anglais">
               <TextInput
                 value={(form.languages_spoken ?? []).join(', ')}
                 onChange={(e) => set('languages_spoken', e.target.value.split(',').map((s) => s.trim()).filter(Boolean))}
@@ -521,7 +617,7 @@ function PlayerEditor({ player, isNew, onClose, onSaved, onDelete, mode = 'modal
               />
             </FieldRow>
             <div className="col-span-2">
-              <FieldRow label="Objectif" hint="ex. Devenir un joueur professionnel">
+              <FieldRow field="objective" label="Objectif" hint="ex. Devenir un joueur professionnel">
                 <textarea
                   rows={2}
                   value={form.objective || ''}
@@ -532,7 +628,7 @@ function PlayerEditor({ player, isNew, onClose, onSaved, onDelete, mode = 'modal
               </FieldRow>
             </div>
             <div className="col-span-2">
-              <FieldRow label="Points forts mentaux" hint="séparer par virgules, ex. Confiant, Persévérant, Compétiteur">
+              <FieldRow field="mental_strengths" label="Points forts mentaux" hint="séparer par virgules, ex. Confiant, Persévérant, Compétiteur">
                 <TextInput
                   value={(form.mental_strengths ?? []).join(', ')}
                   onChange={(e) => set('mental_strengths', e.target.value.split(',').map((s) => s.trim()).filter(Boolean))}
@@ -562,7 +658,7 @@ function PlayerEditor({ player, isNew, onClose, onSaved, onDelete, mode = 'modal
               </FieldRow>
             </div>
             <div className="col-span-2">
-              <FieldRow label="Parcours (années → club)" hint="une ligne par étape : Années | Club | URL logo">
+              <FieldRow field="career_history" label="Parcours (années → club)" hint="une ligne par étape : Années | Club | URL logo">
                 <textarea
                   rows={4}
                   value={(form.career_history ?? []).map((c) => `${c.years ?? ''} | ${c.club ?? ''} | ${c.logo_url ?? ''}`).join('\n')}
@@ -581,7 +677,7 @@ function PlayerEditor({ player, isNew, onClose, onSaved, onDelete, mode = 'modal
         <section className="space-y-4">
           <h3 className="font-mono uppercase tracking-[0.18em] text-[0.7rem] text-zinc-500 dark:text-stone-400">Stats de base</h3>
           <div className="grid grid-cols-3 gap-3">
-            <FieldRow label="Matchs joués"><NumberInput value={form.matches_played} onChange={(v) => set('matches_played', v)} max={200} /></FieldRow>
+            <FieldRow field="matches_played" label="Matchs joués"><NumberInput value={form.matches_played} onChange={(v) => set('matches_played', v)} max={200} /></FieldRow>
             <FieldRow label="Buts"><NumberInput value={form.goals} onChange={(v) => set('goals', v)} max={200} /></FieldRow>
             <FieldRow label="Passes décisives"><NumberInput value={form.assists} onChange={(v) => set('assists', v)} max={200} /></FieldRow>
           </div>
@@ -590,7 +686,7 @@ function PlayerEditor({ player, isNew, onClose, onSaved, onDelete, mode = 'modal
         <section className="space-y-4">
           <h3 className="font-mono uppercase tracking-[0.18em] text-[0.7rem] text-zinc-500 dark:text-stone-400">Stats avancées</h3>
           <div className="grid grid-cols-3 gap-3">
-            <FieldRow label="Minutes jouées"><NumberInput value={form.minutes_played} onChange={(v) => set('minutes_played', v)} max={20000} /></FieldRow>
+            <FieldRow field="minutes_played" label="Minutes jouées"><NumberInput value={form.minutes_played} onChange={(v) => set('minutes_played', v)} max={20000} /></FieldRow>
             <FieldRow label="Tirs"><NumberInput value={form.shots} onChange={(v) => set('shots', v)} max={1000} /></FieldRow>
             <FieldRow label="Tirs cadrés"><NumberInput value={form.shots_on_target} onChange={(v) => set('shots_on_target', v)} max={1000} /></FieldRow>
 
@@ -598,7 +694,7 @@ function PlayerEditor({ player, isNew, onClose, onSaved, onDelete, mode = 'modal
             <FieldRow label="xA"><NumberInput value={form.xa} onChange={(v) => set('xa', v)} step="0.1" max={200} /></FieldRow>
             <FieldRow label="Passes clés"><NumberInput value={form.key_passes} onChange={(v) => set('key_passes', v)} max={1000} /></FieldRow>
 
-            <FieldRow label="% passes" hint="0-100"><NumberInput value={form.pass_accuracy} onChange={(v) => set('pass_accuracy', v)} step="0.1" max={100} /></FieldRow>
+            <FieldRow field="pass_accuracy" label="% passes" hint="0-100"><NumberInput value={form.pass_accuracy} onChange={(v) => set('pass_accuracy', v)} step="0.1" max={100} /></FieldRow>
             <FieldRow label="Dribbles réussis"><NumberInput value={form.dribbles_completed} onChange={(v) => set('dribbles_completed', v)} max={1000} /></FieldRow>
             <FieldRow label="Duels gagnés"><NumberInput value={form.duels_won} onChange={(v) => set('duels_won', v)} max={1000} /></FieldRow>
 
@@ -612,7 +708,7 @@ function PlayerEditor({ player, isNew, onClose, onSaved, onDelete, mode = 'modal
           </div>
         </section>
 
-        <section className="space-y-4">
+        <section className="space-y-4 scroll-mt-40 rounded-lg transition-shadow" data-field="tracking">
           <h3 className="font-mono uppercase tracking-[0.18em] text-[0.7rem] text-zinc-500 dark:text-stone-400">
             Tracking physique <span className="text-zinc-400 dark:text-stone-500 normal-case font-sans tracking-normal">- moyennes par match (GPS)</span>
           </h3>
@@ -650,7 +746,7 @@ function PlayerEditor({ player, isNew, onClose, onSaved, onDelete, mode = 'modal
           </div>
         </section>
 
-        <section className="space-y-3">
+        <section className="space-y-3 scroll-mt-40 rounded-lg transition-shadow" data-field="heatmap">
           <div className="flex items-baseline justify-between">
             <h3 className="font-mono uppercase tracking-[0.18em] text-[0.7rem] text-zinc-500 dark:text-stone-400">
               Zones d'activité - terrain
@@ -801,40 +897,14 @@ const STATUS_META: Record<BusinessStatus, StatusMeta> = {
   },
 }
 
-/* ───── Completeness scoring (0-100) ───── */
-
-interface CompletenessSlot { key: string; weight: number; filled: boolean }
-
-function completenessSlots(p: AdminPlayer): CompletenessSlot[] {
-  return [
-    { key: 'photo',    weight: 10, filled: !!p.photo_url },
-    { key: 'bio',      weight: 10, filled: !!p.bio && p.bio.trim().length > 20 },
-    { key: 'club',     weight: 10, filled: !!p.club },
-    { key: 'height',   weight:  5, filled: !!p.height },
-    { key: 'foot',     weight:  5, filled: !!p.preferred_foot },
-    { key: 'nation',   weight:  5, filled: !!p.nationality },
-    { key: 'matches',  weight: 15, filled: (p.matches_played ?? 0) > 0 },
-    { key: 'mins',     weight: 10, filled: (p.minutes_played ?? 0) > 0 },
-    { key: 'accuracy', weight:  5, filled: (p.pass_accuracy ?? 0) > 0 },
-    { key: 'tags',     weight:  5, filled: (p.tags?.length ?? 0) > 0 },
-    { key: 'heatmap',  weight: 10, filled: Array.isArray(p.heatmap_grid) && p.heatmap_grid.length > 0 },
-    { key: 'tracking', weight: 10, filled: (p.distance_avg_km ?? 0) > 0 || (p.sprints_avg ?? 0) > 0 },
-  ]
-}
-
-function completenessPct(p: AdminPlayer): number {
-  const slots = completenessSlots(p)
-  return slots.reduce((acc, s) => acc + (s.filled ? s.weight : 0), 0)
-}
-
 function deriveStatus(p: AdminPlayer, pct: number): BusinessStatus {
   if (p.is_published === false) return 'archive'
   const tags = (p.tags ?? []).map((t) => t.toLowerCase())
   if (tags.some((t) => t.includes('bless'))) return 'blesse'
   if (tags.some((t) => t.includes('surveiller'))) return 'a_surveiller'
   if ((p.potential_rating ?? 0) >= 7.5) return 'scouting'
-  if (pct < 60) return 'a_completer'
-  if (pct < 85 || (p.matches_played ?? 0) === 0) return 'a_verifier'
+  if (pct < 50) return 'a_completer'
+  if (pct < 80 || (p.matches_played ?? 0) === 0) return 'a_verifier'
   return 'stats_a_jour'
 }
 
@@ -972,6 +1042,19 @@ function MiniKpi({ icon: Icon, label, value, tone = 'neutral' }: MiniKpiProps) {
   )
 }
 
+/** Row-sized completeness gauge: red under 50 %, orange under 80 %, green above. */
+function CompletenessBar({ pct }: { pct: number }) {
+  const tone = TONE_CLASSES[completenessTone(pct)]
+  return (
+    <div className="mt-1.5 flex items-center gap-2" title={`Profil complété à ${pct} %`}>
+      <div className={`h-1.5 w-20 rounded-full overflow-hidden ${tone.track}`}>
+        <div className={`h-full rounded-full ${tone.bar}`} style={{ width: `${pct}%` }} />
+      </div>
+      <span className={`text-[0.65rem] font-mono font-semibold tabular-nums ${tone.text}`}>{pct}%</span>
+    </div>
+  )
+}
+
 function AdminPlayers() {
   const confirm = useConfirm()
   const toast = useToast()
@@ -1034,7 +1117,7 @@ function AdminPlayers() {
   /* Enrich each player once : completeness % + derived business status. */
   const enriched = useMemo(() => {
     return players.map((p) => {
-      const pct = completenessPct(p)
+      const pct = playerCompleteness(p).pct
       return { player: p, pct, status: deriveStatus(p, pct) }
     })
   }, [players])
@@ -1181,19 +1264,6 @@ function AdminPlayers() {
     } finally {
       setTogglingSlug(null)
     }
-  }
-
-  /* Completeness pill - colored bucket + percentage. */
-  function CompletenessPill({ pct }: { pct: number }) {
-    const tone =
-      pct >= 85 ? 'text-turf-700 bg-turf-50 border-turf-200 dark:text-turf-200 dark:bg-turf-900/30 dark:border-turf-400/20' :
-      pct >= 60 ? 'text-amber-700 bg-amber-50 border-amber-200 dark:text-amber-200 dark:bg-amber-500/10 dark:border-amber-400/20' :
-                  'text-rose-700 bg-rose-50 border-rose-200 dark:text-rose-200 dark:bg-rose-500/10 dark:border-rose-400/20'
-    return (
-      <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md border text-[0.62rem] font-mono tabular-nums ${tone}`}>
-        {pct}%
-      </span>
-    )
   }
 
   return (
@@ -1433,13 +1503,7 @@ function AdminPlayers() {
                       <span className={`w-1.5 h-1.5 rounded-full ${meta.dot}`} />
                       {meta.label}
                     </span>
-                    {/* Completude bubble moved next to the status - keeps the
-                        signal but removes a whole column from the grid. */}
-                    {pct < 100 && (
-                      <span className="ml-2 text-[0.65rem] font-mono text-zinc-500 dark:text-stone-500 tabular-nums" title={`Complétude du dossier : ${pct}%`}>
-                        {pct}%
-                      </span>
-                    )}
+                    <CompletenessBar pct={pct} />
                   </td>
                   <td className="px-3 py-3 text-right">
                     <div className="inline-flex items-center gap-0.5 opacity-50 group-hover:opacity-100 transition-opacity">
@@ -1479,13 +1543,7 @@ function AdminPlayers() {
       <AnimatePresence>
         {(editing || creating) && (
           <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => { setEditing(null); setCreating(false) }}
-              className="fixed inset-0 z-40 bg-zinc-950/40"
-            />
+            <DrawerBackdrop key="backdrop" onClick={() => { setEditing(null); setCreating(false) }} />
             <PlayerEditor
               key={editing?.id ?? 'new'}
               isNew={creating}
