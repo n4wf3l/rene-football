@@ -1,4 +1,4 @@
-import { ArrowSquareOut, CheckCircle } from '@phosphor-icons/react'
+import { CheckCircle } from '@phosphor-icons/react'
 import { HERO_META, HERO_VARIANTS, type HeroVariant } from '../../lib/heroVariants'
 
 interface HeroVariantPickerProps {
@@ -73,17 +73,17 @@ function Thumb({ variant }: { variant: HeroVariant }) {
   )
 }
 
-/** Réglages → Page d'accueil: pick the hero, preview it in a new tab. */
+/** Réglages → Page d'accueil: pick the hero (the live preview sits beside it). */
 export default function HeroVariantPicker({ value, onChange }: HeroVariantPickerProps) {
   return (
-    <div className="grid gap-3 sm:grid-cols-2" role="radiogroup" aria-label="Mise en page du haut de l'accueil">
+    <div className="grid gap-2.5" role="radiogroup" aria-label="Mise en page du haut de l'accueil">
       {HERO_VARIANTS.map((key) => {
         const active = value === key
         const { label, description } = HERO_META[key]
         return (
           <div
             key={key}
-            className={`relative rounded-xl border bg-white p-3 transition dark:bg-zinc-900 ${
+            className={`relative rounded-xl border bg-white p-2.5 transition dark:bg-zinc-900 ${
               active
                 ? 'border-turf-700 ring-2 ring-turf-700/20 dark:border-turf-300 dark:ring-turf-300/20'
                 : 'border-stone-200 hover:border-stone-400 dark:border-stone-50/10 dark:hover:border-stone-50/30'
@@ -94,28 +94,22 @@ export default function HeroVariantPicker({ value, onChange }: HeroVariantPicker
               role="radio"
               aria-checked={active}
               onClick={() => onChange(key)}
-              className="block w-full text-left focus:outline-none"
+              className="flex w-full items-center gap-3 text-left focus:outline-none"
             >
-              <span className="block aspect-[16/10] overflow-hidden rounded-lg bg-stone-100 text-zinc-800 dark:bg-zinc-950 dark:text-stone-200">
+              <span className="block aspect-[16/10] w-28 shrink-0 overflow-hidden rounded-lg bg-stone-100 text-zinc-800 dark:bg-zinc-950 dark:text-stone-200">
                 <Thumb variant={key} />
               </span>
-              <span className="mt-3 flex items-center gap-2">
+              <span className="min-w-0 flex-1">
+              <span className="flex items-center gap-2">
                 <span className="font-display text-base font-semibold text-zinc-950 dark:text-stone-50">{label}</span>
                 {key === 'spotlight' && (
                   <span className="rounded-full bg-stone-100 px-1.5 py-0.5 font-mono text-[0.55rem] uppercase tracking-wider text-zinc-500 dark:bg-stone-50/10 dark:text-stone-400">Par défaut</span>
                 )}
                 {active && <CheckCircle size={16} weight="fill" className="ml-auto text-turf-700 dark:text-turf-300" />}
               </span>
-              <span className="mt-1 block text-xs leading-relaxed text-zinc-500 dark:text-stone-400">{description}</span>
+              <span className="mt-0.5 block text-xs leading-relaxed text-zinc-500 dark:text-stone-400">{description}</span>
+              </span>
             </button>
-            <a
-              href={`/?hero=${key}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-turf-700 hover:underline dark:text-turf-300"
-            >
-              Aperçu sur le site <ArrowSquareOut size={12} weight="bold" />
-            </a>
           </div>
         )
       })}
