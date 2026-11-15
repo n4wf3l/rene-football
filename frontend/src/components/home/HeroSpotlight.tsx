@@ -9,7 +9,10 @@ import type { Player } from '../../types/player'
 
 const ROTATE_MS = 6500
 /** Chamfered top-right corner - the card reads as a cut-out match ticket. */
-const CARD_CLIP = 'polygon(0 0, calc(100% - 44px) 0, 100% 44px, 100% 100%, 0 100%)'
+// Warm off-white card, like a studio backdrop behind the player cut-outs.
+const CARD_BG_TOP = '#f7f3ec'
+const CARD_BG = '#ece4d6'
+const CARD_CLIP ='polygon(0 0, calc(100% - 44px) 0, 100% 44px, 100% 100%, 0 100%)'
 
 interface HeroSpotlightProps {
   players: Player[]
@@ -62,13 +65,17 @@ function HeroSpotlight({ players }: HeroSpotlightProps) {
       onBlur={() => setPaused(false)}
     >
       <div
-        className="relative aspect-[4/5] w-full overflow-hidden bg-gradient-to-b from-turf-900 via-zinc-900 to-zinc-950"
-        style={{ clipPath: CARD_CLIP, maxHeight: 'min(68dvh, 580px)' }}
+        className="relative aspect-[4/5] w-full overflow-hidden"
+        style={{
+          clipPath: CARD_CLIP,
+          maxHeight: 'min(68dvh, 580px)',
+          background: `linear-gradient(180deg, ${CARD_BG_TOP} 0%, ${CARD_BG} 100%)`,
+        }}
       >
         {/* Jersey-style index behind the portrait */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -left-2 -top-6 font-display font-semibold leading-none text-[11rem] text-stone-50/[0.07] tabular-nums select-none"
+          className="pointer-events-none absolute -left-2 -top-6 font-display font-semibold leading-none text-[11rem] text-zinc-950 tabular-nums select-none"
         >
           {pad(current ? (index % count) + 1 : 1)}
         </div>
@@ -77,10 +84,10 @@ function HeroSpotlight({ players }: HeroSpotlightProps) {
             monogram, never a hard-coded player photo. */}
         {(!current || (index === 0 && !ready)) && (
           <img
-            src="/logo-white.png"
+            src="/logo-black.png"
             alt=""
             aria-hidden="true"
-            className="absolute left-1/2 top-[42%] w-28 -translate-x-1/2 -translate-y-1/2 opacity-20"
+            className="absolute left-1/2 top-[42%] w-28 -translate-x-1/2 -translate-y-1/2 opacity-[0.15]"
           />
         )}
         <AnimatePresence initial={false}>
@@ -110,27 +117,27 @@ function HeroSpotlight({ players }: HeroSpotlightProps) {
         <div
           aria-hidden="true"
           className="absolute inset-0"
-          style={{ background: 'linear-gradient(180deg, transparent 38%, rgba(9,9,11,0.55) 68%, #09090b 100%)' }}
+          style={{ background: `linear-gradient(180deg, transparent 52%, ${CARD_BG}d9 76%, ${CARD_BG} 100%)` }}
         />
 
         {current && (
           <Link
             to={`/joueurs/${current.slug}`}
-            className="group absolute inset-x-0 bottom-0 p-6 lg:p-7 flex items-end justify-between gap-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-turf-300/60"
+            className="group absolute inset-x-0 bottom-0 p-6 lg:p-7 flex items-end justify-between gap-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-turf-700/60"
           >
             <span className="min-w-0">
-              <span className="block font-mono text-[0.68rem] uppercase tracking-[0.24em] text-turf-300">
+              <span className="block font-mono text-[0.68rem] uppercase tracking-[0.24em] text-turf-800">
                 {t('home.hero.identityLabel')}
               </span>
               <ScrambleText
                 text={current.name.toUpperCase()}
-                className="mt-2 block font-display font-semibold text-[1.9rem] lg:text-[2.35rem] leading-[0.95] tracking-tight text-stone-50"
+                className="mt-2 block font-display font-semibold text-[1.9rem] lg:text-[2.35rem] leading-[0.95] tracking-tight text-zinc-950"
               />
-              <span className="mt-2 block truncate text-sm text-stone-400">
+              <span className="mt-2 block truncate text-sm text-zinc-600">
                 {[current.position, current.club].filter(Boolean).join(' · ')}
               </span>
             </span>
-            <span className="grid h-11 w-11 shrink-0 place-items-center border border-stone-50/20 text-stone-50 transition-colors duration-300 ease-premium group-hover:border-turf-300 group-hover:bg-turf-300 group-hover:text-zinc-950">
+            <span className="grid h-11 w-11 shrink-0 place-items-center border border-zinc-950/25 text-zinc-950 transition-colors duration-300 ease-premium group-hover:border-zinc-950 group-hover:bg-zinc-950 group-hover:text-stone-50">
               <ArrowUpRight size={18} weight="bold" />
               <span className="sr-only">{t('home.hero.viewProfile')}</span>
             </span>
