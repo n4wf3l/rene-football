@@ -14,7 +14,7 @@ import AnimatedNumber from '../components/AnimatedNumber'
 import Skeleton from '../components/Skeleton'
 import { playerImage } from '../lib/playerImage'
 import type { Player, PositionFilter, AgeFilter } from '../types/player'
-import { hasFreshMatchCount, sameLabel } from '../lib/playerDisplay'
+import { hasFreshMatchCount, positionCoversCategory, sameLabel } from '../lib/playerDisplay'
 
 const POSITION_FILTERS: PositionFilter[] = ['Tous', 'Gardien', 'Defenseur', 'Milieu', 'Attaquant']
 /** Age filter keys — display labels come from players.filters.ages.* */
@@ -101,9 +101,12 @@ function PlayerCard({ player }: PlayerCardProps) {
               {player.age} {t('playerProfile.yearsUnit')}
             </span>
           )}
-          <span className="font-mono text-[0.65rem] uppercase tracking-wider text-turf-200 bg-turf-800/40 backdrop-blur px-2 py-1 rounded-full border border-turf-300/30">
-            {player.category}
-          </span>
+          {/* Category badge only when the position below does not already say it. */}
+          {(!positionCoversCategory(player.position, player.category) || sameLabel(player.position, player.category)) && (
+            <span className="font-mono text-[0.65rem] uppercase tracking-wider text-turf-200 bg-turf-800/40 backdrop-blur px-2 py-1 rounded-full border border-turf-300/30">
+              {t(`players.filters.positions.${player.category}`, { defaultValue: player.category })}
+            </span>
+          )}
         </div>
         <div className="absolute bottom-4 left-4 right-4 text-stone-50">
           <div className="font-display font-semibold text-xl leading-tight">

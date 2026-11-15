@@ -396,6 +396,7 @@
         "category": "Categorie",
         "position": "Positie",
         "nationality": "Nationaliteit",
+        "languages": "Talen",
         "height": "Lengte",
         "since": "Gevolgd sinds"
       }

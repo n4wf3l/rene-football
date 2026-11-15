@@ -44,6 +44,18 @@ export function uniqueLabels(values: Array<string | null | undefined>): string[]
   return out
 }
 
+/**
+ * True when the position already says the category, so showing both would
+ * repeat it: "Défenseur central gauche" covers "Defenseur", "Milieu
+ * défensif" covers "Milieu". "Attaquant" with category "Milieu" does not.
+ */
+export function positionCoversCategory(position: string | null | undefined, category: string | null | undefined): boolean {
+  if (!position || !category) return false
+  const pos = normalise(position)
+  const cat = normalise(category).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return new RegExp(`(^|[^a-z])${cat}([^a-z]|$)`).test(pos)
+}
+
 /** True when two labels say the same thing (case / accent insensitive). */
 export function sameLabel(a: string | null | undefined, b: string | null | undefined): boolean {
   return !!a && !!b && normalise(a) === normalise(b)

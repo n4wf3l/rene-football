@@ -396,6 +396,7 @@
         "category": "Category",
         "position": "Position",
         "nationality": "Nationality",
+        "languages": "Languages",
         "height": "Height",
         "since": "Tracked since"
       }
