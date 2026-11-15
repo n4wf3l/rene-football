@@ -149,6 +149,127 @@ export function renderMarkdown(content: string | null | undefined): ReactNode {
   )
 }
 
+/* ───────────── Visual editor bridge (admin) ─────────────
+ * The admin edits articles visually (bold looks bold). These two helpers
+ * convert between that editable HTML and the light Markdown above, so what
+ * is stored - and how the public page renders it - does not change. */
+
+const esc = (s: string) =>
+  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+
+function inlineHtml(text: string): string {
+  let out = ''
+  let last = 0
+  for (const m of text.matchAll(INLINE)) {
+    const at = m.index ?? 0
+    out += esc(text.slice(last, at))
+    if (m[1] !== undefined) out += `<strong>${inlineHtml(m[1])}</strong>`
+    else if (m[2] !== undefined || m[3] !== undefined) out += `<em>${inlineHtml(m[2] ?? m[3])}</em>`
+    else {
+      const href = safeHref(m[5])
+      out += href ? `<a href="${esc(href)}">${inlineHtml(m[4])}</a>` : inlineHtml(m[4])
+    }
+    last = at + m[0].length
+  }
+  return out + esc(text.slice(last))
+}
+
+/** Article Markdown → HTML for the visual editor (text is escaped). */
+export function markdownToHtml(content: string | null | undefined): string {
+  if (!content?.trim()) return ''
+  return parseBlocks(content).map((b) => {
+    switch (b.kind) {
+      case 'h2': return `<h2>${inlineHtml(b.text)}</h2>`
+      case 'h3': return `<h3>${inlineHtml(b.text)}</h3>`
+      case 'quote': return `<blockquote>${b.lines.map(inlineHtml).join('<br>')}</blockquote>`
+      case 'ul': return `<ul>${b.items.map((i) => `<li>${inlineHtml(i)}</li>`).join('')}</ul>`
+      case 'ol': return `<ol>${b.items.map((i) => `<li>${inlineHtml(i)}</li>`).join('')}</ol>`
+      case 'hr': return '<hr>'
+      default: return `<p>${b.lines.map(inlineHtml).join('<br>')}</p>`
+    }
+  }).join('')
+}
+
+/** Puts `mark` around each non-empty line, spaces kept outside ("**word** "). */
+function wrapLines(s: string, mark: string): string {
+  return s.split('\n').map((line) => {
+    const core = line.trim()
+    if (!core) return line
+    const lead = line.slice(0, line.indexOf(core))
+    const trail = line.slice(line.indexOf(core) + core.length)
+    return `${lead}${mark}${core}${mark}${trail}`
+  }).join('\n')
+}
+
+const INLINE_TAGS = new Set(['B', 'STRONG', 'I', 'EM', 'A', 'SPAN', 'U', 'FONT', 'BR', 'CODE', 'SMALL', 'SUB', 'SUP', 'MARK'])
+
+function inlineMd(node: Node): string {
+  if (node.nodeType === Node.TEXT_NODE) return (node.textContent ?? '').replace(/ /g, ' ')
+  if (!(node instanceof HTMLElement)) return ''
+  if (node.tagName === 'BR') return '\n'
+  const inner = Array.from(node.childNodes).map(inlineMd).join('')
+  if (node.tagName === 'A') {
+    const href = safeHref(node.getAttribute('href') ?? '')
+    const label = inner.trim()
+    return href && label ? `[${label}](${href})` : inner
+  }
+  const weight = node.style.fontWeight
+  const bold = node.tagName === 'B' || node.tagName === 'STRONG' || weight === 'bold' || Number(weight) >= 600
+  const italic = node.tagName === 'I' || node.tagName === 'EM' || node.style.fontStyle === 'italic'
+  let out = inner
+  if (italic) out = wrapLines(out, '*')
+  if (bold) out = wrapLines(out, '**')
+  return out
+}
+
+/** Editable HTML → article Markdown (only the syntax the site renders). */
+export function htmlToMarkdown(root: HTMLElement): string {
+  const blocks: string[] = []
+  const paragraph = (text: string) => {
+    const lines = text.split('\n').map((l) => l.replace(/[ \t]+/g, ' ').trim()).filter(Boolean)
+    if (lines.length) blocks.push(lines.join('\n'))
+  }
+  const oneLine = (text: string) => text.replace(/\s*\n\s*/g, ' ').replace(/[ \t]+/g, ' ').trim()
+
+  const walk = (container: Node) => {
+    let buffer = ''
+    const flush = () => { paragraph(buffer); buffer = '' }
+    for (const node of Array.from(container.childNodes)) {
+      if (node.nodeType === Node.TEXT_NODE || (node instanceof HTMLElement && INLINE_TAGS.has(node.tagName))) {
+        buffer += inlineMd(node)
+        continue
+      }
+      if (!(node instanceof HTMLElement)) continue
+      flush()
+      const inner = () => Array.from(node.childNodes).map(inlineMd).join('')
+      switch (node.tagName) {
+        case 'H1': case 'H2': { const t = oneLine(inner()); if (t) blocks.push(`## ${t}`); break }
+        case 'H3': case 'H4': case 'H5': case 'H6': { const t = oneLine(inner()); if (t) blocks.push(`### ${t}`); break }
+        case 'BLOCKQUOTE': {
+          // Lines inside a quote: <br> or nested paragraphs both start a new line.
+          const lines = Array.from(node.childNodes)
+            .map((c) => (c instanceof HTMLElement && !INLINE_TAGS.has(c.tagName) ? `${inlineMd(c)}\n` : inlineMd(c)))
+            .join('')
+          const kept = lines.split('\n').map((l) => l.trim()).filter(Boolean)
+          if (kept.length) blocks.push(kept.map((l) => `> ${l}`).join('\n'))
+          break
+        }
+        case 'UL': case 'OL': {
+          const items = Array.from(node.children).filter((c) => c.tagName === 'LI')
+            .map((li) => oneLine(Array.from(li.childNodes).map(inlineMd).join(''))).filter(Boolean)
+          if (items.length) blocks.push(items.map((t, i) => (node.tagName === 'UL' ? `- ${t}` : `${i + 1}. ${t}`)).join('\n'))
+          break
+        }
+        case 'HR': blocks.push('---'); break
+        default: walk(node) // P, DIV, SECTION… may hold inline text and blocks
+      }
+    }
+    flush()
+  }
+  walk(root)
+  return blocks.join('\n\n')
+}
+
 /** Plain-text word count of an article body (Markdown markers ignored). */
 export function countWords(content: string | null | undefined): number {
   if (!content) return 0
