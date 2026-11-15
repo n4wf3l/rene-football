@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import {
@@ -16,7 +16,7 @@ import type { Feature, FeatureCollection, Geometry, Polygon } from 'geojson'
 import { useTranslation } from 'react-i18next'
 import ScrambleText from './ScrambleText'
 import luxembourgData from '../../data/luxembourg.json'
-import { LUXEMBOURG, distanceKm, locateClub } from '../../lib/clubLocations'
+import { LUXEMBOURG, clubLabel, distanceKm, locateClub } from '../../lib/clubLocations'
 import type { Player } from '../../types/player'
 
 const W = 800
@@ -68,7 +68,7 @@ function buildModel(players: Player[]) {
   for (const p of players) {
     const loc = locateClub(p.club)
     if (!loc) continue
-    const g = groups.get(loc.id) ?? { club: p.club ?? '', short: loc.short, lat: loc.lat, lon: loc.lon, players: [] }
+    const g = groups.get(loc.id) ?? { club: clubLabel(p.club ?? '', loc), short: loc.short, lat: loc.lat, lon: loc.lon, players: [] }
     g.players.push(p)
     groups.set(loc.id, g)
   }
@@ -129,6 +129,99 @@ function buildModel(players: Player[]) {
   }
 }
 
+type Side = 'left' | 'right'
+
+interface Placement {
+  side: Side
+  /** Vertical shift of the label, in CSS pixels. */
+  dy: number
+}
+
+interface Rect { l: number; t: number; r: number; b: number }
+
+/** Distance between a pin and its label, in CSS pixels. */
+const LABEL_GAP = 14
+const LABEL_PAD = 3
+const PIN_RADIUS = 8
+
+function defaultSide(d: Destination, origin: { x: number }): Side {
+  return d.x < origin.x || d.x > W * 0.7 ? 'left' : 'right'
+}
+
+/**
+ * Places the club labels so that none of them overlaps another label, the
+ * base label or another club's pin. Works on the labels' real rendered size
+ * (it depends on the screen, the font and the language): each label keeps its
+ * natural side when it can, otherwise slides up or down, then tries the other
+ * side. Labels moved away from their pin get a leader line.
+ */
+function layoutLabels(
+  box: HTMLElement,
+  labels: Map<string, HTMLElement>,
+  destinations: Destination[],
+  origin: { x: number; y: number },
+): { clubs: Record<string, Placement>; base: 'right' | 'below' } {
+  const cw = box.clientWidth
+  const ch = box.clientHeight
+  if (!cw || !ch) return { clubs: {}, base: 'right' }
+  const sx = cw / W
+  const sy = ch / H
+  const hits = (a: Rect, b: Rect) =>
+    a.l < b.r + LABEL_PAD && a.r + LABEL_PAD > b.l && a.t < b.b + LABEL_PAD && a.b + LABEL_PAD > b.t
+  const around = (x: number, y: number): Rect => ({ l: x - PIN_RADIUS, r: x + PIN_RADIUS, t: y - PIN_RADIUS, b: y + PIN_RADIUS })
+
+  const ox = origin.x * sx
+  const oy = origin.y * sy
+  const taken: Rect[] = [around(ox, oy)]
+  // The base label sits right of Luxembourg, or below it when that would
+  // run off a narrow screen.
+  const base = labels.get(BASE_LABEL)
+  let baseSide: 'right' | 'below' = 'right'
+  if (base) {
+    const bw = base.offsetWidth
+    const bh = base.offsetHeight
+    baseSide = ox + LABEL_GAP + bw <= cw ? 'right' : 'below'
+    taken.push(baseSide === 'right'
+      ? { l: ox + LABEL_GAP, r: ox + LABEL_GAP + bw, t: oy - bh / 2, b: oy + bh / 2 }
+      : { l: ox - bw / 2, r: ox + bw / 2, t: oy + LABEL_GAP, b: oy + LABEL_GAP + bh })
+  }
+  const pins = new Map(destinations.map((d) => [d.id, around(d.x * sx, d.y * sy)]))
+
+  const out: Record<string, Placement> = {}
+  for (const d of [...destinations].sort((a, b) => a.y - b.y)) {
+    const el = labels.get(d.id)
+    if (!el) continue
+    const w = el.offsetWidth
+    const h = el.offsetHeight
+    const ax = d.x * sx
+    const ay = d.y * sy
+    const step = Math.max(4, h / 3)
+    const preferred = defaultSide(d, origin)
+    const other: Side = preferred === 'left' ? 'right' : 'left'
+    const shift = (k: number) => (k === 0 ? 0 : (k % 2 ? 1 : -1) * Math.ceil(k / 2) * step)
+    const rectFor = (side: Side, dy: number): Rect => {
+      const l = side === 'left' ? ax - LABEL_GAP - w : ax + LABEL_GAP
+      return { l, r: l + w, t: ay - h / 2 + dy, b: ay + h / 2 + dy }
+    }
+    const obstacles = [...taken, ...[...pins].filter(([id]) => id !== d.id).map(([, r]) => r)]
+    const fits = (r: Rect) => r.l >= 0 && r.r <= cw && r.t >= 0 && r.b <= ch && !obstacles.some((o) => hits(r, o))
+
+    // Same side first (stacking reads best), then the other side, then
+    // larger shifts on the natural side.
+    const candidates: Placement[] = [
+      ...Array.from({ length: 10 }, (_, k) => ({ side: preferred, dy: shift(k) })),
+      ...Array.from({ length: 10 }, (_, k) => ({ side: other, dy: shift(k) })),
+      ...Array.from({ length: 10 }, (_, k) => ({ side: preferred, dy: shift(k + 10) })),
+    ]
+    const chosen = candidates.find((c) => fits(rectFor(c.side, c.dy))) ?? { side: preferred, dy: 0 }
+    taken.push(rectFor(chosen.side, chosen.dy))
+    out[d.id] = chosen
+  }
+  return { clubs: out, base: baseSide }
+}
+
+const BASE_LABEL = '__base'
+
 function RouteScene({ model }: { model: MapModel }) {
   const { t, i18n } = useTranslation()
   const reduce = useReducedMotion()
@@ -140,6 +233,42 @@ function RouteScene({ model }: { model: MapModel }) {
 
   const { destinations, origin, rings } = model
   const [active, setActive] = useState(reduce ? destinations.length - 1 : -1)
+
+  // Label placement, recomputed whenever the map's rendered size or the
+  // labels' text (language, breakpoint) changes.
+  const mapRef = useRef<HTMLDivElement | null>(null)
+  const labelEls = useRef(new Map<string, HTMLElement>())
+  const [placement, setPlacement] = useState<Record<string, Placement>>({})
+  const [baseSide, setBaseSide] = useState<'right' | 'below'>('right')
+  const [scale, setScale] = useState(1)
+
+  useLayoutEffect(() => {
+    const box = mapRef.current
+    if (!box) return
+    let frame = 0
+    const run = () => {
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(() => {
+        setScale(box.clientWidth / W || 1)
+        const layout = layoutLabels(box, labelEls.current, destinations, origin)
+        setPlacement(layout.clubs)
+        setBaseSide(layout.base)
+      })
+    }
+    run()
+    document.fonts?.ready.then(run).catch(() => {})
+    const observer = new ResizeObserver(run)
+    observer.observe(box)
+    return () => {
+      cancelAnimationFrame(frame)
+      observer.disconnect()
+    }
+  }, [destinations, origin, i18n.resolvedLanguage])
+
+  const labelRef = (id: string) => (el: HTMLElement | null) => {
+    if (el) labelEls.current.set(id, el)
+    else labelEls.current.delete(id)
+  }
 
   useEffect(() => {
     if (!inView || reduce) return
@@ -214,7 +343,7 @@ function RouteScene({ model }: { model: MapModel }) {
           </div>
 
           <div className="relative lg:col-span-8">
-            <div className="relative mx-auto w-full max-w-[860px]" style={{ aspectRatio: `${W} / ${H}` }}>
+            <div ref={mapRef} className="relative mx-auto w-full max-w-[860px]" style={{ aspectRatio: `${W} / ${H}` }}>
               <svg viewBox={`0 0 ${W} ${H}`} className="absolute inset-0 h-full w-full" aria-hidden="true">
                 <path d={model.graticule} fill="none" strokeWidth={1} className="stroke-zinc-950/[0.07] dark:stroke-stone-50/[0.06]" />
                 {rings.map((ring) => (
@@ -242,6 +371,16 @@ function RouteScene({ model }: { model: MapModel }) {
                 {destinations.map((d) => (
                   <Route key={d.id} d={d.d} progress={progress} start={d.start} end={d.end} />
                 ))}
+                {destinations.map((d) => {
+                  const p = placement[d.id]
+                  if (!p || Math.abs(p.dy) < 6) return null
+                  // Leader from the pin to the edge of a label that had to move.
+                  const dir = p.side === 'left' ? -1 : 1
+                  return (
+                    <Leader key={d.id} progress={progress} at={d.end}
+                      x1={d.x} y1={d.y} x2={d.x + (dir * (LABEL_GAP - 3)) / scale} y2={d.y + p.dy / scale} />
+                  )
+                })}
                 {destinations.map((d) => (
                   <Pin key={d.id} x={d.x} y={d.y} progress={progress} at={d.end} />
                 ))}
@@ -262,13 +401,22 @@ function RouteScene({ model }: { model: MapModel }) {
               </svg>
 
               {/* HTML labels keep a readable size whatever the SVG scale */}
-              <MapLabel x={origin.x} y={origin.y} side="right" progress={full} at={0}>
+              <MapLabel x={origin.x} y={origin.y} side={baseSide} progress={full} at={0} labelRef={labelRef(BASE_LABEL)}>
                 <span className="font-mono text-[0.62rem] uppercase tracking-[0.24em] text-zinc-950 dark:text-stone-50">
                   {t('home.map.base')}
                 </span>
               </MapLabel>
               {destinations.map((d) => (
-                <MapLabel key={d.id} x={d.x} y={d.y} side={d.x < origin.x || d.x > W * 0.7 ? 'left' : 'right'} progress={progress} at={d.end}>
+                <MapLabel
+                  key={d.id}
+                  x={d.x}
+                  y={d.y}
+                  side={placement[d.id]?.side ?? defaultSide(d, origin)}
+                  dy={placement[d.id]?.dy ?? 0}
+                  progress={progress}
+                  at={d.end}
+                  labelRef={labelRef(d.id)}
+                >
                   <span className={`block font-display text-[0.8rem] font-semibold leading-tight sm:text-sm ${shown?.id === d.id ? 'text-turf-700 dark:text-turf-300' : 'text-zinc-900 dark:text-stone-100'}`}>
                     <span className="sm:hidden">{d.short}</span>
                     <span className="hidden sm:inline">{d.club}</span>
@@ -327,25 +475,53 @@ function Pin({ x, y, progress, at }: PinProps) {
   )
 }
 
+interface LeaderProps {
+  x1: number
+  y1: number
+  x2: number
+  y2: number
+  progress: MotionValue<number>
+  at: number
+}
+
+function Leader({ x1, y1, x2, y2, progress, at }: LeaderProps) {
+  const opacity = useTransform(progress, [at - 0.01, at + 0.02], [0, 1], { clamp: true })
+  return (
+    <motion.line
+      x1={x1}
+      y1={y1}
+      x2={x2}
+      y2={y2}
+      strokeWidth={1}
+      className="stroke-zinc-950/30 dark:stroke-stone-50/30"
+      style={{ opacity }}
+    />
+  )
+}
+
 interface MapLabelProps {
   x: number
   y: number
-  side: 'left' | 'right' | 'below'
+  side: Side | 'below'
+  /** Vertical shift in CSS pixels, set by the label layout. */
+  dy?: number
   progress: MotionValue<number>
   at: number
+  labelRef?: (el: HTMLDivElement | null) => void
   children: ReactNode
 }
 
-function MapLabel({ x, y, side, progress, at, children }: MapLabelProps) {
+function MapLabel({ x, y, side, dy = 0, progress, at, labelRef, children }: MapLabelProps) {
   const opacity = useTransform(progress, [at - 0.01, at + 0.02], [0, 1], { clamp: true })
   const place =
     side === 'below'
       ? 'translate(-50%, 14px)'
       : side === 'left'
-        ? 'translate(calc(-100% - 14px), -50%)'
-        : 'translate(14px, -50%)'
+        ? `translate(calc(-100% - ${LABEL_GAP}px), calc(-50% + ${dy}px))`
+        : `translate(${LABEL_GAP}px, calc(-50% + ${dy}px))`
   return (
     <div
+      ref={labelRef}
       className={`pointer-events-none absolute whitespace-nowrap ${side === 'left' ? 'text-right' : ''}`}
       style={{ left: `${(x / W) * 100}%`, top: `${(y / H) * 100}%`, transform: place }}
     >
