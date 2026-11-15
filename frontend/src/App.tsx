@@ -27,6 +27,8 @@ const CookiesPage        = lazy(() => import('./pages/legal/Cookies'))
 /* Admin shell + pages: never loaded for public visitors. */
 const AdminLayout    = lazy(() => import('./layouts/AdminLayout'))
 const AdminLogin     = lazy(() => import('./pages/admin/AdminLogin'))
+const AdminForgotPassword = lazy(() => import('./pages/admin/AdminForgotPassword'))
+const AdminResetPassword  = lazy(() => import('./pages/admin/AdminResetPassword'))
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'))
 const AdminPlayers     = lazy(() => import('./pages/admin/AdminPlayers'))
 const AdminPlayerEdit  = lazy(() => import('./pages/admin/AdminPlayerEdit'))
@@ -73,6 +75,8 @@ function App() {
 
               {/* Admin login (no layout) */}
               <Route path="/admin/login" element={<AdminLogin />} />
+              <Route path="/admin/mot-de-passe-oublie" element={<AdminForgotPassword />} />
+              <Route path="/admin/reinitialiser" element={<AdminResetPassword />} />
 
               {/* Admin (protected) */}
               <Route
