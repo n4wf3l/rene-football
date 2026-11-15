@@ -62,6 +62,32 @@ racine, pas besoin de gérer d'état local.
 global. L'ancien composant `Toast.tsx` a été supprimé — toute nouvelle
 notification passe par `useToast()`.
 
+## 2-bis. UX — Bouton « Enregistrer » toujours visible
+
+Notre objectif est une bonne UX : on ne doit **jamais** devoir descendre en
+bas d'une page pour enregistrer. Tout formulaire plus haut que l'écran
+(page d'édition, réglages, formulaire en carte…) se termine par la barre
+fixe partagée [StickySaveBar](frontend/src/components/admin/StickySaveBar.tsx),
+qui reste collée en bas de l'écran pendant le défilement :
+
+```tsx
+import StickySaveBar from '../../components/admin/StickySaveBar'
+
+<StickySaveBar status={savedAt ? <span>Enregistré.</span> : null}>
+  <button type="button" onClick={cancel}>Annuler</button>
+  <button type="submit" className="btn btn-primary">Enregistrer</button>
+</StickySaveBar>
+```
+
+- `inset="page"` (défaut) dans une page admin `px-6 lg:px-10`,
+  `inset="card"` dans un formulaire en carte `p-6`.
+- Variantes acceptées quand elles existent déjà : actions dans la barre du
+  haut fixe (éditeur de fiches, annonces) ou pied de panneau latéral
+  (éditeur joueur en tiroir).
+- Ne **pas** recréer une barre locale : réutiliser le composant.
+- Les petites éditions en ligne (un champ + son bouton côte à côte) n'en
+  ont pas besoin.
+
 ## 3. i18n — Toujours vérifier les 5 locales
 
 Le site est multilingue : **FR / EN / DE / NL / LB**. Les fichiers sont dans

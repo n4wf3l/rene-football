@@ -7,6 +7,7 @@ import type { Partner } from '../../types/partner'
 import Skeleton from '../../components/Skeleton'
 import { useConfirm } from '../../components/ConfirmProvider'
 import { useToast } from '../../components/ToastProvider'
+import StickySaveBar from '../../components/admin/StickySaveBar'
 
 interface ListResponse { data: Partner[] }
 interface OneResponse  { data: Partner }
@@ -262,14 +263,14 @@ export default function AdminPartners() {
               <span className="text-zinc-700 dark:text-stone-300">Publier (visible sur le site)</span>
             </label>
 
-            <div className="flex items-center justify-end gap-3 pt-2">
+            <StickySaveBar inset="card">
               <button type="button" onClick={cancelEdit} className="px-4 py-2 rounded-lg text-sm font-medium text-zinc-700 hover:bg-stone-100 dark:text-stone-300 dark:hover:bg-stone-50/10 transition">
                 Annuler
               </button>
               <button type="submit" disabled={saving} className="btn btn-primary text-sm disabled:opacity-60">
                 {saving ? 'Enregistrement…' : (editingSlug === 'new' ? 'Créer' : 'Enregistrer')}
               </button>
-            </div>
+            </StickySaveBar>
           </form>
         )}
 

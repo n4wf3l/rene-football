@@ -5,6 +5,7 @@ import { Person, Trash, X as XIcon } from '@phosphor-icons/react'
 import { api, ApiError } from '../../api/client'
 import type { StaffMember } from '../../types/staff'
 import Skeleton from '../../components/Skeleton'
+import StickySaveBar from '../../components/admin/StickySaveBar'
 import { useConfirm } from '../../components/ConfirmProvider'
 import { useToast } from '../../components/ToastProvider'
 
@@ -198,7 +199,7 @@ export default function AdminStaffEdit({ creating = false }: { creating?: boolea
         </div>
       </div>
 
-      <form onSubmit={submit} className="flex-1 overflow-y-auto px-6 lg:px-10 py-8 max-w-3xl w-full mx-auto space-y-8">
+      <form onSubmit={submit} className="flex-1 px-6 lg:px-10 py-8 max-w-3xl w-full mx-auto space-y-8">
         {errors._global && (
           <div className="px-4 py-3 rounded-xl bg-rose-100 text-rose-800 dark:bg-rose-500/15 dark:text-rose-300 text-sm">
             {errors._global}
@@ -323,7 +324,7 @@ export default function AdminStaffEdit({ creating = false }: { creating?: boolea
         </section>
 
         {/* Save bar */}
-        <div className="sticky bottom-0 -mx-6 lg:-mx-10 px-6 lg:px-10 py-4 bg-stone-50/95 dark:bg-zinc-950/95 backdrop-blur border-t border-stone-200 dark:border-stone-50/10 flex items-center justify-end gap-2">
+        <StickySaveBar>
           <button
             type="button"
             onClick={() => navigate('/admin/equipe')}
@@ -338,7 +339,7 @@ export default function AdminStaffEdit({ creating = false }: { creating?: boolea
           >
             {saving ? 'Enregistrement…' : (creating ? 'Créer le membre' : 'Enregistrer')}
           </button>
-        </div>
+        </StickySaveBar>
       </form>
     </div>
   )
