@@ -7,13 +7,43 @@
       // Start loading the public roster right away (first thing in <head>,
       // before any stylesheet can hold inline scripts back), in parallel with the
       // app's JavaScript, so the home hero doesn't wait for it to boot.
-      // usePublicPlayers() picks this promise up instead of fetching again.
+      // usePublicPlayers() picks the data up instead of fetching again.
+      // On the home page, the first hero portrait is preloaded as soon as the
+      // list arrives, so it doesn't wait for the app's first render.
       (function () {
         var path = location.pathname;
         if (path.indexOf('/admin') === 0 || path.indexOf('/p/') === 0) return;
+
+        // Same pick as the hero: real photos only, most minutes played first,
+        // then goals + assists (HomePage: pickShowcase + hasRealPhoto).
+        function preloadHero(players) {
+          var withPhoto = players.filter(function (p) {
+            return p.photo_url && p.photo_url.indexOf('picsum.photos') === -1;
+          });
+          if (!withPhoto.length) return;
+          withPhoto.sort(function (a, b) {
+            var m = (b.minutes_played || 0) - (a.minutes_played || 0);
+            if (m !== 0) return m;
+            return ((b.goals || 0) + (b.assists || 0)) - ((a.goals || 0) + (a.assists || 0));
+          });
+          var link = document.createElement('link');
+          link.rel = 'preload';
+          link.as = 'image';
+          link.href = withPhoto[0].photo_display_url || withPhoto[0].photo_url;
+          link.setAttribute('fetchpriority', 'high');
+          document.head.appendChild(link);
+        }
+
         try {
           window.__rfPlayers = fetch('/api/players', { headers: { Accept: 'application/json' } })
             .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (res) {
+              if (res && res.data) {
+                window.__rfPlayersData = res.data;
+                if (path === '/') preloadHero(res.data);
+              }
+              return res;
+            })
             .catch(function () { return null; });
         } catch (_) {}
       })();
