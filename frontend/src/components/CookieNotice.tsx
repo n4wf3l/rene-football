@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { IS_PREVIEW } from '../lib/previewMode'
 import { Link } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { CookieIcon, Info, X } from '@phosphor-icons/react'
@@ -47,6 +48,7 @@ export default function CookieNotice() {
   const [open, setOpen] = useState(false)
 
   useEffect(() => {
+    if (IS_PREVIEW) return // admin live preview: nothing to inform
     if (!isAckStillValid()) {
       // Slight delay so the banner doesn't compete with the page-transition
       // animation for the visitor's attention.

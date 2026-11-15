@@ -20,6 +20,8 @@ import type { AdminSettings } from '../../types/settings'
 import Skeleton from '../../components/Skeleton'
 import StickySaveBar from '../../components/admin/StickySaveBar'
 import HeroVariantPicker from '../../components/admin/HeroVariantPicker'
+import HeroLivePreview from '../../components/admin/HeroLivePreview'
+import { ContactPreview, LegalPreview, SocialPreview } from '../../components/admin/SettingsPreviews'
 import { DEFAULT_HERO, isHeroVariant } from '../../lib/heroVariants'
 import { useToast } from '../../components/ToastProvider'
 
@@ -61,7 +63,7 @@ const TAB_META: Record<TabKey, { label: string; Icon: PhosphorIcon; hint: string
   home: {
     label: 'Page d\'accueil',
     Icon: House,
-    hint: 'Mise en page du haut de la page d\'accueil. « Aperçu sur le site » ouvre chaque version dans un nouvel onglet sans rien changer pour les visiteurs ; le choix s\'applique après « Enregistrer ».',
+    hint: 'Mise en page du haut de la page d\'accueil. Clique sur une version : l\'aperçu à droite montre la vraie page avec tes joueurs. Les visiteurs ne la voient qu\'après « Enregistrer ».',
   },
   social: {
     label: 'Réseaux sociaux',
@@ -147,53 +149,58 @@ export default function AdminSettings() {
   }
 
   return (
-    <div className="bg-stone-50 dark:bg-zinc-950 min-h-[100dvh]">
-      <div className="px-6 lg:px-10 py-8 max-w-3xl w-full mx-auto">
-        <header className="mb-6">
-          <div className="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-turf-700 dark:text-turf-300 mb-1">
-            Réglages
+    // Desktop: a workspace exactly the height of the screen (under the 2.75rem
+    // admin status bar): settings scroll on the left, the preview fills the
+    // right, the save bar closes the page. Mobile: normal page flow.
+    <div className="bg-stone-50 dark:bg-zinc-950 min-h-[100dvh] lg:min-h-0 lg:h-[calc(100dvh-2.75rem)] lg:flex lg:flex-col">
+      <div className="px-6 lg:px-10 pt-8 w-full max-w-[1680px] mx-auto lg:flex-1 lg:min-h-0 lg:flex lg:flex-col">
+        <header className="mb-5 flex flex-wrap items-end justify-between gap-x-8 gap-y-4">
+          <div className="min-w-0">
+            <div className="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-turf-700 dark:text-turf-300 mb-1">
+              Réglages
+            </div>
+            <h1 className="font-display font-semibold text-2xl lg:text-[1.7rem] text-zinc-950 dark:text-stone-50 tracking-tight">
+              Configuration de l'agence
+            </h1>
+            <p className="mt-1 text-sm text-zinc-600 dark:text-stone-400">
+              Ce qui change sans toucher au code, avec l'aperçu de ce que verront les visiteurs.
+            </p>
           </div>
-          <h1 className="font-display font-semibold text-2xl lg:text-3xl text-zinc-950 dark:text-stone-50 tracking-tight">
-            Configuration de l'agence
-          </h1>
-          <p className="mt-2 text-sm text-zinc-600 dark:text-stone-400 max-w-[62ch] leading-relaxed">
-            Centralise tout ce qui doit pouvoir changer sans toucher au code : réseaux sociaux,
-            identité juridique affichée dans les mentions légales, coordonnées de contact
-            propagées partout sur le site public.
-          </p>
+
+          {/* Tab bar */}
+          <nav className="flex w-full flex-wrap gap-1 rounded-xl border border-stone-200 dark:border-stone-50/10 bg-white dark:bg-zinc-900 p-1 xl:w-auto" role="tablist">
+            {(Object.keys(TAB_META) as TabKey[]).map((k) => {
+              const active = tab === k
+              const { label, Icon } = TAB_META[k]
+              return (
+                <button
+                  key={k}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  onClick={() => setTab(k)}
+                  className={`relative inline-flex items-center gap-2 flex-1 min-w-[140px] justify-center px-3 py-2 rounded-lg text-xs font-medium transition-colors xl:flex-none ${
+                    active
+                      ? 'bg-zinc-950 text-stone-50 dark:bg-stone-50 dark:text-zinc-950'
+                      : 'text-zinc-600 hover:text-zinc-900 hover:bg-stone-100 dark:text-stone-400 dark:hover:text-stone-50 dark:hover:bg-stone-50/5'
+                  }`}
+                >
+                  <Icon size={13} weight="regular" />
+                  {label}
+                </button>
+              )
+            })}
+          </nav>
         </header>
 
-        {/* Tab bar */}
-        <nav className="mb-6 flex flex-wrap gap-1 rounded-xl border border-stone-200 dark:border-stone-50/10 bg-white dark:bg-zinc-900 p-1" role="tablist">
-          {(Object.keys(TAB_META) as TabKey[]).map((k) => {
-            const active = tab === k
-            const { label, Icon } = TAB_META[k]
-            return (
-              <button
-                key={k}
-                type="button"
-                role="tab"
-                aria-selected={active}
-                onClick={() => setTab(k)}
-                className={`relative inline-flex items-center gap-2 flex-1 min-w-[140px] justify-center px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
-                  active
-                    ? 'bg-zinc-950 text-stone-50 dark:bg-stone-50 dark:text-zinc-950'
-                    : 'text-zinc-600 hover:text-zinc-900 hover:bg-stone-100 dark:text-stone-400 dark:hover:text-stone-50 dark:hover:bg-stone-50/5'
-                }`}
-              >
-                <Icon size={13} weight="regular" />
-                {label}
-              </button>
-            )
-          })}
-        </nav>
+        <form onSubmit={submit} className="lg:flex-1 lg:min-h-0 lg:flex lg:flex-col">
+          {/* Settings on the left, what the visitor will see on the right. */}
+          <div className="grid gap-8 lg:flex-1 lg:min-h-0 lg:grid-cols-[minmax(0,24rem)_minmax(0,1fr)] xl:grid-cols-[minmax(0,28rem)_minmax(0,1fr)]">
+          <div className="min-w-0 space-y-5 lg:h-full lg:min-h-0 lg:overflow-y-auto lg:pr-2 lg:[scrollbar-width:thin]">
+          <p className="text-xs text-zinc-500 dark:text-stone-500 leading-relaxed">
+            {TAB_META[tab].hint}
+          </p>
 
-        {/* Section hint */}
-        <p className="mb-5 text-xs text-zinc-500 dark:text-stone-500 leading-relaxed">
-          {TAB_META[tab].hint}
-        </p>
-
-        <form onSubmit={submit} className="space-y-5">
           {tab === 'home' && (
             <HeroVariantPicker
               value={isHeroVariant(form.hero_variant) ? form.hero_variant : DEFAULT_HERO}
@@ -307,6 +314,16 @@ export default function AdminSettings() {
               />
             </div>
           )}
+
+          </div>
+
+          <aside className="min-w-0 h-[72vh] lg:h-full lg:min-h-0">
+            {tab === 'home' && <HeroLivePreview variant={isHeroVariant(form.hero_variant) ? form.hero_variant : DEFAULT_HERO} />}
+            {tab === 'social' && <SocialPreview form={form} />}
+            {tab === 'legal' && <LegalPreview form={form} />}
+            {tab === 'contact' && <ContactPreview form={form} />}
+          </aside>
+          </div>
 
           <StickySaveBar
             status={savedAt && !saving ? (

@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
+import { IS_PREVIEW } from '../lib/previewMode'
 
 /**
  * Anonymous page-view counter for the public site (issue #1).
@@ -21,7 +22,8 @@ let entrySent = false
 let last: { path: string; at: number } | null = null
 
 function track(path: string): void {
-  if (typeof window === 'undefined' || navigator.webdriver) return
+  // Admin live previews (Réglages) are not visits.
+  if (typeof window === 'undefined' || navigator.webdriver || IS_PREVIEW) return
   const now = Date.now()
   if (last && last.path === path && now - last.at < 2000) return
   last = { path, at: now }
