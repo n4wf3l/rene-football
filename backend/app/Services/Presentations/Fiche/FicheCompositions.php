@@ -26,6 +26,17 @@ final class FicheCompositions
     /** Composition given to new presentations. */
     public const DEFAULT_NEW = self::SIGNATURE;
 
+    /**
+     * Each composition's own palette, the one its card thumbnail shows in
+     * the editor. Used when no palette has been picked explicitly, so the
+     * fiche looks like the card that was chosen (Career → violet…).
+     */
+    private const THEME_BY_COMPOSITION = [
+        self::SIGNATURE => 'black-gold',
+        self::SCOUTING  => 'navy',
+        self::CAREER    => 'violet',
+    ];
+
     public const CONTACT_DEFAULTS = [
         'instagram' => '@renefootball',
         'email'     => 'renefootball.agency@gmail.com',
@@ -91,6 +102,7 @@ final class FicheCompositions
     public static function defaults(string $key): array
     {
         $defaults = self::COMMON_DEFAULTS + ['contact' => self::CONTACT_DEFAULTS];
+        $defaults['theme'] = self::THEME_BY_COMPOSITION[$key] ?? FicheTheme::DEFAULT;
         if ($key === self::CLASSIC) {
             // What the historic Marketing v1 renderer does when options are unset.
             $defaults['photo_side']  = 'left';

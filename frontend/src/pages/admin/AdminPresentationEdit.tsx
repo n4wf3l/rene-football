@@ -212,6 +212,16 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
     setForm((f) => ({ ...f, options: { ...f.options, [k]: v } }))
   }
 
+  // Each composition has its own palette (the colours on its card). Switching
+  // composition switches palette too, unless another one was picked on purpose.
+  const chooseComposition = (key: FicheCompositionKey) => {
+    setForm((f) => {
+      const options = { ...f.options, composition: key }
+      if (options.theme && options.theme === composition?.defaults.theme) delete options.theme
+      return { ...f, options }
+    })
+  }
+
   const setOrg = (k: 'supervised_by' | 'partner_agency', patch: Partial<OrgBlock>) => {
     setForm((f) => ({ ...f, options: { ...f.options, [k]: { ...(f.options[k] ?? {}), ...patch } } }))
   }
@@ -592,7 +602,7 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
                 <Section title="Composition" hint="la mise en page de la fiche">
                   <div className="grid sm:grid-cols-3 gap-4">
                     {premiumCompositions.map((c) => (
-                      <ChoiceCard key={c.key} active={compositionKey === c.key} onClick={() => setOpt('composition', c.key)}>
+                      <ChoiceCard key={c.key} active={compositionKey === c.key} onClick={() => chooseComposition(c.key)}>
                         <div className="aspect-[60/84] rounded-lg overflow-hidden bg-stone-100 dark:bg-zinc-950 mb-3" dangerouslySetInnerHTML={{ __html: c.thumbnail }} />
                         <div className="font-display font-semibold text-sm text-zinc-950 dark:text-stone-50">{c.label}</div>
                         <p className="mt-1 text-xs text-zinc-600 dark:text-stone-400 leading-relaxed">{c.description}</p>

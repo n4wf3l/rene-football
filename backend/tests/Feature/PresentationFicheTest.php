@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Player;
 use App\Models\Presentation;
 use App\Models\User;
+use App\Services\Presentations\Fiche\FicheDataFactory;
 use App\Services\Presentations\Fiche\FicheLayoutEngine;
 use App\Services\Presentations\Fiche\FicheLayoutException;
 use App\Services\Presentations\Fiche\FichePage;
@@ -265,8 +266,21 @@ class PresentationFicheTest extends TestCase
         $this->assertSame(['signature', 'scouting', 'career', 'classic'], $keys);
         $scouting = collect($res->json('compositions'))->firstWhere('key', 'scouting');
         $this->assertContains('stats', $scouting['supports']);
-        $this->assertSame('black-gold', $scouting['defaults']['theme']);
         $this->assertCount(5, $res->json('themes'));
+
+        // Each composition defaults to the palette its card thumbnail shows.
+        $themes = collect($res->json('compositions'))->pluck('defaults.theme', 'key')->all();
+        $this->assertSame(['signature' => 'black-gold', 'scouting' => 'navy', 'career' => 'violet', 'classic' => 'black-gold'], $themes);
+    }
+
+    public function test_career_fiche_without_a_picked_palette_renders_in_violet(): void
+    {
+        $factory = app(FicheDataFactory::class);
+        $player = Player::factory()->create(['name' => 'Zoran-Mawel Batomi']);
+
+        $this->assertSame('violet', $factory->build($player, ['composition' => 'career'])->palette['key']);
+        // An explicitly picked palette still wins.
+        $this->assertSame('black-gold', $factory->build($player, ['composition' => 'career', 'theme' => 'black-gold'])->palette['key']);
     }
 
     // ------------------------------------------------------------------ data
