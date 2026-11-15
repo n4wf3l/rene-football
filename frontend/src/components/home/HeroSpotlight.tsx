@@ -4,6 +4,7 @@ import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { ArrowLeft, ArrowRight, ArrowUpRight } from '@phosphor-icons/react'
 import { useTranslation } from 'react-i18next'
 import ScrambleText from './ScrambleText'
+import { useArrowKeys } from './hero/HeroParts'
 import { playerImage } from '../../lib/playerImage'
 import type { Player } from '../../types/player'
 
@@ -55,6 +56,7 @@ function HeroSpotlight({ players }: HeroSpotlightProps) {
   }, [index, count, players])
 
   const go = (delta: number) => setIndex((i) => (i + delta + count) % count)
+  useArrowKeys(go, count > 1)
 
   return (
     <div

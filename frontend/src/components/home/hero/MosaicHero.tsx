@@ -3,7 +3,7 @@ import type { CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { playerImage } from '../../../lib/playerImage'
-import { EASE_OUT, Headline, HeroCtas, HeroEyebrow, HeroParagraph, HeroStats, STUDIO_BG, pad2, type HeroData } from './HeroParts'
+import { EASE_OUT, Headline, HeroCtas, HeroEyebrow, HeroParagraph, HeroStats, STUDIO_BG, pad2, useArrowKeys, type HeroData } from './HeroParts'
 
 const MAX_TILES = 8
 const SPOT_MS = 2400
@@ -24,7 +24,12 @@ export default function MosaicHero({ spotlight, stats }: HeroData) {
     if (reduce || tiles.length < 2 || hovered !== null) return
     const id = setInterval(() => setActive((a) => (a + 1) % tiles.length), SPOT_MS)
     return () => clearInterval(id)
-  }, [reduce, tiles.length, hovered])
+  }, [reduce, tiles.length, hovered, active])
+
+  useArrowKeys((d) => {
+    setHovered(null)
+    setActive((a) => (a + d + tiles.length) % tiles.length)
+  }, tiles.length > 1)
 
   const lit = hovered ?? active
 
