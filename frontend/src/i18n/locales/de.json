@@ -582,8 +582,8 @@
     "regionAria": "Cookie-Hinweis",
     "closeAria": "Hinweis schließen",
     "eyebrow": "Privatsphäre",
-    "title": "Keine Tracking-Cookies, keine Analytics.",
-    "body": "Wir verwenden nur den unbedingt erforderlichen lokalen Speicher (Theme-Präferenz, Admin-Session). Keine Werbe-Cookies, keine Drittanbieter-Tracker, kein Profiling. Details in der <cookies>Cookie-Richtlinie</cookies> und in der <privacy>Datenschutzerklärung</privacy>.",
+    "title": "Keine Cookies, kein Tracking.",
+    "body": "Wir zählen Besuche anonym auf unserem eigenen Server, ohne Cookies: Ihre IP-Adresse wird nie gespeichert und kein Besucher wird von einem Tag zum nächsten verfolgt. Der lokale Speicher enthält nur Ihre Einstellungen (Theme, Admin-Session). Details in der <cookies>Cookie-Richtlinie</cookies> und in der <privacy>Datenschutzerklärung</privacy>.",
     "acceptCta": "Verstanden",
     "learnMoreCta": "Mehr erfahren"
   },
@@ -619,7 +619,7 @@
         "title": "Kurzfassung",
         "bullets": [
           "Wir erheben nur, was Sie über das Kontaktformular übermitteln (Name, E-Mail, Telefon, Nachricht, profilspezifische Felder, optionaler Lebenslauf) sowie Ihre IP und den User-Agent zum Anti-Spam-Schutz.",
-          "Keine Analytik, keine Werbe-Cookies, keine Drittanbieter-Tracker, kein Profiling.",
+          "Kein Analysedienst, keine Werbe-Cookies, keine Drittanbieter-Tracker, kein Profiling. Besuche werden anonym auf unserem eigenen Server gezählt: kein Cookie, IP-Adresse nie gespeichert, Kennung täglich erneuert, Speicherdauer 13 Monate.",
           "Zugriff auf die Daten haben nur das Team von Rene Football und direkte technische Dienstleister (Hosting, E-Mail). Nie verkauft oder für Marketing weitergegeben.",
           "Drittdienste mit Browser-Zugriff: Google Fonts (nur IP), YouTube im Privacy-Modus (kein Cookie vor dem Play-Klick), flagcdn.com.",
           "Speicherdauer: 12 Monate für unbeantwortete Anfragen, Vertragsdauer + 5 Jahre bei laufenden Beziehungen.",
@@ -633,7 +633,7 @@
       "summary": {
         "title": "Kurzfassung",
         "bullets": [
-          "Diese Website setzt keine Tracking-, Analytik- oder Werbe-Cookies.",
+          "Diese Website setzt keine Tracking-, Analytik- oder Werbe-Cookies. Besuche werden anonym auf unserem eigenen Server gezählt, ohne etwas in Ihrem Browser zu speichern.",
           "Wir verwenden nur den strikt erforderlichen lokalen Speicher: Theme-Präferenz, Admin-Session-Token (falls angemeldet), Tutorial-Abweisungen.",
           "Für diese ist keine Einwilligung nötig — sie sind laut CNPD-Leitfaden ausgenommen — wir dokumentieren sie aber für volle Transparenz.",
           "Drittdienste mit Browser-Zugriff: Google Fonts (nur IP, kein Cookie), YouTube im Privacy-Enhanced-Modus (kein Cookie vor Play-Klick), flagcdn.com für Flaggen-Icons.",

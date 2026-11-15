@@ -582,8 +582,8 @@
     "regionAria": "Cookie-informatie",
     "closeAria": "Melding sluiten",
     "eyebrow": "Privacy",
-    "title": "Geen tracking-cookies, geen analytics.",
-    "body": "We gebruiken enkel de strikt noodzakelijke lokale opslag (themavoorkeur, admin-sessie). Geen reclamecookies, geen trackers van derden, geen profilering. Details in het <cookies>cookiebeleid</cookies> en in het <privacy>privacybeleid</privacy>.",
+    "title": "Geen cookies, geen tracking.",
+    "body": "We tellen bezoeken anoniem op onze eigen server, zonder cookies: uw IP-adres wordt nooit opgeslagen en geen enkele bezoeker wordt van dag tot dag gevolgd. De lokale opslag bewaart enkel uw voorkeuren (thema, admin-sessie). Details in het <cookies>cookiebeleid</cookies> en in het <privacy>privacybeleid</privacy>.",
     "acceptCta": "Begrepen",
     "learnMoreCta": "Meer weten"
   },
@@ -619,7 +619,7 @@
         "title": "In het kort",
         "bullets": [
           "Wij verzamelen enkel wat u via het contactformulier verstrekt (naam, e-mail, telefoon, bericht, profielspecifieke velden, optioneel CV) plus uw IP en user-agent tegen spam.",
-          "Geen analytics, geen reclamecookies, geen trackers van derden, geen profilering.",
+          "Geen analysedienst, geen reclamecookies, geen trackers van derden, geen profilering. Bezoeken worden anoniem geteld op onze eigen server: geen cookie, IP-adres nooit opgeslagen, identificatie elke dag vernieuwd, bewaring 13 maanden.",
           "De data zijn enkel toegankelijk voor het team van Rene Football en directe technische dienstverleners (hosting, e-mail). Nooit verkocht of gedeeld voor marketing.",
           "Derde partijen met browsertoegang: Google Fonts (enkel IP), YouTube in privacy-modus (geen cookie vóór klik op Play), flagcdn.com.",
           "Bewaring: 12 maanden voor onbeantwoorde aanvragen, contractduur + 5 jaar bij lopende relaties.",
@@ -633,7 +633,7 @@
       "summary": {
         "title": "In het kort",
         "bullets": [
-          "Deze site plaatst geen tracking-, analytics- of reclamecookies.",
+          "Deze site plaatst geen tracking-, analytics- of reclamecookies. Bezoeken worden anoniem geteld op onze eigen server, zonder iets in uw browser op te slaan.",
           "We gebruiken enkel strikt noodzakelijke lokale opslag: themavoorkeur, admin-sessietoken (indien ingelogd), gesloten tutorials.",
           "Voor deze is geen toestemming vereist — ze zijn vrijgesteld volgens CNPD-richtlijnen — maar we documenteren ze voor volledige transparantie.",
           "Derden met browserbereik: Google Fonts (enkel IP, geen cookie), YouTube in privacy-enhanced modus (geen cookie vóór klik op Play), flagcdn.com voor vlagpictogrammen.",

@@ -582,8 +582,8 @@
     "regionAria": "Information sur les cookies",
     "closeAria": "Fermer le bandeau",
     "eyebrow": "Vie privée",
-    "title": "Aucun cookie de suivi, aucune analytique.",
-    "body": "Nous n'utilisons que le stockage local strictement nécessaire (préférence de thème, session admin). Aucun cookie publicitaire, aucun tracker tiers, aucun profilage. Voir la <cookies>politique cookies</cookies> et la <privacy>politique de confidentialité</privacy> pour le détail.",
+    "title": "Aucun cookie, aucun pistage.",
+    "body": "Nous comptons les visites de façon anonyme, sur notre propre serveur et sans cookie : votre adresse IP n'est jamais enregistrée et aucun visiteur n'est suivi d'un jour à l'autre. Le stockage local sert uniquement à vos préférences (thème, session admin). Voir la <cookies>politique cookies</cookies> et la <privacy>politique de confidentialité</privacy> pour le détail.",
     "acceptCta": "Compris",
     "learnMoreCta": "En savoir plus"
   },

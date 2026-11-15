@@ -42,6 +42,7 @@ const AdminPresentationEdit = lazy(() => import('./pages/admin/AdminPresentation
 const AdminContact          = lazy(() => import('./pages/admin/AdminContact'))
 const AdminSettings         = lazy(() => import('./pages/admin/AdminSettings'))
 const AdminPartners         = lazy(() => import('./pages/admin/AdminPartners'))
+const AdminFrequentation    = lazy(() => import('./pages/admin/AdminFrequentation'))
 
 function App() {
   return (
@@ -87,6 +88,7 @@ function App() {
                 <Route path="joueurs/nouveau" element={<AdminPlayerEdit creating />} />
                 <Route path="joueurs/:slug/edit" element={<AdminPlayerEdit />} />
                 <Route path="analyse" element={<AdminAnalysis />} />
+                <Route path="frequentation" element={<AdminFrequentation />} />
                 <Route path="articles" element={<AdminArticles />} />
                 <Route path="articles/nouveau" element={<AdminArticleEdit creating />} />
                 <Route path="articles/:slug/edit" element={<AdminArticleEdit />} />

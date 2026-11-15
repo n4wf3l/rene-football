@@ -9,7 +9,7 @@ export default function Confidentialite() {
   return (
     <LegalLayout
       titleKey="legal.privacy.title"
-      updatedAt="29 septembre 2026"
+      updatedAt="15 novembre 2026"
       summaryKey="legal.privacy.summary"
       intro={
         <>
@@ -97,10 +97,41 @@ export default function Confidentialite() {
           détail.
         </p>
 
-        <h3>2.4 Ce que nous NE collectons PAS</h3>
+        <h3>2.4 Statistiques anonymes de fréquentation</h3>
+        <p>
+          Pour savoir quelles pages, quels joueurs et quels articles
+          intéressent nos visiteurs, notre propre serveur compte les pages
+          consultées sur le site public. Ce compteur ne dépose aucun cookie
+          et n'utilise aucun stockage dans votre navigateur. Pour chaque page
+          vue, nous enregistrons uniquement :
+        </p>
+        <ul>
+          <li>l'adresse de la page consultée (sans les paramètres de l'URL) ;</li>
+          <li>la date et l'heure de consultation ;</li>
+          <li>
+            sur la première page d'une visite, le nom du site d'origine
+            (par exemple <code>instagram.com</code>), jamais l'adresse
+            complète ;
+          </li>
+          <li>
+            un identifiant anonyme, calculé à partir de votre adresse IP, de
+            votre navigateur et de la date du jour à l'aide d'une clé secrète
+            conservée sur notre serveur.
+          </li>
+        </ul>
+        <p>
+          Votre adresse IP et votre navigateur servent uniquement à ce calcul
+          et ne sont <strong>jamais enregistrés</strong>. L'identifiant change
+          chaque jour : il permet de compter un visiteur une seule fois dans
+          la journée, mais ne permet ni de vous reconnaître, ni de vous suivre
+          d'un jour à l'autre. Les robots et l'espace d'administration ne sont
+          pas comptés. Aucune donnée n'est transmise à un tiers.
+        </p>
+
+        <h3>2.5 Ce que nous NE collectons PAS</h3>
         <ul>
           <li>
-            Aucun outil d'analytique (pas de Google Analytics, Matomo,
+            Aucun outil d'analytique tiers (pas de Google Analytics, Matomo,
             Plausible, Hotjar, etc.).
           </li>
           <li>Aucun pixel de suivi publicitaire ni de réseau social.</li>
@@ -120,6 +151,12 @@ export default function Confidentialite() {
 
           <dt>Sécurité du site (limitation débit, journaux)</dt>
           <dd>Base légale : intérêt légitime (Art. 6.1.f RGPD).</dd>
+
+          <dt>Statistiques anonymes de fréquentation</dt>
+          <dd>
+            Base légale : intérêt légitime (Art. 6.1.f RGPD) à mesurer
+            l'audience du site, sans cookie ni suivi individuel.
+          </dd>
 
           <dt>Fonctionnement technique (thème, session admin)</dt>
           <dd>Base légale : intérêt légitime.</dd>
@@ -188,6 +225,9 @@ export default function Confidentialite() {
 
           <dt>Journaux de sécurité (IP, user-agent)</dt>
           <dd>12 mois maximum.</dd>
+
+          <dt>Statistiques anonymes de fréquentation</dt>
+          <dd>13 mois maximum, puis suppression automatique.</dd>
 
           <dt>Données stockées localement (thème, session)</dt>
           <dd>Tant que vous ne les effacez pas depuis votre navigateur.</dd>

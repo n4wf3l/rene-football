@@ -48,6 +48,12 @@ return Application::configure(basePath: dirname(__DIR__))
             ->dailyAt('03:15')
             ->onOneServer()
             ->withoutOverlapping();
+
+        // Anonymous page views are kept 13 months (/confidentialite §5).
+        $schedule->command('analytics:purge')
+            ->dailyAt('03:30')
+            ->onOneServer()
+            ->withoutOverlapping();
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // API routes must return a JSON 401 on missing auth. Without this,

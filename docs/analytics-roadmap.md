@@ -1,8 +1,30 @@
 # Analytics roadmap — server-side aggregate tracking
 
-**Status:** planned · not started
+**Status:** MVP shipped (2026-11-15) · see "What shipped" below
 **Date:** 2026-09-28
-**Related issue:** _linked once opened on GitHub_
+**Related issue:** [#1](https://github.com/n4wf3l/rene-football/issues/1)
+
+## What shipped
+
+- `POST /api/track/view` ([TrackController](../backend/app/Http/Controllers/Api/TrackController.php)):
+  the client only sends the path (+ referrer on the first page of a visit);
+  type and slug are derived server-side. Bots, headless browsers, admin,
+  API and `/p/*` share links are ignored. Rate-limited to 60/min/IP.
+  `visitor_hash = HMAC-SHA256(IP | UA | date, APP_KEY)`.
+- `page_views` table: `path`, `resource_type`, `slug`, `visitor_hash`,
+  `is_entry`, `referrer_host` (host only), `viewed_at`. No IP, no UA.
+- `GET /api/admin/analytics?days=7|30|90|365` — a single endpoint
+  ([AdminAnalyticsController](../backend/app/Http/Controllers/Api/Admin/AdminAnalyticsController.php))
+  returning totals vs previous period, daily series, top pages / players /
+  articles, traffic sources and contact requests per player.
+- Admin page `/admin/frequentation` + live "Visites site (7 j)" tile on
+  the dashboard.
+- Retention: `analytics:purge` deletes rows older than 13 months
+  (scheduled daily and run by the HTTP cron `/_maintenance/cron/purge`).
+  The admin can therefore look back up to 12 months on the raw table.
+- `/confidentialite` (§2.4, §3, §5), `/cookies` (§3) and the
+  `CookieNotice` (key bumped to `rf_cookie_notice_ack_v2`) updated in
+  the 5 locales.
 
 ## Why
 

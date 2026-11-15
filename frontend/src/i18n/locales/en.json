@@ -582,8 +582,8 @@
     "regionAria": "Cookie notice",
     "closeAria": "Close notice",
     "eyebrow": "Privacy",
-    "title": "No tracking cookies, no analytics.",
-    "body": "We only use the strictly-necessary local storage (theme preference, admin session). No advertising cookies, no third-party trackers, no profiling. See the <cookies>cookie policy</cookies> and the <privacy>privacy policy</privacy> for details.",
+    "title": "No cookies, no tracking.",
+    "body": "We count visits anonymously on our own server, without cookies: your IP address is never stored and no visitor is followed from one day to the next. Local storage only keeps your preferences (theme, admin session). See the <cookies>cookie policy</cookies> and the <privacy>privacy policy</privacy> for details.",
     "acceptCta": "Got it",
     "learnMoreCta": "Learn more"
   },
@@ -619,7 +619,7 @@
         "title": "In short",
         "bullets": [
           "We collect only what you submit through the contact form (name, email, phone, message, profile-specific fields, optional CV) plus your IP and user-agent for anti-spam.",
-          "No analytics, no advertising cookies, no third-party trackers, no profiling.",
+          "No analytics service, no advertising cookies, no third-party trackers, no profiling. Visits are counted anonymously on our own server: no cookie, IP address never stored, identifier renewed every day, data kept 13 months.",
           "Data is accessed only by Rene Football's team and direct technical providers (hosting, email). Never sold or shared for marketing.",
           "Third-party services touching your browser: Google Fonts (IP only), YouTube in privacy mode (no cookie before you click Play), flagcdn.com.",
           "Retention: 12 months for unhandled requests, contract term + 5 years for ongoing relationships.",
@@ -633,7 +633,7 @@
       "summary": {
         "title": "In short",
         "bullets": [
-          "This site drops no tracking, analytics or advertising cookie.",
+          "This site drops no tracking, analytics or advertising cookie. Visits are counted anonymously on our own server, without storing anything in your browser.",
           "We only use strictly-necessary local storage: theme preference, admin session token (if you're logged in), tutorial dismissals.",
           "No user consent required for these — they're exempt under CNPD guidance — but we document them for full transparency.",
           "Third-party services with browser reach: Google Fonts (IP only, no cookie), YouTube in privacy-enhanced mode (no cookie before you click Play), flagcdn.com for flag icons.",
