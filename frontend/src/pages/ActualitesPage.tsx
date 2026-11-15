@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowUpRight, CalendarBlank, Tag } from '@phosphor-icons/react'
 import MeshGradient from '../components/MeshGradient'
 import Seo from '../components/Seo'
+import ArticleCover from '../components/ArticleCover'
 import { useTranslation } from 'react-i18next'
 import AnimatedUnderline from '../components/AnimatedUnderline'
 import Skeleton from '../components/Skeleton'
@@ -27,10 +28,6 @@ function formatDate(iso: string | null): string {
   if (!iso) return ''
   const d = new Date(iso)
   return isNaN(d.getTime()) ? '' : FR_DATE.format(d)
-}
-
-function coverFor(article: Article): string {
-  return article.cover_url || `https://picsum.photos/seed/${article.slug}/1200/750`
 }
 
 interface CategoryBadgeProps {
@@ -81,10 +78,10 @@ function HeroArticle({ article }: HeroArticleProps) {
       >
         <div className="lg:col-span-7">
           <div className="relative aspect-[16/10] rounded-3xl overflow-hidden border border-stone-200/80 dark:border-stone-50/10 bg-stone-200">
-            <img
-              src={coverFor(article)}
-              alt=""
+            <ArticleCover
+              src={article.cover_url}
               loading="eager"
+              markSize="md"
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-premium group-hover:scale-[1.03]"
             />
             <div className="absolute top-4 left-4">
@@ -125,10 +122,9 @@ function ArticleCard({ article, span = '' }: ArticleCardProps) {
     <motion.li variants={FADE_UP} transition={{ type: 'spring', stiffness: 110, damping: 22 }} className={span}>
       <ArticleCardWrapper article={article}>
         <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-stone-200">
-          <img
-            src={article.cover_url || `https://picsum.photos/seed/${article.slug}/800/600`}
-            alt=""
-            loading="lazy"
+          <ArticleCover
+            src={article.cover_url}
+            markSize="sm"
             className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-premium group-hover:scale-[1.04]"
           />
           <div className="absolute top-3 left-3">
