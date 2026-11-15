@@ -81,6 +81,11 @@ export default function Confidentialite() {
         <ul>
           <li>Votre préférence de thème clair / sombre.</li>
           <li>
+            Une copie de la liste publique de nos joueurs, pour afficher la
+            page d'accueil plus vite lors de vos visites suivantes (aucune
+            donnée vous concernant, ignorée après 7 jours).
+          </li>
+          <li>
             Le dernier tutoriel ou onboarding que vous avez fermé (pour ne
             plus vous le montrer).
           </li>

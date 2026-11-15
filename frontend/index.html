@@ -16,6 +16,7 @@
 
         // Same pick as the hero: real photos only, most minutes played first,
         // then goals + assists (HomePage: pickShowcase + hasRealPhoto).
+        var preloaded = null;
         function preloadHero(players) {
           var withPhoto = players.filter(function (p) {
             return p.photo_url && p.photo_url.indexOf('picsum.photos') === -1;
@@ -26,13 +27,27 @@
             if (m !== 0) return m;
             return ((b.goals || 0) + (b.assists || 0)) - ((a.goals || 0) + (a.assists || 0));
           });
+          var href = withPhoto[0].photo_display_url || withPhoto[0].photo_url;
+          if (href === preloaded) return;
+          preloaded = href;
           var link = document.createElement('link');
           link.rel = 'preload';
           link.as = 'image';
-          link.href = withPhoto[0].photo_display_url || withPhoto[0].photo_url;
+          link.href = href;
           link.setAttribute('fetchpriority', 'high');
           document.head.appendChild(link);
         }
+
+        // List kept from a previous visit (written by usePublicPlayers): a
+        // returning visitor sees the players at once, while the fresh list
+        // below replaces it. Public data only, ignored after 7 days.
+        try {
+          var cached = JSON.parse(localStorage.getItem('rf_players_cache') || 'null');
+          if (cached && Array.isArray(cached.data) && Date.now() - cached.at < 7 * 864e5) {
+            window.__rfPlayersCached = cached.data;
+            if (path === '/') preloadHero(cached.data);
+          }
+        } catch (_) {}
 
         try {
           window.__rfPlayers = fetch('/api/players', { headers: { Accept: 'application/json' } })

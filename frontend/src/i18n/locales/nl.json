@@ -634,7 +634,7 @@
         "title": "In het kort",
         "bullets": [
           "Deze site plaatst geen tracking-, analytics- of reclamecookies. Bezoeken worden anoniem geteld op onze eigen server, zonder iets in uw browser op te slaan.",
-          "We gebruiken enkel strikt noodzakelijke lokale opslag: themavoorkeur, admin-sessietoken (indien ingelogd), gesloten tutorials.",
+          "We gebruiken enkel strikt noodzakelijke lokale opslag: themavoorkeur, admin-sessietoken (indien ingelogd), gesloten tutorials en een kopie van de openbare spelerslijst, zodat de startpagina bij uw volgende bezoeken sneller laadt.",
           "Voor deze is geen toestemming vereist — ze zijn vrijgesteld volgens CNPD-richtlijnen — maar we documenteren ze voor volledige transparantie.",
           "Derden met browserbereik: Google Fonts (enkel IP, geen cookie), YouTube in privacy-enhanced modus (geen cookie vóór klik op Play), flagcdn.com voor vlagpictogrammen.",
           "U kunt de lokale opslag op elk moment wissen via uw browserinstellingen. Het wissen van het admin-token logt u uit het back-office."

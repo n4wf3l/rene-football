@@ -634,7 +634,7 @@
         "title": "Kurzfassung",
         "bullets": [
           "Diese Website setzt keine Tracking-, Analytik- oder Werbe-Cookies. Besuche werden anonym auf unserem eigenen Server gezählt, ohne etwas in Ihrem Browser zu speichern.",
-          "Wir verwenden nur den strikt erforderlichen lokalen Speicher: Theme-Präferenz, Admin-Session-Token (falls angemeldet), Tutorial-Abweisungen.",
+          "Wir verwenden nur den strikt erforderlichen lokalen Speicher: Theme-Präferenz, Admin-Session-Token (falls angemeldet), Tutorial-Abweisungen und eine Kopie der öffentlichen Spielerliste, damit die Startseite bei Ihren nächsten Besuchen schneller lädt.",
           "Für diese ist keine Einwilligung nötig — sie sind laut CNPD-Leitfaden ausgenommen — wir dokumentieren sie aber für volle Transparenz.",
           "Drittdienste mit Browser-Zugriff: Google Fonts (nur IP, kein Cookie), YouTube im Privacy-Enhanced-Modus (kein Cookie vor Play-Klick), flagcdn.com für Flaggen-Icons.",
           "Sie können den lokalen Speicher jederzeit über die Browser-Einstellungen löschen. Das Löschen des Admin-Tokens loggt Sie aus dem Back-Office aus."
