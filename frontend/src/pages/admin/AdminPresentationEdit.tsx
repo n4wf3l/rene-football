@@ -32,6 +32,7 @@ import type {
 import PdfGenerationOverlay from '../../components/PdfGenerationOverlay'
 import PlayerSingleSelect from '../../components/PlayerSingleSelect'
 import FichePlayerPicker from '../../components/admin/FichePlayerPicker'
+import FichePurposeStep from '../../components/admin/FichePurposeStep'
 import PresentationPreview from '../../components/PresentationPreview'
 import type { PresentationPreviewResult } from '../../components/PresentationPreview'
 import Skeleton from '../../components/Skeleton'
@@ -122,6 +123,8 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
 
   const [players, setPlayers] = useState<(Player & { id: number })[]>([])
   const [playersLoaded, setPlayersLoaded] = useState(false)
+  // New documents ask what they are for once the player is chosen.
+  const [purposeChosen, setPurposeChosen] = useState(!creating)
   const [params, setParams] = useSearchParams()
   const [compositions, setCompositions] = useState<FicheCompositionInfo[]>([])
   const [themes, setThemes] = useState<FicheThemeInfo[]>([])
@@ -619,6 +622,12 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
           <div className="mx-auto w-full space-y-3" style={{ maxWidth: 'min(820px, calc((100dvh - 11rem) * 0.7071))' }}>
             {!form.player_id ? (
               <FichePlayerPicker players={players} loaded={playersLoaded} onPick={pickPlayer} />
+            ) : !purposeChosen && selectedPlayer ? (
+              <FichePurposeStep
+                player={selectedPlayer}
+                onPresentation={() => setPurposeChosen(true)}
+                onChangePlayer={() => pickPlayer(null)}
+              />
             ) : (<>
             <div className="flex items-center justify-between">
               <span className="text-[0.65rem] font-mono uppercase tracking-[0.16em] text-zinc-500 dark:text-stone-400">

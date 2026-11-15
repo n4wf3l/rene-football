@@ -281,6 +281,7 @@ const FOCUS_ROUTES: RegExp[] = [
   /^\/admin\/equipe\/nouveau$/,
   /^\/admin\/equipe\/[^/]+\/edit$/,
   /^\/admin\/presentations\/nouvelle$/,
+  /^\/admin\/presentations\/annonce$/,
   /^\/admin\/presentations\/[^/]+\/edit$/,
   // Scouting cockpit has its own internal sidebar - collapse the outer one.
   /^\/admin\/scouting$/,
