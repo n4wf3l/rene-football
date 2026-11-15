@@ -29,7 +29,10 @@ function AnimatedNumberBase({
   className,
 }: AnimatedNumberProps) {
   const ref = useRef<HTMLSpanElement | null>(null)
-  const inView = useInView(ref, { once, margin: '-80px' })
+  // Bottom margin only: a shorthand '-80px' also shrank the left and right
+  // edges, so numbers in a left column on phones (< 80px from the edge)
+  // never counted up and stayed at 0.
+  const inView = useInView(ref, { once, margin: '0px 0px -80px 0px' })
   const [display, setDisplay] = useState(formatNumber(0, decimals, separator))
 
   useEffect(() => {

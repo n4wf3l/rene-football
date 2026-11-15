@@ -39,7 +39,7 @@ class PlayerController extends Controller
     public const PUBLIC_PROFILE_FIELDS = [
         'id', 'slug', 'name', 'age', 'height', 'position', 'best_position', 'category',
         'club', 'club_logo_url', 'nationality', 'secondary_nationality', 'preferred_foot',
-        'since', 'photo_url', 'bio',
+        'since', 'photo_url', 'photo_display_url', 'bio',
         'matches_played', 'goals', 'assists', 'minutes_played', 'shots', 'shots_on_target',
         'xg', 'xa', 'key_passes', 'pass_accuracy', 'dribbles_completed', 'tackles',
         'interceptions', 'duels_won', 'yellow_cards', 'red_cards', 'clean_sheets', 'saves',
@@ -76,7 +76,7 @@ class PlayerController extends Controller
             ->orderBy('name')
             ->get([
                 'id', 'slug', 'name', 'age', 'height', 'position', 'category',
-                'club', 'nationality', 'preferred_foot', 'since', 'photo_url',
+                'club', 'nationality', 'preferred_foot', 'since', 'photo_url', 'photo_display_url',
                 'matches_played', 'goals', 'assists', 'minutes_played',
                 'shots_on_target', 'xg', 'xa', 'key_passes', 'pass_accuracy',
                 'dribbles_completed', 'tackles', 'interceptions', 'duels_won',
