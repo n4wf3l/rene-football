@@ -40,6 +40,39 @@ class Article extends Model
         return 'slug';
     }
 
+    /**
+     * A slug change (title edited in the admin) keeps the former slug as a
+     * redirect, so URLs already shared or indexed keep working.
+     */
+    protected static function booted(): void
+    {
+        static::updated(function (Article $article) {
+            if (! $article->wasChanged('slug')) {
+                return;
+            }
+            $old = $article->getOriginal('slug');
+            if ($old) {
+                ArticleSlugRedirect::updateOrCreate(['slug' => $old], ['article_id' => $article->id]);
+            }
+            // The new slug is a live URL again: it no longer redirects anywhere.
+            ArticleSlugRedirect::where('slug', $article->slug)->delete();
+        });
+    }
+
+    /** The published article that used to live at this slug, if any. */
+    public static function publishedFormerlyAt(string $slug): ?self
+    {
+        return static::query()
+            ->where('is_published', true)
+            ->whereHas('slugRedirects', fn ($q) => $q->where('slug', $slug))
+            ->first();
+    }
+
+    public function slugRedirects(): HasMany
+    {
+        return $this->hasMany(ArticleSlugRedirect::class);
+    }
+
     public function player(): BelongsTo
     {
         return $this->belongsTo(Player::class);

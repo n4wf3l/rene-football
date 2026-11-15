@@ -96,10 +96,13 @@ class PublicPageController extends Controller
         ]);
     }
 
-    public function article(Request $request, string $slug): Response
+    public function article(Request $request, string $slug): Response|RedirectResponse
     {
         try {
             $article = Article::where('slug', $slug)->where('is_published', true)->first();
+            if (! $article && ($moved = Article::publishedFormerlyAt($slug))) {
+                return redirect('/actualites/'.$moved->slug, 301);
+            }
         } catch (Throwable $e) {
             return $this->degraded($request, $e);
         }

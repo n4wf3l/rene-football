@@ -61,7 +61,7 @@ Route::get('/players/{player:slug}', [PlayerController::class, 'show']);
 Route::get('/players/{player:slug}/pdf', [PdfController::class, 'playerProfile']);
 
 Route::get('/articles', [ArticleController::class, 'index']);
-Route::get('/articles/{article:slug}', [ArticleController::class, 'show']);
+Route::get('/articles/{slug}', [ArticleController::class, 'show']);
 
 Route::get('/staff', [StaffController::class, 'index']);
 Route::get('/partners', [PartnerController::class, 'index']);
