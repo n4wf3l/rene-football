@@ -634,7 +634,7 @@
         "title": "In short",
         "bullets": [
           "This site drops no tracking, analytics or advertising cookie. Visits are counted anonymously on our own server, without storing anything in your browser.",
-          "We only use strictly-necessary local storage: theme preference, admin session token (if you're logged in), tutorial dismissals.",
+          "We only use strictly-necessary local storage: theme preference, admin session token (if you're logged in), tutorial dismissals, and a copy of the public player list that makes the home page load faster on your next visits.",
           "No user consent required for these — they're exempt under CNPD guidance — but we document them for full transparency.",
           "Third-party services with browser reach: Google Fonts (IP only, no cookie), YouTube in privacy-enhanced mode (no cookie before you click Play), flagcdn.com for flag icons.",
           "You can clear the local storage anytime from your browser settings. Clearing the admin token logs you out of the back-office."

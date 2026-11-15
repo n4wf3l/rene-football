@@ -62,6 +62,14 @@ export default function Cookies() {
             présenter. Purement local.
           </dd>
 
+          <dt><code>rf_players_cache</code> · <em>localStorage</em></dt>
+          <dd>
+            Copie de la liste publique de nos joueurs (noms, postes, clubs,
+            photos), pour afficher la page d'accueil immédiatement lors de
+            vos visites suivantes. Aucune donnée vous concernant. Remplacée
+            à chaque visite, ignorée après 7 jours.
+          </dd>
+
           <dt><code>rf_cookie_notice_ack_v2</code> · <em>localStorage</em></dt>
           <dd>
             Trace que vous avez pris connaissance du bandeau d'information.

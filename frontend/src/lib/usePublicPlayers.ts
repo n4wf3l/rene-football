@@ -5,13 +5,21 @@ import type { Player } from '../types/player'
 interface PlayersResponse { data: Player[] }
 
 /**
- * Module-level cache so all the homepage widgets (HomePage roster, Header mega
- * menu, MercatoTicker) share a single GET /api/players call. The cache is
- * volatile : it lives only for the page session, which is what we want - the
- * Vite dev server + browser HTTP cache handle the rest.
+ * Shared public roster for every widget (HomePage, Header mega menu,
+ * MercatoTicker…), fetched once per page session.
+ *
+ * Stale-while-revalidate across visits: the last list received is kept in
+ * localStorage (STORAGE_KEY, read by index.html before the app boots). A
+ * returning visitor sees the players at once from that copy, then the
+ * fresh list from the server replaces it as soon as it arrives. The copy
+ * only holds public data and is ignored after 7 days.
  */
-let cache: Player[] | null = null
+const STORAGE_KEY = 'rf_players_cache'
+
+/** List answered by the server during this page session. */
+let fresh: Player[] | null = null
 let inflight: Promise<Player[]> | null = null
+const listeners = new Set<(list: Player[]) => void>()
 
 declare global {
   interface Window {
@@ -19,20 +27,38 @@ declare global {
     __rfPlayers?: Promise<PlayersResponse | null>
     /** Set by index.html once that request has answered. */
     __rfPlayersData?: Player[]
+    /** Copy kept from a previous visit, read by index.html. */
+    __rfPlayersCached?: Player[]
   }
 }
 
+function persist(list: Player[]): void {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ at: Date.now(), data: list })) }
+  catch { /* storage full or disabled: the cache is only a speed-up */ }
+}
+
+function adoptFresh(list: Player[]): Player[] {
+  fresh = list
+  persist(list)
+  listeners.forEach((fn) => fn(list))
+  return list
+}
+
 /**
- * The roster when it is already known: cached, or already delivered to
- * index.html. Lets the very first render show the players instead of an
- * empty state followed by a second render.
+ * The roster when it is already known: fresh from this session (possibly
+ * delivered to index.html before the app booted), otherwise the copy kept
+ * from a previous visit. Lets the very first render show the players.
  */
 function known(): Player[] | null {
-  if (!cache && typeof window !== 'undefined' && window.__rfPlayersData) {
-    cache = window.__rfPlayersData
+  if (typeof window === 'undefined') return fresh
+  if (!fresh && window.__rfPlayersData) {
+    // Called during render: adopt without notifying the other widgets,
+    // they pick it up from revalidate() in their effect.
     window.__rfPlayers = undefined
+    fresh = window.__rfPlayersData
+    persist(fresh)
   }
-  return cache
+  return fresh ?? window.__rfPlayersCached ?? null
 }
 
 /** Uses the request index.html already started, once; otherwise fetches. */
@@ -45,18 +71,15 @@ function request(): Promise<PlayersResponse> {
   return api.get<PlayersResponse>('/players')
 }
 
-function fetchOnce(): Promise<Player[]> {
-  if (known()) return Promise.resolve(cache as Player[])
+/** Resolves with the server's list, fetching it at most once per session. */
+function revalidate(): Promise<Player[]> {
+  known()
+  if (fresh) return Promise.resolve(fresh)
   if (inflight) return inflight
   inflight = request()
-    .then((res) => {
-      cache = res.data ?? []
-      return cache
-    })
-    .catch(() => {
-      cache = []
-      return cache
-    })
+    .then((res) => adoptFresh(res.data ?? []))
+    // Offline or server error: keep the stored copy if there is one.
+    .catch(() => known() ?? [])
     .finally(() => { inflight = null })
   return inflight
 }
@@ -68,12 +91,17 @@ export function usePublicPlayers(): { players: Player[]; loading: boolean } {
 
   useEffect(() => {
     let cancelled = false
-    fetchOnce().then((list) => {
+    const update = (list: Player[]) => { if (!cancelled) setPlayers(list) }
+    listeners.add(update)
+    revalidate().then((list) => {
       if (cancelled) return
       setPlayers(list)
       setLoading(false)
     })
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+      listeners.delete(update)
+    }
   }, [])
 
   return { players, loading }
