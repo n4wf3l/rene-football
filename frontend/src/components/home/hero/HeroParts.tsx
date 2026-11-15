@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowUpRight } from '@phosphor-icons/react'
 import { useTranslation } from 'react-i18next'
+import { useEffect, useRef } from 'react'
 import type { CSSProperties } from 'react'
 import MagneticLink from '../../MagneticLink'
 import AnimatedNumber from '../../AnimatedNumber'
@@ -168,6 +169,30 @@ export function HeroStats({ stats, tone = 'auto', className = '' }: { stats: Her
       ))}
     </motion.dl>
   )
+}
+
+/**
+ * ← / → on the keyboard show the previous / next player in the hero.
+ * Ignored while typing in a field, with a modifier key held, or once the
+ * visitor has scrolled past the hero.
+ */
+export function useArrowKeys(step: (delta: 1 | -1) => void, enabled: boolean): void {
+  const stepRef = useRef(step)
+  stepRef.current = step
+  useEffect(() => {
+    if (!enabled) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return
+      if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return
+      const t = e.target as HTMLElement | null
+      if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return
+      if (window.scrollY > window.innerHeight * 0.6) return
+      e.preventDefault()
+      stepRef.current(e.key === 'ArrowRight' ? 1 : -1)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [enabled])
 }
 
 /** "07" */

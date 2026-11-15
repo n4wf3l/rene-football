@@ -5,7 +5,7 @@ import { ArrowUpRight } from '@phosphor-icons/react'
 import { useTranslation } from 'react-i18next'
 import ScrambleText from '../ScrambleText'
 import { playerImage } from '../../../lib/playerImage'
-import { EASE_OUT, Headline, HeroCtas, HeroEyebrow, HeroParagraph, HeroStats, pad2, type HeroData } from './HeroParts'
+import { EASE_OUT, Headline, HeroCtas, HeroEyebrow, HeroParagraph, HeroStats, pad2, useArrowKeys, type HeroData } from './HeroParts'
 
 const ROTATE_MS = 6000
 const MAX_STORIES = 10
@@ -39,6 +39,8 @@ export default function PosterHero({ spotlight, stats }: HeroData) {
     const id = setTimeout(() => setIndex((i) => (i + 1) % count), ROTATE_MS)
     return () => clearTimeout(id)
   }, [autoplay, index, count])
+
+  useArrowKeys((d) => setIndex((i) => (i + d + count) % count), count > 1)
 
   useEffect(() => {
     if (count < 2) return
