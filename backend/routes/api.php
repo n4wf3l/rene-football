@@ -34,6 +34,7 @@ use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\MaintenanceController;
 use App\Http\Controllers\Api\PdfController;
 use App\Http\Controllers\Api\PartnerController;
+use App\Http\Controllers\Api\PasswordResetController;
 use App\Http\Controllers\Api\PlayerController;
 use App\Http\Controllers\Api\PresentationController;
 use App\Http\Controllers\Api\SettingsController;
@@ -48,6 +49,12 @@ use Illuminate\Support\Facades\Route;
 // so a shared NAT doesn't lock everyone out.
 Route::post('/admin/login', [AuthController::class, 'login'])
     ->middleware('throttle:login');
+
+// Forgotten password: emailed single-use link, then a new password.
+Route::post('/admin/forgot-password', [PasswordResetController::class, 'forgot'])
+    ->middleware('throttle:5,1');
+Route::post('/admin/reset-password', [PasswordResetController::class, 'reset'])
+    ->middleware('throttle:10,1');
 
 Route::get('/players', [PlayerController::class, 'index']);
 Route::get('/players/{player:slug}', [PlayerController::class, 'show']);
