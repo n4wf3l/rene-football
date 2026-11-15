@@ -349,7 +349,9 @@ function PlayerDetail({ player, percentiles, peersCount, appearances = [], clips
   return (
     <div ref={containerRef}>
       <Seo
-        title={player.name}
+        title={[player.name, player.position, player.club]
+          .filter((part, i, all): part is string => !!part && all.indexOf(part) === i)
+          .join(' · ')}
         description={
           player.bio
             ? player.bio.slice(0, 155)

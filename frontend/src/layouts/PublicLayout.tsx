@@ -5,9 +5,11 @@ import Footer from '../components/Footer'
 import FooterNav from '../components/FooterNav'
 import PageTransition from '../components/PageTransition'
 import { usePageView } from '../hooks/usePageView'
+import { useServerHeadCleanup } from '../hooks/useServerHeadCleanup'
 
 function PublicLayout() {
   usePageView()
+  useServerHeadCleanup()
   return (
     <div className="flex flex-col min-h-[100dvh] bg-stone-50 dark:bg-zinc-950">
       <Header />
