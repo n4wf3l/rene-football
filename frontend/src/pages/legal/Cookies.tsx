@@ -2,21 +2,23 @@ import LegalLayout from './LegalLayout'
 
 /**
  * Full inventory of what we store locally + what third-party services can
- * touch the browser. Mirrors what the code actually does; when an
- * analytics / marketing tool is added later, both this page and the
- * <CookieNotice /> banner will need an update.
+ * touch the browser. Mirrors what the code actually does; the anonymous
+ * visit counter (usePageView) runs server-side with no browser storage.
+ * When a third-party analytics / marketing tool is added later, both this
+ * page and the <CookieNotice /> banner will need an update.
  */
 export default function Cookies() {
   return (
     <LegalLayout
       titleKey="legal.cookies.title"
-      updatedAt="25 septembre 2026"
+      updatedAt="15 novembre 2026"
       summaryKey="legal.cookies.summary"
       intro={
         <>
           Notre site ne dépose <strong>aucun cookie de suivi, d'analytique
           ou publicitaire</strong>. Nous n'utilisons que le stockage local
-          strictement nécessaire au fonctionnement du site. Cette page en
+          strictement nécessaire au fonctionnement du site, et les visites
+          sont comptées anonymement par notre serveur. Cette page en
           liste le détail conformément à la{' '}
           <a href="https://cnpd.public.lu/fr/dossiers-thematiques/cookies0.html" target="_blank" rel="noreferrer">
             doctrine cookies de la CNPD
@@ -60,7 +62,7 @@ export default function Cookies() {
             présenter. Purement local.
           </dd>
 
-          <dt><code>rf_cookie_notice_ack</code> · <em>localStorage</em></dt>
+          <dt><code>rf_cookie_notice_ack_v2</code> · <em>localStorage</em></dt>
           <dd>
             Trace que vous avez pris connaissance du bandeau d'information.
             Renouvelée au maximum tous les 12 mois conformément à la
@@ -89,7 +91,21 @@ export default function Cookies() {
       </section>
 
       <section>
-        <h2>3. Services tiers</h2>
+        <h2>3. Comptage anonyme des visites</h2>
+        <p>
+          Notre serveur compte les pages consultées sur le site public afin
+          de mesurer son audience. Ce comptage se fait{' '}
+          <strong>entièrement côté serveur</strong> : aucun cookie n'est
+          déposé et rien n'est écrit dans votre navigateur. Votre adresse IP
+          n'est jamais enregistrée, et l'identifiant anonyme utilisé change
+          chaque jour, ce qui empêche tout suivi d'un jour à l'autre. Le détail
+          figure dans la{' '}
+          <a href="/confidentialite">politique de confidentialité</a> (§ 2.4).
+        </p>
+      </section>
+
+      <section>
+        <h2>4. Services tiers</h2>
 
         <h3>Google Fonts (<em>fonts.googleapis.com</em>)</h3>
         <p>
@@ -130,7 +146,7 @@ export default function Cookies() {
       </section>
 
       <section>
-        <h2>4. Vos moyens de contrôle</h2>
+        <h2>5. Vos moyens de contrôle</h2>
         <p>
           Vous pouvez à tout moment effacer les données stockées localement
           par ce site depuis les paramètres de votre navigateur :
@@ -148,7 +164,7 @@ export default function Cookies() {
       </section>
 
       <section>
-        <h2>5. En cas de doute</h2>
+        <h2>6. En cas de doute</h2>
         <p>
           Contactez-nous à{' '}
           <a href="mailto:contact@renefootball.com">contact@renefootball.com</a>{' '}

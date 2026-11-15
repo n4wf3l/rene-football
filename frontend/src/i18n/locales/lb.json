@@ -582,8 +582,8 @@
     "regionAria": "Cookie-Informatioun",
     "closeAria": "Bandeau zoumaachen",
     "eyebrow": "Privatsphär",
-    "title": "Keng Tracking-Cookien, keng Analytik.",
-    "body": "Mir benotze nëmmen de strikt noutwennegen lokale Späicher (Theme-Präferenz, Admin-Session). Keng Reklamm-Cookien, keng Tracker vun Drëttpersounen, keng Profiléierung. Detailer an der <cookies>Cookie-Politik</cookies> an an der <privacy>Vertraulechkeetspolitik</privacy>.",
+    "title": "Keng Cookien, kee Suivi.",
+    "body": "Mir zielen d'Visitten anonym op eisem eegene Server, ouni Cookien: Är IP-Adress gëtt ni gespäichert a kee Visiteur gëtt vun engem Dag op deen aneren nogekuckt. De lokale Späicher hält nëmmen Är Astellungen (Theme, Admin-Session). Detailer an der <cookies>Cookie-Politik</cookies> an an der <privacy>Vertraulechkeetspolitik</privacy>.",
     "acceptCta": "Verstanen",
     "learnMoreCta": "Méi wëssen"
   },
@@ -619,7 +619,7 @@
         "title": "Kuerz zesummegefaasst",
         "bullets": [
           "Mir sammelen nëmme wat Dir iwwer d'Kontaktformulaire schéckt (Numm, E-Mail, Telefon, Message, profillspezifesch Felder, fakultative Lieweslaf) plus Är IP an de User-Agent géint Spam.",
-          "Keng Analytik, keng Reklamm-Cookien, keng Tracker vun Drëttpersounen, keng Profiléierung.",
+          "Keen Analyse-Service, keng Reklamm-Cookien, keng Tracker vun Drëttpersounen, keng Profiléierung. D'Visitte ginn anonym op eisem eegene Server gezielt: kee Cookie, IP-Adress ni gespäichert, Identifiant all Dag erneiert, Späicherdauer 13 Méint.",
           "D'Donnéeë sinn nëmme fir d'Ekipp vu Rene Football an direkt technesch Dënschtleeschter (Hosting, E-Mail) zougänglech. Ni verkaaft oder gedeelt fir Marketing.",
           "Drëtt Servicer mat Browserzougrëff: Google Fonts (nëmmen IP), YouTube am Privacy-Modus (kee Cookie ier Dir op Play klickt), flagcdn.com.",
           "Späicherdauer: 12 Méint fir onbeäntwert Ufroen, Kontraktdauer + 5 Joer bei lafende Bezéiungen.",
@@ -633,7 +633,7 @@
       "summary": {
         "title": "Kuerz zesummegefaasst",
         "bullets": [
-          "Dës Websäit setzt keng Tracking-, Analytik- oder Reklamm-Cookien.",
+          "Dës Websäit setzt keng Tracking-, Analytik- oder Reklamm-Cookien. D'Visitte ginn anonym op eisem eegene Server gezielt, ouni eppes an Ärem Browser ze späicheren.",
           "Mir benotzen nëmmen de strikt noutwennege lokale Späicher: Theme-Präferenz, Admin-Session-Token (falls agemeldt), fortgeklickt Tutorialen.",
           "Fir dës brauch ee keng Zoustëmmung — si sinn no der CNPD-Direktiv ausgenee — mä mir dokumentéieren se fir voll Transparenz.",
           "Drëtt Servicer mat Browserzougrëff: Google Fonts (nëmmen IP, kee Cookie), YouTube am Privacy-Enhanced Modus (kee Cookie ier Dir op Play klickt), flagcdn.com fir Fändel-Ikonen.",

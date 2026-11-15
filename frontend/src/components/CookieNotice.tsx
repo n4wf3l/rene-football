@@ -6,20 +6,24 @@ import { Trans, useTranslation } from 'react-i18next'
 
 /**
  * Lightweight transparency notice, not a consent banner - because we ship
- * zero non-essential traceurs (no analytics, no marketing, no
- * fingerprinting). Consent isn't required by the CNPD for strictly
- * necessary storage, but a visible "here's what we don't do" note both
- * builds trust and cleanly documents the policy for any RGPD audit.
+ * zero non-essential traceurs (no third-party analytics, no marketing, no
+ * fingerprinting). Visits are counted by our own server without any
+ * browser storage and with a daily-rotating anonymous hash (see
+ * usePageView), which the CNPD doctrine exempts from consent. A visible
+ * "here's what we do and don't do" note builds trust and cleanly
+ * documents the policy for any RGPD audit.
  *
- * When we ever add analytics or marketing tools we upgrade this to a
- * full accept/refuse consent banner (both buttons at same visual level,
- * category granularity, 12-month re-collection - see CNPD cookies
+ * When we ever add a third-party analytics or marketing tool we upgrade
+ * this to a full accept/refuse consent banner (both buttons at same visual
+ * level, category granularity, 12-month re-collection - see CNPD cookies
  * guidelines Nov 2021).
  *
  * Ack is stored in localStorage as a timestamped ISO string and refreshed
- * every 12 months, matching CNPD Guidance §III.B.
+ * every 12 months, matching CNPD Guidance §III.B. The key carries a version
+ * so returning visitors see the notice again when its content changes
+ * (v2: anonymous visit counter).
  */
-const STORAGE_KEY = 'rf_cookie_notice_ack'
+const STORAGE_KEY = 'rf_cookie_notice_ack_v2'
 const REFRESH_MONTHS = 12
 
 function isAckStillValid(): boolean {

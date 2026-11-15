@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\Admin\AdminPartnerController;
 use App\Http\Controllers\Api\Admin\AdminSettingsController;
+use App\Http\Controllers\Api\Admin\AdminAnalyticsController;
 use App\Http\Controllers\Api\Admin\AdminAppearanceController;
 use App\Http\Controllers\Api\Admin\AdminArticleController;
 use App\Http\Controllers\Api\Admin\AdminClipController;
@@ -37,6 +38,7 @@ use App\Http\Controllers\Api\PlayerController;
 use App\Http\Controllers\Api\PresentationController;
 use App\Http\Controllers\Api\SettingsController;
 use App\Http\Controllers\Api\StaffController;
+use App\Http\Controllers\Api\TrackController;
 use Illuminate\Support\Facades\Route;
 
 // --- Public ---
@@ -62,6 +64,11 @@ Route::get('/players/{player:slug}/presentations', [PresentationController::clas
 Route::get('/presentations/{token}',               [PresentationController::class, 'show']);
 Route::get('/presentations/{token}/meta',          [PresentationController::class, 'meta']);
 
+// Anonymous page-view counter (see TrackController). 60 hits/min per IP is
+// far above any human browsing pace.
+Route::post('/track/view', [TrackController::class, 'view'])
+    ->middleware('throttle:60,1');
+
 Route::post('/contact', [ContactController::class, 'store'])
     ->middleware('throttle:5,1');
 
@@ -85,6 +92,8 @@ Route::get('/_maintenance/health',       [MaintenanceController::class, 'health'
 // --- Authenticated admin ---
 Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
+
+    Route::get('/analytics', [AdminAnalyticsController::class, 'overview']);
     Route::post('/logout', [AuthController::class, 'logout']);
 
     Route::get('/players', [AdminPlayerController::class, 'index']);

@@ -136,10 +136,10 @@ class MaintenanceController extends Controller
     /**
      * POST /api/_maintenance/cron/purge
      *
-     * Hit daily by Hostinger Cron Jobs to run the RGPD retention purge
-     * (deletes contact submissions + CVs > 12 months unless archived).
-     * Replaces the OS-level `php artisan schedule:run` that we can't use
-     * on shared hosting without SSH.
+     * Hit daily by Hostinger Cron Jobs to run the RGPD retention purges
+     * (contact submissions + CVs > 12 months unless archived, anonymous
+     * page views > 13 months). Replaces the OS-level `php artisan
+     * schedule:run` that we can't use on shared hosting without SSH.
      */
     public function cronPurge(Request $request): JsonResponse
     {
@@ -150,7 +150,9 @@ class MaintenanceController extends Controller
         try {
             Artisan::call('submissions:purge');
             $output = trim(Artisan::output());
-            Log::info('Maintenance: submissions:purge ran via HTTP cron', ['output' => $output]);
+            Artisan::call('analytics:purge');
+            $output .= "\n".trim(Artisan::output());
+            Log::info('Maintenance: retention purges ran via HTTP cron', ['output' => $output]);
             return response()->json([
                 'ok'       => true,
                 'at'       => now()->toIso8601String(),

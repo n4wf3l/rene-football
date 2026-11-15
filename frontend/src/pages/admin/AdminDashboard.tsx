@@ -92,50 +92,45 @@ const BADGE_TONES: Record<BadgeTone, string> = {
   neutral: 'bg-stone-100 text-zinc-600 border border-stone-200 dark:bg-stone-50/[0.06] dark:text-stone-300 dark:border-stone-50/10',
 }
 
-/* ─────────────────────────── Visits placeholder tile ───────────────────────────
- * Occupe la place d'une case KPI classique mais avec un design "en construction" :
- * fond rayé subtil, badge "Bientôt" et texte explicatif court. Le site n'a aucun
- * tracker (zero cookie, zero analytics) — un module compteur server-side anonyme
- * compatible CNPD est documenté dans docs/analytics-roadmap.md. Ce placeholder
- * fait vivre l'intention sans mentir sur l'état actuel.
+/* ─────────────────────────── Visits tile ───────────────────────────
+ * Visites du site public sur 7 jours, depuis le compteur anonyme côté serveur
+ * (GET /admin/analytics). Un clic ouvre la page Fréquentation complète.
  */
-function VisitsPlaceholderTile() {
+interface VisitsTotals {
+  views: number
+  visits: number
+  prev_visits: number
+}
+
+function VisitsTile() {
+  const [totals, setTotals] = useState<VisitsTotals | null>(null)
+  const [failed, setFailed] = useState(false)
+
+  useEffect(() => {
+    api.get<{ totals: VisitsTotals }>('/admin/analytics?days=7', { auth: true })
+      .then((r) => setTotals(r.totals))
+      .catch(() => setFailed(true))
+  }, [])
+
+  const change = totals && totals.prev_visits > 0
+    ? Math.round(((totals.visits - totals.prev_visits) / totals.prev_visits) * 100)
+    : null
+
   return (
-    <div className="rounded-2xl bg-gradient-to-br from-white via-stone-50/60 to-stone-50 dark:from-zinc-900/80 dark:via-zinc-900/60 dark:to-zinc-900/40 border border-dashed border-stone-300 dark:border-stone-50/15 p-5 flex flex-col justify-between min-h-[164px] relative overflow-hidden">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -top-10 -right-10 w-32 h-32 rounded-full bg-turf-500/5 blur-2xl"
+    <Link to="/admin/frequentation" className="block rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-turf-700/30">
+      <StatTile
+        icon={Eye}
+        label="Visites site (7 j)"
+        value={totals ? totals.visits.toLocaleString('fr-FR') : '—'}
+        hint={totals
+          ? `${totals.views.toLocaleString('fr-FR')} page${totals.views > 1 ? 's' : ''} vue${totals.views > 1 ? 's' : ''}`
+          : failed ? 'Statistiques indisponibles' : 'Chargement…'}
+        sub="Voir la fréquentation"
+        badge={change != null && change !== 0
+          ? { text: `${change > 0 ? '+' : ''}${change} %`, tone: change > 0 ? 'turf' : 'amber' }
+          : undefined}
       />
-      <div className="relative">
-        <div className="flex items-start justify-between gap-2">
-          <span className={EYEBROW}>Visites plateforme</span>
-          <span className="grid place-items-center w-8 h-8 rounded-lg bg-stone-100 text-zinc-500 dark:bg-stone-50/5 dark:text-stone-400">
-            <Eye size={15} weight="duotone" />
-          </span>
-        </div>
-        <div className="mt-3 font-display font-semibold text-2xl leading-none tracking-tight text-zinc-400 dark:text-stone-500 tabular-nums">
-          — / 7 j
-        </div>
-        <p className="mt-2 text-xs text-zinc-500 dark:text-stone-400 leading-relaxed">
-          Module compteur server-side sans cookie en préparation (CNPD-compliant).
-        </p>
-      </div>
-      <div className="relative mt-3 flex items-center justify-between gap-2">
-        <span className="text-[0.625rem] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200/70 dark:bg-amber-500/10 dark:text-amber-200 dark:border-amber-400/20">
-          Bientôt
-        </span>
-        <a
-          href="https://github.com/n4wf3l/rene-football/issues/1"
-          target="_blank"
-          rel="noreferrer noopener"
-          className="inline-flex items-center gap-1 text-[0.65rem] font-mono uppercase tracking-wider text-zinc-500 hover:text-turf-700 dark:text-stone-400 dark:hover:text-turf-200 transition-colors"
-          title="Voir la roadmap de la fonctionnalité"
-        >
-          Roadmap
-          <ArrowUpRight size={11} weight="bold" />
-        </a>
-      </div>
-    </div>
+    </Link>
   )
 }
 
@@ -742,7 +737,7 @@ function AdminDashboard() {
           ce qui aide l'admin à décider quoi faire *maintenant* : traffic du site,
           signatures récentes, activité scouting, et dernière mise à jour globale. */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <VisitsPlaceholderTile />
+        <VisitsTile />
         <StatTile
           icon={UserPlus}
           label="Signatures (30 j)"
