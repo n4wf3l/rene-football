@@ -61,6 +61,17 @@ export function locateClub(club: string | null | undefined): ClubLocation | null
   return best?.loc ?? null
 }
 
+/**
+ * The part of a free-form club string that names the located club:
+ * "RWDM Molenbeek / F91 Dudelange" at RWDM → "RWDM Molenbeek".
+ * Falls back to the whole string when it isn't a list of clubs.
+ */
+export function clubLabel(club: string, loc: ClubLocation): string {
+  const parts = club.split(/\s*[/|,]\s*/).filter(Boolean)
+  if (parts.length < 2) return club.trim()
+  return parts.find((part) => loc.keys.some((key) => normalize(part).includes(key)))?.trim() ?? club.trim()
+}
+
 /** Great-circle distance in km. */
 export function distanceKm(a: { lat: number; lon: number }, b: { lat: number; lon: number }): number {
   const rad = Math.PI / 180
