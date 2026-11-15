@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ChangeEvent, CSSProperties, FormEvent, ReactNode } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
   ArrowSquareOut,
   CheckCircle,
@@ -31,6 +31,7 @@ import type {
 } from '../../types/presentation'
 import PdfGenerationOverlay from '../../components/PdfGenerationOverlay'
 import PlayerSingleSelect from '../../components/PlayerSingleSelect'
+import FichePlayerPicker from '../../components/admin/FichePlayerPicker'
 import PresentationPreview from '../../components/PresentationPreview'
 import type { PresentationPreviewResult } from '../../components/PresentationPreview'
 import Skeleton from '../../components/Skeleton'
@@ -120,6 +121,8 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   const [players, setPlayers] = useState<(Player & { id: number })[]>([])
+  const [playersLoaded, setPlayersLoaded] = useState(false)
+  const [params, setParams] = useSearchParams()
   const [compositions, setCompositions] = useState<FicheCompositionInfo[]>([])
   const [themes, setThemes] = useState<FicheThemeInfo[]>([])
   const [statCatalogue, setStatCatalogue] = useState<PresentationStatChoice[]>([])
@@ -145,6 +148,21 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedPlayer?.id])
 
+  function pickPlayer(slug: string | null) {
+    const p = slug ? players.find((x) => x.slug === slug) : undefined
+    setForm((f) => ({ ...f, player_id: p?.id ?? null }))
+    if (p) setErrors(({ player_id: _done, ...rest }) => rest)
+  }
+
+  // Back from "Créer le joueur": the new player arrives as ?joueur=slug.
+  const wantedSlug = creating ? params.get('joueur') : null
+  useEffect(() => {
+    if (!wantedSlug || !playersLoaded) return
+    pickPlayer(wantedSlug)
+    setParams((q) => { q.delete('joueur'); return q }, { replace: true })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wantedSlug, playersLoaded])
+
   const bioDirty = !!selectedPlayer && (selectedPlayer.bio ?? '').trim() !== form.player_bio.trim()
 
   // --- composition & effective options (defaults come from the backend) ----
@@ -163,6 +181,7 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
     api.get<PlayersResponse>('/admin/players', { auth: true })
       .then((res) => setPlayers(res.data))
       .catch(() => toast.error('Liste des joueurs indisponible.'))
+      .finally(() => setPlayersLoaded(true))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -505,10 +524,7 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
                 <PlayerSingleSelect
                   players={players}
                   selectedSlug={selectedPlayer?.slug ?? null}
-                  onChange={(slug) => {
-                    const p = players.find((x) => x.slug === slug)
-                    setForm((f) => ({ ...f, player_id: p?.id ?? null }))
-                  }}
+                  onChange={pickPlayer}
                   placeholder="Choisir un joueur du roster"
                 />
                 {errors.player_id && <span className="mt-1 block text-[0.7rem] text-rose-600 dark:text-rose-400">{errors.player_id}</span>}
@@ -601,6 +617,9 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
         {/* CENTRE - the real PDF, as large as the screen allows (A4 fits the height) */}
         <main className="bg-stone-200/70 dark:bg-black/40 lg:overflow-y-auto px-4 py-6 lg:px-10 lg:py-8">
           <div className="mx-auto w-full space-y-3" style={{ maxWidth: 'min(820px, calc((100dvh - 11rem) * 0.7071))' }}>
+            {!form.player_id ? (
+              <FichePlayerPicker players={players} loaded={playersLoaded} onPick={pickPlayer} />
+            ) : (<>
             <div className="flex items-center justify-between">
               <span className="text-[0.65rem] font-mono uppercase tracking-[0.16em] text-zinc-500 dark:text-stone-400">
                 Aperçu · PDF réel
@@ -648,6 +667,7 @@ export default function AdminPresentationEdit({ creating = false }: { creating?:
                 {preview.details.length > 0 && <ul className="mt-1 list-disc pl-5 opacity-80">{preview.details.slice(0, 3).map((d) => <li key={d}>{d}</li>)}</ul>}
               </div>
             )}
+            </>)}
           </div>
         </main>
 
