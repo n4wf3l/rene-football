@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AppSetting;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class AdminSettingsController extends Controller
 {
@@ -51,6 +52,9 @@ class AdminSettingsController extends Controller
             'contact_email'  => ['nullable', 'email:rfc', 'max:160'],
             'contact_phone'  => ['nullable', 'string', 'max:40'],
             'office_city'    => ['nullable', 'string', 'max:200'],
+
+            // Appearance.
+            'hero_variant'   => ['nullable', 'string', Rule::in(AppSetting::HERO_VARIANTS)],
         ]);
 
         // Normalise empty strings → null so filters/fallbacks behave sanely.
@@ -86,6 +90,8 @@ class AdminSettingsController extends Controller
             'contact_email'  => $s->contact_email,
             'contact_phone'  => $s->contact_phone,
             'office_city'    => $s->office_city,
+            // Appearance
+            'hero_variant'   => $s->heroVariant(),
         ];
     }
 }

@@ -27,6 +27,7 @@ class SettingsController extends Controller
                 'social_links' => $s->socialLinks(),
                 'contact'      => $s->publicContact(),
                 'legal'        => $s->publicLegal(),
+                'appearance'   => ['hero_variant' => $s->heroVariant()],
             ],
         ]);
     }

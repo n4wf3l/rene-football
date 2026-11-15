@@ -61,6 +61,23 @@
             })
             .catch(function () { return null; });
         } catch (_) {}
+
+        // Public settings (footer links, contact, the home hero chosen in
+        // Réglages). The hero name is kept for the next visit so the right
+        // hero shows at once (useHeroVariant).
+        try {
+          window.__rfSettings = fetch('/api/settings', { headers: { Accept: 'application/json' } })
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (res) {
+              if (res && res.data) {
+                window.__rfSettingsData = res.data;
+                var hero = res.data.appearance && res.data.appearance.hero_variant;
+                try { if (hero) localStorage.setItem('rf_hero_variant', hero); } catch (_) {}
+              }
+              return res;
+            })
+            .catch(function () { return null; });
+        } catch (_) {}
       })();
     </script>
 

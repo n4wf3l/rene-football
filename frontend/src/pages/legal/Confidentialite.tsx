@@ -83,7 +83,8 @@ export default function Confidentialite() {
           <li>
             Une copie de la liste publique de nos joueurs, pour afficher la
             page d'accueil plus vite lors de vos visites suivantes (aucune
-            donnée vous concernant, ignorée après 7 jours).
+            donnée vous concernant, ignorée après 7 jours), ainsi que le nom
+            de la mise en page d'accueil choisie par l'agence.
           </li>
           <li>
             Le dernier tutoriel ou onboarding que vous avez fermé (pour ne

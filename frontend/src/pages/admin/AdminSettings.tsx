@@ -6,6 +6,7 @@ import {
   Buildings,
   CheckCircle,
   FacebookLogo,
+  House,
   InstagramLogo,
   LinkedinLogo,
   TiktokLogo,
@@ -17,11 +18,13 @@ import { api, ApiError } from '../../api/client'
 import { invalidateAppSettings } from '../../lib/useAppSettings'
 import type { AdminSettings } from '../../types/settings'
 import Skeleton from '../../components/Skeleton'
+import HeroVariantPicker from '../../components/admin/HeroVariantPicker'
+import { DEFAULT_HERO, isHeroVariant } from '../../lib/heroVariants'
 import { useToast } from '../../components/ToastProvider'
 
 interface AdminSettingsResponse { data: AdminSettings }
 
-type TabKey = 'social' | 'legal' | 'contact'
+type TabKey = 'home' | 'social' | 'legal' | 'contact'
 
 const EMPTY: AdminSettings = {
   instagram_url: '',
@@ -38,6 +41,7 @@ const EMPTY: AdminSettings = {
   contact_email: '',
   contact_phone: '',
   office_city: '',
+  hero_variant: DEFAULT_HERO,
 }
 
 const SOCIAL_FIELDS: Array<{ key: keyof AdminSettings; label: string; Icon: PhosphorIcon; placeholder: string }> = [
@@ -53,6 +57,11 @@ const INPUT_BASE =
   'w-full rounded-lg border border-stone-300 bg-white text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-900 dark:border-stone-50/15 dark:bg-zinc-900 dark:text-stone-50 dark:placeholder:text-stone-500 dark:focus:border-turf-300 px-3 py-2 text-sm focus:outline-none transition'
 
 const TAB_META: Record<TabKey, { label: string; Icon: PhosphorIcon; hint: string }> = {
+  home: {
+    label: 'Page d\'accueil',
+    Icon: House,
+    hint: 'Mise en page du haut de la page d\'accueil. « Aperçu sur le site » ouvre chaque version dans un nouvel onglet sans rien changer pour les visiteurs ; le choix s\'applique après « Enregistrer ».',
+  },
   social: {
     label: 'Réseaux sociaux',
     Icon: InstagramLogo,
@@ -72,7 +81,7 @@ const TAB_META: Record<TabKey, { label: string; Icon: PhosphorIcon; hint: string
 
 export default function AdminSettings() {
   const toast = useToast()
-  const [tab, setTab] = useState<TabKey>('social')
+  const [tab, setTab] = useState<TabKey>('home')
   const [form, setForm] = useState<AdminSettings>(EMPTY)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -184,6 +193,13 @@ export default function AdminSettings() {
         </p>
 
         <form onSubmit={submit} className="space-y-5">
+          {tab === 'home' && (
+            <HeroVariantPicker
+              value={isHeroVariant(form.hero_variant) ? form.hero_variant : DEFAULT_HERO}
+              onChange={(v) => set('hero_variant', v)}
+            />
+          )}
+
           {tab === 'social' && (
             <div className="space-y-4">
               {SOCIAL_FIELDS.map(({ key, label, Icon, placeholder }) => (

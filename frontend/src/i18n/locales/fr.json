@@ -57,6 +57,9 @@
     "copyright": "© {{year}} Rene Football. Tous droits réservés."
   },
   "home": {
+    "heroVariants": {
+      "lineupCaption": "L'effectif"
+    },
     "hero": {
       "chip": "Agence de football",
       "titlePre": "Représenter chaque",

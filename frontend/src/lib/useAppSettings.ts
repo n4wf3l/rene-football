@@ -14,6 +14,15 @@ const EMPTY: PublicSettings = {
     registered_office_address: null,
     publication_director: null,
   },
+  appearance: { hero_variant: 'spotlight' },
+}
+
+declare global {
+  interface Window {
+    /** Started by the inline script in index.html, before the app loads. */
+    __rfSettings?: Promise<SettingsResponse | null>
+    __rfSettingsData?: PublicSettings
+  }
 }
 
 let cache: PublicSettings | null = null
@@ -22,9 +31,15 @@ let inflight: Promise<PublicSettings> | null = null
 function fetchOnce(): Promise<PublicSettings> {
   if (cache) return Promise.resolve(cache)
   if (inflight) return inflight
-  inflight = api.get<SettingsResponse>('/settings')
+  // index.html already asked for the settings while the app was loading.
+  const early = window.__rfSettings
+  window.__rfSettings = undefined
+  const request: Promise<SettingsResponse | null> = early
+    ? early.then((res) => res ?? api.get<SettingsResponse>('/settings'))
+    : api.get<SettingsResponse>('/settings')
+  inflight = request
     .then((res) => {
-      cache = res.data ?? EMPTY
+      cache = { ...EMPTY, ...(res?.data ?? {}) }
       return cache
     })
     .catch(() => {
@@ -33,6 +48,11 @@ function fetchOnce(): Promise<PublicSettings> {
     })
     .finally(() => { inflight = null })
   return inflight
+}
+
+/** The public settings, once (shared by every caller on the page). */
+export function loadAppSettings(): Promise<PublicSettings> {
+  return fetchOnce()
 }
 
 /** Public agency settings (social URLs, etc.). Cached module-wide so all

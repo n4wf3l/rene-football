@@ -102,4 +102,33 @@ class SettingsTest extends TestCase
             ->assertStatus(422)
             ->assertJsonValidationErrors(['instagram_url']);
     }
+
+    public function test_hero_variant_defaults_to_spotlight(): void
+    {
+        $this->getJson('/api/settings')
+            ->assertOk()
+            ->assertJsonPath('data.appearance.hero_variant', 'spotlight');
+    }
+
+    public function test_admin_can_choose_the_home_hero(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $this->actingAs($admin, 'sanctum')
+            ->putJson('/api/admin/settings', ['hero_variant' => 'lineup'])
+            ->assertOk()
+            ->assertJsonPath('data.hero_variant', 'lineup');
+
+        $this->getJson('/api/settings')->assertJsonPath('data.appearance.hero_variant', 'lineup');
+    }
+
+    public function test_unknown_hero_variant_is_rejected(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $this->actingAs($admin, 'sanctum')
+            ->putJson('/api/admin/settings', ['hero_variant' => 'disco'])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['hero_variant']);
+    }
 }
