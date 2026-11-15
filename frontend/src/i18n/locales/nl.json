@@ -319,6 +319,15 @@
     "cta": "Terug naar home"
   },
   "article": {
+    "admin": {
+      "label": "Beheermodus",
+      "edit": "Bewerken",
+      "delete": "Verwijderen",
+      "confirmTitle": "“{{title}}” verwijderen?",
+      "confirmBody": "Dit is definitief: het artikel staat daarna niet meer online.",
+      "deleted": "“{{title}}” verwijderd.",
+      "deleteError": "Verwijderen niet mogelijk."
+    },
     "backToList": "Alle berichten",
     "featured": "Uitgelicht",
     "sidebarTitle": "In het kort",

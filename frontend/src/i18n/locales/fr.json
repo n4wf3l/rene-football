@@ -319,6 +319,15 @@
     "cta": "Retour à l'accueil"
   },
   "article": {
+    "admin": {
+      "label": "Mode admin",
+      "edit": "Modifier",
+      "delete": "Supprimer",
+      "confirmTitle": "Supprimer « {{title}} » ?",
+      "confirmBody": "Cette action est définitive : l’article ne sera plus en ligne.",
+      "deleted": "« {{title}} » supprimé.",
+      "deleteError": "Suppression impossible."
+    },
     "backToList": "Toutes les actualités",
     "featured": "À la une",
     "sidebarTitle": "En bref",

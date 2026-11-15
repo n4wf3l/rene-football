@@ -319,6 +319,15 @@
     "cta": "Zurück zur Startseite"
   },
   "article": {
+    "admin": {
+      "label": "Admin-Modus",
+      "edit": "Bearbeiten",
+      "delete": "Löschen",
+      "confirmTitle": "„{{title}}“ löschen?",
+      "confirmBody": "Dies kann nicht rückgängig gemacht werden: Der Artikel ist danach nicht mehr online.",
+      "deleted": "„{{title}}“ gelöscht.",
+      "deleteError": "Löschen nicht möglich."
+    },
     "backToList": "Alle Beiträge",
     "featured": "Empfohlen",
     "sidebarTitle": "Auf einen Blick",
