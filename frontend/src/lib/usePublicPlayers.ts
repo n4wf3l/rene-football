@@ -17,7 +17,22 @@ declare global {
   interface Window {
     /** Started by index.html before the app boots (null on failure). */
     __rfPlayers?: Promise<PlayersResponse | null>
+    /** Set by index.html once that request has answered. */
+    __rfPlayersData?: Player[]
   }
+}
+
+/**
+ * The roster when it is already known: cached, or already delivered to
+ * index.html. Lets the very first render show the players instead of an
+ * empty state followed by a second render.
+ */
+function known(): Player[] | null {
+  if (!cache && typeof window !== 'undefined' && window.__rfPlayersData) {
+    cache = window.__rfPlayersData
+    window.__rfPlayers = undefined
+  }
+  return cache
 }
 
 /** Uses the request index.html already started, once; otherwise fetches. */
@@ -31,7 +46,7 @@ function request(): Promise<PlayersResponse> {
 }
 
 function fetchOnce(): Promise<Player[]> {
-  if (cache) return Promise.resolve(cache)
+  if (known()) return Promise.resolve(cache as Player[])
   if (inflight) return inflight
   inflight = request()
     .then((res) => {
@@ -48,8 +63,8 @@ function fetchOnce(): Promise<Player[]> {
 
 /** Returns the public (`is_published = true`) roster, sorted by name on the backend. */
 export function usePublicPlayers(): { players: Player[]; loading: boolean } {
-  const [players, setPlayers] = useState<Player[]>(cache ?? [])
-  const [loading, setLoading] = useState(cache == null)
+  const [players, setPlayers] = useState<Player[]>(() => known() ?? [])
+  const [loading, setLoading] = useState(() => known() == null)
 
   useEffect(() => {
     let cancelled = false

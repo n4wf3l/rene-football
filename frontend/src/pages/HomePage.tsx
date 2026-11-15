@@ -15,6 +15,7 @@ import {
 } from '@phosphor-icons/react'
 import { useTranslation } from 'react-i18next'
 import MercatoTicker from '../components/MercatoTicker'
+import DeferredRender from '../components/DeferredRender'
 import Seo from '../components/Seo'
 import YouTubeEmbed from '../components/YouTubeEmbed'
 import MeshGradient from '../components/MeshGradient'
@@ -223,6 +224,9 @@ function HomePage() {
         </div>
       </section>
 
+      {/* Everything below the hero renders right after the hero has been
+          painted, so the first screen doesn't wait for the map, news, video… */}
+      <DeferredRender>
       {/* MERCATO TICKER */}
       <MercatoTicker />
 
@@ -511,6 +515,7 @@ function HomePage() {
       </section>
       {/* OUTRO - the wordmark closes the page */}
       <OutroWordmark />
+      </DeferredRender>
     </>
   )
 }
