@@ -16,6 +16,7 @@ import { ARTICLE_CATEGORIES } from '../../types/article'
 import type { Player } from '../../types/player'
 import type { PlayerClip } from '../../types/clip'
 import Skeleton from '../../components/Skeleton'
+import StickySaveBar from '../../components/admin/StickySaveBar'
 import PlayerSingleSelect from '../../components/PlayerSingleSelect'
 import MarkdownEditor from '../../components/admin/MarkdownEditor'
 import { useConfirm } from '../../components/ConfirmProvider'
@@ -392,7 +393,7 @@ export default function AdminArticleEdit({ creating = false }: { creating?: bool
         </div>
       </div>
 
-      <form onSubmit={submit} className="flex-1 overflow-y-auto px-6 lg:px-10 py-8 max-w-5xl w-full mx-auto space-y-10">
+      <form onSubmit={submit} className="flex-1 px-6 lg:px-10 py-8 max-w-5xl w-full mx-auto space-y-10">
 
         {errors._global && (
           <div className="px-4 py-3 rounded-xl bg-rose-100 text-rose-800 dark:bg-rose-500/15 dark:text-rose-300 text-sm">
@@ -750,7 +751,7 @@ export default function AdminArticleEdit({ creating = false }: { creating?: bool
         </section>
 
         {/* SAVE BAR */}
-        <div className="sticky bottom-0 -mx-6 lg:-mx-10 px-6 lg:px-10 py-4 bg-stone-50/95 dark:bg-zinc-950/95 backdrop-blur border-t border-stone-200 dark:border-stone-50/10 flex items-center justify-end gap-2">
+        <StickySaveBar>
           <button
             type="button"
             onClick={() => navigate('/admin/articles')}
@@ -765,7 +766,7 @@ export default function AdminArticleEdit({ creating = false }: { creating?: bool
           >
             {saving ? 'Enregistrement…' : (creating ? 'Créer l\'article' : 'Enregistrer')}
           </button>
-        </div>
+        </StickySaveBar>
       </form>
     </div>
   )

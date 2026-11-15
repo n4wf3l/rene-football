@@ -18,6 +18,7 @@ import { api, ApiError } from '../../api/client'
 import { invalidateAppSettings } from '../../lib/useAppSettings'
 import type { AdminSettings } from '../../types/settings'
 import Skeleton from '../../components/Skeleton'
+import StickySaveBar from '../../components/admin/StickySaveBar'
 import HeroVariantPicker from '../../components/admin/HeroVariantPicker'
 import { DEFAULT_HERO, isHeroVariant } from '../../lib/heroVariants'
 import { useToast } from '../../components/ToastProvider'
@@ -307,15 +308,8 @@ export default function AdminSettings() {
             </div>
           )}
 
-          <div className="pt-4 flex items-center gap-3 flex-wrap">
-            <button
-              type="submit"
-              disabled={saving}
-              className="btn btn-primary text-sm disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              {saving ? 'Enregistrement…' : 'Enregistrer'}
-            </button>
-            {savedAt && !saving && (
+          <StickySaveBar
+            status={savedAt && !saving ? (
               <motion.span
                 key={savedAt}
                 initial={{ opacity: 0, x: -6 }}
@@ -324,8 +318,16 @@ export default function AdminSettings() {
               >
                 <CheckCircle size={14} weight="bold" /> Enregistré. Les pages publiques se mettent à jour au prochain chargement.
               </motion.span>
-            )}
-          </div>
+            ) : null}
+          >
+            <button
+              type="submit"
+              disabled={saving}
+              className="btn btn-primary text-sm disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {saving ? 'Enregistrement…' : 'Enregistrer'}
+            </button>
+          </StickySaveBar>
         </form>
       </div>
     </div>
