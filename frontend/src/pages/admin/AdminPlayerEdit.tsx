@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { api, ApiError } from '../../api/client'
 import {
   EMPTY_PLAYER,
@@ -25,13 +25,18 @@ export default function AdminPlayerEdit({ creating = false }: { creating?: boole
   const toast = useToast()
   const { slug } = useParams<{ slug: string }>()
   const navigate = useNavigate()
+  // Opened from the fiche editor ("Créer le joueur"): come back to it with
+  // the new player chosen, and start from the name typed in its search.
+  const [params] = useSearchParams()
+  const backToFiche = creating && params.get('retour') === 'fiche'
+  const typedName = (params.get('nom') ?? '').trim().slice(0, 120)
   const [player, setPlayer] = useState<PlayerFormState | null>(null)
   const [loading, setLoading] = useState(!creating)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (creating) {
-      setPlayer(EMPTY_PLAYER)
+      setPlayer(typedName ? { ...EMPTY_PLAYER, name: typedName } : EMPTY_PLAYER)
       setLoading(false)
       return
     }
@@ -50,11 +55,17 @@ export default function AdminPlayerEdit({ creating = false }: { creating?: boole
       })
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
-  }, [slug, creating])
+  }, [slug, creating, typedName])
 
-  const onClose = () => navigate('/admin/joueurs')
+  const FICHE_URL = '/admin/presentations/nouvelle'
+  const onClose = () => navigate(backToFiche ? FICHE_URL : '/admin/joueurs')
 
   const onSaved = (saved: AdminPlayer, kind: SaveKind) => {
+    if (backToFiche && kind === 'created' && saved.slug) {
+      toast.success(`« ${saved.name} » créé. Il est choisi pour la fiche.`)
+      navigate(`${FICHE_URL}?joueur=${encodeURIComponent(saved.slug)}`)
+      return
+    }
     navigate('/admin/joueurs', {
       state: {
         toast: kind === 'created'
