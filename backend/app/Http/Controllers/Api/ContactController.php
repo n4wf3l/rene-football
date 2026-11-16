@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\ContactSubmission;
+use App\Services\ContactTelegramMessage;
+use App\Services\TelegramNotifier;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -124,6 +126,7 @@ class ContactController extends Controller
         ]);
 
         $this->notify($submission);
+        $this->notifyTelegram($submission);
 
         return response()->json([
             'data' => [
@@ -219,6 +222,27 @@ class ContactController extends Controller
                 'error'         => $e->getMessage(),
             ]);
         }
+    }
+
+    /**
+     * Same submission, posted by the "ReneFootball" Telegram bot in the
+     * agency chat. Best effort too: Telegram down or not configured never
+     * fails the public form.
+     */
+    private function notifyTelegram(ContactSubmission $submission): void
+    {
+        // Sent once the response is on its way, so a slow Telegram never
+        // makes the visitor wait.
+        app()->terminating(function () use ($submission) {
+            try {
+                app(TelegramNotifier::class)->send(ContactTelegramMessage::build($submission));
+            } catch (Throwable $e) {
+                Log::warning('Contact Telegram dispatch failed', [
+                    'submission_id' => $submission->id,
+                    'error'         => $e->getMessage(),
+                ]);
+            }
+        });
     }
 
     /**
