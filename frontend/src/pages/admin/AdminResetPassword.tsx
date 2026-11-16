@@ -28,6 +28,8 @@ export default function AdminResetPassword() {
   const toast = useToast()
   const token = params.get('token') ?? ''
   const email = params.get('email') ?? ''
+  // New member's invitation (Members page) rather than a forgotten password.
+  const invitation = params.get('invitation') === '1'
 
   const [password, setPassword] = useState('')
   const [confirmation, setConfirmation] = useState('')
@@ -43,8 +45,8 @@ export default function AdminResetPassword() {
     setErrors({})
     setSubmitting(true)
     try {
-      await api.post('/admin/reset-password', { token, email, password, password_confirmation: confirmation })
-      toast.success('Mot de passe modifié.')
+      await api.post('/admin/reset-password', { token, email, password, password_confirmation: confirmation, ...(invitation ? { invitation: true } : {}) })
+      toast.success(invitation ? 'Compte activé. Vous pouvez vous connecter.' : 'Mot de passe modifié.')
       navigate('/admin/login', { replace: true, state: { passwordReset: true, email } })
     } catch (err) {
       const data = err instanceof ApiError
@@ -72,16 +74,18 @@ export default function AdminResetPassword() {
   return (
     <AuthLayout>
       <span className="inline-flex items-center gap-2 font-mono uppercase tracking-[0.2em] text-[0.62rem] text-turf-700 dark:text-turf-300">
-        <Key size={12} weight="bold" /> Nouveau mot de passe
+        <Key size={12} weight="bold" /> {invitation ? 'Activer votre compte' : 'Nouveau mot de passe'}
       </span>
       <h2 className="mt-3 font-display font-semibold text-3xl lg:text-[2.4rem] tracking-tight text-zinc-950 dark:text-stone-50">
-        {linkProblem ? 'Lien expiré.' : 'Choisissez-en un nouveau.'}
+        {linkProblem ? 'Lien expiré.' : invitation ? 'Choisissez votre mot de passe.' : 'Choisissez-en un nouveau.'}
       </h2>
 
       {linkProblem ? (
         <>
           <p className="mt-3 text-sm text-zinc-600 dark:text-stone-400 leading-relaxed">
-            {linkProblem} Les liens de réinitialisation sont valables 60 minutes et ne servent qu'une fois.
+            {linkProblem} {invitation
+              ? "Les liens d'invitation sont valables 72 heures et ne servent qu'une fois. Vous pouvez aussi demander un lien de réinitialisation."
+              : "Les liens de réinitialisation sont valables 60 minutes et ne servent qu'une fois."}
           </p>
           <Link to="/admin/mot-de-passe-oublie" state={{ email }} className={`${AUTH_BUTTON} mt-8`}>
             Demander un nouveau lien
@@ -92,7 +96,7 @@ export default function AdminResetPassword() {
         <>
           <p className="mt-2 text-sm text-zinc-600 dark:text-stone-400 leading-relaxed">
             Pour le compte <span className="font-medium text-zinc-900 dark:text-stone-100">{email}</span>.
-            Les sessions ouvertes seront fermées.
+            {invitation ? '' : ' Les sessions ouvertes seront fermées.'}
           </p>
           <form onSubmit={onSubmit} className="mt-9 space-y-5">
             <label className="block">

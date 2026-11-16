@@ -99,6 +99,15 @@ return [
             'expire' => 60,
             'throttle' => 60,
         ],
+
+        // Invitation sent to a new member (Members page): same flow as a
+        // reset, longer-lived because it is often opened later.
+        'invitations' => [
+            'provider' => 'users',
+            'table' => 'member_invitation_tokens',
+            'expire' => 72 * 60,
+            'throttle' => 0,
+        ],
     ],
 
     /*

@@ -21,10 +21,12 @@ import {
   SignOut,
   SoccerBall,
   Strategy,
+  UserGear,
   UsersThree,
   X as XIcon,
 } from '@phosphor-icons/react'
 import { useAuth } from '../auth/AuthContext'
+import { usePermissions, type Permission } from '../auth/permissions'
 import { api } from '../api/client'
 import ThemeToggle from '../theme/ThemeToggle'
 import BrandLogo from '../components/BrandLogo'
@@ -45,6 +47,8 @@ interface AdminNavItem {
   end?: boolean
   /** Optional badge slot - looked up in the SidebarBadges map. */
   badgeKey?: BadgeKey
+  /** Shown only to roles with this permission (auth/permissions). */
+  need?: Permission
 }
 
 interface AdminNavGroup { title: string; items: AdminNavItem[] }
@@ -66,6 +70,7 @@ const NAV: Record<AdminSpace, AdminNavGroup[]> = {
     ] },
     { title: 'Agence', items: [
       { to: '/admin/contact',  label: 'Contact',  icon: EnvelopeSimple, badgeKey: 'contact' },
+      { to: '/admin/membres',  label: 'Membres',  icon: UserGear, need: 'members' },
       { to: '/admin/reglages', label: 'Réglages', icon: Gear },
     ] },
   ],
@@ -74,8 +79,8 @@ const NAV: Record<AdminSpace, AdminNavGroup[]> = {
       { to: '/admin/sportif', label: 'Tableau de bord', icon: Strategy, end: true },
     ] },
     { title: 'Outils', items: [
-      { to: '/admin/analyse',   label: 'Data analyse',        icon: ChartLineUp },
-      { to: '/admin/scouting',  label: 'Scouting',            icon: Binoculars, badgeKey: 'scouting' },
+      { to: '/admin/analyse',   label: 'Data analyse',        icon: ChartLineUp, need: 'analysis' },
+      { to: '/admin/scouting',  label: 'Scouting',            icon: Binoculars, badgeKey: 'scouting', need: 'scouting' },
       { to: '/admin/recherche', label: 'Centre de recherche', icon: MagnifyingGlass },
     ] },
   ],
@@ -210,6 +215,7 @@ function SpaceSwitcher({ space, badges }: { space: AdminSpace; badges: Record<Ba
 
 function Sidebar({ onCloseMobile, onCollapseDesktop, badges }: SidebarProps) {
   const { user, logout } = useAuth()
+  const perms = usePermissions()
   const navigate = useNavigate()
   const space = spaceOf(useLocation().pathname)
 
@@ -258,7 +264,9 @@ function Sidebar({ onCloseMobile, onCollapseDesktop, badges }: SidebarProps) {
       </div>
 
       <nav className="flex-1 px-3 py-4 space-y-5 overflow-y-auto">
-        {NAV[space].map((group) => (
+        {NAV[space].map((group) => ({ ...group, items: group.items.filter((i) => !i.need || perms[i.need]) }))
+          .filter((group) => group.items.length > 0)
+          .map((group) => (
           <div key={group.title} className="space-y-1">
             <div className="px-3 mb-2 text-[0.6rem] font-mono uppercase tracking-[0.2em] text-zinc-400 dark:text-stone-500">
               {group.title}
@@ -400,15 +408,19 @@ function AdminLayout() {
    *  - Refires whenever the route changes (cheap, gives the impression of "live").
    *  - 401-tolerant so the layout doesn't blow up if the token expires mid-session.
    */
+  const canScout = usePermissions().scouting
   useEffect(() => {
     let cancelled = false
-    api.get<{ to_validate: number; my_reports_needing_changes: number }>('/admin/scouting/inbox', { auth: true })
-      .then((d) => {
-        if (cancelled) return
-        const count = (d?.to_validate ?? 0) + (d?.my_reports_needing_changes ?? 0)
-        setBadges((prev) => ({ ...prev, scouting: count }))
-      })
-      .catch(() => { /* silently ignore - badge falls back to 0 */ })
+    // Scouting inbox: only for roles that can open the cockpit.
+    if (canScout) {
+      api.get<{ to_validate: number; my_reports_needing_changes: number }>('/admin/scouting/inbox', { auth: true })
+        .then((d) => {
+          if (cancelled) return
+          const count = (d?.to_validate ?? 0) + (d?.my_reports_needing_changes ?? 0)
+          setBadges((prev) => ({ ...prev, scouting: count }))
+        })
+        .catch(() => { /* silently ignore - badge falls back to 0 */ })
+    }
 
     api.get<{ meta?: { counts?: Record<string, number> } }>('/admin/contact-submissions?per_page=1&status=new', { auth: true })
       .then((d) => {
@@ -418,7 +430,7 @@ function AdminLayout() {
       })
       .catch(() => { /* silently ignore */ })
     return () => { cancelled = true }
-  }, [location.pathname])
+  }, [location.pathname, canScout])
 
   // Switching space leads back to the page last opened there.
   useEffect(() => {

@@ -82,6 +82,7 @@ class PasswordResetController extends Controller
             'token'    => ['required', 'string'],
             'email'    => ['required', 'email'],
             'password' => ['required', 'confirmed', PasswordRule::min(10)->letters()->numbers()],
+            'invitation' => ['sometimes', 'boolean'],
         ], [
             'password.required'  => 'Choisissez un nouveau mot de passe.',
             'password.confirmed' => 'Les deux mots de passe ne correspondent pas.',
@@ -90,7 +91,11 @@ class PasswordResetController extends Controller
             'password.numbers'   => 'Le mot de passe doit contenir au moins un chiffre.',
         ]);
 
-        $status = Password::broker()->reset($data, function (User $user, string $password) {
+        // A new member's invitation link uses its own, longer-lived broker.
+        $invitation = (bool) ($data['invitation'] ?? false);
+        unset($data['invitation']);
+
+        $status = Password::broker($invitation ? 'invitations' : null)->reset($data, function (User $user, string $password) {
             $user->forceFill([
                 'password'       => Hash::make($password),
                 'remember_token' => Str::random(60),
@@ -101,7 +106,9 @@ class PasswordResetController extends Controller
 
         if ($status !== Password::PASSWORD_RESET) {
             throw ValidationException::withMessages([
-                'token' => ["Ce lien n'est plus valide. Demandez un nouveau lien de réinitialisation."],
+                'token' => [$invitation
+                    ? "Ce lien d'invitation n'est plus valide. Demandez au superadmin de vous en renvoyer un."
+                    : "Ce lien n'est plus valide. Demandez un nouveau lien de réinitialisation."],
             ]);
         }
 

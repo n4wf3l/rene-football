@@ -149,5 +149,13 @@ seeder throw une exception si on tente de le lancer en production —
 l'admin prod se crée manuellement via tinker avec un mot de passe fort
 (cf [DEPLOYMENT.md](DEPLOYMENT.md) §2).
 
-3 autres comptes de démo pour tester les rôles scouting : `chef1234`,
-`youth1234`, `scout1234` (emails `chef@` / `jeunes@` / `scout@rene-football.test`).
+Rôles du back-office (`users.role`, cf `User::ROLES`) : **superadmin** (tout +
+page Membres, seul à ajouter / modifier / supprimer des comptes), **admin**
+(sans Scouting ni Data analyse), **scout** (Scouting, sans Data analyse),
+**analyst** (Data analyse, sans Scouting). Le tableau de bord sportif est
+visible par tous. Côté API : middleware `role:superadmin,scout` ; côté SPA :
+`usePermissions()` / `<RequirePermission>` (`frontend/src/auth/permissions.tsx`).
+
+`admin@` est superadmin. Autres comptes de démo : `chef1234`, `youth1234`,
+`scout1234` (rôle scout, emails `chef@` / `jeunes@` / `scout@rene-football.test`),
+`data1234` (data analyste, `analyste@`), `agence1234` (admin, `agence@`).

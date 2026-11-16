@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
@@ -18,6 +19,7 @@ import type { Icon as PhosphorIcon } from '@phosphor-icons/react'
 import { scoutingApi } from '../../lib/scoutingApi'
 import type { ScoutingDashboardSnapshot, ScoutingStatus } from '../../types/scouting'
 import Skeleton from '../../components/Skeleton'
+import { usePermissions, type Permission } from '../../auth/permissions'
 
 const STATUS_LABEL: Record<ScoutingStatus, string> = {
   decouvert: 'Découvert',
@@ -50,6 +52,8 @@ interface ToolDef {
   to: string
   links: Array<{ label: string; to: string }>
   note?: string
+  /** Tool shown only to roles with this permission. */
+  need?: Permission
 }
 
 const TOOLS: ToolDef[] = [
@@ -59,6 +63,7 @@ const TOOLS: ToolDef[] = [
     Icon: ChartLineUp,
     to: '/admin/analyse',
     links: [{ label: 'Tableau', to: '/admin/analyse' }],
+    need: 'analysis',
   },
   {
     title: 'Scouting',
@@ -70,6 +75,7 @@ const TOOLS: ToolDef[] = [
       { label: 'Missions', to: scoutingView('missions') },
       { label: 'Shortlists', to: scoutingView('shortlists') },
     ],
+    need: 'scouting',
   },
   {
     title: 'Centre de recherche',
@@ -80,6 +86,11 @@ const TOOLS: ToolDef[] = [
     note: 'Fonction Pro, pas encore activée',
   },
 ]
+
+/** A link into the scouting cockpit; plain text for roles that can't open it. */
+function ScoutLink({ allowed, to, className, children }: { allowed: boolean; to: string; className: string; children: ReactNode }) {
+  return allowed ? <Link to={to} className={className}>{children}</Link> : <div className={className}>{children}</div>
+}
 
 function fmtDate(iso?: string | null): string {
   if (!iso) return ''
@@ -93,6 +104,8 @@ function fmtDate(iso?: string | null): string {
 export default function AdminSportHome() {
   const [data, setData] = useState<ScoutingDashboardSnapshot | null>(null)
   const [failed, setFailed] = useState(false)
+  const perms = usePermissions()
+  const canScout = perms.scouting
 
   useEffect(() => {
     let cancelled = false
@@ -120,10 +133,10 @@ export default function AdminSportHome() {
             </p>
           </div>
           {alertsCount > 0 && (
-            <Link to={scoutingView('intelligence')} className="inline-flex items-center gap-2 rounded-full border border-amber-300/70 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-900 hover:border-amber-500 dark:border-amber-400/30 dark:bg-amber-500/10 dark:text-amber-200">
+            <ScoutLink allowed={canScout} to={scoutingView('intelligence')} className="inline-flex items-center gap-2 rounded-full border border-amber-300/70 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-900 hover:border-amber-500 dark:border-amber-400/30 dark:bg-amber-500/10 dark:text-amber-200">
               <WarningCircle size={14} weight="bold" /> {alertsCount} point{alertsCount > 1 ? 's' : ''} d’attention
-              <ArrowRight size={12} weight="bold" />
-            </Link>
+              {canScout && <ArrowRight size={12} weight="bold" />}
+            </ScoutLink>
           )}
         </header>
 
@@ -140,7 +153,8 @@ export default function AdminSportHome() {
             const hot = !!alert && (value ?? 0) > 0
             return (
               <motion.div key={key} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
-                <Link
+                <ScoutLink
+                  allowed={canScout}
                   to={to}
                   className={`group block rounded-2xl border p-4 transition hover:-translate-y-0.5 ${
                     hot
@@ -150,13 +164,13 @@ export default function AdminSportHome() {
                 >
                   <div className="flex items-center justify-between">
                     <Icon size={18} className={hot ? 'text-emerald-700 dark:text-emerald-300' : 'text-zinc-400 dark:text-stone-500'} />
-                    <ArrowRight size={13} className="text-zinc-300 transition group-hover:translate-x-0.5 group-hover:text-zinc-700 dark:text-stone-600 dark:group-hover:text-stone-200" />
+                    {canScout && <ArrowRight size={13} className="text-zinc-300 transition group-hover:translate-x-0.5 group-hover:text-zinc-700 dark:text-stone-600 dark:group-hover:text-stone-200" />}
                   </div>
                   <div className="mt-4 font-mono text-3xl tabular-nums text-zinc-950 dark:text-stone-50">
                     {value === undefined ? (failed ? '–' : <Skeleton className="h-8 w-10" />) : value}
                   </div>
                   <div className="mt-1 text-xs text-zinc-500 dark:text-stone-400">{label}</div>
-                </Link>
+                </ScoutLink>
               </motion.div>
             )
           })}
@@ -164,7 +178,7 @@ export default function AdminSportHome() {
 
         {/* The tools */}
         <section className="grid gap-4 lg:grid-cols-3">
-          {TOOLS.map(({ title, body, Icon, to, links, note }) => (
+          {TOOLS.filter((tool) => !tool.need || perms[tool.need]).map(({ title, body, Icon, to, links, note }) => (
             <div key={title} className="flex flex-col rounded-2xl border border-stone-200 bg-white p-6 dark:border-stone-50/10 dark:bg-zinc-900">
               <div className="flex items-start justify-between gap-3">
                 <span className="grid h-11 w-11 place-items-center rounded-xl bg-emerald-50 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-200">
@@ -193,7 +207,7 @@ export default function AdminSportHome() {
           <div className="rounded-2xl border border-stone-200 bg-white dark:border-stone-50/10 dark:bg-zinc-900">
             <div className="flex items-center justify-between border-b border-stone-200 px-5 py-4 dark:border-stone-50/10">
               <h2 className="font-display text-base font-semibold text-zinc-950 dark:text-stone-50">Rapports à valider</h2>
-              <Link to={scoutingView('reports')} className="text-xs font-medium text-emerald-700 hover:underline dark:text-emerald-300">Tous les rapports</Link>
+              {canScout && <Link to={scoutingView('reports')} className="text-xs font-medium text-emerald-700 hover:underline dark:text-emerald-300">Tous les rapports</Link>}
             </div>
             {!data && !failed ? (
               <div className="space-y-2 p-5">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-12 w-full" />)}</div>
@@ -203,14 +217,14 @@ export default function AdminSportHome() {
               <ul className="divide-y divide-stone-200 dark:divide-stone-50/10">
                 {toValidate.slice(0, 6).map((r) => (
                   <li key={r.id}>
-                    <Link to={scoutingView('reports', { report: String(r.id) })} className="flex items-center gap-4 px-5 py-3 hover:bg-stone-50 dark:hover:bg-stone-50/[0.03]">
+                    <ScoutLink allowed={canScout} to={scoutingView('reports', { report: String(r.id) })} className="flex items-center gap-4 px-5 py-3 hover:bg-stone-50 dark:hover:bg-stone-50/[0.03]">
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-sm font-medium text-zinc-950 dark:text-stone-50">{r.player?.name ?? 'Joueur'}</span>
                         <span className="block truncate text-xs text-zinc-500 dark:text-stone-400">{[r.observed_position, r.recommendation ? STATUS_LABEL[r.recommendation as ScoutingStatus] ?? r.recommendation : null].filter(Boolean).join(' · ')}</span>
                       </span>
                       {r.global_rating != null && <span className="font-mono text-sm tabular-nums text-zinc-950 dark:text-stone-50">{Number(r.global_rating).toFixed(1)}</span>}
                       <span className="w-14 text-right font-mono text-[0.65rem] text-zinc-400 dark:text-stone-500">{fmtDate(r.submitted_at)}</span>
-                    </Link>
+                    </ScoutLink>
                   </li>
                 ))}
               </ul>
@@ -220,7 +234,7 @@ export default function AdminSportHome() {
           <div className="rounded-2xl border border-stone-200 bg-white dark:border-stone-50/10 dark:bg-zinc-900">
             <div className="flex items-center justify-between border-b border-stone-200 px-5 py-4 dark:border-stone-50/10">
               <h2 className="font-display text-base font-semibold text-zinc-950 dark:text-stone-50">Joueurs en tête du scouting</h2>
-              <Link to={scoutingView('players')} className="text-xs font-medium text-emerald-700 hover:underline dark:text-emerald-300">Tous les joueurs suivis</Link>
+              {canScout && <Link to={scoutingView('players')} className="text-xs font-medium text-emerald-700 hover:underline dark:text-emerald-300">Tous les joueurs suivis</Link>}
             </div>
             {!data && !failed ? (
               <div className="space-y-2 p-5">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-12 w-full" />)}</div>
@@ -230,7 +244,7 @@ export default function AdminSportHome() {
               <ul className="divide-y divide-stone-200 dark:divide-stone-50/10">
                 {top.slice(0, 6).map((p) => (
                   <li key={p.slug}>
-                    <Link to={scoutingView('players', { player: p.slug })} className="flex items-center gap-4 px-5 py-3 hover:bg-stone-50 dark:hover:bg-stone-50/[0.03]">
+                    <ScoutLink allowed={canScout} to={scoutingView('players', { player: p.slug })} className="flex items-center gap-4 px-5 py-3 hover:bg-stone-50 dark:hover:bg-stone-50/[0.03]">
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-sm font-medium text-zinc-950 dark:text-stone-50">{p.name}</span>
                         <span className="block truncate text-xs text-zinc-500 dark:text-stone-400">{p.next_action || [p.position, p.club].filter(Boolean).join(' · ')}</span>
@@ -239,7 +253,7 @@ export default function AdminSportHome() {
                         {STATUS_LABEL[p.scouting_status] ?? p.scouting_status}
                       </span>
                       {p.score_global != null && <span className="w-10 text-right font-mono text-sm tabular-nums text-zinc-950 dark:text-stone-50">{Math.round(p.score_global)}</span>}
-                    </Link>
+                    </ScoutLink>
                   </li>
                 ))}
               </ul>

@@ -31,6 +31,7 @@ import {
 } from '@phosphor-icons/react'
 import { api } from '../../api/client'
 import { useAuth } from '../../auth/AuthContext'
+import { usePermissions } from '../../auth/permissions'
 import type { Player } from '../../types/player'
 import type { ScoutingDashboardSnapshot } from '../../types/scouting'
 import Skeleton from '../../components/Skeleton'
@@ -427,6 +428,9 @@ function AdminDashboard() {
   const { user } = useAuth()
   const [players, setPlayers] = useState<Player[]>([])
   const [scouting, setScouting] = useState<ScoutingDashboardSnapshot | null>(null)
+  const perms = usePermissions()
+  // Scouting shortcuts only for roles that can open the cockpit.
+  const scoutingLinks = perms.scouting ? scouting : null
   const [loading, setLoading] = useState(true)
   // "Par où commencer" band — hidden after the admin dismisses it (localStorage).
   const [showGetStarted, setShowGetStarted] = useState<boolean>(() => {
@@ -515,31 +519,31 @@ function AdminDashboard() {
       })
     }
 
-    if (scouting) {
-      if (scouting.kpi.reports_to_validate > 0) {
+    if (scoutingLinks) {
+      if (scoutingLinks.kpi.reports_to_validate > 0) {
         list.push({
           tone: 'rose',
-          label: `Validez ${scouting.kpi.reports_to_validate} rapport${scouting.kpi.reports_to_validate > 1 ? 's' : ''} scout`,
+          label: `Validez ${scoutingLinks.kpi.reports_to_validate} rapport${scoutingLinks.kpi.reports_to_validate > 1 ? 's' : ''} scout`,
           target: 'Soumis, en attente de votre feu vert',
           status: 'Débloque les scouts',
           to: '/admin/scouting?view=reports',
           cta: 'Valider',
         })
       }
-      if (scouting.kpi.players_no_next_action > 0) {
+      if (scoutingLinks.kpi.players_no_next_action > 0) {
         list.push({
           tone: 'amber',
-          label: `Assignez une prochaine action à ${scouting.kpi.players_no_next_action} joueur${scouting.kpi.players_no_next_action > 1 ? 's' : ''}`,
+          label: `Assignez une prochaine action à ${scoutingLinks.kpi.players_no_next_action} joueur${scoutingLinks.kpi.players_no_next_action > 1 ? 's' : ''}`,
           target: 'Profils sans étape suivante planifiée',
           status: 'Dossiers en stand-by',
           to: '/admin/scouting?view=players',
           cta: 'Assigner',
         })
       }
-      if (scouting.kpi.files_incomplete > 0) {
+      if (scoutingLinks.kpi.files_incomplete > 0) {
         list.push({
           tone: 'neutral',
-          label: `Enrichissez ${scouting.kpi.files_incomplete} dossier${scouting.kpi.files_incomplete > 1 ? 's' : ''} scouting`,
+          label: `Enrichissez ${scoutingLinks.kpi.files_incomplete} dossier${scoutingLinks.kpi.files_incomplete > 1 ? 's' : ''} scouting`,
           target: 'Complétude sous le seuil recommandé',
           status: 'Risque de biais analyse',
           to: '/admin/scouting?view=intelligence',
@@ -549,7 +553,7 @@ function AdminDashboard() {
     }
 
     return list.slice(0, 5)
-  }, [players, stats, scouting])
+  }, [players, stats, scoutingLinks])
 
   /* Recent activity feed - fusionne 5 sources réelles avec types variés. */
   const activities = useMemo<ActivityItem[]>(() => {
@@ -558,7 +562,7 @@ function AdminDashboard() {
     const events: Evt[] = []
 
     /* 1. Validated scouting reports */
-    scouting?.recent_reports?.forEach((r) => {
+    scoutingLinks?.recent_reports?.forEach((r) => {
       if (r.status === 'validated') {
         events.push({
           kind: 'rapport',
@@ -610,7 +614,7 @@ function AdminDashboard() {
       })
 
     /* 4. Incomplete-file alerts surfaced from scouting */
-    scouting?.alerts?.incomplete_files?.slice(0, 1).forEach((p) => {
+    scoutingLinks?.alerts?.incomplete_files?.slice(0, 1).forEach((p) => {
       events.push({
         kind: 'alerte',
         text: `Dossier incomplet détecté - ${p.name}`,
@@ -621,7 +625,7 @@ function AdminDashboard() {
     })
 
     /* 5. Missing next_action alert */
-    scouting?.alerts?.missing_next_action?.slice(0, 1).forEach((p) => {
+    scoutingLinks?.alerts?.missing_next_action?.slice(0, 1).forEach((p) => {
       events.push({
         kind: 'alerte',
         text: `Action suivante manquante - ${p.name}`,
@@ -636,7 +640,7 @@ function AdminDashboard() {
       .sort((a, b) => b.ts - a.ts)
       .slice(0, 5)
       .map(({ ts: _ts, ...rest }) => rest)
-  }, [players, stats, scouting])
+  }, [players, stats, scoutingLinks])
 
   /* ───── Loading state ───── */
   if (loading) {
@@ -865,9 +869,9 @@ function AdminDashboard() {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2.5">
           <QuickAction icon={UserCirclePlus}   label="Ajouter un joueur"        to="/admin/joueurs/nouveau"       tone="primary" />
           <QuickAction icon={PencilSimpleLine} label="Mettre à jour les stats"  to="/admin/joueurs" />
-          <QuickAction icon={FilePlus}         label="Créer un rapport"         to="/admin/scouting?view=reports" />
-          <QuickAction icon={ChartLineUp}      label="Ouvrir l'analyse"         to="/admin/analyse" />
-          <QuickAction icon={Binoculars}       label="Voir les priorités"       to="/admin/scouting?view=intelligence" />
+          {perms.scouting && <QuickAction icon={FilePlus}         label="Créer un rapport"         to="/admin/scouting?view=reports" />}
+          {perms.analysis && <QuickAction icon={ChartLineUp}      label="Ouvrir l'analyse"         to="/admin/analyse" />}
+          {perms.scouting && <QuickAction icon={Binoculars}       label="Voir les priorités"       to="/admin/scouting?view=intelligence" />}
         </div>
         <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5">
           <Link to="/admin/articles" className="inline-flex items-center gap-1.5 text-[0.72rem] text-zinc-500 hover:text-turf-700 dark:text-stone-400 dark:hover:text-turf-200 transition-colors">

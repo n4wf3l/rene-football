@@ -12,6 +12,9 @@ export interface AdminUser {
   /** Player-category buckets this validator owns (`['Pro']`, `['U19','U23']`, …).
    *  Null/undefined means "covers everything". */
   scouting_scope?: string[] | null
+  /** Back-office role and what it opens (see auth/permissions). */
+  role?: 'superadmin' | 'admin' | 'scout' | 'analyst'
+  permissions?: { scouting: boolean; analysis: boolean; members: boolean }
   [key: string]: unknown
 }
 
