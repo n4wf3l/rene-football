@@ -1159,8 +1159,13 @@ function ContactPage() {
                 <span aria-hidden="true" />
               )}
 
+              {/* Distinct keys: without them React reuses this <button> when
+                  "Continuer" moves to step 3, switches it to type="submit"
+                  during the click, and the browser then submits the empty
+                  form (step 3 opened full of errors). */}
               {step < 3 ? (
                 <button
+                  key="next"
                   type="button"
                   onClick={goNext}
                   className="btn btn-primary text-sm"
@@ -1170,6 +1175,7 @@ function ContactPage() {
                 </button>
               ) : (
                 <button
+                  key="submit"
                   type="submit"
                   disabled={submitting}
                   className="btn btn-primary text-sm disabled:opacity-60 disabled:cursor-not-allowed"
