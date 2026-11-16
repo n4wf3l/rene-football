@@ -1,0 +1,42 @@
+# Players' birthdays on Telegram (bot "ReneFootball").
+#
+# Every morning, asks the site to post the day's birthdays in the agency
+# Telegram chat (POST /api/_maintenance/cron/birthdays, protected by
+# MAINT_SECRET). Replaces a Hostinger cron job. The site announces each
+# player once per year, so a late or repeated run sends nothing twice.
+#
+# GitHub runs scheduled workflows in UTC and may start them a little late:
+# 06:30 UTC = 7:30 in winter, 8:30 in summer (Luxembourg). Can also be
+# started by hand from the Actions tab (Run workflow).
+name: Telegram birthdays
+
+on:
+  schedule:
+    - cron: '30 6 * * *'
+  workflow_dispatch:
+
+jobs:
+  birthdays:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Post today's birthdays
+        env:
+          MAINT_SECRET: ${{ secrets.MAINT_SECRET }}
+        run: |
+          for i in 1 2 3; do
+            HTTP=$(curl -s -o /tmp/birthdays.json -w "%{http_code}" \
+              -X POST "https://renefootball.com/api/_maintenance/cron/birthdays" \
+              -H "Accept: application/json" \
+              -H "X-Maint-Secret: ${MAINT_SECRET}" \
+              --max-time 60 || echo "000")
+            echo "HTTP: $HTTP"
+            cat /tmp/birthdays.json 2>/dev/null || true
+            echo ""
+            if [[ "$HTTP" -ge 200 && "$HTTP" -lt 300 ]]; then
+              exit 0
+            fi
+            sleep 20
+          done
+          echo "::error::Birthday cron failed after 3 attempts"
+          exit 1

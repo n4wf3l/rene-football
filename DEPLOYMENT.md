@@ -436,11 +436,11 @@ Mise en route (une fois) :
 4. GitHub → Settings → Secrets → Actions : ajouter `TELEGRAM_BOT_TOKEN` et
    `TELEGRAM_CHAT_ID`, puis relancer un déploiement (le `.env` de prod est
    réécrit à chaque déploiement).
-5. hPanel → Cron Jobs : ajouter une tâche quotidienne à **8 h 30**
-   (heure du Luxembourg) :
-   ```bash
-   curl -s -X POST https://renefootball.com/api/_maintenance/cron/birthdays -H "X-Maint-Secret: <MAINT_SECRET>"
-   ```
+5. Rien d'autre : le workflow GitHub **Telegram birthdays**
+   (`.github/workflows/birthdays.yml`) appelle chaque matin
+   `POST /api/_maintenance/cron/birthdays` avec `MAINT_SECRET` (6 h 30 UTC,
+   soit 7 h 30 en hiver et 8 h 30 en été au Luxembourg). Il se lance aussi à
+   la main : Actions → Telegram birthdays → Run workflow.
 
 Sans token ni chat configurés, rien n'est envoyé et rien ne casse.
 
