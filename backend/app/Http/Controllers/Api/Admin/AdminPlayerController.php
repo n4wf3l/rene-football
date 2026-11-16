@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Player;
+use App\Services\AdminActivityTelegram;
 use App\Services\Analysis\AppearancesImport;
 use App\Services\Analysis\PlayerAnalysisReport;
 use App\Services\Analysis\PlayersStatsImport;
@@ -146,6 +147,7 @@ class AdminPlayerController extends Controller
         $data = $this->stampStats($data);
 
         $player = Player::create($data);
+        app(AdminActivityTelegram::class)->playerAdded($player, $request->user());
 
         return response()->json(['data' => $player], 201);
     }

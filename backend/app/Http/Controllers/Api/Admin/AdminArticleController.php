@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Article;
 use App\Models\ArticleImage;
 use App\Models\PlayerClip;
+use App\Services\AdminActivityTelegram;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -65,6 +66,9 @@ class AdminArticleController extends Controller
         $this->addGalleryImages($article, $galleryFiles, $galleryCaptions);
 
         $article->load(['player:id,slug,name,photo_url', 'images', 'clips']);
+        if ($article->is_published) {
+            app(AdminActivityTelegram::class)->articlePublished($article, $request->user());
+        }
         return response()->json(['data' => $article], 201);
     }
 
@@ -99,7 +103,12 @@ class AdminArticleController extends Controller
 
         unset($data['cover'], $data['cover_remove'], $data['clip_ids'], $data['gallery_images'], $data['gallery_captions'], $data['image_remove_ids']);
 
+        $wasPublished = (bool) $article->is_published;
         $article->update($data);
+        // Draft → published: tell the team (later edits stay quiet).
+        if (! $wasPublished && $article->is_published) {
+            app(AdminActivityTelegram::class)->articlePublished($article->loadMissing('player'), $request->user());
+        }
 
         if ($request->has('clip_ids')) {
             $this->syncClips($article, $clipIds);

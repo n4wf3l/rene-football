@@ -51,6 +51,28 @@ class TelegramNotifier
     }
 
     /**
+     * Sends once the HTTP response is on its way, so a slow or broken
+     * Telegram never delays nor fails the request that triggered it.
+     * Each message goes out once, even if the application handles several
+     * requests (tests) and runs its terminating callbacks again.
+     */
+    public function sendAfterResponse(string $html, array $logContext = []): void
+    {
+        $done = false;
+        app()->terminating(function () use (&$done, $html, $logContext) {
+            if ($done) {
+                return;
+            }
+            $done = true;
+            try {
+                $this->send($html);
+            } catch (Throwable $e) {
+                Log::warning('Telegram deferred message failed', $logContext + ['error' => $e->getMessage()]);
+            }
+        });
+    }
+
+    /**
      * Chats that recently wrote to the bot or added it (getUpdates), to find
      * the TELEGRAM_CHAT_ID. Only needs the token.
      *

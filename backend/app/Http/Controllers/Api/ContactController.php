@@ -233,16 +233,10 @@ class ContactController extends Controller
     {
         // Sent once the response is on its way, so a slow Telegram never
         // makes the visitor wait.
-        app()->terminating(function () use ($submission) {
-            try {
-                app(TelegramNotifier::class)->send(ContactTelegramMessage::build($submission));
-            } catch (Throwable $e) {
-                Log::warning('Contact Telegram dispatch failed', [
-                    'submission_id' => $submission->id,
-                    'error'         => $e->getMessage(),
-                ]);
-            }
-        });
+        app(TelegramNotifier::class)->sendAfterResponse(
+            ContactTelegramMessage::build($submission),
+            ['submission_id' => $submission->id],
+        );
     }
 
     /**
