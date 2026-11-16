@@ -46,6 +46,15 @@ return Application::configure(basePath: dirname(__DIR__))
         // 03:15 UTC to avoid overlap with any morning traffic bursts.
         // Requires `php artisan schedule:work` (dev) or a cron entry
         // `* * * * * php artisan schedule:run` in prod.
+        // Players' birthdays posted in the agency Telegram chat, each morning
+        // (Luxembourg time). In production the Hostinger cron calls
+        // /api/_maintenance/cron/birthdays instead (no schedule:run there).
+        $schedule->command('players:birthdays')
+            ->dailyAt('08:30')
+            ->timezone('Europe/Luxembourg')
+            ->onOneServer()
+            ->withoutOverlapping();
+
         $schedule->command('submissions:purge')
             ->dailyAt('03:15')
             ->onOneServer()
