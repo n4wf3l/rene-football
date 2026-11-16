@@ -153,6 +153,9 @@ jobs:
 
           MAINT_SECRET=${{ secrets.MAINT_SECRET }}
 
+          TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID=${{ secrets.TELEGRAM_CHAT_ID }}
+
           SENTRY_LARAVEL_DSN=${{ secrets.SENTRY_LARAVEL_DSN }}
           SENTRY_TRACES_SAMPLE_RATE=0.1
           SENTRY_SEND_DEFAULT_PII=false

@@ -92,9 +92,11 @@ Route::get('/contact-submissions/{submission}/cv', [ContactController::class, 'd
 // Protected by X-Maint-Secret header (shared with .env MAINT_SECRET).
 // `bootstrap` runs migrations + optional admin seed + storage symlink,
 // `cron/purge` is hit by Hostinger Cron Jobs daily (replaces schedule:run),
+// `cron/birthdays` too, each morning (Telegram birthday messages),
 // `health` is open and used by uptime monitors.
 Route::post('/_maintenance/bootstrap',   [MaintenanceController::class, 'bootstrap']);
 Route::post('/_maintenance/cron/purge',  [MaintenanceController::class, 'cronPurge']);
+Route::post('/_maintenance/cron/birthdays', [MaintenanceController::class, 'cronBirthdays']);
 Route::get('/_maintenance/health',       [MaintenanceController::class, 'health']);
 
 // --- Authenticated admin ---

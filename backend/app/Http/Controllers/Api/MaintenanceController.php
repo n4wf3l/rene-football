@@ -22,6 +22,8 @@ use Throwable;
  *    account already exists.
  *  - `cronPurge` : hit daily by the Hostinger Cron Jobs scheduler to run
  *    the RGPD retention purge (submissions:purge).
+ *  - `cronBirthdays` : hit each morning to post the players' birthdays in
+ *    the agency Telegram chat (players:birthdays).
  *  - `health`    : lightweight self-check (DB connectivity + Laravel boot).
  */
 class MaintenanceController extends Controller
@@ -165,6 +167,30 @@ class MaintenanceController extends Controller
                 'ok'    => false,
                 'error' => $e->getMessage(),
             ], 500);
+        }
+    }
+
+    /**
+     * POST /api/_maintenance/cron/birthdays
+     *
+     * Hit each morning by a Hostinger Cron Job: posts the players' birthdays
+     * of the day in the agency Telegram chat (players:birthdays). Safe to
+     * call several times a day: each player is announced once per year.
+     */
+    public function cronBirthdays(Request $request): JsonResponse
+    {
+        if (! $this->authorised($request)) {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
+
+        try {
+            Artisan::call('players:birthdays');
+            $output = trim(Artisan::output());
+            Log::info('Maintenance: birthdays ran via HTTP cron', ['output' => $output]);
+            return response()->json(['ok' => true, 'at' => now()->toIso8601String(), 'output' => $output]);
+        } catch (Throwable $e) {
+            Log::error('Maintenance: birthdays failed', ['error' => $e->getMessage()]);
+            return response()->json(['ok' => false, 'error' => $e->getMessage()], 500);
         }
     }
 

@@ -395,6 +395,8 @@ Jamais commitées dans le repo.
 | `MAIL_PASSWORD` | créé via hPanel Emails |
 | `MAIL_ENCRYPTION` | `ssl` |
 | `MAINT_SECRET` | généré via `openssl rand -hex 32`, utilisé pour `/_maintenance/*` et `/_extract.php` |
+| `TELEGRAM_BOT_TOKEN` | token du bot « ReneFootball » donné par @BotFather (vide = aucun message) |
+| `TELEGRAM_CHAT_ID` | chat qui reçoit les anniversaires (`php artisan telegram:chats` le donne) |
 | `SESSION_SECURE_COOKIE` | `true` |
 | `SESSION_DOMAIN` | `.renefootball.com` |
 | `FILESYSTEM_DISK` | `local` (CVs privés, servis via URL signée) |
@@ -413,7 +415,36 @@ Secrets and variables → Actions) :
 
 ---
 
-## 6. Activer Sentry (observabilité)
+## 6. Bot Telegram : anniversaires des joueurs
+
+Chaque matin, le bot « ReneFootball » écrit dans un chat Telegram de
+l'agence pour chaque joueur publié dont c'est l'anniversaire (âge, poste,
+club, lien vers le profil). Un joueur n'est annoncé qu'une fois par an,
+même si le cron passe plusieurs fois. Commande : `players:birthdays`
+(`--dry-run` pour voir sans envoyer, `--date=2026-03-14` pour un autre jour).
+
+Mise en route (une fois) :
+
+1. Dans Telegram, ouvrir **@BotFather** → `/newbot` → nom `ReneFootball`,
+   identifiant libre finissant par `bot`. Garder le token donné.
+2. Ajouter le bot au groupe qui doit recevoir les messages (ou lui écrire
+   en privé depuis le compte de René), puis y écrire un message.
+3. En local, avec `TELEGRAM_BOT_TOKEN=<token>` dans `backend/.env` :
+   `php artisan telegram:chats` affiche l'identifiant du chat (un groupe
+   commence par `-`). `php artisan telegram:chats --test` envoie un message
+   de test une fois `TELEGRAM_CHAT_ID` renseigné.
+4. GitHub → Settings → Secrets → Actions : ajouter `TELEGRAM_BOT_TOKEN` et
+   `TELEGRAM_CHAT_ID`, puis relancer un déploiement (le `.env` de prod est
+   réécrit à chaque déploiement).
+5. hPanel → Cron Jobs : ajouter une tâche quotidienne à **8 h 30**
+   (heure du Luxembourg) :
+   ```bash
+   curl -s -X POST https://renefootball.com/api/_maintenance/cron/birthdays -H "X-Maint-Secret: <MAINT_SECRET>"
+   ```
+
+Sans token ni chat configurés, rien n'est envoyé et rien ne casse.
+
+## 7. Activer Sentry (observabilité)
 
 Sentry est **câblé mais inactif** par défaut. Pour l'allumer :
 
@@ -450,7 +481,7 @@ est détecté par `frontend/src/sentry.ts` qui bypasse l'init.
 
 ---
 
-## 7. Références
+## 8. Références
 
 - Setup détaillé une-fois : [`HOSTINGER-DEPLOY.md`](HOSTINGER-DEPLOY.md)
 - Checklist pré-prod business : [`PRE-PRODUCTION.md`](PRE-PRODUCTION.md)
