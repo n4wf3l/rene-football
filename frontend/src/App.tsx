@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './auth/AuthContext'
 import RequireAdmin from './auth/RequireAdmin'
+import { RequirePermission } from './auth/permissions'
 import { ThemeProvider } from './theme/ThemeContext'
 import PublicLayout from './layouts/PublicLayout'
 import HomePage from './pages/HomePage'
@@ -47,6 +48,7 @@ const AdminContact          = lazy(() => import('./pages/admin/AdminContact'))
 const AdminSettings         = lazy(() => import('./pages/admin/AdminSettings'))
 const AdminPartners         = lazy(() => import('./pages/admin/AdminPartners'))
 const AdminFrequentation    = lazy(() => import('./pages/admin/AdminFrequentation'))
+const AdminMembers          = lazy(() => import('./pages/admin/AdminMembers'))
 
 function App() {
   return (
@@ -93,13 +95,13 @@ function App() {
                 <Route path="joueurs" element={<AdminPlayers />} />
                 <Route path="joueurs/nouveau" element={<AdminPlayerEdit creating />} />
                 <Route path="joueurs/:slug/edit" element={<AdminPlayerEdit />} />
-                <Route path="analyse" element={<AdminAnalysis />} />
+                <Route path="analyse" element={<RequirePermission need="analysis"><AdminAnalysis /></RequirePermission>} />
                 <Route path="frequentation" element={<AdminFrequentation />} />
                 <Route path="articles" element={<AdminArticles />} />
                 <Route path="articles/nouveau" element={<AdminArticleEdit creating />} />
                 <Route path="articles/:slug/edit" element={<AdminArticleEdit />} />
                 <Route path="sportif" element={<AdminSportHome />} />
-                <Route path="scouting" element={<AdminScouting />} />
+                <Route path="scouting" element={<RequirePermission need="scouting"><AdminScouting /></RequirePermission>} />
                 <Route path="recherche" element={<AdminMarketIntelligence />} />
                 <Route path="equipe" element={<AdminStaff />} />
                 <Route path="equipe/nouveau" element={<AdminStaffEdit creating />} />
@@ -111,6 +113,7 @@ function App() {
                 <Route path="contact" element={<AdminContact />} />
                 <Route path="reglages" element={<AdminSettings />} />
                 <Route path="partenaires" element={<AdminPartners />} />
+                <Route path="membres" element={<RequirePermission need="members"><AdminMembers /></RequirePermission>} />
                 <Route path="*" element={<Navigate to="/admin" replace />} />
               </Route>
             </Routes>

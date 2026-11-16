@@ -106,6 +106,7 @@ class MaintenanceController extends Controller
                         'email'             => strtolower($adminEmail),
                         'password'          => Hash::make($adminPass),
                         'is_admin'          => true,
+                        'role'              => 'superadmin',
                         'email_verified_at' => now(),
                     ]);
                     $report['admin'] = ['ok' => true, 'action' => 'created', 'id' => $user->id];

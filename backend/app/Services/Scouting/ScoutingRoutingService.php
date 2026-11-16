@@ -60,9 +60,10 @@ class ScoutingRoutingService
             ->first();
         if ($generic) return (int) $generic->id;
 
-        // 3. Final fallback : any admin. Better than failing the submission.
+        // 3. Final fallback : any member with scouting access. Better than failing the submission.
         $admin = User::query()
             ->where('is_admin', true)
+            ->whereIn('role', ['superadmin', 'scout'])
             ->orderBy('id')
             ->first();
 
@@ -77,6 +78,8 @@ class ScoutingRoutingService
                 $q->where('is_head_of_scouting', true)
                   ->orWhere('is_admin', true);
             })
+            // Only members who can open the scouting cockpit can validate.
+            ->whereIn('role', ['superadmin', 'scout'])
             ->orderBy('name')
             ->get(['id', 'name', 'email', 'is_admin', 'is_head_of_scouting', 'scouting_scope']);
     }

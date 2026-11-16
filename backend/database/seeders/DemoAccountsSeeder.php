@@ -46,6 +46,7 @@ class DemoAccountsSeeder extends Seeder
                 'name' => 'Admin Rene',
                 'password' => Hash::make('admin1234'),
                 'is_admin' => true,
+                'role' => 'superadmin',
                 'is_head_of_scouting' => false,
                 'scouting_scope' => null,
             ]
@@ -58,6 +59,7 @@ class DemoAccountsSeeder extends Seeder
                 'name' => 'Léa Chef-Recrutement',
                 'password' => Hash::make('chef1234'),
                 'is_admin' => true,
+                'role' => 'scout',
                 'is_head_of_scouting' => true,
                 'scouting_scope' => ['Pro'],
             ]
@@ -70,6 +72,7 @@ class DemoAccountsSeeder extends Seeder
                 'name' => 'Marc Resp-Jeunes',
                 'password' => Hash::make('youth1234'),
                 'is_admin' => true,
+                'role' => 'scout',
                 'is_head_of_scouting' => true,
                 'scouting_scope' => ['U19', 'U23'],
             ]
@@ -82,6 +85,33 @@ class DemoAccountsSeeder extends Seeder
                 'name' => 'Sam Scout',
                 'password' => Hash::make('scout1234'),
                 'is_admin' => true,
+                'role' => 'scout',
+                'is_head_of_scouting' => false,
+                'scouting_scope' => null,
+            ]
+        );
+
+        // Data analyste — mot de passe : data1234
+        User::updateOrCreate(
+            ['email' => 'analyste@rene-football.test'],
+            [
+                'name' => 'Dana Analyste',
+                'password' => Hash::make('data1234'),
+                'is_admin' => true,
+                'role' => 'analyst',
+                'is_head_of_scouting' => false,
+                'scouting_scope' => null,
+            ]
+        );
+
+        // Admin agence (sans Scouting ni Data analyse) — mot de passe : agence1234
+        User::updateOrCreate(
+            ['email' => 'agence@rene-football.test'],
+            [
+                'name' => 'Alex Agence',
+                'password' => Hash::make('agence1234'),
+                'is_admin' => true,
+                'role' => 'admin',
                 'is_head_of_scouting' => false,
                 'scouting_scope' => null,
             ]

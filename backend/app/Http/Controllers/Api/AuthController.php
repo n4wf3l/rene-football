@@ -52,6 +52,8 @@ class AuthController extends Controller
             'name'                => $user->name,
             'email'               => $user->email,
             'is_admin'            => (bool) $user->is_admin,
+            'role'                => $user->role,
+            'permissions'         => $user->permissions(),
             'is_head_of_scouting' => (bool) $user->is_head_of_scouting,
             'scouting_scope'      => $user->scouting_scope,
         ];

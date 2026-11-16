@@ -38,6 +38,16 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'is_admin' => true,
+            'role'     => 'superadmin',
+        ]);
+    }
+
+    /** A back-office member with the given role (admin, scout, analyst, superadmin). */
+    public function role(string $role): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'is_admin' => true,
+            'role'     => $role,
         ]);
     }
 }
