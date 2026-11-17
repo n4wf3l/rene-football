@@ -1868,10 +1868,10 @@ function EvolutionView({ players, selectedSlug, onChangeSlug }: EvolutionViewPro
                   />
                   <Tooltip
                     cursor={{ stroke: '#a8a29e', strokeDasharray: '3 3' }}
-                    content={(props: { active?: boolean; payload?: Array<{ payload: EvolutionRow; value: number | null; dataKey: string }> }) => {
+                    content={(props) => {
                       const { active, payload } = props
                       if (!active || !payload?.length) return null
-                      const p = payload[0].payload
+                      const p = payload[0].payload as EvolutionRow
                       return (
                         <div className="rounded-xl bg-zinc-950/95 backdrop-blur border border-stone-50/10 text-stone-100 px-3 py-2.5 text-xs shadow-xl min-w-[200px]">
                           <div className="font-medium text-stone-50">{p.opponent}</div>

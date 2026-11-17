@@ -299,7 +299,10 @@ function HistogramCard({ id, title, data, color = '#60a5fa' }: HistogramCardProp
                 contentStyle={{ background: 'rgba(24, 24, 27, 0.95)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, fontSize: 12 }}
                 labelStyle={{ color: '#a1a1aa' }}
                 itemStyle={{ color: '#fafafa' }}
-                formatter={(v: number) => [`${v} joueur${v > 1 ? 's' : ''}`, '']}
+                formatter={(v) => {
+                  const n = Number(v ?? 0)
+                  return [`${n} joueur${n > 1 ? 's' : ''}`, '']
+                }}
               />
               <Bar dataKey="count" fill={color} radius={[4, 4, 0, 0]} maxBarSize={44} />
             </BarChart>

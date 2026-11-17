@@ -5,9 +5,9 @@ import * as Sentry from '@sentry/react'
  * local on n'a pas besoin de polluer un projet Sentry avec des erreurs
  * HMR, et le build staging peut rester muet jusqu'au setup du DSN.
  *
- * Les paramètres par défaut sont volontairement conservateurs côté RGPD :
- * `sendDefaultPii: false` empêche l'envoi automatique d'IP / user-agent /
- * cookies vers Sentry. Si on veut un contexte utilisateur, on l'ajoute
+ * Les paramètres sont volontairement conservateurs côté RGPD : `dataCollection`
+ * coupe l'envoi automatique des infos utilisateur, cookies, en-têtes et
+ * paramètres d'URL vers Sentry. Si on veut un contexte utilisateur, on l'ajoute
  * explicitement via `Sentry.setUser({ id })` sans mail ni nom.
  */
 export function initSentry(): void {
@@ -18,7 +18,17 @@ export function initSentry(): void {
     dsn,
     environment: import.meta.env.VITE_SENTRY_ENV ?? import.meta.env.MODE,
     release: import.meta.env.VITE_APP_VERSION,
-    sendDefaultPii: false,
+    // RGPD: no personal data. Since @sentry v11 `sendDefaultPii` is gone and
+    // `dataCollection` defaults to collecting user info, cookies, headers and
+    // query strings - switch all of it off explicitly.
+    dataCollection: {
+      userInfo: false,
+      cookies: false,
+      httpHeaders: false,
+      httpBodies: [],
+      urlQueryParams: false,
+      stackFrameVariables: false,
+    },
     integrations: [
       Sentry.browserTracingIntegration(),
       Sentry.replayIntegration({ maskAllText: true, blockAllMedia: true }),

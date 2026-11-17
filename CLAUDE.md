@@ -117,7 +117,9 @@ Règles :
 
 1. Aucun texte hardcodé en français dans le code TypeScript / JSX public ?
 2. Clés ajoutées aux 5 locales (fr / en / de / nl / lb) ?
-3. `npx tsc --noEmit` passe ?
+3. `npm run typecheck` passe (depuis `frontend/`) ? `npx tsc --noEmit` seul ne
+   vérifie rien : le tsconfig racine ne contient que des références. Le
+   build (`npm run build`) échoue désormais en cas d'erreur de type.
 4. Les 5 fichiers JSON parsent ? (`node -e "JSON.parse(require('fs').readFileSync('src/i18n/locales/<code>.json','utf8'))"`)
 
 ## 4. Workflow git
