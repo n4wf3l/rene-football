@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { MotionValue } from 'framer-motion'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useNavigate } from 'react-router-dom'
 import { motion, useScroll, useSpring } from 'framer-motion'
 import {
   ArrowLeft,
@@ -1104,6 +1104,7 @@ interface PlayerResponse {
 function PlayerProfilePage() {
   useDarkHero()
   const { slug } = useParams<{ slug: string }>()
+  const navigate = useNavigate()
   const [player, setPlayer] = useState<Player | null>(null)
   const [percentiles, setPercentiles] = useState<Record<string, number> | null>(null)
   const [peersCount, setPeersCount] = useState<number>(0)
@@ -1122,14 +1123,18 @@ function PlayerProfilePage() {
     setPresentations([])
     api.get<PlayerResponse>(`/players/${slug}`)
       .then((res) => {
-        if (!cancelled) {
-          setPlayer(res.data)
-          setPercentiles(res.percentiles ?? null)
-          setPeersCount(res.peers_count ?? 0)
-          setAppearances(res.appearances ?? [])
-          setClips(res.clips ?? [])
-          setStatus('ready')
+        if (cancelled) return
+        // Former URL (player renamed since): move to the current one.
+        if (res.data.slug && res.data.slug !== slug) {
+          navigate(`/joueurs/${res.data.slug}`, { replace: true })
+          return
         }
+        setPlayer(res.data)
+        setPercentiles(res.percentiles ?? null)
+        setPeersCount(res.peers_count ?? 0)
+        setAppearances(res.appearances ?? [])
+        setClips(res.clips ?? [])
+        setStatus('ready')
       })
       .catch((err: unknown) => {
         if (cancelled) return
@@ -1142,7 +1147,7 @@ function PlayerProfilePage() {
       .then((res) => { if (!cancelled) setPresentations(res.data) })
       .catch(() => { /* non-fatal */ })
     return () => { cancelled = true }
-  }, [slug])
+  }, [slug, navigate])
 
   if (status === 'loading') return <PlayerSkeleton />
   if (status === 'not-found' || status === 'error' || !player) return <NotFoundView />

@@ -34,6 +34,34 @@ class Player extends Model
             $player->photo_display_url = PlayerPhoto::displayFor($player->photo_url);
         });
         static::deleted(fn (Player $player) => PlayerPhoto::delete($player->photo_display_url));
+
+        // A rename changes the slug: keep the former one as a redirect so
+        // URLs already shared or indexed keep working.
+        static::updated(function (Player $player) {
+            if (! $player->wasChanged('slug')) {
+                return;
+            }
+            $old = $player->getOriginal('slug');
+            if ($old) {
+                PlayerSlugRedirect::updateOrCreate(['slug' => $old], ['player_id' => $player->id]);
+            }
+            // The new slug is a live URL again: it no longer redirects anywhere.
+            PlayerSlugRedirect::where('slug', $player->slug)->delete();
+        });
+    }
+
+    /** The published player who used to live at this slug, if any. */
+    public static function publishedFormerlyAt(string $slug): ?self
+    {
+        return static::query()
+            ->where('is_published', true)
+            ->whereHas('slugRedirects', fn ($q) => $q->where('slug', $slug))
+            ->first();
+    }
+
+    public function slugRedirects(): HasMany
+    {
+        return $this->hasMany(PlayerSlugRedirect::class);
     }
 
     public function appearances(): HasMany

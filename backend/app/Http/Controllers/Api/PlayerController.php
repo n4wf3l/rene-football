@@ -88,9 +88,15 @@ class PlayerController extends Controller
             ->header('Cache-Control', 'public, max-age=60');
     }
 
-    public function show(Player $player): JsonResponse
+    /**
+     * Also answers a former slug (player renamed since): the profile comes
+     * back with the current slug, which the SPA puts in the address bar.
+     */
+    public function show(string $slug): JsonResponse
     {
-        abort_unless($player->is_published, 404);
+        $player = Player::where('slug', $slug)->where('is_published', true)->first()
+            ?? Player::publishedFormerlyAt($slug);
+        abort_unless($player, 404);
 
         // Percentile rank within same-category published players.
         // We only need the metric columns + id/category for ranking, so we

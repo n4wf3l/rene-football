@@ -58,7 +58,7 @@ Route::post('/admin/reset-password', [PasswordResetController::class, 'reset'])
     ->middleware('throttle:10,1');
 
 Route::get('/players', [PlayerController::class, 'index']);
-Route::get('/players/{player:slug}', [PlayerController::class, 'show']);
+Route::get('/players/{slug}', [PlayerController::class, 'show']);
 Route::get('/players/{player:slug}/pdf', [PdfController::class, 'playerProfile']);
 
 Route::get('/articles', [ArticleController::class, 'index']);
