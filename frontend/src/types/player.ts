@@ -5,6 +5,8 @@ export type PlayerCategory = 'Gardien' | 'Defenseur' | 'Milieu' | 'Attaquant'
 export type PreferredFoot = 'Droit' | 'Gauche' | 'Ambidextre'
 
 export interface Player {
+  /** Database id - returned by every player endpoint. */
+  id: number
   slug: string
   name: string
   age: number
