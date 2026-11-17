@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { api, ApiError } from '../../api/client'
+import PlayerEditor from '../../components/admin/playerEditor/PlayerEditor'
 import {
   EMPTY_PLAYER,
-  PlayerEditor,
   type AdminPlayer,
   type PlayerFormState,
   type SaveKind,
-} from './AdminPlayers'
+} from '../../components/admin/playerEditor/model'
 import Skeleton from '../../components/Skeleton'
 import { useConfirm } from '../../components/ConfirmProvider'
 import { useToast } from '../../components/ToastProvider'
@@ -125,7 +125,6 @@ export default function AdminPlayerEdit({ creating = false }: { creating?: boole
     <PlayerEditor
       player={player}
       isNew={creating}
-      mode="page"
       onClose={onClose}
       onSaved={onSaved}
       onDelete={onDelete}

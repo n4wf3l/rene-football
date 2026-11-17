@@ -184,6 +184,32 @@ class AdminPlayerController extends Controller
     }
 
     /**
+     * POST /api/admin/players/assets — an image for the player editor (club
+     * logo, secondary portrait, gallery photo, career logo). Stored on the
+     * public disk under players/assets/, returns its /storage URL; the
+     * editor puts it in the matching field and saves it with the player.
+     */
+    public function uploadAsset(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'image' => ['required', 'image', 'mimes:jpeg,jpg,png,webp', 'max:6144'],
+            'kind'  => ['nullable', 'in:logo,portrait,gallery,career'],
+        ], [
+            'image.required' => 'Choisissez une image.',
+            'image.image'    => "Ce fichier n'est pas une image.",
+            'image.mimes'    => 'Formats acceptés : JPG, PNG ou WebP.',
+            'image.max'      => 'Image trop lourde (6 Mo maximum).',
+        ]);
+
+        $file = $request->file('image');
+        $ext = $file->guessExtension() ?: $file->getClientOriginalExtension() ?: 'jpg';
+        $name = ($data['kind'] ?? 'image').'-'.bin2hex(random_bytes(6)).'.'.$ext;
+        $path = $file->storeAs('players/assets', $name, 'public');
+
+        return response()->json(['url' => Storage::url($path)], 201);
+    }
+
+    /**
      * Store an uploaded photo on the public disk under players/<slug>-<hash>.<ext>.
      * Returns the URL the frontend can render directly (e.g. /storage/players/xxx.jpg).
      */

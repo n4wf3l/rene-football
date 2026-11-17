@@ -109,6 +109,10 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::get('/players', [AdminPlayerController::class, 'index']);
     Route::post('/players', [AdminPlayerController::class, 'store']);
     Route::post('/players/import', [AdminPlayerController::class, 'importStats']);
+    // Images of the player editor (logos, portrait, gallery, career): the
+    // file is stored right away and its URL goes into the form. Declared
+    // before /players/{player:slug} so "assets" is never read as a slug.
+    Route::post('/players/assets', [AdminPlayerController::class, 'uploadAsset']);
     Route::get('/players/import/template', [AdminPlayerController::class, 'statsTemplate']);
     Route::post('/players/appearances/import', [AdminPlayerController::class, 'importAppearances']);
     Route::get('/players/appearances/template', [AdminPlayerController::class, 'appearancesTemplate']);
