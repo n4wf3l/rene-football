@@ -58,6 +58,9 @@ class PublicPageController extends Controller
     {
         try {
             $player = Player::where('slug', $slug)->where('is_published', true)->first();
+            if (! $player && ($moved = Player::publishedFormerlyAt($slug))) {
+                return redirect('/joueurs/'.$moved->slug, 301);
+            }
             if (! $player && ($moved = $this->renamedPlayer($slug))) {
                 return redirect('/joueurs/'.$moved, 301);
             }
