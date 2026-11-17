@@ -72,6 +72,16 @@ class ContactSubmissionTest extends TestCase
         $this->assertSame('joueur', $submission->payload['_reason'] ?? null);
     }
 
+    public function test_submissions_go_to_email_only_never_to_telegram(): void
+    {
+        config(['services.telegram.bot_token' => 'test-token', 'services.telegram.chat_id' => '-1001234']);
+        \Illuminate\Support\Facades\Http::fake();
+
+        $this->postJson('/api/contact', $this->playerPayload())->assertStatus(201);
+
+        \Illuminate\Support\Facades\Http::assertNothingSent();
+    }
+
     public function test_email_is_normalised_to_lowercase(): void
     {
         $this->postJson('/api/contact', $this->playerPayload([
