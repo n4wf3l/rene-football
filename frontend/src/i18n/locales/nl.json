@@ -1,6 +1,7 @@
 {
   "common": {
     "loading": "Laden…",
+    "checkingSession": "Sessie wordt gecontroleerd",
     "error": "Er is iets misgegaan.",
     "retry": "Opnieuw proberen",
     "back": "Terug",

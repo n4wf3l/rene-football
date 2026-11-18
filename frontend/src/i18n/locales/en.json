@@ -1,6 +1,7 @@
 {
   "common": {
     "loading": "Loading…",
+    "checkingSession": "Checking your session",
     "error": "Something went wrong.",
     "retry": "Try again",
     "back": "Back",

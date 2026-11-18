@@ -11,6 +11,7 @@ import NotFoundPage from './pages/NotFoundPage'
 import RouteFallback from './components/RouteFallback'
 import ScrollToTop from './components/ScrollToTop'
 import TopLoadingBar from './components/TopLoadingBar'
+import LoadingBadge from './components/LoadingBadge'
 
 /* Lazy public routes - kept off the initial bundle. HomePage stays eager
    so the landing first-paint is fast. */
@@ -56,6 +57,7 @@ function App() {
       <AuthProvider>
         <BrowserRouter>
           <TopLoadingBar />
+          <LoadingBadge />
           <ScrollToTop />
           <Suspense fallback={<RouteFallback />}>
             <Routes>
