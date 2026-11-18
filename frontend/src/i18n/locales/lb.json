@@ -1,6 +1,7 @@
 {
   "common": {
     "loading": "Gëtt gelueden…",
+    "checkingSession": "Sessioun gëtt iwwerpréift",
     "error": "Eppes ass falsch gaangen.",
     "retry": "Nach eng Kéier probéieren",
     "back": "Zréck",

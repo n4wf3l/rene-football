@@ -1,6 +1,7 @@
 {
   "common": {
     "loading": "Wird geladen…",
+    "checkingSession": "Sitzung wird überprüft",
     "error": "Etwas ist schiefgelaufen.",
     "retry": "Erneut versuchen",
     "back": "Zurück",

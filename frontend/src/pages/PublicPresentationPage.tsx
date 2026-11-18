@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { DownloadSimple, FilePdf, Person, User } from '@phosphor-icons/react'
 import { api, ApiError } from '../api/client'
 import { useTranslation } from 'react-i18next'
+import RFLoader from '../components/RFLoader'
 
 /**
  * Public landing page for a shared presentation link.
@@ -74,9 +75,7 @@ export default function PublicPresentationPage() {
   if (!meta) {
     return (
       <div className="min-h-screen grid place-items-center bg-stone-100 dark:bg-zinc-950">
-        <div className="text-xs font-mono uppercase tracking-[0.2em] text-zinc-500 dark:text-stone-500 animate-pulse">
-          {t('common.loading')}
-        </div>
+        <RFLoader size={64} />
       </div>
     )
   }
