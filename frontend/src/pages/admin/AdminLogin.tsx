@@ -6,7 +6,8 @@ import { ArrowRight, CheckCircle, Eye, EyeSlash, LockKey } from '@phosphor-icons
 import { useAuth } from '../../auth/AuthContext'
 import { ApiError } from '../../api/client'
 import ScrambleText from '../../components/home/ScrambleText'
-import AuthLayout, { AUTH_BUTTON, AUTH_ERROR, AUTH_INPUT, AUTH_LABEL, AuthSpinner } from '../../components/admin/login/AuthLayout'
+import AuthLayout, { AUTH_BUTTON, AUTH_ERROR, AUTH_INPUT, AUTH_LABEL } from '../../components/admin/login/AuthLayout'
+import RFLoader from '../../components/RFLoader'
 
 /**
  * Admin sign-in, inside the match-analysis room (AuthLayout). On success
@@ -47,13 +48,8 @@ function AdminLogin() {
 
   if (isLoading) {
     return (
-      <div className="grid place-items-center min-h-[100dvh] bg-zinc-950 text-stone-400">
-        <motion.span
-          aria-label="Chargement"
-          className="w-3 h-3 rounded-full bg-turf-500"
-          animate={{ opacity: [0.3, 1, 0.3], scale: [0.85, 1.05, 0.85] }}
-          transition={{ duration: 1.2, ease: 'easeInOut', repeat: Infinity }}
-        />
+      <div className="grid place-items-center min-h-[100dvh] bg-zinc-950">
+        <RFLoader size={64} tone="light" />
       </div>
     )
   }
@@ -165,18 +161,51 @@ function AdminLogin() {
             </motion.div>
           )}
 
-          <button type="submit" disabled={submitting || granted} className={AUTH_BUTTON}>
-            {submitting || granted ? (
-              <>
-                <AuthSpinner />
-                {granted ? 'Ouverture…' : 'Vérification…'}
-              </>
-            ) : (
-              <>
-                Entrer dans le dashboard
-                <ArrowRight size={15} weight="bold" />
-              </>
-            )}
+          <button
+            type="submit"
+            disabled={submitting || granted}
+            aria-busy={submitting || granted}
+            className={`${AUTH_BUTTON} relative overflow-hidden ${submitting || granted ? 'rf-login-busy' : ''}`}
+            // The animation already says "wait": keep the button at full strength.
+            style={submitting || granted ? { opacity: 1 } : undefined}
+          >
+            {/* While signing in: the RF monogram writes itself in white and a
+                light band sweeps the button; once granted the monogram
+                settles full before the dashboard opens. */}
+            <AnimatePresence mode="popLayout" initial={false}>
+              {submitting || granted ? (
+                <motion.span
+                  key="busy"
+                  initial={{ opacity: 0, y: 14 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -14 }}
+                  transition={{ type: 'spring', stiffness: 420, damping: 30 }}
+                  className="relative inline-flex items-center gap-3"
+                >
+                  <motion.span
+                    initial={{ scale: 0.6, rotate: -8 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ type: 'spring', stiffness: 380, damping: 16 }}
+                    className="inline-flex"
+                  >
+                    <RFLoader size={26} label={null} tone="light" done={granted} hidesBadge />
+                  </motion.span>
+                  {granted ? 'Ouverture…' : 'Vérification…'}
+                </motion.span>
+              ) : (
+                <motion.span
+                  key="idle"
+                  initial={{ opacity: 0, y: 14 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -14 }}
+                  transition={{ type: 'spring', stiffness: 420, damping: 30 }}
+                  className="relative inline-flex items-center gap-2"
+                >
+                  Entrer dans le dashboard
+                  <ArrowRight size={15} weight="bold" />
+                </motion.span>
+              )}
+            </AnimatePresence>
           </button>
         </form>
 
