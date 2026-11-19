@@ -224,3 +224,22 @@ body.tutorial-active .admin-reopen-handle {
   .rf-loader-ink { animation: none; transform: scaleX(1); }
   .rf-loader-sheen { animation: none; opacity: 0; }
 }
+
+/* Sign-in button while it waits (AdminLogin): a soft light band sweeps
+   across, in step with the RF monogram inside. Transform only. */
+@keyframes rf-login-sweep {
+  from { transform: translate3d(-120%, 0, 0) skewX(-24deg); }
+  to   { transform: translate3d(320%, 0, 0) skewX(-24deg); }
+}
+.rf-login-busy::after {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 35%;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.16), transparent);
+  animation: rf-login-sweep 1.8s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .rf-login-busy::after { animation: none; opacity: 0; }
+}

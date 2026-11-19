@@ -20,6 +20,21 @@ function setPageLoaders(next: number): void {
 /** From this size on, the loader counts as the page's main loader. */
 const PAGE_LOADER_MIN_SIZE = 48
 
+/* Layer colors: `brand` for page surfaces (follows light/dark), `light`
+   for a white monogram on a colored surface such as the blue buttons. */
+const TONES = {
+  brand: {
+    ghost: 'bg-zinc-300/80 dark:bg-zinc-700/80',
+    ink: 'bg-turf-700 dark:bg-turf-400',
+    sheen: 'via-white/70 dark:via-white/45',
+  },
+  light: {
+    ghost: 'bg-white/25',
+    ink: 'bg-stone-50',
+    sheen: 'via-turf-200/90',
+  },
+} as const
+
 export interface RFLoaderProps {
   /** Width/height of the monogram in px. */
   size?: number
@@ -32,6 +47,13 @@ export interface RFLoaderProps {
   delay?: number
   /** Loading finished: the ink fills the whole monogram instead of looping. */
   done?: boolean
+  tone?: keyof typeof TONES
+  /**
+   * Hide the corner LoadingBadge while this loader is on screen. On by
+   * default for page-size loaders; set it on a small loader that already
+   * shows the wait (a submit button), so the monogram never shows twice.
+   */
+  hidesBadge?: boolean
   className?: string
 }
 
@@ -50,6 +72,8 @@ export default function RFLoader({
   label,
   delay = 0,
   done = false,
+  tone = 'brand',
+  hidesBadge,
   className = '',
 }: RFLoaderProps) {
   const { t } = useTranslation()
@@ -61,7 +85,7 @@ export default function RFLoader({
     return () => window.clearTimeout(id)
   }, [delay])
 
-  const isPageLoader = visible && size >= PAGE_LOADER_MIN_SIZE
+  const isPageLoader = visible && (hidesBadge ?? size >= PAGE_LOADER_MIN_SIZE)
   useEffect(() => {
     if (!isPageLoader) return
     setPageLoaders(pageLoaders + 1)
@@ -71,6 +95,7 @@ export default function RFLoader({
   if (!visible) return null
 
   const caption = label === undefined ? t('common.loading') : label
+  const colors = TONES[tone]
 
   return (
     <div
@@ -84,9 +109,9 @@ export default function RFLoader({
         className="rf-loader-mark relative block overflow-hidden"
         style={{ width: size, height: size }}
       >
-        <span className="absolute inset-0 bg-zinc-300/80 dark:bg-zinc-700/80" />
-        <span className="rf-loader-ink absolute inset-0 bg-turf-700 dark:bg-turf-400" />
-        <span className="rf-loader-sheen absolute inset-y-0 left-0 w-2/5 bg-gradient-to-r from-transparent via-white/70 to-transparent dark:via-white/45" />
+        <span className={`absolute inset-0 ${colors.ghost}`} />
+        <span className={`rf-loader-ink absolute inset-0 ${colors.ink}`} />
+        <span className={`rf-loader-sheen absolute inset-y-0 left-0 w-2/5 bg-gradient-to-r from-transparent to-transparent ${colors.sheen}`} />
       </span>
       {caption ? (
         <span className="text-[0.68rem] font-mono uppercase tracking-[0.24em] text-zinc-500 dark:text-stone-400">
